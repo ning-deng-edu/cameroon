@@ -1,0 +1,607 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataSchema>
+  <RelationshipElement name="TrenchUnit" type="bidirectional">
+    <description>Defines a 1:N relationship between a Trench and related Units</description>
+  </RelationshipElement>
+  <RelationshipElement name="TrenchSpit" type="bidirectional">
+    <description>Defines a 1:N relationship between a Trench and related Spits</description>
+  </RelationshipElement>
+  <RelationshipElement name="TrenchPhotographLog" type="bidirectional">
+    <description>Implements a 1:N between a feature and photo logs</description>
+  </RelationshipElement>
+  <RelationshipElement name="TrenchNote" type="bidirectional">
+    <description>Implements a 1:N between a feature and photo logs</description>
+  </RelationshipElement>
+
+  <ArchaeologicalElement name="Trench">
+    <description></description>
+    <property name="Trench ID" type="freetext" isIdentifier="true">
+      <description>Description TBD</description>
+    </property>
+    <property name="Job Name" type="freetext" isIdentifier="true">
+      <description>Description TBD</description>
+    </property>
+    <property name="T Author" type="freetext" isIdentifier="true">
+      <description>Description TBD</description>
+    </property>    
+    <property name="Latitude" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Longitude" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Northing" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Easting" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Dimensions" type="enum">
+      <description>Description TBD</description>
+      <lookup>
+        <term> {No_Observation}
+          <description>Description TBD</description>
+        </term>
+        <term> {1x1m}
+          <description>Description TBD</description>
+        </term>
+        <term> {2x1m}
+          <description>Description TBD</description>
+        </term>
+        <term> {0.5mx0.5m}
+          <description>Description TBD</description>
+        </term>
+        <term> {Other_annotation}
+          <description>Description TBD</description>
+        </term>
+      </lookup>
+    </property>
+    <property name="Artefacts Present" type="enum">
+      <description>Description TBD</description>
+      <lookup>
+        <term> {No_Observation}
+          <description>Description TBD</description>
+        </term>
+        <term> {Yes}
+          <description>Description TBD</description>
+        </term>
+        <term> {No}
+          <description>Description TBD</description>
+        </term>
+      </lookup>
+    </property>
+    <property name="Landform Genesis" type="enum">
+      <description>Description TBD</description>
+      <lookup>
+        <term> {Eroded}
+          <description>Description TBD</description>
+        </term>
+        <term> {Aggraded}
+          <description>Description TBD</description>
+        </term>
+        <term> {Stable}
+          <description>Description TBD</description>
+        </term>
+        <term> {Elevated}
+          <description>Description TBD</description>
+        </term>
+        <term> {Built_up}
+          <description>Description TBD</description>
+        </term>
+        <term> {Subsided}
+          <description>Description TBD</description>
+        </term>
+        <term> {Excavated}
+          <description>Description TBD</description>
+        </term>
+        <term> {Other}
+          <description>Description TBD</description>
+        </term>
+      </lookup>
+    </property>
+    <property name="Landform Element" type="enum">
+      <description>Description TBD</description>
+      <lookup>
+        <term> {Crest}
+          <description>Description TBD</description>
+        </term>
+        <term> {Slope}
+          <description>Description TBD</description>
+        </term>
+        <term> {Flat}
+          <description>Description TBD</description>
+        </term>
+        <term> {Cliff_Escarpment}
+          <description>Description TBD</description>
+        </term>
+        <term> {Open_Depression}
+          <description>Description TBD</description>
+        </term>
+        <term> {Closed_Depression}
+          <description>Description TBD</description>
+        </term>
+        <term> {Ridgeline}
+          <description>Description TBD</description>
+        </term>
+        <term> {Other_annotation}
+          <description>Description TBD</description>
+        </term>
+      </lookup>
+    </property>
+    <property name="Slope Degree" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Slope Detail" type="enum">
+      <description>Description TBD</description>
+      <lookup>
+        <term> {No_Observation}
+          <description>Description TBD</description>
+        </term>
+        <term> {Simple}
+          <description>Description TBD</description>
+        </term>
+        <term> {Upper}
+          <description>Description TBD</description>
+        </term>
+        <term> {Middle}
+          <description>Description TBD</description>
+        </term>
+        <term> {Lower}
+          <description>Description TBD</description>
+        </term>
+        <term> {Other}
+          <description>Description TBD</description>
+        </term>
+      </lookup>
+    </property>
+    <property name="Slope Detail 2" type="enum">
+      <description>Description TBD</description>
+      <lookup>
+        <term> {No_Observation}
+          <description>Description TBD</description>
+        </term>
+        <term> {Waxing}
+          <description>Description TBD</description>
+        </term>
+        <term> {Waning}
+          <description>Description TBD</description>
+        </term>
+        <term> {Maximal}
+          <description>Description TBD</description>
+        </term>
+        <term> {Minimal}
+          <description>Description TBD</description>
+        </term>
+        <term> {Other}
+          <description>Description TBD</description>
+        </term>
+      </lookup>
+    </property>
+    <property name="Geomorphic Context" type="enum">
+      <description>Description TBD</description>
+      <lookup>
+        <term> {No_Observation}
+          <description>Description TBD</description>
+        </term>
+        <term> {Aeolian_(Dune)}
+          <description>Description TBD</description>
+        </term>
+        <term> {Alluvial}
+          <description>Description TBD</description>
+        </term>
+        <term> {Colluvial}
+          <description>Description TBD</description>
+        </term>
+        <term> {Lacustrine}
+          <description>Description TBD</description>
+        </term>
+        <term> {Volcanic}
+          <description>Description TBD</description>
+        </term>
+        <term> {Sedimentary}
+          <description>Description TBD</description>
+        </term>
+        <term> {Metamorphic}
+          <description>Description TBD</description>
+        </term>
+        <term> {Estuarine}
+          <description>Description TBD</description>
+        </term>
+        <term> {Marine}
+          <description>Description TBD</description>
+        </term>
+        <term> {Other}
+          <description>Description TBD</description>
+        </term>
+      </lookup>
+    </property>
+    <property name="Aspect" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Distance to Water" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Samples Collected" type="enum">
+      <description>Description TBD</description>
+      <lookup>
+        <term> {Soil}
+          <description>Description TBD</description>
+        </term>
+        <term> {Charcoal}
+          <description>Description TBD</description>
+        </term>
+        <term> {TL_OSL}
+          <description>Description TBD</description>
+        </term>
+        <term> {Other}
+          <description>Description TBD</description>
+        </term>
+      </lookup>
+    </property>
+    <property name="Samples Details" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Photos" type="file" file="true" thumbnail="true">
+      <description>Description TBD</description>
+    </property>
+    <property name="Sketches" type="file" file="true" thumbnail="true">
+      <description>Description TBD</description>
+    </property>
+    <property name="Timestamp" type="freetext">
+      <description/>
+    </property>
+  </ArchaeologicalElement>
+  <ArchaeologicalElement name="Unit">
+    <property name="Unit ID" type="freetext" isIdentifier="true">
+      <description>Description TBD</description>
+    </property>
+    <property name="Horizon" type="freetext" isIdentifier="true">
+      <description>Description TBD</description>
+    </property>
+    <property name="Depth" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="pH" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Colour" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Texture" type="enum">
+      <description>Description TBD</description>
+      <lookup>
+        <term> {No_Observation}
+          <description>Description TBD</description>
+        </term>
+        <term> {Sand}
+          <description>Description TBD</description>
+          <term> {Loamy_Sand}
+            <description>Description TBD</description>
+          </term>
+          <term> {Clayey_Sand}
+            <description>Description TBD</description>
+          </term>
+          <term> {Silty_Sand}
+            <description>Description TBD</description>
+          </term>
+        </term>
+        <term> {Clay}
+          <description>Description TBD</description>
+          <term> {Sandy_Clay}
+            <description>Description TBD</description>
+          </term>
+          <term> {Silty_Clay}
+            <description>Description TBD</description>
+          </term>
+        </term>
+        <term> {Loam}
+          <description>Description TBD</description>
+          <term> {Loam}
+            <description>Description TBD</description>
+          </term>
+          <term> {Sandy_Loam}
+            <description>Description TBD</description>
+          </term>
+          <term> {Silty_Clay_Loam}
+            <description>Description TBD</description>
+          </term>
+          <term> {Sandy_Clay_Loam}
+            <description>Description TBD</description>
+          </term>
+          <term> {Clay_Loam}
+            <description>Description TBD</description>
+          </term>
+          <term> {Clay_Loam_Sandy}
+            <description>Description TBD</description>
+          </term>
+          <term> {Silty_Clay_Loam}
+            <description>Description TBD</description>
+          </term>
+        </term>
+      </lookup>
+    </property>
+    <property name="Moisture" type="enum">
+      <description>Description TBD</description>
+      <lookup>
+        <term> {No_Observation}
+          <description>Description TBD</description>
+        </term>
+        <term> {Dry}
+          <description>Description TBD</description>
+        </term>
+        <term> {Moderately_moist}
+          <description>Description TBD</description>
+        </term>
+        <term> {Moist}
+          <description>Description TBD</description>
+        </term>
+        <term> {Wet}
+          <description>Description TBD</description>
+        </term>
+      </lookup>
+    </property>
+    <property name="Grain size" type="enum">
+      <description>Description TBD</description>
+      <lookup>
+        <term> {No_Observation}
+          <description>Description TBD</description>
+        </term>
+        <term> {Very_fine}
+          <description>Description TBD</description>
+        </term>
+        <term> {Fine}
+          <description>Description TBD</description>
+        </term>
+        <term> {Medium}
+          <description>Description TBD</description>
+        </term>
+        <term> {Coarse}
+          <description>Description TBD</description>
+        </term>
+      </lookup>
+    </property>
+    <property name="Consistency" type="enum">
+      <description>Description TBD</description>
+      <lookup>
+        <term> {No_Observation}
+          <description>Description TBD</description>
+        </term>
+        <term> {Loose}
+          <description>Description TBD</description>
+        </term>
+        <term> {Soft_friable}
+          <description>Description TBD</description>
+        </term>
+        <term> {Hard_Firm}
+          <description>Description TBD</description>
+        </term>
+        <term> {Extremely_Hard}
+          <description>Description TBD</description>
+        </term>
+      </lookup>
+    </property>
+    <property name="Cementation" type="enum">
+      <description>Description TBD</description>
+      <lookup>
+        <term> {No_Observation}
+          <description>Description TBD</description>
+        </term>
+        <term> {Weakly_cemented}
+          <description>Description TBD</description>
+        </term>
+        <term> {Strongly_cemented}
+          <description>Description TBD</description>
+        </term>
+      </lookup>
+    </property>
+    <property name="Inclusions" type="enum">
+      <description>Description TBD</description>
+      <lookup>
+        <term> {No_Observation}
+          <description>Description TBD</description>
+        </term>
+        <term> {Charcoal}
+          <description>Description TBD</description>
+        </term>
+        <term> {Grass_roots}
+          <description>Description TBD</description>
+        </term>
+        <term> {Tree_roots}
+          <description>Description TBD</description>
+        </term>
+        <term> {Gravel}
+          <description>Description TBD</description>
+        </term>
+        <term> {Mineral_pan}
+          <description>Description TBD</description>
+        </term>
+        <term> {Other_annotation}
+          <description>Description TBD</description>
+        </term>
+      </lookup>
+    </property>
+    <property name="Root Size" type="enum">
+      <description>Description TBD</description>
+      <lookup>
+        <term> {No_Observation}
+          <description>Description TBD</description>
+        </term>
+        <term> {Very_fine}
+          <description>Description TBD</description>
+        </term>
+        <term> {Fine}
+          <description>Description TBD</description>
+        </term>
+        <term> {Medium}
+          <description>Description TBD</description>
+        </term>
+        <term> {Coarse}
+          <description>Description TBD</description>
+        </term>
+      </lookup>
+    </property>
+    <property name="Root Abundance" type="enum">
+      <description>Description TBD</description>
+      <lookup>
+        <term> {No_Observation}
+          <description>Description TBD</description>
+        </term>
+        <term> {Few}
+          <description>Description TBD</description>
+        </term>
+        <term> {Common}
+          <description>Description TBD</description>
+        </term>
+        <term> {Many}
+          <description>Description TBD</description>
+        </term>
+        <term> {Abundant}
+          <description>Description TBD</description>
+        </term>
+      </lookup>
+    </property>
+    <property name="Disturbance" type="enum">
+      <description>Description TBD</description>
+      <lookup>
+        <term> {Ploughing}
+          <description>Description TBD</description>
+        </term>
+        <term> {Bioturbation}
+          <description>Description TBD</description>
+        </term>
+        <term> {Stock_trampling}
+          <description>Description TBD</description>
+        </term>
+        <term> {Burrows}
+          <description>Description TBD</description>
+        </term>
+        <term> {Other_annotation}
+          <description>Description TBD</description>
+        </term>
+      </lookup>
+    </property>
+    <property name="Artefacts" type="enum">
+      <description>Description TBD</description>
+      <lookup>
+        <term> {No_Observation}
+          <description>Description TBD</description>
+        </term>
+        <term> {Yes}
+          <description>Description TBD</description>
+        </term>
+        <term> {No}
+          <description>Description TBD</description>
+        </term>
+      </lookup>
+    </property>
+    <property name="Notes" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Unit Job Name" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Unit Trench ID" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Unit Author" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Photos" type="file" file="true" thumbnail="true">
+      <description>Description TBD</description>
+    </property>
+    <property name="Sketches" type="file" file="true" thumbnail="true">
+      <description>Description TBD</description>
+    </property>
+    <property name="Timestamp" type="freetext">
+      <description/>
+    </property>
+  </ArchaeologicalElement>
+  <ArchaeologicalElement name="Spit">
+    <description></description>
+    <property name="Spit ID" type="freetext" isIdentifier="true">
+      <description>Description TBD</description>
+    </property>
+    <property name="Bucket Count" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Thickness" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Artefact Density" type="freetext" isIdentifier="true">
+      <description>Description TBD</description>
+    </property>
+    <property name="Notes" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Spit Job Name" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Spit Trench ID" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Spit Author" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Timestamp" type="freetext">
+      <description/>
+    </property>
+  </ArchaeologicalElement>
+
+    <!-- ARCHENT: Photograph log -->
+  <ArchaeologicalElement name="Photograph log">
+    <description>A record of images created and stored on another device, eg by a professional site photographer.</description>
+    <property name="Photograph reference ID" isIdentifier= "true" type="freetext">
+      <description>Unique number or code allocated by creator of the image. It could be a filename or a reference number</description>
+    </property>
+    <property name="Scene type" type="enum">
+      <description>The type of scene captured, eg opening or closing view of the Context. (Vocab: Open, Close, Other)</description>
+      <lookup>
+        <term> {No_Observation}<description/> </term>
+        <term> {Open}
+          <description/>
+        </term>
+        <term> {Close}
+          <description/>
+        </term>
+        <term> {Other}
+          <description/>
+        </term>
+      </lookup>
+    </property>
+    <property name="PL Trench ID" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="PL Job Name" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="PL Author" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="PL Timestamp" type="freetext">
+      <description>Description TBD</description>
+    </property>
+  </ArchaeologicalElement>
+
+    <!-- ARCHENT: Notes -->
+  <ArchaeologicalElement name="Notes">
+    <description>Notes</description>
+    <property name="Note Label" isIdentifier= "true" type="freetext">
+      <description>Label describing note</description>
+    </property>
+    <property name="Note" type="enum">
+      <description>Notes</description>
+    </property>
+    <property name="N Trench ID" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="N Job Name" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Author" isIdentifier= "true" type="freetext">
+      <description>Description TBD</description>
+    </property>
+    <property name="Timestamp" isIdentifier= "true" type="freetext">
+      <description>Description TBD</description>
+    </property>
+  </ArchaeologicalElement>
+</dataSchema>

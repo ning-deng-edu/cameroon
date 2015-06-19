@@ -1,0 +1,58 @@
+import java.util.concurrent.Callable;
+/*** 'Editable' - you can edit the code below based on the needs ***/
+User user; // don't touch
+String userid;
+
+/*** USER ***/
+onEvent("user/usertab/users", "click", "login()");
+
+loadUsers() {
+    fetchAll("select userid, fname || ' ' || lname from user where userdeleted is null", new FetchCallback() {
+        onFetch(result) {
+            populateList("user/usertab/users", result);
+        }
+    });
+}
+
+loadUsers();
+
+String username = "";
+String device = "";
+
+login() {
+    fetchOne("select userid,fname,lname,email from user where userid='" + getListItemValue() + "';", new FetchCallback() {
+        onFetch(result) {
+            user = new User(result.get(0),result.get(1),result.get(2),result.get(3));
+            setUser(user);
+            username = result.get(1) + " " + result.get(2);
+            showTabGroup("control");
+        }
+    });
+}
+
+/*** control ***/
+onEvent("control/Excavation_Data/newTrench", "click","newTrench(false)");
+
+
+String trench_id = null;
+
+newTrench(Boolean onSaveAndNew) {
+    String job_name;
+    if(!onSaveAndNew) {
+        if(isNull(getFieldValue("control/Excavation_Data/Job_Name"))) {
+            showWarning("Validation Error", "You must fill in the Job Name before you can create a Trench");
+            return;
+        } else {
+            job_name = getFieldValue("control/Excavation_Data/Job_Name");
+        }
+    } else {
+        job_name = getFieldValue("Trench/Trench_Info/Job_Name");
+    }
+    onEvent("Trench", "show", "showTab(\"Trench/Slope\");cancelTab(\"Trench/Slope\", false);");
+    newTabGroup("Trench");
+    trench_id = null;
+    setFieldValue("Trench/Trench_Info/Job_Name", job_name);
+    setFieldValue("Trench/Trench_Info/Author", username);
+    setTimestamp("Trench/hidden/timestamp");
+}
+

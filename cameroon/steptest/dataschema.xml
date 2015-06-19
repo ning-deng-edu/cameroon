@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataSchema name="linguistic_project_UB">
+    <!--This data schema is for researchers to collect data for field trip-->
+    <RelationshipElement name="QuestionBank and Question" type ="bidirectional">
+        <description> Implements a 1:N relationship between QuestionBank and Question</description>
+    </RelationshipElement>
+    
+    <RelationshipElement name="Questionnare and Question" type="bidirectional">
+        <description>Implements a 1:N relationship between Questionnaire and Question</description>
+    </RelationshipElement>
+    
+    <RelationshipElement name="File and Session" type="bidirectional">
+        <description>Implements a N:N relationship between File and Session</description>
+    </RelationshipElement>
+    
+    <RelationshipElement name="Answer and Question" type="bidirectcional">
+        <description>Implements a N:1 relationship between Answer and Question</description>
+    </RelationshipElement>
+    
+    <RelationshipElement name="Answer and File" type="bidirectional">
+        <description>Implements a 1:N relationship between Answer and File</description>
+    </RelationshipElement>
+    
+    <RelationshipElement name="Answer and Person" type="bidirectional">
+        <description>Implements a N:N relationship between Answer and Person</description>
+    </RelationshipElement>
+    
+    <RelationshipElement name="Answer and Session" type="bidirectional">
+        <description>Implements a N:1 relationship between Answer and Session</description>
+    </RelationshipElement>
+    
+    <RelationshipElement name="Person and Language" type="bidirectional">
+        <description>Implements a N:N relationship between Person and Language</description>
+    </RelationshipElement>
+    
+    <RelationshipElement name="Question and Language" type="bidirectional">
+        <description>Implements a N:1 relationship between Question and Language</description>
+    </RelationshipElement>
+    
+    <RelationshipElement name="Session and Bookmark" type="bidirectional">
+        <description>Implements a 1:N relationship between Session and Bookmark</description>
+    </RelationshipElement>
+    
+    <RelationshipElement name="Session and FieldTrip" type="bidirectional">
+        <description>Implements a N:1 relationship between Session and FieldTrip</description>
+    </RelationshipElement>
+    
+    
+    
+    
+    <ArchaeologicalElement name="Question">
+        <description> Entity Question, has only two foreign keys, reference to Questionnaire ID and QuestionID respectively</description>
+        <property name="QuestionnaireID" isIdentifier="true" type="String">
+            <description>First foreign key references to QuestionnaireID</description>
+        </property>
+        <property name="QuestionID" isIdentifier="true" type="String">
+            <description>Second foreign key references to QuestionID, now user can uniquely locate a specific question in a questionnaire</description>
+        </property>
+    </ArchaeologicalElement>
+    
+    <ArchaeologicalElement name="Questionnaire">
+        <description> Entity Questionnaire, basically this entity stores the metadata of a Questionnaire, the questions in the questionnaire is stored in QuestionBank entity </description>
+        <property name="QuestionnaireID" isIdentifier="true" type="String"></property>
+        <property name="QuestionnaireName" type="String"></property>
+        <property name="QuestionnaireDescription" type="freetext">
+            <formatString><![CDATA[$3]]></formatString>
+        </property>
+    </ArchaeologicalElement>
+    
+    <ArchaeologicalElement name="QuestionBank">
+        <description>Entity Question, stores the questions created by user</description>
+        <property name="QuestionID" isIdentifier="true" type="String"></property>
+        <property name="QuestionContent" type="freetext">
+            <formatString><![CDATA[$3]]></formatString>
+        </property>
+        <!--Ask Ankit-->
+        <property name="QuestionType" type="String"></property>
+        <property name="QuestionChoice" type="String"></property>
+        <!--Ask Ankit-->
+        <property name="QuestionLanguage" type="String">
+            <description>This is a foreign key that references to the LanguageID in Language</description>
+        </property>
+    </ArchaeologicalElement>
+    
+    
+    <ArchaeologicalElement name="Language">
+        <description>Entity Language, stores code, language name of languages</description>
+        <property name="LanguageID" isIdentifier="true" type="String">
+            <description> Use the 639 code as the language ID</description>
+        </property>
+        <property name="LanguageName" type="String"></property>
+        <property name="LanguageOtherNames" type="freetext"></property>
+    </ArchaeologicalElement>
+    
+    <ArchaeologicalElement name="AnswerToQuestionnaire">
+        <description>Entity AnswerToQuestionnaire, represent the metadata and data of the answers collected for a questionnaire</description>
+        <property name="QuestionnaireID" isIdentifier="true" type="String"></property>
+        <property name="QuestionID" isIdentifier="true" type="String"></property>
+        <property name="AnswerChoice" type="freetext"></property>
+        <property name="AnswerText" type="freetext"></property>
+        <property name="AnswerFile" type="String"></property>
+        <property name="InterviewerID" type="String"></property>
+        <property name="IntervieweeID" type="String"></property>
+        <property name="StartTimeStamp" type="time"></property>
+        <property name="EndTimeStamp" type="time"></property>
+    </ArchaeologicalElement>
+    
+    <ArchaeologicalElement name="Person">
+        <description>Entity Person, indicates the person's info including names and photo</description>
+        <property name="PersonID" isIdentifier="true" type="String"></property>
+        <property name="PersonName" type="String"></property>
+        <property name="PersonOtherNames" type="String"></property>
+        <property name="PersonPhoto" type="file"></property>
+    </ArchaeologicalElement>
+    
+    <ArchaeologicalElement name="Session">
+        <description>Entity Session, is a logical collection of files</description>
+        <property name="SessionID" isIdentifier="true" type="String"></property>
+        <property name="SessionName" type="String"></property>
+        <property name="SessionFile" type="String"></property>
+        <property name="SessionStartTimestamp" type="time"></property>
+        <property name="SessionEndTimestamp" type="time"></property>
+    </ArchaeologicalElement>
+    
+    <ArchaeologicalElement name="File">
+        <description>Entity File, is the relationship stores files and metadata o files</description>
+        <property name="FileID" isIdentifier="true" type="String"></property>
+        <property name="FileName" type="String"></property>
+        <property name="FileType" type="String"></property>
+        <property name="FilePath" type="String"></property>
+        <property name="FileCreator" type="String"></property>
+    </ArchaeologicalElement>
+    
+    <ArchaeologicalElement name="Bookmark">
+        <description>Entity Bookmark, for recording the significant timestamps in a session</description>
+        <property name="SessionID" isIdentifier="true" type="String"></property>
+        <property name="Timestamp" isIdentifier="true" type="time"></property>
+        <property name="BookmarkName" type="String"></property>
+        <property name="QuestionnaireID" type="String"></property>
+        <property name="QuestionID" type="String"></property>
+    </ArchaeologicalElement>
+    
+    <ArchaeologicalElement name="FieldTrip">
+        <description>Entity FieldTrip, may consists of multiple sessions</description>
+        <property name="FieldTripID" isIdentifier="true" type="String"></property>
+        <property name="FieldTripName" type="String"></property>
+        <property name="FieldTripStartTime" type="time"></property>
+        <property name="FieldTripEndTime" type="time"></property>
+        <property name="Sessions" type="String"></property>
+    </ArchaeologicalElement>
+</dataSchema>

@@ -1,0 +1,250 @@
+import java.util.concurrent.Callable;
+/*** 'Editable' - you can edit the code below based on the needs ***/
+User user; // don't touch
+String userid;
+
+addActionBarItem("sync", new ToggleActionButtonCallback() {
+    actionOnLabel() {
+        "Disable Sync";
+    }
+    actionOn() {
+        setSyncEnabled(false);
+        setFileSyncEnabled(false);
+        showToast("Sync disabled.");
+    }
+    isActionOff() {
+        isSyncEnabled();
+    }
+    actionOffLabel() {
+        "Enable Sync";
+    }
+    actionOff() {
+        setSyncEnabled(true);
+        setFileSyncEnabled(true);
+        showToast("Sync enabled.");
+    }
+});
+
+/*** user login ***/
+onEvent("user/usertab/users", "click", "login()");
+
+loadUsers() {
+    fetchAll("select userid, fname || ' ' || lname from user where userdeleted is null", new FetchCallback() {
+        onFetch(result) {
+            populateList("user/usertab/users", result);
+        }
+    });
+}
+
+loadUsers();
+
+String username = "";
+String device = "";
+
+login() {
+    fetchOne("select userid,fname,lname,email from user where userid='" + getListItemValue() + "';", new FetchCallback() {
+        onFetch(result) {
+            user = new User(result.get(0),result.get(1),result.get(2),result.get(3));
+            setUser(user);
+            username = result.get(1) + " " + result.get(2);
+            showTabGroup("control");
+        }
+    });
+}
+
+makeLocalID() {
+    fetchOne("CREATE TABLE IF NOT EXISTS localSettings (key text primary key, value text);", null);
+    fetchOne("drop view if exists identifierAsSpreadsheet;", null);
+    fetchOne("create view identifierAsSpreadsheet as select uuid, group_concat(coalesce(measure || ' ' || vocabname || '(' ||freetext||')',  measure || ' (' || freetext ||')',  vocabname || ' (' || freetext ||')',  measure || ' ' || vocabname ,  vocabname || ' (' || freetext || ')',  measure || ' (' || freetext || ')',  measure,  vocabname,  freetext,  measure,  vocabname,  freetext), ' ') as response from (select * from latestNonDeletedArchentIdentifiers order by attributename) group by uuid;", null);
+}
+
+makeLocalID();
+
+/***control tabgroub start***/
+onEvent("control", "show", "setIDNull()");
+onEvent("control/New_Questionnaire","click","newQuestionnaire()");
+onEvent("control/New_Question","click","newQuestion()");
+onEvent("control/New_User","click","newUser()");
+onEvent("control/New_Language","click","newLanguage()");
+
+setIDNull() {
+    questionnaire_id = null;
+    question_id = null;
+    language_id=null;
+    user_id=null;
+    removeNavigationButton("duplicate");
+    removeNavigationButton("new");
+    removeNavigationButton("close");
+    removeNavigationButton("delete");
+}
+
+newQuestionnaire(){
+onEvent("questionnaire","show","showTab(\"questionnaire/questionnaire_info\");cancelTab(\"questionnaire/questionnaire_info\",false)");
+newTabGroup("questionnaire");
+}
+
+newQuestion(){
+onEvent("questionBank","show","showTab(\"questionBank\");cancelTab(\"questionBank\",false)");
+newTabGroup("questionBank");
+}
+
+newUser(){
+onEvent("person","show","showTab(\"person\");cancelTab(\"person\",false)");
+newTabGroup("person");
+}
+
+newQuestion(){
+onEvent("language","show","showTab(\"language\");cancelTab(\"language\",false)");
+newTabGroup("language");
+}
+/***control tabgroub end***/
+
+/***questionnaire tab start***/
+onEvent("questionnaire/Finish_New_Questionnaire_Info","click","selectQuestion()");
+onEvent("questionnaire/Finish_Question_Select","click","saveQuestionnaire()");
+onEvent("questionnaire/New_Question","click","newQuestion()")
+
+selectQuestion(){
+onEvent("questionnaire","show","showTab(\"questionnaire/questionnaire_questionSelect\");cancelTab(\"questionnaire/questionnaire_questionSelect\",false)");
+}
+
+saveQuestionnaire(){
+saveTabGroup("questionnaire", questionnaire_id,null,null,new SaveCallback(){
+                onSave(uuid, newRecord) {
+                    questionnaire_id = uuid;
+                }
+
+                onError(message) {
+                    showToast(message);
+                }
+            }, true);
+}
+/***questionnaire tab end***/
+
+/***questionBank tab begin***/
+onEvent("questionBank/Finish_New_Question","click","saveQuestion()");
+saveQuestion(){
+saveTabGroup("questionBank", question_id,null,null,new SaveCallback(){
+                onSave(uuid, newRecord) {
+                    question_id = uuid;
+                }
+                onError(message) {
+                    showToast(message);
+                }
+            }, true);
+}
+
+/***questionBank tab end***/
+
+/***person tab begin***/
+onEvent("person/Finish_New_Person","click","savePerson()");
+onEvent("person/Take_Photo","click","attachPictureTo(\"person/personPhoto\")");
+savePerson(){
+saveTabGroup("person", person_id,null,null,new SaveCallback(){
+                onSave(uuid, newRecord) {
+                    person_id = uuid;
+                }
+                onError(message) {
+                    showToast(message);
+                }
+            }, true);
+}
+/***person tab end***/
+
+/***language tab begin***/
+onEvent("language/Finish_New_Language","click","savelangauge()");
+saveLanguage(){
+saveTabGroup("language", language_id,null,null,new SaveCallback(){
+                onSave(uuid, newRecord) {
+                    language_id = uuid;
+                }
+                onError(message) {
+                    showToast(message);
+                }
+            }, true);
+}
+/***language tab end***/
+
+
+/***load data***/
+loadQuestionnaire(){
+questionnaire_id=getListItemValue();
+loadQuestionnaireForm(questionnaire_id);
+}
+
+loadQuestionnaireForm(questionnaireId){
+      if (isNull(questionnaireId)) {
+        showToast("No Questionnaire Selected");
+        return;
+        }
+      showTabGroup("questionnaire",questionnaireId,new FetchCallback(){
+        onFetch(result){
+            questionnaire_id=questionnaireId;
+            showQuestionnaireInfoTab(true);
+            saveTabGroup("questionnaire",questionnaire_id,null,null,new SaveCallback(){
+                onSave(uuid,newRecord){
+                    questionnaire_id=uuid;
+                }
+                onError(message){
+                    showToast(message);
+                }
+                },true);
+            }
+            onError(message){
+                showToast(message);
+            }
+            }); 
+}
+
+showQuestionnaireInfoTab(Boolean onLoad){
+    fetchOne("select vocabid from vocabulary join attributekey using (attributeid) where attributename = 'QuestionnaireID';", new FetchCallback() {
+        onFetch(result) {
+            for(vocabid : getFieldValue("questionnaire/questionnaire_info/questionnaireId")) {
+                if(vocabid.getName().equals(result.get(0))) {
+                    showTab("questionnaire/questionnaire_info");
+                    if(onLoad) {
+                        showTab("questionnaire/questionnaire_info");
+                    }
+                    return;
+                }
+                if(!onLoad) {
+                    showToast("no questionnaire selected");
+                } else {
+                    showTab("questionnaire/questionnaire_Info");
+                    cancelTab("questionnaire/questionnaire_Info", false);
+                }
+            }
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+isQuestionnaireInfoSaved() {
+    if(isNull(questionnaire_id)) {
+        if (isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireId"))) {
+            showWarning("Validation Error", "Please enter a Questionnaire ID");
+        } else {
+            showToast("Please wait for this {questionnaire} to save");
+
+        }
+        return false;
+    }
+    return true;
+}
+
+newCompleteQuestionnaire(){
+if(isQuesionnaireInfoSaved()) newQuestionnaireQuestion();
+}
+
+newQuestionnaireQuestion(){
+    if(isNull(questionnaire_id)) {
+        showToast("You cannot create new questionnaire from control menu.");
+        goBack();
+        return;
+    }
+    onEvent("questionnaire_questionSelect", "show", "showTab(\"questionnaire/questionnaire_questionSelect\");cancelTab(\"questionnaire/questionnaire_questionSelect\", false);");
+    newTabGroup("questionnaire_questionSelect");
+}

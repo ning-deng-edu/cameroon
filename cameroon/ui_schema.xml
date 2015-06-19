@@ -1,0 +1,314 @@
+<h:html xmlns="http://www.w3.org/2002/xforms"
+        xmlns:h="http://www.w3.org/1999/xhtml"
+        xmlns:ev="http://www.w3.org/2001/xml-events"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:jr="http://openrosa.org/javarosa">
+
+
+<h:head>
+    <h:title>Linguistic data documentation</h:title>
+    <model>
+        <instance>
+            <faims id="ldd_admin">
+                <!--part 1: Define ui structure-->
+                <style>
+                    <orientation>
+                        <orientation/>
+                    </orientation>
+                    <even>
+                        <layout_weight/>
+                    </even>
+                    <leftBigger>
+                        <layout_weight/>
+                    </leftBigger>
+                </style>
+                 <!--user login-->
+                <user>
+                    <usertab>
+                        <users/>
+                        <login/>
+                    </usertab>
+                </user>
+                 
+                 
+                <control>
+                    <!--questionnaire tab,used for manipulate questionnaires-->
+                    <questionnaire_control>
+                        <!--<newQuestionnaireName/>-->
+                        <New_Questionnaire/>
+                        <questionnaireList/>
+                    </questionnaire_control>
+                    <!--question tab,used for manipulate questions-->
+                    <question_control>
+                        <!--newQuestionContent/-->
+                        <New_Question/>
+                        <questionList/>
+                    </question_control>
+                    <!--user tab,used for manipulate user info-->
+                    <user_control>
+                        <!--newUserName/-->
+                        <New_User/>
+                        <userList/>
+                    </user_control>
+                    <!--language tab,used for manipulate language info-->
+                    <language_control>
+                        <!--newLanguageName/-->
+                        <New_Language/>
+                        <languageList/>
+                    </language_control>
+                </control>
+                
+                <questionnaire>
+                    <questionnaire_info>
+                        <questionnareID/>
+                        <questionnaireName/>
+                        <questionnaireDescription/>
+                        <Finish_New_Questionnaire_Info/>
+                    </questionnaire_info>
+                    
+                    <questionnaire_questionSelect>
+                        <questionList/>
+                        <New_Question/>
+                        <questionInQuestionnaire/>
+                        <Finish_Question_Select/>
+                    </questionnaire_questionSelect>
+                </questionnaire>
+                
+                <questionBank>
+                    <questionID/>
+                    <questionContent/>
+                    <questionType/>
+                    <questionChoice/>
+                    <questionLanguage/>
+                    <Finish_New_Question/>
+                </questionBank>
+                
+                <person>
+                    <personID/>
+                    <personName/>
+                    <personOtherNames/>
+                    <personPhoto/>
+                    <Take_Photo/>
+                    <Finish_New_Person/>
+                </person>
+                
+                <language>
+                    <languageID/>
+                    <languageName/>
+                    <languageOtherNames/>
+                    <Finish_New_Language/>
+                </language>
+            </faims>
+        </instance>
+        <bind nodeset="faims/questionnaire/questionnaireName" type="String"/>
+        <bind nodeset="faims/questionnaire/questionnaireDescription" type="String"/>
+        <bind nodeset="faims/questionBank/questionContent" type="String"/>
+        <bind nodeset="faims/person/personName" type="String"/>
+        <bind nodeset="faims/person/personOtherNames" type="String"/>
+        <bind nodeset="faims/Language/languageName" type="String"/>
+        <bind nodeset="faims/Language/languageOtherNames" type="String"/>
+    </model>
+</h:head>
+
+
+<h:body>
+    <group ref="style">
+      <label/>
+      <group ref="orientation">
+        <label/>
+        <input ref="orientation">
+          <label>horizontal</label>
+        </input>
+      </group>
+      <group ref="even">
+        <label/>
+        <input ref="layout_weight">
+          <label>1</label>
+        </input>
+      </group>
+      <group ref="large">
+        <label/>
+        <input ref="layout_weight">
+          <label>3</label>
+        </input>
+      </group>
+    </group>
+    
+     <group ref="user">
+      <label>{User_List}</label>
+      <group ref="usertab">
+        <label>{User_List}</label>
+        <select1 appearance="compact" ref="users" faims_style_class="user-list">
+          <label>{Users}:</label>
+          <item>
+            <label>placeholder</label>
+            <value>placeholder</value>
+          </item>
+        </select1>
+      </group>
+    </group>
+    
+    <group ref="control">
+        
+        <label>{Admin}</label>
+        
+        
+        <group ref="questionnaire_control">
+            <label>{Questionnaire}</label>
+            <!--No input here-->
+            <trigger ref="New_Questionnaire" faims_style_class="faims-blue">
+                <label>New {questionnaire}</label>
+            </trigger>
+            <!--TODO: in ui_styling.css add quesionnaire-list class-->
+            <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionnaireList" faims_style_class="quesionnaire-list">
+                <label>{TapQuestionnaireID}</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
+        </group>
+        
+        <group ref="question_control">
+            <label>{Question}</label>
+            <!--No input here-->
+            <trigger ref="New_Question" faims_style_class="faims-blue">
+                <label>New {questionBank}</label>
+            </trigger>
+            <!--TODO: in ui_styling.css add quesion-list class-->
+            <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionList" faims_style_class="quesion-list">
+                <label>{TapQuestionID}</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
+        </group>
+        
+        
+        <group ref="user_control">
+            <label>{User}</label>
+            <!--No input here-->
+            <trigger ref="New_User" faims_style_class="faims-blue">
+                <label>New {person}</label>
+            </trigger>
+            <!--TODO: in ui_styling.css add user-list class-->
+            <select1 appearance="compact" ref="userList" faims_style_class="user-list">
+                <label>{TapPersonID}</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
+        </group>
+        
+        
+        <group ref="language_control">
+            <label>{Language}</label>
+            <!--No input here-->
+            <trigger ref="New_Language" faims_style_class="faims-blue">
+                <label>New {language}</label>
+            </trigger>
+            <!--TODO: in ui_styling.css add language-list class-->
+            <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="languageList" faims_style_class="language-list">
+                <label>{TapLanguageID}</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
+        </group>
+    </group>
+    
+    <group ref="questionnaire" faims_archent_type="questionnaire">
+        <label>{Questionnaire}</label>
+        <input ref="questionnaireName" faims_attribute_name="QuestionnaireName" faims_attribute_type="String" faims_certainty="false" faims_annotation="false">
+          <label>{questionnaireName}</label>
+        </input>
+        <input ref="questionnaireDescription" faims_attribute_name="QuestionnaireDescription" faims_attribute_type="freetext" faims_certainty="false" faims_annotation="false">
+          <label>{questionnaireDescription}</label>
+        </input>
+        <trigger ref="Finish_New_Questionnaire_Info" faims_style_class="faims-blue">
+                <label>New {questionnaire_questionSelect}</label>
+        </trigger>
+    </group>
+    
+    <!--有疑问，这里要怎么表示外键-->
+    <group ref="questionnaire_questionSelect" faims_archent_type="questionnaire_questionSelect">
+        <label>{Question Selection}</label>
+        <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionList" faims_style_class="quesion-list">
+                <label>{TapQuestionID}</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+        </select1>
+        <trigger ref="New_Question" faims_style_class="faims-blue">
+                <label>New {New_Question}</label>
+        </trigger>
+        <input ref="questionInQuestionnaire" faims_attribute_name="QuestionID" faims_attribute_type="String" >
+            <label>{questionInQuestionnaire}</label>
+        </input>
+        <trigger ref="Finish_Question_Select" faims_style_class="faims-blue">
+            <label>{Finish_Question_Select}</label>
+        </trigger>
+    </group>
+    <!--有疑问，这里要怎么表示外键-->
+    
+    <group ref="questionBank" faims_archent_type="questionBank">
+        <label>{Question Bank}</label>
+        <input ref="questionContent" faims_attribute_name="QuestionContent" faims_attribute_type="String" faims_certainty="false" faims_annotation="false">
+          <label>{questionContent}</label>
+        </input>
+        <input ref="questionType" faims_attribute_name="QuestionType" faims_attribute_type="String" faims_certainty="false" faims_annotation="false">
+          <label>{questionType}</label>
+        </input>
+        <input ref="questionChoice" faims_attribute_name="QuestionChoice" faims_attribute_type="String" faims_certainty="false" faims_annotation="false">
+          <label>{questionChoice}</label>
+        </input>
+        <input ref="questionLanguage" faims_attribute_name="QuestionLanguage" faims_attribute_type="String" faims_certainty="false" faims_annotation="false">
+          <label>{questionLanguage}</label>
+        </input>
+        <trigger ref="Finish_New_Question" faims_style_class="faims-blue">
+                <label>New {Finish_New_Question}</label>
+        </trigger>
+    </group>
+    
+    
+    <group ref="person" faims_archent_type="person">
+        <label>{Person info}</label>
+        <input ref="personName" faims_attribute_name="PersonName" faims_attribute_type="String" faims_certainty="false" faims_annotation="false">
+          <label>{personName}</label>
+        </input>
+        <input ref="personOtherNames" faims_attribute_name="PersonOtherNames" faims_attribute_type="String" faims_certainty="false" faims_annotation="false">
+          <label>{personOtherNames}</label>
+        </input>
+        <input ref="personPhoto" faims_attribute_name="PersonPhoto" faims_attribute_type="file" faims_certainty="false" faims_annotation="false">
+          <label>{personPhoto}</label>
+        </input>
+        <trigger ref="Take_Photo" faims_style_class="faims-blue">
+                <label>New {Take_Photo}</label>
+        </trigger>
+        <trigger ref="Finish_New_Person" faims_style_class="faims-blue">
+                <label>New {Finish_New_Person}</label>
+        </trigger>
+    </group>
+    
+     <group ref="language" faims_archent_type="language">
+        <label>{Language}</label>
+        <input ref="languageID" faims_attribute_name="LanguageID" faims_attribute_type="String" faims_certainty="false" faims_annotation="false">
+          <label>{languageID}</label>
+        </input>
+        <input ref="languageName" faims_attribute_name="LanguageName" faims_attribute_type="String" faims_certainty="false" faims_annotation="false">
+          <label>{languageName}</label>
+        </input>
+        <input ref="languageOtherNames" faims_attribute_name="LanguageOtherNames" faims_attribute_type="freetext" faims_certainty="false" faims_annotation="false">
+          <label>{languageOtherNames}</label>
+        </input>
+        
+        <trigger ref="Finish_New_Lanugage" faims_style_class="faims-blue">
+                <label>New {Finish_New_Lanugage}</label>
+        </trigger>
+    </group>
+</h:body>
+</h:html>
