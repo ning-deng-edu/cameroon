@@ -49,27 +49,57 @@
                         <New_Language/>
                         <languageList/>
                     </language_control>
-                </control>
+              </control>
+          
                 <questionnaire>
                     <questionnaire_info>
                         <questionnaireID/>
                         <questionnaireName/>
-                        <questionnaireDescription/>
-                        <Finish_New_Questionnaire_Info/>
-                    </questionnaire_info>
-                    
-                    <questionnaire_questionSelect>
+                        <questionnaireDescription/>                       
                         <questionList/>
                         <New_Question/>
                         <questionInQuestionnaire/>
-                        <Finish_Question_Select/>
-                    </questionnaire_questionSelect>
+                        <Finish_Questionnaire_Creation/>
+                    </questionnaire_info>
                 </questionnaire>
+                
+               <questionBank>
+                  <questionInfo>
+                    <questionID/>
+                    <questionContent/>
+                    <questionType/>
+                    <questionChoice/>
+                    <questionLanguage/>
+                    <Finish_New_Question/>
+                  </questionInfo>
+                </questionBank>
+                
+                <person>
+                  <personInfo>
+                    <personID/>
+                    <personName/>
+                    <personOtherNames/>
+                    <personPhoto/>
+                    <Take_Photo/>
+                    <Finish_New_Person/>
+                  </personInfo>
+                </person>
+                
+                <language>
+                  <languageInfo>
+                    <languageID/>
+                    <languageName/>
+                    <languageOtherNames/>
+                    <Finish_New_Language/>
+                  </languageInfo>
+                </language>
+                
         </faims>
       </instance>
-      <bind nodeset="faims/questionnaire/questionnaireName" type="string"/>
-      <bind nodeset="faims/questionnaire/questionnaireDescription" type="string"/>
-      <bind nodeset="faims/questionBank/questionContent" type="string"/>
+      <bind nodeset="faims/questionnaire/questionnaire_info/questionnaireName" type="freetext"/>
+      <bind nodeset="faims/questionnaire/questionnaire_info/questionnaireDescription" type="freetext"/>
+      <bind nodeset="faims/person/personInfo/personName" type="freetext"/>
+      <bind nodeset="faims/person/personInfo/personOtherNames" type="freetext"/>
     </model>
   </h:head>
   <h:body>
@@ -184,7 +214,7 @@
         <label>{Questionnaire}</label>
         
         <group ref="questionnaire_info">
-          <label>{Questionnaire_info}</label>
+          <label>{Questionnaire Information}</label>
           <input ref="questionnaireID" faims_attribute_name="QuestionnaireID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="false" faims_style_class="required">
             <label>{questionnaireID}</label>
           </input>
@@ -196,15 +226,8 @@
           <input ref="questionnaireDescription" faims_attribute_name="QuestionnaireDescription" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
             <label>{questionnaireDescription}</label>
           </input>
-          
-          <trigger ref="Finish_New_Questionnaire_Info" faims_style_class="faims-blue">
-                <label>{Finish_New_Questionnaire_Info}</label>
-          </trigger>
-        </group>
-        
-        <!--有疑问，这里要怎么表示外键-->
-        <group ref="questionnaire_questionSelect">
-          <label>{Question Selection}</label>
+                 
+        <!--有疑问，这里要怎么表示外键-->     
           <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionList" faims_style_class="quesion-list">
                 <label>{TapQuestionID}</label>
                 <item>
@@ -215,15 +238,85 @@
           <trigger ref="New_Question" faims_style_class="faims-blue">
                 <label>New {New_Question}</label>
           </trigger>
-          <input ref="questionInQuestionnaire" faims_attribute_name="QuestionID" faims_attribute_type="measure" >
+          
+          <input ref="questionInQuestionnaire" faims_attribute_name="QuestionID" faims_attribute_type="measure">
             <label>{questionInQuestionnaire}</label>
           </input>
-          <trigger ref="Finish_Question_Select" faims_style_class="faims-blue">
-            <label>{Finish_Question_Select}</label>
+          <trigger ref="Finish_Questionnaire_Creation" faims_style_class="faims-blue">
+            <label>{Finish_Questionnaire_Creation}</label>
           </trigger>
+        </group>        
+    </group>
+    
+    
+    <group ref="questionBank" faims_archent_type="questionBank">
+        <label>{Question Bank}</label>
+        <group ref="questionInfo">
+          <label>{Question Information}</label>
+          <input ref="questionID" faims_attribute_name="QuestionID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{questionContent}</label>
+        </input>
+        <input ref="questionContent" faims_attribute_name="QuestionContent" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{questionContent}</label>
+        </input>
+        <input ref="questionType" faims_attribute_name="QuestionType" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{questionType}</label>
+        </input>
+        <input ref="questionChoice" faims_attribute_name="QuestionChoice" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{questionChoice}</label>
+        </input>
+        <input ref="questionLanguage" faims_attribute_name="QuestionLanguage" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{questionLanguage}</label>
+        </input>
+        <trigger ref="Finish_New_Question" faims_style_class="faims-blue">
+                <label>New {Finish_New_Question}</label>
+        </trigger>
         </group>
-        
     </group>
 
+
+    <group ref="person" faims_archent_type="person">
+        <label>{Person}</label>
+        <group ref="personInfo">
+          <label>{Person Information}</label>
+            <input ref="personName" faims_attribute_name="PersonName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+              <label>{personName}</label>
+            </input>
+            <input ref="personOtherNames" faims_attribute_name="PersonOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+              <label>{personOtherNames}</label>
+            </input>
+            <input ref="personPhoto" faims_attribute_name="PersonPhoto" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+              <label>{personPhoto}</label>
+            </input>
+            <trigger ref="Take_Photo" faims_style_class="faims-blue">
+                <label>New {Take_Photo}</label>
+            </trigger>
+            <trigger ref="Finish_New_Person" faims_style_class="faims-blue">
+                <label>New {Finish_New_Person}</label>
+            </trigger>
+        </group>
+    </group>
+    
+    
+    <group ref="language" faims_archent_type="language">
+        <label>{Language}</label>
+        <group ref="languageInfo">
+          <label>{Language Information}</label>
+            <input ref="languageID" faims_attribute_name="LanguageID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+              <label>{languageID}</label>
+            </input>
+            <input ref="languageName" faims_attribute_name="LanguageName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+              <label>{languageName}</label>
+            </input>
+            <input ref="languageOtherNames" faims_attribute_name="LanguageOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+              <label>{languageOtherNames}</label>
+            </input>      
+            <trigger ref="Finish_New_Language" faims_style_class="faims-blue">
+                <label>New {Finish_New_Language}</label>
+            </trigger>
+      </group>
+    </group>
+    
+    
   </h:body>
 </h:html>
