@@ -288,15 +288,9 @@
             <input ref="personOtherNames" faims_attribute_name="PersonOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
               <label>{personOtherNames}</label>
             </input>
-
-            <select type="camera" faims_sync="true" ref="personPhoto" faims_attribute_name="PersonPhoto" faims_attribute_type="measure" faims_certainty="true" faims_annotation="true" faims_read_only="false">
-            <label>{Photos}</label>
-              <item>
-                  <label>placeholder</label>
-                  <value>placeholder</value>
-              </item>
-            </select>
-            
+            <input ref="personPhoto" faims_attribute_name="PersonPhoto" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+              <label>{personPhoto}</label>
+            </input>
             <trigger ref="Take_Photo" faims_style_class="faims-blue">
                 <label>New {Take_Photo}</label>
             </trigger>

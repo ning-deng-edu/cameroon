@@ -33,7 +33,7 @@ login() {
 
 /***Questionnaire***/
 onEvent("control/questionnaire_control/New_Questionnaire","click","newQuestionnaire()");
-onEvent("questionnaire/questionnaire_info/Finish_Questionnaire_Creation","click","finishCreateQuestionnaire()");
+//onEvent("questionnaire/questionnaire_info/Finish_Questionnaire_Creation","click","finishCreateQuestionnaire()");
 
 newQuestionnaire(){
     newTabGroup("questionnaire");
