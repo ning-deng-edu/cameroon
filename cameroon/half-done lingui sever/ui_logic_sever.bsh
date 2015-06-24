@@ -1,6 +1,11 @@
 import java.util.concurrent.Callable;
 import java.util.*;
 /*** 'Editable' - you can edit the code below based on the needs ***/
+
+/*TODO:
+/*Search function: search person and languages should allow searching in "other names"
+/*basically the other names should be stored using a string with a seperator ','
+*/
 User user; // don't touch
 String userid;
 /*Common queries*/
@@ -26,6 +31,7 @@ loadAllLanguageQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 /*Common queries end*/
 
 	//SELECT uuid,measure FROM latestNonDeletedAentValue  WHERE latestNonDeletedAentValue.AttributeID  IN (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionContent')  GROUP BY uuid
+/*Adding the sync button on the action bar*/
 addActionBarItem("sync", new ToggleActionButtonCallback() {
     actionOnLabel() {
         "Disable Sync";
@@ -47,7 +53,7 @@ addActionBarItem("sync", new ToggleActionButtonCallback() {
         showToast("Sync enabled.");
     }
 });
-
+/*Saving questionnaire-question usage*/
 saveEntitiesToRel(String type, String entity1, String entity2) {
     if (isNull(entity1) || isNull(entity2)) return;
     saveRel(null, type, null, null, new SaveCallback() {
@@ -57,6 +63,7 @@ saveEntitiesToRel(String type, String entity1, String entity2) {
         }
     });
 }
+
 /*** USER ***/
 onEvent("user/usertab/users", "click", "login()");
 
@@ -95,16 +102,26 @@ onEvent("questionnaire_question/questionnaire_question_info/questionList","click
 onEvent("questionnaire_question/questionnaire_question_info/questionInQuestionnaire","click","deleteSelectedQuestion()");
 onEvent("questionnaire_question/questionnaire_question_info/New_Question","click","newQuestion()");
 onEvent("questionnaire_question/questionnaire_question_info/Finish_Questionnaire_Creation","click","finishCreateQuestionnaire(questionSelected)");
-//TODO: SHOW QUESTIONNAIRE
+
+//indicate if any questionnaire is selected
 finished_questionnaire_id=null;
+
+//original questions to be selected in questionnaire
 questionCandidates=new ArrayList();
+
+//manipulatable question list to be selected in questionnaire
 questionCandidatesContent=new ArrayList();
+
+//questions selected in questionnaire
 questionSelected=new ArrayList();
+
+//create new questionnaire starting point
 newQuestionnaire(){
     newTabGroup("questionnaire");
     onEvent("questionnaire", "show", "showTab(\"questionnaire/questionnaire_info\");");   
 }
 
+//load all questionnaire names
 loadQuestionnaire(){
 	finished_questionnaire_id=null;
 	existing_questionnaires=new ArrayList();
@@ -135,6 +152,7 @@ loadQuestionnaire(){
     });
 }
 
+//load the questionnaire basic info to the page
 loadQuestionnaireInfo(){
 	finished_questionnaire_id=getListItemValue();
 	if(isNull(finished_questionnaire_id)){
@@ -152,6 +170,8 @@ loadQuestionnaireInfo(){
         }
     });
 }
+
+//preparation for the question selection
 startQuestionSelection(){   
     if((isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireName")))||(isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireID")))) {
             showWarning("Validation Error", "You must fill in the Questionnaire ID/Name before you can continue");
@@ -166,6 +186,8 @@ startQuestionSelection(){
         }
 }
 
+//when there is a selected questionnaire, basically show all the data in this questionnaire
+//when there is no selected questionnaire, populate question candidate list for selection
 initializeQuestionSelect(){
 	//the query result is an ArrayList, and each item in query result is an ArrayList too
 	if(isNull(finished_questionnaire_id)){
@@ -258,6 +280,7 @@ initializeQuestionSelect(){
 }
 
 
+//after selected a question, add this question to questionSelected, and remove it from questionCandidatesContent
 questionSelection(){
 	questionnaire_question_id=getListItemValue();
 	int idx_question=-1;
@@ -293,6 +316,7 @@ questionSelection(){
 	}
 }
 
+//after unselected a question, add this question to questionCandidatesContent, and remove it from questionSelected
 deleteSelectedQuestion(){
 	question_in_questionnaire_id=getListItemValue();
 	int idx_question_in_questionnaire=-1;
@@ -331,39 +355,42 @@ deleteSelectedQuestion(){
 }
 
 
-
+//if there is selected questionnaire, then change the info, else create a new questionnaire
 finishCreateQuestionnaire(ArrayList questionSelectedInQuestionnaire){
-	if(questionSelectedInQuestionnaire.isEmpty())
-	{
-		showWarning("No question selected","No question selected in this questionnaire");
-		return;
+	if(isNull(finished_questionnaire_id)){
+		if(questionSelectedInQuestionnaire.isEmpty())
+		{
+			showWarning("No question selected","No question selected in this questionnaire");
+			return;
+		}
 	}
-	
 	//showWarning("save started","started");
-	saveTabGroup("questionnaire", finished_questionnaire_id, null, null, new SaveCallback() {
+		saveTabGroup("questionnaire", finished_questionnaire_id, null, null, new SaveCallback() {
 		//showWarning("saveTabGroup()","started");
-    onSave(uuid, newRecord) {
+		onSave(uuid, newRecord) {
 		//showWarning("onSave()","started");
-      finished_questionnaire_id = uuid;
+		finished_questionnaire_id = uuid;
 	  //showWarning("finished_questionnaire_id()",finished_questionnaire_id);
-      if (newRecord) {
-		for (question : questionSelectedInQuestionnaire){
+		if (newRecord) {
+			for (question : questionSelectedInQuestionnaire){
 			 //showWarning("insertrelation()",question.get(0).toString());
 			saveEntitiesToRel("Questionnare and Question",finished_questionnaire_id,question.get(0));
 			//showWarning("savedrel()",question.get(0).toString());
-		}
-        showToast("New record created");
-		finished_questionnaire_id=null;
-      }
-	  else{
-		showWarning("Attention!","Questions in quesitonnaire are not changeable, please create a new questionnaire!");
+			}
+			showToast("New record created");
+			finished_questionnaire_id=null;
+		 }
+		else{
+			showWarning("Attention!","Only questionnaire basic info is changed, \n, Questions in quesitonnaire are not changeable!");
 		//finished_questionnaire_id=null;
-	  }
-    }
-    onError(message) {
-        showWarning("error",message);
-    }  
-  });
+		}
+		}
+		onError(message) {
+			showWarning("error",message);
+		}  
+		});
+	
+	
 }
 
 
@@ -376,6 +403,8 @@ onEvent("control/question_control","show","loadQuestionBank()");
 //onEvent("control/querytest/Submit","click","testQuery()");
 onEvent("questionBank/questionInfo/","show","autoQuestionID()");
 onEvent("control/question_control/questionList","click","loadQuestionInfo()");
+
+//indicates of there is selected question
 question_id=null;
 /*
 testQuery(){

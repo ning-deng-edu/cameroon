@@ -137,7 +137,7 @@
     <group ref="user">
       <label>{User_List}</label>
       <group ref="usertab">
-        <label>{User_List}</label>
+        <label>{User List}</label>
         <select1 appearance="compact" ref="users" faims_style_class="user-list">
           <label>{Users}:</label>
           <item>
@@ -156,11 +156,11 @@
             <label>{Questionnaire}</label>
             <!--No input here-->
             <trigger ref="New_Questionnaire" faims_style_class="faims-blue">
-                <label>New {questionnaire}</label>
+                <label>New {Questionnaire}</label>
             </trigger>
             <!--TODO: in ui_styling.css add quesionnaire-list class-->
             <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionnaireList" faims_style_class="questionnaire-list">
-                <label>{TapQuestionnaireID}</label>
+                <label>{Tap questionnaire to view details}</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
@@ -172,11 +172,11 @@
             <label>{Question}</label>
             <!--No input here-->
             <trigger ref="New_Question" faims_style_class="faims-blue">
-                <label>New {questionBank}</label>
+                <label>New {Question}</label>
             </trigger>
             <!--TODO: in ui_styling.css add quesion-list class-->
             <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionList" faims_style_class="question-list">
-                <label>{TapQuestionID}</label>
+                <label>{Tap question to view details}</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
@@ -189,11 +189,11 @@
             <label>{User}</label>
             <!--No input here-->
             <trigger ref="New_User" faims_style_class="faims-blue">
-                <label>New {person}</label>
+                <label>New {Person}</label>
             </trigger>
             <!--TODO: in ui_styling.css add user-list class-->
             <select1 appearance="compact" ref="userList" faims_style_class="user_list">
-                <label>{TapPersonID}</label>
+                <label>{Tap person id to view details}</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
@@ -206,11 +206,11 @@
             <label>{Language}</label>
             <!--No input here-->
             <trigger ref="New_Language" faims_style_class="faims-blue">
-                <label>New {language}</label>
+                <label>New {Language}</label>
             </trigger>
             <!--TODO: in ui_styling.css add language-list class-->
             <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="languageList" faims_style_class="language-list">
-                <label>{TapLanguageID}</label>
+                <label>{Tap language id to view details}</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
@@ -226,19 +226,19 @@
         <group ref="questionnaire_info">
           <label>{Questionnaire Information}</label>
           <input ref="questionnaireID" faims_attribute_name="QuestionnaireID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="false" faims_style_class="required">
-            <label>{questionnaireID}</label>
+            <label>{Questionnaire ID}</label>
           </input>
           
           <input ref="questionnaireName" faims_attribute_name="QuestionnaireName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-            <label>{questionnaireName}</label>
+            <label>{Questionnaire Name}</label>
           </input>
           
           <input ref="questionnaireDescription" faims_attribute_name="QuestionnaireDescription" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-            <label>{questionnaireDescription}</label>
+            <label>{Questionnaire Description}</label>
           </input>
           
            <trigger ref="Start_Question_Selection" faims_style_class="faims-blue">
-            <label>{Start_Question_Selection}</label>
+            <label>{Start/View Question Selection}</label>
           </trigger>  
     
         </group>        
@@ -252,11 +252,11 @@
         <group ref="questionnaire_question_info">
           <label>{Questionnaire Question Selction}</label>
           <input ref="questionnaireID" faims_read_only="true">
-            <label>{questionnaireID}</label>
+            <label>{Current Questionnaire ID}</label>
           </input>
           
           <input ref="questionnaireName" faims_read_only="true">
-            <label>{questionnaireName}</label>
+            <label>{Current Questionnaire Name}</label>
           </input>
 
         <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionInQuestionnaire" faims_style_class="quesion-list">
@@ -279,12 +279,12 @@
         <!--有疑问，这里要怎么表示外键-->     
           
           <trigger ref="New_Question" faims_style_class="faims-blue">
-                <label>New {New_Question}</label>
+                <label>New Question</label>
           </trigger>
           
           
           <trigger ref="Finish_Questionnaire_Creation" faims_style_class="faims-blue">
-            <label>{Finish_Questionnaire_Creation}</label>
+            <label>Create/Change Questionnaire</label>
           </trigger>
         </group>        
     </group>
@@ -297,22 +297,22 @@
         <group ref="questionInfo">
           <label>{Question Information}</label>
           <input ref="questionID" faims_attribute_name="QuestionID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-          <label>{questionID}</label>
+          <label>{Question ID}</label>
         </input>
         <input ref="questionContent" faims_attribute_name="QuestionContent" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-          <label>{questionContent}</label>
+          <label>{Question Content}</label>
         </input>
         <input ref="questionType" faims_attribute_name="QuestionType" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-          <label>{questionType}</label>
+          <label>{Question Type--for now this is useless}</label>
         </input>
         <input ref="questionChoice" faims_attribute_name="QuestionChoice" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-          <label>{questionChoice}</label>
+          <label>{Question Choice--for now this is useless}</label>
         </input>
         <input ref="questionLanguage" faims_attribute_name="QuestionLanguage" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-          <label>{questionLanguage}</label>
+          <label>{Question Language}</label>
         </input>
         <trigger ref="Finish_New_Question" faims_style_class="faims-blue">
-                <label>New {Finish_New_Question}</label>
+                <label>Create/Change Question</label>
         </trigger>
         </group>
     </group>
@@ -323,13 +323,13 @@
         <group ref="personInfo">
           <label>{Person Information}</label>
            <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-              <label>{personID}</label>
+              <label>{Person ID}</label>
             </input>
             <input ref="personName" faims_attribute_name="PersonName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-              <label>{personName}</label>
+              <label>{Person Name}</label>
             </input>
             <input ref="personOtherNames" faims_attribute_name="PersonOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-              <label>{personOtherNames}</label>
+              <label>{Person Other Names}</label>
             </input>
 
             <select type="camera" faims_sync="true" ref="personPhoto" faims_attribute_name="PersonPhoto" faims_attribute_type="measure" faims_certainty="true" faims_annotation="true" faims_read_only="false">
@@ -341,10 +341,10 @@
             </select>
             
             <trigger ref="Take_Photo" faims_style_class="faims-blue">
-                <label>New {Take_Photo}</label>
+                <label>{Take Photo}</label>
             </trigger>
             <trigger ref="Finish_New_Person" faims_style_class="faims-blue">
-                <label>New {Finish_New_Person}</label>
+                <label>Create/Change Person</label>
             </trigger>
         </group>
     </group>
@@ -355,23 +355,18 @@
         <group ref="languageInfo">
           <label>{Language Information}</label>
             <input ref="languageID" faims_attribute_name="LanguageID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-              <label>{languageID}</label>
+              <label>{Language ID}</label>
             </input>
             <input ref="languageName" faims_attribute_name="LanguageName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-              <label>{languageName}</label>
+              <label>{Language Name}</label>
             </input>
             <input ref="languageOtherNames" faims_attribute_name="LanguageOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-              <label>{languageOtherNames}</label>
+              <label>{Language Other Names}</label>
             </input>      
             <trigger ref="Finish_New_Language" faims_style_class="faims-blue">
-                <label>New {Finish_New_Language}</label>
+                <label>Create/Change Language</label>
             </trigger>
       </group>
-    </group>
-    
-    
-
-   
-    
+    </group> 
   </h:body>
 </h:html>
