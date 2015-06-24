@@ -280,8 +280,8 @@
             <label>{questionnaireName}</label>
           </input>
 
-        <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionInQuestionnaire" faims_style_class="quesion-list">
-                <label>{TapQuestionID}</label>
+        <select1 appearance="full" faims_annotation="false" faims_certainty="false" ref="questionInQuestionnaire" faims_style_class="quesion-list">
+                <label>{Tap question to delete question from questionnaire}</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
@@ -289,8 +289,8 @@
           </select1>
         
         
-        <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionList" faims_style_class="quesion-list">
-                <label>{TapQuestionID}</label>
+        <select1 appearance="full" faims_annotation="false" faims_certainty="false" ref="questionList" faims_style_class="quesion-list">
+                <label>{Tap question to add question to questionnaire}</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
