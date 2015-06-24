@@ -186,7 +186,7 @@ initializeQuestionSelect(){
 			//showWarning("fetched",finished_questionnaire_id);
 			onFetch(result) {
 				if (!isNull(result)) {
-					showWarning("fetch result is not null",finished_questionnaire_id);
+					//showWarning("fetch result is not null",finished_questionnaire_id);
 					questionCandidates=result;
 					for (re:result) {
 					questionCandidatesContent.add(re);
@@ -373,10 +373,11 @@ finishCreateQuestionnaire(ArrayList questionSelectedInQuestionnaire){
 onEvent("control/question_control/New_Question","click","newQuestion()");
 onEvent("questionBank/questionInfo/Finish_New_Question","click","saveNewQuestion()");
 onEvent("control/question_control","show","loadQuestionBank()");
-onEvent("control/querytest/Submit","click","testQuery()");
+//onEvent("control/querytest/Submit","click","testQuery()");
 onEvent("questionBank/questionInfo/","show","autoQuestionID()");
 onEvent("control/question_control/questionList","click","loadQuestionInfo()");
 question_id=null;
+/*
 testQuery(){
 	query=getFieldValue("control/querytest/query");
 	//fetchAll("SELECT sql FROM sqlite_master WHERE name='archentity';",
@@ -403,6 +404,7 @@ testQuery(){
     });
 	
 }
+*/
 newQuestion(){
 	newTabGroup("questionBank");
 	onEvent("questionBank", "show", "showTab(\"questionBank/questionInfo\");");  

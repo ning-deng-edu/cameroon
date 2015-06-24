@@ -49,13 +49,6 @@
                         <New_Language/>
                         <languageList/>
                     </language_control>
-                    
-                    <querytest>
-                 
-                    <query/>
-                    <Submit/>
-          
-                </querytest>
               </control>
           
                 <questionnaire>
@@ -224,20 +217,6 @@
                 </item>
             </select1>
         </group>
-        
-         <group ref="querytest">
-        <label>{query}</label>
-        
-            <input ref="query" faims_attribute_type="freetext" faims_certainty="false" faims_annotation="false">
-              <label>{query}</label>
-            </input>
-    
-            <trigger ref="Submit" faims_style_class="faims-blue">
-                <label>New {submit}</label>
-            </trigger>
-   
-        </group>
-         
     </group>
     
 
