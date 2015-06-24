@@ -1,5 +1,9 @@
 import java.util.concurrent.Callable;
 import java.util.*;
+import android.util.Log;
+import java.io.File;
+import jsqlite;
+import jsqlite.Callback;
 /*** 'Editable' - you can edit the code below based on the needs ***/
 User user; // don't touch
 String userid;
@@ -54,27 +58,57 @@ login() {
 
 /***Questionnaire***/
 onEvent("control/questionnaire_control/New_Questionnaire","click","newQuestionnaire()");
-//onEvent("questionnaire/questionnaire_info/Finish_Questionnaire_Creation","click","finishCreateQuestionnaire()");
-
+onEvent("questionnaire/questionnaire_info/Start_Question_Selection","click","questionSelection()");
+onEvent("questionnaire_question/questionnaire_question_info","show","initializeQuestionSelect()");
+onEvent("questionnaire_question/questionnaire_question_info/questionList","click","questionSelection()");
+questionCandidates=new ArrayList();
+questionSelected=new ArrayList();
 newQuestionnaire(){
     newTabGroup("questionnaire");
     onEvent("questionnaire", "show", "showTab(\"questionnaire/questionnaire_info\");");   
 }
-/*
+
 questionSelection(){   
-    if(isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireName"))) {
-            showWarning("Validation Error", "You must fill in the Questionnaire Name before you can continue");
+    if((isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireName")))||(isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireID")))) {
+            showWarning("Validation Error", "You must fill in the Questionnaire ID/Name before you can continue");
             return;
         } else {
-        	String questionnaire_name;
+        	questionnaire_id=getFieldValue("questionnaire/questionnaire_info/questionnaireID");
             questionnaire_name = getFieldValue("questionnaire/questionnaire_info/questionnaireName");
-            showTab("questionnaire/questionnaire_questionSelect");
+            showTab("questionnaire_question/questionnaire_question_info");
             //cancelTab(\"questionnaire/questionnaire_info\", false);
-            setFieldValue("questionnaire/questionnaire_questionSelect/questionnaire_name", questionnaire_name);
+            setFieldValue("questionnaire_question/questionnaire_question_info/questionnaireID", questionnaire_id);
+            setFieldValue("questionnaire_question/questionnaire_question_info/questionnaireName", questionnaire_name);
         }
 }
-*/
+
 //TODO: DYNAMIC UI, QUESTION SELECTION
+initializeQuestionSelect(){
+	fetchAll("SELECT uuid, group_concat(coalesce(measure, ''),' - ') as response " +
+    "FROM (select * from latestNonDeletedArchentIdentifiers) " +
+    "WHERE aenttypename = 'QuestionBank' " +
+    "GROUP BY uuid " +
+    "order by response;", new FetchCallback() {
+        onFetch(result) {
+        	questionCandidates=result;
+            populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidates);
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+questionSelection(){
+	questionnaire_question_id=getListItemValue();
+	if(isNull(questionnaire_question_id)){
+		showToast("No Question selected");
+		return;
+	}
+	//TODO: 获取全部内容，在两个ArrayList里面做加减
+
+}
+
+
 /*
 finishCreateQuestionnaire(){
     List question_ids=getFieldValue("questionnaire/questionnaire_questionSelect/questionList");
@@ -115,6 +149,7 @@ onEvent("control/question_control/New_Question","click","newQuestion()");
 onEvent("questionBank/questionInfo/Finish_New_Question","click","saveNewQuestion()");
 onEvent("control/question_control","show","loadQuestionBank()");
 onEvent("questionBank/questionInfo/","show","autoQuestionID()");
+onEvent("control/question_control/questionList","click","loadQuestionInfo()");
 
 newQuestion(){
 	newTabGroup("questionBank");
@@ -159,6 +194,8 @@ loadQuestionBank(){
     "GROUP BY uuid " +
     "order by response;", new FetchCallback() {
         onFetch(result) {
+        	show=result;
+        	
             populateList("control/question_control/questionList", result);
         }
 
@@ -167,12 +204,28 @@ loadQuestionBank(){
         }
     });
 }
-
+loadQuestionInfo(){
+question_id=getListItemValue();
+	if(isNull(question_id)){
+		showToast("No Question selected");
+		return;
+	}
+	showTabGroup("questionBank", question_id, new FetchCallback() {
+        onFetch(result) {
+            question=result;
+            showToast("Loaded question"+question.getId());            
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
 /*** Person ***/
 onEvent("control/user_control/New_User","click","newPerson()");
 onEvent("person/personInfo/Finish_New_Person","click","saveNewPerson()");
 onEvent("control/user_control","show","loadPerson()");
 onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
+onEvent("control/user_control/userList","click","loadPersonInfo()");
 person_id=null;
 newPerson(){
 	newTabGroup("person");
@@ -214,10 +267,28 @@ loadPerson(){
         }
     });
 }
+
+loadPersonInfo(){
+person_id=getListItemValue();
+	if(isNull(person_id)){
+		showToast("No Person selected");
+		return;
+	}
+	showTabGroup("person", person_id, new FetchCallback() {
+        onFetch(result) {
+            person=result;
+            showToast("Loaded person"+person.getId());            
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
 /*** Language ***/
 onEvent("control/language_control/New_Language","click","newLanguage()");
 onEvent("language/languageInfo/Finish_New_Language","click","saveNewLanguage()");
 onEvent("control/language_control","show","loadLanguage()");
+onEvent("control/language_control/languageList","click","loadLanguageInfo()");
 language_id=null;
 newLanguage(){
 	newTabGroup("language");
@@ -258,6 +329,22 @@ loadLanguage(){
             populateList("control/language_control/languageList", result);
         }
 
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+loadLanguageInfo(){
+language_id=getListItemValue();
+	if(isNull(language_id)){
+		showToast("No Language selected");
+		return;
+	}
+	showTabGroup("language", language_id, new FetchCallback() {
+        onFetch(result) {
+            language=result;
+            showToast("Loaded person"+language.getId());            
+        }
         onError(message) {
             showToast(message);
         }

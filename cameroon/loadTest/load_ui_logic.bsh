@@ -1,0 +1,445 @@
+import java.util.concurrent.Callable;
+import java.util.*;
+/*** 'Editable' - you can edit the code below based on the needs ***/
+User user; // don't touch
+String userid;
+
+addActionBarItem("sync", new ToggleActionButtonCallback() {
+    actionOnLabel() {
+        "Disable Sync";
+    }
+    actionOn() {
+        setSyncEnabled(false);
+        setFileSyncEnabled(false);
+        showToast("Sync disabled.");
+    }
+    isActionOff() {
+        isSyncEnabled();
+    }
+    actionOffLabel() {
+        "Enable Sync";
+    }
+    actionOff() {
+        setSyncEnabled(true);
+        setFileSyncEnabled(true);
+        showToast("Sync enabled.");
+    }
+});
+/*** USER ***/
+onEvent("user/usertab/users", "click", "login()");
+
+loadUsers() {
+    fetchAll("select userid, fname || ' ' || lname from user where userdeleted is null", new FetchCallback() {
+        onFetch(result) {
+            populateList("user/usertab/users", result);
+        }
+    });
+}
+
+loadUsers();
+
+String username = "";
+String device = "";
+
+login() {
+    fetchOne("select userid,fname,lname,email from user where userid='" + getListItemValue() + "';", new FetchCallback() {
+        onFetch(result) {
+            user = new User(result.get(0),result.get(1),result.get(2),result.get(3));
+            setUser(user);
+            username = result.get(1) + " " + result.get(2);
+            showTabGroup("control");
+        }
+    });
+}
+
+/***Questionnaire***/
+
+onEvent("control/questionnaire_control/New_Questionnaire","click","newQuestionnaire()");
+onEvent("questionnaire/questionnaire_info/Start_Question_Selection","click","startQuestionSelection()");
+onEvent("questionnaire_question/questionnaire_question_info","show","initializeQuestionSelect()");
+onEvent("questionnaire_question/questionnaire_question_info/questionList","click","questionSelection()");
+//TODO: DELETE SELECTED QUESTION, SAVE QUESTIONNAIRE
+questionCandidates=new ArrayList();
+questionCandidatesContent=new ArrayList();
+questionSelected=new ArrayList();
+newQuestionnaire(){
+    newTabGroup("questionnaire");
+    onEvent("questionnaire", "show", "showTab(\"questionnaire/questionnaire_info\");");   
+}
+
+startQuestionSelection(){   
+    if((isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireName")))||(isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireID")))) {
+            showWarning("Validation Error", "You must fill in the Questionnaire ID/Name before you can continue");
+            return;
+        } else {
+        	questionnaire_id=getFieldValue("questionnaire/questionnaire_info/questionnaireID");
+            questionnaire_name = getFieldValue("questionnaire/questionnaire_info/questionnaireName");
+            showTabGroup("questionnaire_question");
+            //cancelTab(\"questionnaire/questionnaire_info\", false);
+            setFieldValue("questionnaire_question/questionnaire_question_info/questionnaireID", questionnaire_id);
+            setFieldValue("questionnaire_question/questionnaire_question_info/questionnaireName", questionnaire_name);
+        }
+}
+
+//TODO: DYNAMIC UI, QUESTION SELECTION
+initializeQuestionSelect(){
+	questionCandidates.clear();
+	questionCandidatesContent.clear();
+	questionSelected.clear();
+	populateList("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
+	fetchAll("SELECT uuid, measure as response " +
+    "FROM AentValue " +
+    "WHERE AentValue.AttributeID IN " +
+    "(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionContent') " +
+	"GROUP BY uuid " +
+    "order by response;",
+	new FetchCallback() {
+        onFetch(result) {
+			if (!isNull(result)) {
+				questionCandidates=result;
+				for (re:result) {
+				questionCandidatesContent.add(re);
+				//questionBankList.add(re);
+			}
+			populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+			}
+			
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+
+questionSelection(){
+	questionnaire_question_id=getListItemValue();
+	int idx_question=-1;
+	if(isNull(questionnaire_question_id)){
+		showToast("No Question selected");
+		return;
+	}
+	else{
+		//showWarning("start",questionCandidatesContent.size().toString());
+		//showWarning("startsize",questionSelected.size().toString());
+		for (int i=0; i<questionCandidatesContent.size();i++){
+			if (questionCandidatesContent.get(i).toString().contains(questionnaire_question_id)) {
+				idx_question=i;
+				//showWarning("get",questionCandidatesContent.get(idx_question).toString());
+				break;
+			}
+		}
+		//showWarning("index",idx_question.toString());
+		//showWarning("get",questionCandidatesContent.get(idx_question).toString());
+		questionSelected.add(questionCandidatesContent.get(idx_question));
+		//showWarning("questionSelectedadded",questionSelected.size().toString());
+		questionCandidatesContent.remove(idx_question);
+		//showWarning("questionCandidatesContent",questionCandidatesContent.size().toString());
+		populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+		populateList("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
+	}
+	//TODO: 获取全部内容，在两个ArrayList里面做加减
+}
+
+
+/*
+finishCreateQuestionnaire(){
+    List question_ids=getFieldValue("questionnaire/questionnaire_questionSelect/questionList");
+    String questionnaire_name;
+    if(question_ids_array==null || question_ids_array.size()==0)
+    {
+        showWarning("Validation Error", "You must fill in the Questionnaire Name before you can continue");
+        return;
+    }
+    if(isNull(getFieldValue("questionnaire/questionnaire_questionSelect/questionnaire_name"))){
+        showWarning("Validation Error", "You must fill in the Questionnaire Name before you can continue");
+        
+    }else{
+    question_ids=question_ids_array;
+    //TODO:SUBMIT QUESTIONNAIRE HERE
+    dialog = showBusy("Saving {Questionnaire}", "Please wait.");
+    saveTabGroup("questionnaire", questionnaire_id, null, null, new SaveCallback() {
+        onSave(uuid, newRecord) {
+            questionnaire_id = uuid;
+            if(newRecord) {
+            for (question_id : question_ids)
+                saveEntitiesToRel("Questionnaire", questionnaire_id, question_id);
+            }
+            dialog.dismiss();
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+    }
+}
+*/
+
+
+/*** QuestionBank ***/
+question_id=null;
+onEvent("control/question_control/New_Question","click","newQuestion()");
+onEvent("questionBank/questionInfo/Finish_New_Question","click","saveNewQuestion()");
+onEvent("control/question_control","show","loadQuestionBank()");
+onEvent("control/querytest/Submit","click","testQuery()");
+onEvent("questionBank/questionInfo/","show","autoQuestionID()");
+onEvent("control/question_control/questionList","click","loadQuestionInfo()");
+
+testQuery(){
+	query=getFieldValue("control/querytest/query");
+	//fetchAll("SELECT sql FROM sqlite_master WHERE name='archentity';",
+	fetchAll(query.toString()+";",
+	new FetchCallback() {
+        onFetch(result) {
+			if (isNull(result)) {
+				//code
+				showWarning("no","no result");
+			}
+			else{
+			for (re : result) {
+				
+				showWarning("yes",re.toString());
+				//showWarning("me",re.toString());
+				
+			}		    
+            //populateList("control/question_control/questionList", result);
+        }
+		}
+        onError(message) {
+            showToast(message);
+        }
+    });
+	
+}
+newQuestion(){
+	newTabGroup("questionBank");
+	onEvent("questionBank", "show", "showTab(\"questionBank/questionInfo\");");  
+}
+
+saveNewQuestion(){
+	if(isNull(getFieldValue("questionBank/questionInfo/questionContent"))){
+		showWarning("Validation Error", "You must fill in the Question Content before you can continue");
+        return;
+	}
+	saveTabGroup("questionBank", question_id, null, null, new SaveCallback() {
+    onSave(uuid, newRecord) {
+      question_id = uuid;
+	  //setFieldValue("questionBank/questionInfo/questionID", question_id);
+      if (newRecord) {
+        showToast("New record created");
+      }
+    }
+    onError(message) {
+        showWarning("error",message);
+    }  
+  });
+  /*
+	pushDatabaseToServer("onComplete()");
+	onComplete() {
+	    showToast("finished pushing database");
+	}
+	*/
+}
+
+autoQuestionID(){
+String autoQuestionId=username+getCurrentTime();
+setFieldValue("questionBank/questionInfo/questionID", autoQuestionId);
+}
+
+
+loadQuestionBank(){
+	questionBankList=new ArrayList();
+	/*The fetchAll query returns the uuid and the question content of all the questions*/
+//select uuid, group_concat(coalesce(measure,' '),'-') as response from AentValue where AentValue.AttributeID in (select AttributeID from AttributeKey where AttributeName="QuestionContent")
+	fetchAll("SELECT uuid, measure as response " +
+	//fetchAll("SELECT * " +
+    "FROM AentValue " +
+    "WHERE AentValue.AttributeID IN " +
+    "(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionContent') " +
+	"GROUP BY uuid " +
+    "order by response;",
+	new FetchCallback() {
+        onFetch(result) {
+			if (!isNull(result)) {
+				for (re:result) {
+				questionBankList.add(re);
+			}
+			populateList("control/question_control/questionList", questionBankList);
+			}
+			
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+	
+	/*fetchAll("SELECT uuid, group_concat(coalesce(measure, ''),' - ') as response " +
+	//fetchAll("SELECT * " +
+    "FROM (select * from latestNonDeletedArchentIdentifiers) " +
+    "WHERE aenttypename = 'QuestionBank' " +
+    "GROUP BY uuid;" +
+    "order by response;",
+	new FetchCallback() {
+        onFetch(result) {
+			for (re : result) {
+				showWarning("yes",re.toString());
+				//showWarning("me",re.toString());
+				//code
+			}		    
+            //populateList("control/question_control/questionList", result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+    */
+}
+loadQuestionInfo(){
+question_id=getListItemValue();
+	if(isNull(question_id)){
+		showToast("No Question selected");
+		return;
+	}
+	showTabGroup("questionBank", question_id, new FetchCallback() {
+        onFetch(result) {
+            question=result;
+            showToast("Loaded question"+question.getId());            
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+/*** Person ***/
+onEvent("control/user_control/New_User","click","newPerson()");
+onEvent("person/personInfo/Finish_New_Person","click","saveNewPerson()");
+onEvent("control/user_control","show","loadPerson()");
+onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
+onEvent("control/user_control/userList","click","loadPersonInfo()");
+person_id=null;
+newPerson(){
+	newTabGroup("person");
+	onEvent("person", "show", "showTab(\"person/personInfo\");");  
+}
+saveNewPerson(){
+	if(isNull(getFieldValue("person/personInfo/personName"))){
+		showWarning("Validation Error", "You must fill in the Person Name before you can continue");
+        return;
+	}
+	setFieldValue("person/personInfo/personID", getFieldValue("person/personInfo/personName")+getCurrentTime());
+	
+	saveTabGroup("person", person_id, null, null, new SaveCallback() {
+    onSave(uuid, newRecord) {
+      person_id = uuid;
+      if (newRecord) {
+        showToast("New record created");
+      }
+    }
+    onError(message) {
+        showWarning("error",message);
+    }  
+  });
+}
+
+loadPerson(){
+
+	fetchAll("SELECT uuid, group_concat(coalesce(measure, ''),' - ') as response " +
+    "FROM (select * from latestNonDeletedArchentIdentifiers) " +
+    "WHERE aenttypename = 'Person' " +
+    "GROUP BY uuid " +
+    "order by response;", new FetchCallback() {
+        onFetch(result) {
+            populateList("control/user_control/userList", result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+loadPersonInfo(){
+person_id=getListItemValue();
+	if(isNull(person_id)){
+		showToast("No Person selected");
+		return;
+	}
+	showTabGroup("person", person_id, new FetchCallback() {
+        onFetch(result) {
+            person=result;
+            showToast("Loaded person"+person.getId());            
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+/*** Language ***/
+onEvent("control/language_control/New_Language","click","newLanguage()");
+onEvent("language/languageInfo/Finish_New_Language","click","saveNewLanguage()");
+onEvent("control/language_control","show","loadLanguage()");
+onEvent("control/language_control/languageList","click","loadLanguageInfo()");
+language_id=null;
+newLanguage(){
+	newTabGroup("language");
+	onEvent("language", "show", "showTab(\"language/languageInfo\");");  
+}
+saveNewLanguage(){
+	if(isNull(getFieldValue("language/languageInfo/languageName"))){
+		showWarning("Validation Error", "You must fill in the Language Name before you can continue");
+        return;
+	}
+	if(isNull(getFieldValue("language/languageInfo/languageID"))){
+		showWarning("Validation Error", "You must fill in the Language ID before you can continue");
+        return;
+	}
+	//setFieldValue("person/personInfo/personID", getFieldValue("person/personInfo/personName")+getCurrentTime());
+	
+	saveTabGroup("language", language_id, null, null, new SaveCallback() {
+    onSave(uuid, newRecord) {
+      language_id = uuid;
+      if (newRecord) {
+        showToast("New record created");
+      }
+    }
+    onError(message) {
+        showWarning("error",message);
+    }  
+  });
+}
+
+loadLanguage(){
+
+	fetchAll("SELECT uuid, group_concat(coalesce(measure, ''),' - ') as response " +
+    "FROM (select * from latestNonDeletedArchentIdentifiers) " +
+    "WHERE aenttypename = 'Language' " +
+    "GROUP BY uuid " +
+    "order by response;", new FetchCallback() {
+        onFetch(result) {
+            populateList("control/language_control/languageList", result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+loadLanguageInfo(){
+language_id=getListItemValue();
+	if(isNull(language_id)){
+		showToast("No Language selected");
+		return;
+	}
+	showTabGroup("language", language_id, new FetchCallback() {
+        onFetch(result) {
+            language=result;
+            showToast("Loaded person"+language.getId());            
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
