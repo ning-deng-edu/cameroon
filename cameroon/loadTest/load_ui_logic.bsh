@@ -101,6 +101,8 @@ questionCandidates=new ArrayList();//all questions
 questionCandidatesContent=new ArrayList();//selectable questions
 questionSelected=new ArrayList();//currently selected questions
 questionOriginal=new ArrayList();//when changing questionnaire, this is for showing whether or not the questions in questionnaire are changed
+questionnaireInfoOriginal=new ArrayList();
+questionnaireInfoNew=new ArrayList();
 newQuestionnaire(){
     newTabGroup("questionnaire");
     onEvent("questionnaire", "show", "showTab(\"questionnaire/questionnaire_info\");");   
@@ -138,6 +140,8 @@ loadQuestionnaire(){
 }
 
 loadQuestionnaireInfo(){
+	questionnaireInfoOriginal.clear();
+	questionnaireInfoNew.clear();
 	finished_questionnaire_id=getListItemValue();
 	if(isNull(finished_questionnaire_id)){
 		showToast("No Questionnaire selected");
@@ -147,7 +151,11 @@ loadQuestionnaireInfo(){
 	showTabGroup("questionnaire", finished_questionnaire_id, new FetchCallback() {
         onFetch(result) {
             questionnaire=result;		
-            showToast("Loaded questionnaire"+questionnaire.getId());            
+            showToast("Loaded questionnaire"+questionnaire.getId());
+			//showWarning("result class",result.getClass().getName());
+			questionnaireInfoOriginal.add(getFieldValue("questionnaire/questionnaire_info/questionnaireID"));
+			questionnaireInfoOriginal.add(getFieldValue("questionnaire/questionnaire_info/questionnaireName"));
+			questionnaireInfoOriginal.add(getFieldValue("questionnaire/questionnaire_info/questionnaireDescription"));
         }
         onError(message) {
             showToast(message);
@@ -161,6 +169,9 @@ startQuestionSelection(){
         } else {
         	questionnaire_id=getFieldValue("questionnaire/questionnaire_info/questionnaireID");
             questionnaire_name = getFieldValue("questionnaire/questionnaire_info/questionnaireName");
+			questionnaireInfoNew.add(questionnaire_id);
+			questionnaireInfoNew.add(questionnaire_name);
+			questionnaireInfoNew.add(getFieldValue("questionnaire/questionnaire_info/questionnaireDescription"));
             showTabGroup("questionnaire_question");
             //cancelTab(\"questionnaire/questionnaire_info\", false);
             setFieldValue("questionnaire_question/questionnaire_question_info/questionnaireID", questionnaire_id);
@@ -173,7 +184,7 @@ initializeQuestionSelect(){
 		questionCandidatesContent.clear();
 		questionSelected.clear();
 		questionOriginal.clear();
-		showWarning("All clear","clear done");
+		//showWarning("All clear","clear done");
 	//the query result is an ArrayList, and each item in query result is an ArrayList too
 	if(isNull(finished_questionnaire_id)){
 		//showWarning("no id","new questionnaire");
@@ -189,7 +200,7 @@ initializeQuestionSelect(){
 			//showWarning("fetched",finished_questionnaire_id);
 			onFetch(result) {
 				if (!isNull(result)) {
-					showWarning("fetch result is not null",finished_questionnaire_id);
+					//showWarning("fetch result is not null",finished_questionnaire_id);
 					questionCandidates.addAll(result);
 					questionCandidatesContent.addAll(result);
 					//for (re:result) {
@@ -310,7 +321,7 @@ initializeQuestionSelect(){
 			//showWarning("fetched",finished_questionnaire_id);
 					onFetch(result) {
 						if (!isNull(result)) {
-						showWarning("changing questionnaire",finished_questionnaire_id);
+						//showWarning("changing questionnaire",finished_questionnaire_id);
 						questionCandidates.addAll(result);
 						questionCandidatesContent.addAll(result);
 						//for (re:result) {
@@ -417,14 +428,14 @@ deleteSelectedQuestion(){
 
 
 finishCreateQuestionnaire(){
-	question_basic_info_change=0;
+	//question_basic_info_change=0;
 	//showWarning("change question_basic_info_change","0");
 	if(questionSelected.isEmpty())
 	{
 		showWarning("No question selected","No question selected in this questionnaire");
 		return;
 	}
-	showWarning("questionSelected","not null");
+	//showWarning("questionSelected","not null");
 	if(isNull(finished_questionnaire_id)){//Creating a new questionnaire
 		//showWarning("save started","started");
 		saveTabGroup("questionnaire", finished_questionnaire_id, null, null, new SaveCallback() {
@@ -465,10 +476,67 @@ finishCreateQuestionnaire(){
 			showWarning("change started",questionOriginal.size());
 		}
 		*/
-		showWarning("change started","going to start");
+		//The onSave is executed parallel with the sentences following it, so be careful!  
+		//showWarning("change started","going to start");
 		question_origin.addAll(questionOriginal);
-		showWarning("change going","copied");
-		Hashtable changes=listChange(questionSelected,questionOriginal);
+		//showWarning("change going","copied");
+		Hashtable questionListChanges=listChange(questionSelected,questionOriginal);
+		//showWarning("questionListChanges","questionListChanges done");
+		Hashtable questionnaireInfoChanges=listChange(questionnaireInfoNew,questionnaireInfoOriginal);
+		//showWarning("questionnaireInfoChanges","questionnaireInfoChanges done");
+		if(questionnaireInfoChanges.containsKey("EQUAL")){		
+			if(questionListChanges.containsKey("EQUAL")){
+				showWarning("Questionnaire Modification","No data is changed");
+				return;
+			}
+			else{				
+				//showWarning("basic info not changed (else)","not changed basic info");
+				for (question : questionSelected){
+					//showWarning("basic info not changed",question.get(0).toString());
+					saveEntitiesToRel("Questionnare and Question",finished_questionnaire_id,question.get(0));
+					}
+				//reset the used arraylists
+				questionOriginal.clear();
+				questionOriginal.addAll(questionSelected);
+				showToast("Questions in this questionnaire are changed");
+				//showWarning("Attention!","Questions in quesitonnaire are not changeable, please create a new questionnaire!");
+				}
+		}
+		else{
+			saveTabGroup("questionnaire", finished_questionnaire_id, null, null, new SaveCallback() {
+			//showWarning("saveTabGroup()","started");
+			onSave(uuid, newRecord) {
+				//question_basic_info_change=1;//questionnaire's basic info has been changed
+				//showWarning("onSave()","started");
+				//finished_questionnaire_id = uuid;
+				//showWarning("finished_questionnaire_id()",finished_questionnaire_id);
+				for (question : questionSelected){
+					//showWarning("basic info changed (else)",question.get(0).toString());
+					saveEntitiesToRel("Questionnare and Question",finished_questionnaire_id,question.get(0));
+				}
+				//reset the used arraylists
+				questionOriginal.clear();
+				questionOriginal.add(questionSelected);
+				questionnaireInfoOriginal.clear();
+				questionnaireInfoOriginal.addAll(questionnaireInfoNew);
+				showToast("Questionnaire data is changed");
+			}
+			onError(message) {
+				showWarning("error",message);
+				}  
+			});
+			
+		}
+		/*
+		if(questionListChanges.containsKey("EQUAL")){
+				saveChangedQuestionnaire(false);
+				//return;
+			}
+		else{
+			saveChangedQuestionnaire(true);
+		}
+		*/
+		/*
 		saveTabGroup("questionnaire", finished_questionnaire_id, null, null, new SaveCallback() {
 			showWarning("saveTabGroup()","started");
 			onSave(uuid, newRecord) {
@@ -485,7 +553,7 @@ finishCreateQuestionnaire(){
 				showWarning("error",message);
 				}  
 		});
-	
+		showWarning("question_basic_info_change",question_basic_info_change.toString());
 		if(question_basic_info_change==0)//only save the changed questions
 		{
 			if(changes.containsKey("EQUAL")){
@@ -502,9 +570,59 @@ finishCreateQuestionnaire(){
 				//showWarning("Attention!","Questions in quesitonnaire are not changeable, please create a new questionnaire!");
 				}
 		}
+		*/
 	}
 	
 }
+
+saveChangedQuestionnaire(Boolean question_change){
+	if(question_change){//No matter the questionnaire basic info has been changed or not, the question changes have been saved
+		showWarning("question_change is true","if(question_change)");
+		showWarning("questionnaire_id ",finished_questionnaire_id);
+		for (question : questionSelected){
+					showWarning("saving relations",question.get(0).toString());
+					saveEntitiesToRel("Questionnare and Question",finished_questionnaire_id,question.get(0));
+					showWarning("one rel save done ",finished_questionnaire_id+"-"+ question.get(0).toString());
+				 }
+		questionOriginal.clear();
+		questionOriginal.addAll(questionSelected);
+		saveTabGroup("questionnaire", finished_questionnaire_id, null, null, new SaveCallback() {
+			//showWarning("saving questions done","going to start on saving info");
+			onSave(uuid, newRecord) {
+				//showToast("Basic questionnaire info changed");
+				//question_basic_info_change=1;//questionnaire's basic info has been changed
+				//showToast("Basic questionnaire info changed");
+				//questionnaire_id = uuid;
+				//showWarning("finished_questionnaire_id()",finished_questionnaire_id);		
+			}
+			onError(message) {
+				showWarning("error",message);
+			}  
+		});
+	}
+	
+	else{//Only when the questionnaire's basic info has been changed and saved, the question will be saved
+		showWarning("question_change is false","enter else branch");
+		saveTabGroup("questionnaire", finished_questionnaire_id, null, null, new SaveCallback() {
+			showWarning("saveTabGroup()","started");
+			onSave(uuid, newRecord) {
+				//question_basic_info_change=1;//questionnaire's basic info has been changed
+				showWarning("onSave()","started");
+				//finished_questionnaire_id = uuid;
+				showWarning("finished_questionnaire_id()",finished_questionnaire_id);
+				for (question : questionSelected){
+					showWarning("basic info not changed (else)",question.get(0).toString());
+					saveEntitiesToRel("Questionnare and Question",finished_questionnaire_id,question.get(0));
+				}
+			}
+			onError(message) {
+				showWarning("error",message);
+				}  
+		});
+	}
+	
+}
+
 
 listChange(ArrayList targetList,ArrayList sourceList){
 	//showWarning("listChange","listChange");
@@ -513,6 +631,11 @@ listChange(ArrayList targetList,ArrayList sourceList){
 	source_list=new ArrayList();
 	target_diff_on_source=new ArrayList();
 	source_diff_on_target=new ArrayList();
+	listChanges.clear();
+	target_list.clear();
+	source_list.clear();
+	target_diff_on_source.clear();
+	source_diff_on_target.clear();
 	//showWarning("listChange","initialization hashtable and arraylist done");
 	target_list.addAll(targetList);
 	//showWarning("target list size",target_list.size().toString());
@@ -529,24 +652,29 @@ listChange(ArrayList targetList,ArrayList sourceList){
 	source_diff_on_target.addAll(source_list);//source - target
 	//showWarning("source_diff_on_target",source_diff_on_target.size().toString());
 	if((target_diff_on_source.isEmpty()) && (source_diff_on_target.isEmpty())){
-		listChanges.put("EQUAL",null);
+		//showWarning("listChange","listChanges.put(EQUAL,null);");
+		listChanges.put("EQUAL",targetList);//here can not put ("EQUAL",null)
 		//showWarning("listChange","listChanges.put(EQUAL,null);");
 	}
 	else if((!target_diff_on_source.isEmpty()) && (source_diff_on_target.isEmpty())){
 		//added question
 		//return "PUREADD";
+		//showWarning("listChange","listChanges.put(PUREADD,null);");
 		listChanges.put("PUREADD",target_diff_on_source);
 		//showWarning("listChange","listChanges.put(PUREADD,null);");
 
 	}
 	else if((target_diff_on_source.isEmpty()) && (!source_diff_on_target.isEmpty())){
 		//return "PUREDELETE";
+		//showWarning("listChange","listChanges.put(PUREDELETE,null);");
 		listChanges.put("PUREDELETE",source_diff_on_target);
 		//showWarning("listChange","listChanges.put(PUREDELETE,null);");
 	}
 	else {
+		//showWarning("listChange","listChanges.put(DELETE,null);");
 		listChanges.put("ADD",target_diff_on_source);
 		//showWarning("listChange","listChanges.put(ADD,null);");
+		//showWarning("listChange","listChanges.put(DELETE,null);");
 		listChanges.put("DELETE",source_diff_on_target);
 		//showWarning("listChange","listChanges.put(DELETE,null);");
 	}

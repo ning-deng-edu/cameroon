@@ -101,7 +101,7 @@ onEvent("questionnaire_question/questionnaire_question_info","show","initializeQ
 onEvent("questionnaire_question/questionnaire_question_info/questionList","click","questionSelection()");
 onEvent("questionnaire_question/questionnaire_question_info/questionInQuestionnaire","click","deleteSelectedQuestion()");
 onEvent("questionnaire_question/questionnaire_question_info/New_Question","click","newQuestion()");
-onEvent("questionnaire_question/questionnaire_question_info/Finish_Questionnaire_Creation","click","finishCreateQuestionnaire(questionSelected)");
+onEvent("questionnaire_question/questionnaire_question_info/Finish_Questionnaire_Creation","click","finishCreateQuestionnaire()");
 
 //indicate if any questionnaire is selected
 finished_questionnaire_id=null;
@@ -114,6 +114,13 @@ questionCandidatesContent=new ArrayList();
 
 //questions selected in questionnaire
 questionSelected=new ArrayList();
+
+//when changing questionnaire, this is for showing whether or not the questions in questionnaire are changed
+questionOriginal=new ArrayList();
+
+//Comparing whether or not the questionnaire basic info is changed
+questionnaireInfoOriginal=new ArrayList();
+questionnaireInfoNew=new ArrayList();
 
 //create new questionnaire starting point
 newQuestionnaire(){
@@ -138,12 +145,9 @@ loadQuestionnaire(){
 	new FetchCallback() {
         onFetch(result) {
 			if (!isNull(result)) {
-				for (re:result) {
-				existing_questionnaires.add(re);
+				existing_questionnaires.addAll(result);
 			}
 			populateList("control/questionnaire_control/questionnaireList", existing_questionnaires);
-			}
-			
         }
 
         onError(message) {
@@ -154,6 +158,8 @@ loadQuestionnaire(){
 
 //load the questionnaire basic info to the page
 loadQuestionnaireInfo(){
+	questionnaireInfoOriginal.clear();
+	questionnaireInfoNew.clear();
 	finished_questionnaire_id=getListItemValue();
 	if(isNull(finished_questionnaire_id)){
 		showToast("No Questionnaire selected");
@@ -163,7 +169,11 @@ loadQuestionnaireInfo(){
 	showTabGroup("questionnaire", finished_questionnaire_id, new FetchCallback() {
         onFetch(result) {
             questionnaire=result;		
-            showToast("Loaded questionnaire"+questionnaire.getId());            
+            showToast("Loaded questionnaire"+questionnaire.getId());
+			//showWarning("result class",result.getClass().getName());
+			questionnaireInfoOriginal.add(getFieldValue("questionnaire/questionnaire_info/questionnaireID"));
+			questionnaireInfoOriginal.add(getFieldValue("questionnaire/questionnaire_info/questionnaireName"));
+			questionnaireInfoOriginal.add(getFieldValue("questionnaire/questionnaire_info/questionnaireDescription"));
         }
         onError(message) {
             showToast(message);
@@ -179,6 +189,9 @@ startQuestionSelection(){
         } else {
         	questionnaire_id=getFieldValue("questionnaire/questionnaire_info/questionnaireID");
             questionnaire_name = getFieldValue("questionnaire/questionnaire_info/questionnaireName");
+			questionnaireInfoNew.add(questionnaire_id);
+			questionnaireInfoNew.add(questionnaire_name);
+			questionnaireInfoNew.add(getFieldValue("questionnaire/questionnaire_info/questionnaireDescription"));
             showTabGroup("questionnaire_question");
             //cancelTab(\"questionnaire/questionnaire_info\", false);
             setFieldValue("questionnaire_question/questionnaire_question_info/questionnaireID", questionnaire_id);
@@ -190,32 +203,35 @@ startQuestionSelection(){
 //when there is no selected questionnaire, populate question candidate list for selection
 initializeQuestionSelect(){
 	//the query result is an ArrayList, and each item in query result is an ArrayList too
-	if(isNull(finished_questionnaire_id)){
-		//showWarning("no id","new questionnaire");
 		questionCandidates.clear();
 		questionCandidatesContent.clear();
 		questionSelected.clear();
+		questionOriginal.clear();
+		//showWarning("All clear","clear done");
+	//the query result is an ArrayList, and each item in query result is an ArrayList too
+	if(isNull(finished_questionnaire_id)){
+		//showWarning("no id","new questionnaire");
+		/*
+		questionCandidates.clear();
+		questionCandidatesContent.clear();
+		questionSelected.clear();
+		*/
 		//showWarning("list cleared",finished_questionnaire_id);
 		populateList("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
-	/*"SELECT uuid, measure as response " +
-    "FROM AentValue " +
-    "WHERE AentValue.AttributeID IN " +
-    "(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionContent') " +
-	"GROUP BY uuid " +
-    "order by response;"*/
 		fetchAll(loadAllQuestionQuery,
 		new FetchCallback() {
 			//showWarning("fetched",finished_questionnaire_id);
 			onFetch(result) {
 				if (!isNull(result)) {
 					//showWarning("fetch result is not null",finished_questionnaire_id);
-					questionCandidates=result;
-					for (re:result) {
-					questionCandidatesContent.add(re);
+					questionCandidates.addAll(result);
+					questionCandidatesContent.addAll(result);
+					//for (re:result) {
+					//questionCandidatesContent.add(re);
 				//showWarning("resultclass",result.getClass().getName());
 				//showWarning("class",re.get(0).toString());
 				//questionBankList.add(re);
-				}
+				//}
 				populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
 			}
 			
@@ -225,6 +241,7 @@ initializeQuestionSelect(){
             showToast(message);
         }
 		});
+		//showWarning("questionCandidatesContent size ",questionCandidatesContent.size());
 	}
 	
 	else{
@@ -234,10 +251,10 @@ initializeQuestionSelect(){
 		tempPopulateQuestionList=new ArrayList();
 		tempPopulateQuestionList.clear();
 		if(isNull(current_questionnaire_id))
-		{
-			showWarning("Message","Something went wrong!");
-			return;
-		}
+			{
+				showWarning("Message","Something went wrong! please contact the Admin");
+				return;
+			}
 		/*
 		select uuid,measure from latestNonDeletedAentValue
 		where latestNonDeletedAentValue.AttributeID in
@@ -246,34 +263,113 @@ initializeQuestionSelect(){
 		( select AEntReln.uuid from AEntReln where AEntReln.uuid <> "1000011435155888113"
 		 and AEntReln.RelationshipID in (select AEntReln.RelationshipID from AEntReln where AEntReln.uuid="1000011435155888113"))
 		questionList_show_in_questionnaire=new ArrayList();*/
+		
+		/*select  relationshipid from AEntReln aer
+		inner join (select max(AEntRelnTimestamp) as maxtime
+		from AEntReln where AEntReln.uuid ='1000011435604032139')  tm
+		on aer.AentRelnTimestamp=tm.maxtime group by relationshipid*/
+		
+		/*select uuid, measure from latestNonDeletedAentValue
+		where latestNonDeletedAentValue.AttributeID in
+		(select AttributeID from AttributeKey where AttributeName='QuestionContent')
+		and uuid in
+		(select AEntReln.uuid from AEntReln where AEntReln.uuid<>'1000011435604032139' and AEntReln.RelationshipID IN
+		(select  relationshipid from AEntReln aer inner join
+		(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ='1000011435604032139')  tm
+		on aer.AentRelnTimestamp=tm.maxtime group by relationshipid)) group by uuid*/
+		
+		
+		/*select uuid, measure from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID in
+		(select AttributeID from AttributeKey where AttributeName='QuestionContent')
+		and uuid in (select AEntReln.uuid from AEntReln where AEntReln.uuid<>'1000011435604032139' and AEntReln.RelationshipID IN
+		(select  relationshipID from AEntReln aer inner join(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ='1000011435604032139') tm
+		on aer.AentRelnTimestamp=tm.maxtime group by relationshipID))group by uuid*/
+		
 		questionnaire_question_query="SELECT uuid, measure "+
-		"FROM latestNonDeletedAentValue "+
-		"WHERE latestNonDeletedAentValue.AttributeID IN "+
-		"(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionContent') " +
-		"AND uuid IN "+
-		"(SELECT AEntReln.UUID FROM AEntReln WHERE AEntReln.UUID <> "+ current_questionnaire_id +" "+
-		"AND AEntReln.RelationshipID IN "+
-		"(SELECT AEntReln.RelationshipID FROM AEntReln WHERE AEntReln.uuid="+current_questionnaire_id+")) " +
-		"GROUP BY uuid;";
-		fetchAll(questionnaire_question_query,
-		new FetchCallback() {
+		"from latestNonDeletedAentValue "+
+		"where latestNonDeletedAentValue.AttributeID in "+
+		"(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
+		"and uuid in "+
+		"(select AEntReln.uuid from AEntReln where AEntReln.uuid<>"+current_questionnaire_id+" "+
+		"and AEntReln.RelationshipID IN "+
+		"(select  relationshipID from AEntReln aer "+
+		"inner join "+
+		"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_questionnaire_id+") tm "+
+		"on aer.AentRelnTimestamp=tm.maxtime group by relationshipID)) "+
+		"group by uuid;";
+		/*
+			questionnaire_question_query="SELECT uuid, measure "+
+			"FROM latestNonDeletedAentValue "+
+			"WHERE latestNonDeletedAentValue.AttributeID IN "+
+			"(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionContent') " +
+			"AND uuid IN "+
+			"(SELECT AEntReln.UUID FROM AEntReln WHERE AEntReln.UUID <> "+ current_questionnaire_id +" "+
+			"AND AEntReln.RelationshipID IN "+
+			"(SELECT AEntReln.RelationshipID FROM AEntReln aer INNER JOIN "+
+			"(SELECT max(AEntRelnTimestamp) AS MaxTime FROM AEntReln "+
+			"WHERE AEntReln.uuid ="+current_questionnaire_id+") tm "+
+			"ON aer.AEntRelnTimestamp=tm.MaxTime "+
+			"GROUP BY RelationshipID)) "+
+			//"(SELECT relationshipID, max(AEntRelnTimestamp) as MaxTime "+
+			//"FROM (select * from AEntReln where AEntReln.uuid=" +current_questionnaire_id +"))"+
+			//"(SELECT AEntReln.RelationshipID FROM AEntReln WHERE AEntReln.uuid="+current_questionnaire_id+")) " +
+			"GROUP BY uuid;";
+			*/
+			fetchAll(questionnaire_question_query,
+				new FetchCallback() {
 			//showWarning("fetched corresponding questions",current_questionnaire_id);
-        onFetch(result) {
-			if (!isNull(result)) {
+					onFetch(result) {
+						if (!isNull(result)) {
 				//showWarning("fetched result is not null",current_questionnaire_id);
-				questionList_show_in_questionnaire=result;
+							questionSelected.addAll(result);
+							questionOriginal.addAll(result);
+							//showWarning("questionSelected",questionSelected.size());
+							//showWarning("questionOriginal",questionOriginal.size());
+							
+							populateList("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
+						}
+			//populateList("questionnaire_question/questionnaire_question_info/questionList", tempPopulateQuestionList);
+					}
+			       
+				onError(message) {
+					showToast(message);
+				}
+				});
+			
+			//questionOriginal.addAll(questionSelected);
+			//showWarning("questionOriginal",questionOriginal.size());
+		
+			fetchAll(loadAllQuestionQuery,
+				new FetchCallback() {
+			//showWarning("fetched",finished_questionnaire_id);
+					onFetch(result) {
+						if (!isNull(result)) {
+						//showWarning("changing questionnaire",finished_questionnaire_id);
+						questionCandidates.addAll(result);
+						questionCandidatesContent.addAll(result);
+						//for (re:result) {
+							//questionCandidatesContent.add(re);
 				//showWarning("resultclass",result.getClass().getName());
 				//showWarning("class",re.get(0).toString());
 				//questionBankList.add(re);
+						//}
+					questionCandidatesContent.removeAll(questionSelected);
+					populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+					}
+			
 				}
-			populateList("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionList_show_in_questionnaire);
-			populateList("questionnaire_question/questionnaire_question_info/questionList", tempPopulateQuestionList);
-			}
-			       
-			onError(message) {
-				showToast(message);
+
+				onError(message) {
+				    showToast(message);
 				}
-			});
+				});
+			/*
+			if(isNull(questionSelected)){
+			showWarning("questionSelected Size","null");
+			//showWarning("questionOriginal Size",questionOriginal.size());
+			//showWarning("questionCandidatesContent Size",questionCandidatesContent.size());
+	       }
+	       */
 		}
 
 	
@@ -356,41 +452,166 @@ deleteSelectedQuestion(){
 
 
 //if there is selected questionnaire, then change the info, else create a new questionnaire
-finishCreateQuestionnaire(ArrayList questionSelectedInQuestionnaire){
-	if(isNull(finished_questionnaire_id)){
-		if(questionSelectedInQuestionnaire.isEmpty())
-		{
-			showWarning("No question selected","No question selected in this questionnaire");
-			return;
-		}
+finishCreateQuestionnaire(){
+	//question_basic_info_change=0;
+	//showWarning("change question_basic_info_change","0");
+	if(questionSelected.isEmpty())
+	{
+		showWarning("No question selected","No question selected in this questionnaire");
+		return;
 	}
-	//showWarning("save started","started");
+	//showWarning("questionSelected","not null");
+	if(isNull(finished_questionnaire_id)){//Creating a new questionnaire
+		//showWarning("save started","started");
 		saveTabGroup("questionnaire", finished_questionnaire_id, null, null, new SaveCallback() {
 		//showWarning("saveTabGroup()","started");
 		onSave(uuid, newRecord) {
 		//showWarning("onSave()","started");
-		finished_questionnaire_id = uuid;
+			finished_questionnaire_id = uuid;
 	  //showWarning("finished_questionnaire_id()",finished_questionnaire_id);
-		if (newRecord) {
-			for (question : questionSelectedInQuestionnaire){
+			if (newRecord) {
+				for (question : questionSelected){
 			 //showWarning("insertrelation()",question.get(0).toString());
-			saveEntitiesToRel("Questionnare and Question",finished_questionnaire_id,question.get(0));
+				saveEntitiesToRel("Questionnare and Question",finished_questionnaire_id,question.get(0));
 			//showWarning("savedrel()",question.get(0).toString());
 			}
 			showToast("New record created");
 			finished_questionnaire_id=null;
-		 }
-		else{
-			showWarning("Attention!","Only questionnaire basic info is changed, \n, Questions in quesitonnaire are not changeable!");
+			}
+			else{
+				showWarning("Attention!","Something went wrong!");
 		//finished_questionnaire_id=null;
-		}
+			}
 		}
 		onError(message) {
 			showWarning("error",message);
 		}  
 		});
+	}
+	
+	else{//This is for changing questionnaire
+		//showWarning("change started","before initialization");
+		question_origin=new ArrayList();
+		//question_origin.addAll();
+		/*
+		if(questionOriginal==null){
+			showWarning("change started","questionOriginal is null");
+		}
+		else{
+			showWarning("change started",questionOriginal.size());
+		}
+		*/
+		//The onSave is executed parallel with the sentences following it, so be careful!  
+		//showWarning("change started","going to start");
+		question_origin.addAll(questionOriginal);
+		//showWarning("change going","copied");
+		Hashtable questionListChanges=listChange(questionSelected,questionOriginal);
+		//showWarning("questionListChanges","questionListChanges done");
+		Hashtable questionnaireInfoChanges=listChange(questionnaireInfoNew,questionnaireInfoOriginal);
+		//showWarning("questionnaireInfoChanges","questionnaireInfoChanges done");
+		if(questionnaireInfoChanges.containsKey("EQUAL")){		
+			if(questionListChanges.containsKey("EQUAL")){
+				showWarning("Questionnaire Modification","No data is changed");
+				return;
+			}
+			else{				
+				//showWarning("basic info not changed (else)","not changed basic info");
+				for (question : questionSelected){
+					//showWarning("basic info not changed",question.get(0).toString());
+					saveEntitiesToRel("Questionnare and Question",finished_questionnaire_id,question.get(0));
+					}
+				//reset the used arraylists
+				questionOriginal.clear();
+				questionOriginal.addAll(questionSelected);
+				showToast("Questions in this questionnaire are changed");
+				//showWarning("Attention!","Questions in quesitonnaire are not changeable, please create a new questionnaire!");
+				}
+		}
+		else{
+			saveTabGroup("questionnaire", finished_questionnaire_id, null, null, new SaveCallback() {
+			//showWarning("saveTabGroup()","started");
+			onSave(uuid, newRecord) {
+				//question_basic_info_change=1;//questionnaire's basic info has been changed
+				//showWarning("onSave()","started");
+				//finished_questionnaire_id = uuid;
+				//showWarning("finished_questionnaire_id()",finished_questionnaire_id);
+				for (question : questionSelected){
+					//showWarning("basic info changed (else)",question.get(0).toString());
+					saveEntitiesToRel("Questionnare and Question",finished_questionnaire_id,question.get(0));
+				}
+				//reset the used arraylists
+				questionOriginal.clear();
+				questionOriginal.add(questionSelected);
+				questionnaireInfoOriginal.clear();
+				questionnaireInfoOriginal.addAll(questionnaireInfoNew);
+				showToast("Questionnaire data is changed");
+			}
+			onError(message) {
+				showWarning("error",message);
+				}  
+			});
+			
+		}
+	}
 	
 	
+}
+
+listChange(ArrayList targetList,ArrayList sourceList){
+	//showWarning("listChange","listChange");
+	Hashtable listChanges=new Hashtable();
+	target_list=new ArrayList();
+	source_list=new ArrayList();
+	target_diff_on_source=new ArrayList();
+	source_diff_on_target=new ArrayList();
+	listChanges.clear();
+	target_list.clear();
+	source_list.clear();
+	target_diff_on_source.clear();
+	source_diff_on_target.clear();
+	//showWarning("listChange","initialization hashtable and arraylist done");
+	target_list.addAll(targetList);
+	//showWarning("target list size",target_list.size().toString());
+	source_list.addAll(sourceList);
+	//showWarning("source list size",source_list.size().toString());
+	target_list.removeAll(source_list);
+	//showWarning("target-source list size",target_list.size().toString());
+	target_diff_on_source.addAll(target_list);//target - source
+	//showWarning("target_diff_on_source size",target_diff_on_source.size().toString());
+	target_list.clear();
+	target_list.addAll(targetList);
+	//showWarning("target_list",target_list.size().toString());
+	source_list.removeAll(target_list);
+	source_diff_on_target.addAll(source_list);//source - target
+	//showWarning("source_diff_on_target",source_diff_on_target.size().toString());
+	if((target_diff_on_source.isEmpty()) && (source_diff_on_target.isEmpty())){
+		//showWarning("listChange","listChanges.put(EQUAL,null);");
+		listChanges.put("EQUAL",targetList);//here can not put ("EQUAL",null)
+		//showWarning("listChange","listChanges.put(EQUAL,null);");
+	}
+	else if((!target_diff_on_source.isEmpty()) && (source_diff_on_target.isEmpty())){
+		//added question
+		//return "PUREADD";
+		//showWarning("listChange","listChanges.put(PUREADD,null);");
+		listChanges.put("PUREADD",target_diff_on_source);
+		//showWarning("listChange","listChanges.put(PUREADD,null);");
+
+	}
+	else if((target_diff_on_source.isEmpty()) && (!source_diff_on_target.isEmpty())){
+		//return "PUREDELETE";
+		//showWarning("listChange","listChanges.put(PUREDELETE,null);");
+		listChanges.put("PUREDELETE",source_diff_on_target);
+		//showWarning("listChange","listChanges.put(PUREDELETE,null);");
+	}
+	else {
+		//showWarning("listChange","listChanges.put(DELETE,null);");
+		listChanges.put("ADD",target_diff_on_source);
+		//showWarning("listChange","listChanges.put(ADD,null);");
+		//showWarning("listChange","listChanges.put(DELETE,null);");
+		listChanges.put("DELETE",source_diff_on_target);
+		//showWarning("listChange","listChanges.put(DELETE,null);");
+	}
+	return listChanges;
 }
 
 
