@@ -4,6 +4,10 @@
 .question-list {
     height: 100%;
 }
+
+.questionQuestionnaire-list {
+    height: 100px;
+}
 .language-list {
     height: 80%;
 }

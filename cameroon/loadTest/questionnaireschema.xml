@@ -71,8 +71,14 @@
                   <questionnaire_question_info>
                         <questionnaireID/>
                         <questionnaireName/>
-                        <questionInQuestionnaire/>
-                        <questionList/>
+                        <container1>
+                          <child1>
+                            <questionInQuestionnaire/>
+                          </child1>
+                          <child2>
+                            <questionList/>
+                          </child2>
+                        </container1>                      
                         <New_Question/>                      
                         <Finish_Questionnaire_Creation/>
                   </questionnaire_question_info>
@@ -281,23 +287,31 @@
             <label>{questionnaireName}</label>
           </input>
 
-        <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionInQuestionnaire" faims_style_class="quesion-list">
+
+        <group ref="container1" faims_style="orientation">
+          <label></label>
+          <group ref="child1" faims_style="even">
+            <label></label>
+              <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionInQuestionnaire" faims_style_class="questionQuestionnaire-list">
                 <label>{TapQuestionID}</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
                 </item>
           </select1>
-        
-        
-        <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionList" faims_style_class="quesion-list">
+          </group>
+       <group ref="child2" faims_style="even">
+            <label></label>
+            <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionList" faims_style_class="questionQuestionnaire-list">
                 <label>{TapQuestionID}</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
                 </item>
           </select1>
-             
+          </group>
+        
+        </group>
           
           <trigger ref="New_Question" faims_style_class="faims-blue">
                 <label>New {New_Question}</label>
