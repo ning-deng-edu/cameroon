@@ -24,6 +24,7 @@
               <login/>
             </usertab>
           </user>
+           
           <control>
                     <!--questionnaire tab,used for manipulate questionnaires-->
                     <questionnaire_control>
@@ -56,6 +57,10 @@
                     <Submit/>
           
                 </querytest>
+                     <search>
+              <entityTypes/>
+              <entityList/>
+            </search>
               </control>
           
                 <questionnaire>
@@ -232,7 +237,7 @@
             </select1>
         </group>
         
-         <group ref="querytest">
+       <group ref="querytest">
         <label>{query}</label>
         
             <input ref="query" faims_attribute_type="freetext" faims_certainty="false" faims_annotation="false">
@@ -244,6 +249,25 @@
             </trigger>
    
         </group>
+         
+         
+        <group ref="search" faims_scrollable="false">
+        <label>{search}</label>
+        <select1 ref="entityTypes" faims_attribute_type="vocab">
+          <label>{entityTypes}</label>
+          <item>
+            <label>placeholder</label>
+            <value>placeholder</value>
+          </item>
+        </select1>
+        <select1 appearance="compact" ref="entityList" faims_style_class="menu-list">
+          <label>{entityList}</label>
+          <item>
+            <label>placeholder</label>
+            <value>placeholder</value>
+          </item>
+        </select1>
+      </group>
          
     </group>
     
@@ -343,7 +367,7 @@
         <input ref="questionChoice" faims_attribute_name="QuestionChoice" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
           <label>{questionChoice}</label>
         </input>
-        <select1 ref="questionLanguage" faims_attribute_name="QuestionLanguage" faims_attribute_type="measure" faims_certainty="true" faims_annotation="true">
+        <select1 ref="questionLanguage" faims_attribute_name="QuestionLanguage" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
           <label>{questionLanguage}</label>
           <item>
             <label>placeholder</label>

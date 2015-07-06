@@ -574,7 +574,7 @@ finishCreateQuestionnaire(){
 	}
 	
 }
-
+/*
 saveChangedQuestionnaire(Boolean question_change){
 	if(question_change){//No matter the questionnaire basic info has been changed or not, the question changes have been saved
 		showWarning("question_change is true","if(question_change)");
@@ -623,6 +623,7 @@ saveChangedQuestionnaire(Boolean question_change){
 	
 }
 
+*/
 
 listChange(ArrayList targetList,ArrayList sourceList){
 	//showWarning("listChange","listChange");
@@ -821,6 +822,7 @@ loadQuestionBank(){
     */
 }
 loadQuestionInfo(){
+question=new ArrayList();
 question_id=getListItemValue();
 	if(isNull(question_id)){
 		showToast("No Question selected");
@@ -828,7 +830,8 @@ question_id=getListItemValue();
 	}
 	showTabGroup("questionBank", question_id, new FetchCallback() {
         onFetch(result) {
-            question=result;
+            question.addAll(result);
+			
             showToast("Loaded question"+question.getId());            
         }
         onError(message) {
@@ -979,4 +982,18 @@ language_id=getListItemValue();
             showToast(message);
         }
     });
+}
+
+
+/*** Search Page ***/
+//Add entity types
+entityTypes = new ArrayList();
+entityTypes.add(new NameValuePair("{Questionnaire}", "Questionnaire"));
+entityTypes.add(new NameValuePair("{Question}", "QuestionBank"));
+entityTypes.add(new NameValuePair("{Person}", "Person"));
+entityTypes.add(new NameValuePair("{Language}", "Language"));
+onEvent("control/search","show","initializeSearch()");
+
+initializeSearch(){
+	populateDropDown("control/search/entityTypes",entityTypes);
 }
