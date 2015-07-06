@@ -57,8 +57,10 @@
                     <Submit/>
           
                 </querytest>
-                     <search>
+              <search>
+                <keyword/>
               <entityTypes/>
+              <Record_Search/>
               <entityList/>
             </search>
               </control>
@@ -254,6 +256,9 @@
          
         <group ref="search" faims_scrollable="false">
         <label>{search}</label>
+         <input ref="keyword" faims_attribute_type="freetext" faims_certainty="false" faims_annotation="false">
+              <label>{keyword}</label>
+            </input>
         <select1 ref="entityTypes" faims_attribute_type="vocab">
           <label>{entityTypes}</label>
           <item>
@@ -261,6 +266,11 @@
             <value>placeholder</value>
           </item>
         </select1>
+        
+        <trigger ref="Record_Search" faims_style_class="faims-blue">
+                <label>Search Records</label>
+        </trigger>
+        
         <select1 appearance="compact" ref="entityList" faims_style_class="menu-list">
           <label>{entityList}</label>
           <item>

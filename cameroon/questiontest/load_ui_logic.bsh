@@ -1028,7 +1028,61 @@ entityTypes.add(new NameValuePair("{Question}", "QuestionBank"));
 entityTypes.add(new NameValuePair("{Person}", "Person"));
 entityTypes.add(new NameValuePair("{Language}", "Language"));
 onEvent("control/search","show","initializeSearch()");
-
+onEvent("control/search/Record_Search","click","recordSearch()");
+searchQuery_firstHalf="select uuid, measure from latestNonDeletedAentValue where " +
+"latestNonDeletedAentValue.Measure like '%"; 
+searchQuery_lastHalf="%' and latestNonDeletedAentValue.AttributeID in "+
+"(select AttributeID from IdealAent where IdealAent.AentTypeID in "+
+"(select AEntTypeID from AEntType where  AEntType.AEntTypeName= '";
+//search_star="select uuid, response from latestNonDeletedArchEntFormattedIdentifiers where aenttypename = '" + type + "' limit ? offset ?;";
 initializeSearch(){
 	populateDropDown("control/search/entityTypes",entityTypes);
+}
+
+recordSearch(){
+	searchResult=new ArrayList();
+	searchResult.clear();
+	String type = getFieldValue("control/search/entityTypes");
+	if(isNull(getFieldValue("control/search/keyword"))){
+		search_query="select uuid, measure from latestNonDeletedAentValue where "+
+		"latestNonDeletedAentValue.AttributeID in "+
+		"(select AttributeID from IdealAent where IdealAent.AentTypeID in "+
+		"(select AEntTypeID from AEntType where  AEntType.AEntTypeName= '"+type+"'));";// without group by uuid, user can view every related details
+		//showWarning("query",search_query);
+		fetchAll(search_query, new FetchCallback() {
+        onFetch(result) {
+			if(!isNull(result)){
+			searchResult.addAll(result);
+            populateList("control/search/entityList", result);}
+			else{
+				showWarning("No result","Sorry, no result is found");
+			}
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+		 //populateCursorList("control/search/entityList", "select uuid, response from latestNonDeletedArchEntFormattedIdentifiers where aenttypename = '" + type + "' limit ? offset ?;", 25);
+	}
+	else{
+		String keyword=getFieldValue("control/search/keyword");
+		search_query=searchQuery_firstHalf+keyword+searchQuery_lastHalf+type+"'));";//without group by uuid, user can view every related details
+		fetchAll(search_query, new FetchCallback() {
+        onFetch(result) {
+			if(!isNull(result)){
+			searchResult.addAll(result);
+            populateList("control/search/entityList", result);}
+			else{
+				showWarning("No result","Sorry, no result is found");
+			}
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+		//showWarning("query",search_query);
+		//populateCursorList("control/search/entityList", search_query, 25);
+	}
 }
