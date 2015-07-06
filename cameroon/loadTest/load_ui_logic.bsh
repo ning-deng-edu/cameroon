@@ -687,8 +687,9 @@ onEvent("control/question_control/New_Question","click","newQuestion()");
 onEvent("questionBank/questionInfo/Finish_New_Question","click","saveNewQuestion()");
 onEvent("control/question_control","show","loadQuestionBank()");
 onEvent("control/querytest/Submit","click","testQuery()");
-onEvent("questionBank/questionInfo/","show","autoQuestionID()");
+onEvent("questionBank/questionInfo/","show","initialQuestionCreation()");
 onEvent("control/question_control/questionList","click","loadQuestionInfo()");
+onEvent("questionBank/questionInfo/New_Language","click","newLanguage()");
 question_id=null;
 testQuery(){
 	query=getFieldValue("control/querytest/query");
@@ -752,9 +753,21 @@ saveNewQuestion(){
 	*/
 }
 
-autoQuestionID(){
-String autoQuestionId=username+getCurrentTime();
-setFieldValue("questionBank/questionInfo/questionID", autoQuestionId);
+
+initialQuestionCreation(){
+	if(isNull(question_id)){
+		String autoQuestionId=username+getCurrentTime();
+		setFieldValue("questionBank/questionInfo/questionID", autoQuestionId);
+		setFieldValue("questionBank/questionInfo/questionType", "N/A");
+		setFieldValue("questionBank/questionInfo/questionChoice", "N/A");
+		fetchAll(loadAllLanguageQuery,
+				 new FetchCallback() {
+				onFetch(result) {
+				populateDropDown("questionBank/questionInfo/questionLanguage", result);
+		}  
+	});		
+	}
+	
 }
 
 
@@ -769,9 +782,10 @@ loadQuestionBank(){
 	new FetchCallback() {
         onFetch(result) {
 			if (!isNull(result)) {
-				for (re:result) {
-				questionBankList.add(re);
-			}
+				questionBankList.addAll(result);
+				//for (re:result) {
+				//questionBankList.add(re);
+			//}
 			
 			}
 			populateList("control/question_control/questionList", questionBankList);
@@ -935,11 +949,12 @@ saveNewLanguage(){
 
 loadLanguage(){
 	language_id=null;
-	fetchAll("SELECT uuid, group_concat(coalesce(measure, ''),' - ') as response " +
-    "FROM (select * from latestNonDeletedArchentIdentifiers) " +
-    "WHERE aenttypename = 'Language' " +
-    "GROUP BY uuid " +
-    "order by response;", new FetchCallback() {
+	//"SELECT uuid, group_concat(coalesce(measure, ''),' - ') as response " +
+    //"FROM (select * from latestNonDeletedArchentIdentifiers) " +
+    //"WHERE aenttypename = 'Language' " +
+    //"GROUP BY uuid " +
+    //"order by response;"
+	fetchAll(loadAllLanguageQuery, new FetchCallback() {
         onFetch(result) {
             populateList("control/language_control/languageList", result);
         }

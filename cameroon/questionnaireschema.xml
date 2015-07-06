@@ -329,9 +329,11 @@
         <input ref="questionChoice" faims_attribute_name="QuestionChoice" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
           <label>{questionChoice}</label>
         </input>
+        
         <input ref="questionLanguage" faims_attribute_name="QuestionLanguage" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
           <label>{questionLanguage}</label>
         </input>
+        
         <trigger ref="Finish_New_Question" faims_style_class="faims-blue">
                 <label>New {Finish_New_Question}</label>
         </trigger>

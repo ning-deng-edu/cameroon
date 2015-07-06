@@ -85,6 +85,7 @@
                     <questionType/>
                     <questionChoice/>
                     <questionLanguage/>
+                    <New_Language/>
                     <Finish_New_Question/>
                   </questionInfo>
                 </questionBank>
@@ -296,8 +297,7 @@
                     <value>placeholder</value>
                 </item>
           </select1>
-        
-        <!--有疑问，这里要怎么表示外键-->     
+             
           
           <trigger ref="New_Question" faims_style_class="faims-blue">
                 <label>New {New_Question}</label>
@@ -329,9 +329,16 @@
         <input ref="questionChoice" faims_attribute_name="QuestionChoice" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
           <label>{questionChoice}</label>
         </input>
-        <input ref="questionLanguage" faims_attribute_name="QuestionLanguage" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+        <select1 ref="questionLanguage" faims_attribute_name="QuestionLanguage" faims_attribute_type="measure" faims_certainty="true" faims_annotation="true">
           <label>{questionLanguage}</label>
-        </input>
+          <item>
+            <label>placeholder</label>
+            <value>placeholder</value>
+          </item>
+        </select1>
+        <trigger ref="New_Language" faims_style_class="faims-blue">
+                <label>New {Language}</label>
+        </trigger>
         <trigger ref="Finish_New_Question" faims_style_class="faims-blue">
                 <label>New {Finish_New_Question}</label>
         </trigger>
