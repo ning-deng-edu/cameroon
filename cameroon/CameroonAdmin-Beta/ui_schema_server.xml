@@ -99,10 +99,24 @@
                   <questionInfo>
                     <questionID/>
                     <questionContent/>
+                    <container3>
+                      <child1>
                     <questionType/>
+                    </child1>
+                      <child2>
                     <questionChoice/>
+                    </child2>
+                    </container3>
+                    
+                    <container5>
+                      <child1>
                     <questionLanguage/>
-                    <questionLanguageSelectionList/>
+                    </child1>
+                      <child2>
+                        <questionLanguageSelectionList/>
+                      </child2>
+                    </container5>
+                    
                     <container2>
                       <child1>
                         <keywordInput/>
@@ -111,8 +125,16 @@
                         <Search_Language/>
                       </child2>
                     </container2>
+                    
+                    <container4>
+                      <child1>
                     <New_Language/>
+                    </child1>
+                      <child2>
                     <Finish_New_Question/>
+                    </child2>
+                    </container4>
+                    
                   </questionInfo>
                 </questionBank>
                 
@@ -341,7 +363,7 @@
           <group ref="child1" faims_style="even">
             <label></label>
               <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionInQuestionnaire" faims_style_class="questionQuestionnaire-list">
-                <label>{Tap question to delete question from questionnaire}</label>
+                <label>{Delete question}</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
@@ -352,7 +374,7 @@
        <group ref="child2" faims_style="even">
             <label></label>
             <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionList" faims_style_class="questionQuestionnaire-list">
-                <label>{Tap question to add question to questionnaire}</label>
+                <label>{Add question}</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
@@ -395,9 +417,9 @@
     
     
     
-    <group ref="questionBank" faims_archent_type="QuestionBank">
+    <group ref="questionBank" faims_archent_type="QuestionBank"  faims_scrollable="false">
         <label>{Question Bank}</label>
-        <group ref="questionInfo">
+        <group ref="questionInfo"  faims_scrollable="false">
           <label>{Question Information}</label>
           <input ref="questionID" faims_attribute_name="QuestionID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
           <label>{Question ID}</label>
@@ -405,24 +427,45 @@
         <input ref="questionContent" faims_attribute_name="QuestionContent" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
           <label>{Question Content}</label>
         </input>
+        <group ref="container3" faims_style="orientation">
+          
+           <label></label>
+          <group ref="child1" faims_style="even">
+            <label></label>
         <input ref="questionType" faims_attribute_name="QuestionType" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-          <label>{Question Type--for now this is useless}</label>
+          <label>{Question Type}</label>
         </input>
-        <input ref="questionChoice" faims_attribute_name="QuestionChoice" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-          <label>{Question Choice--for now this is useless}</label>
-        </input>     
-        <input ref="questionLanguage" faims_attribute_name="QuestionLanguage" faims_read_only="true" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-          <label>{questionLanguage}</label>
-        </input>
+        </group>
+       <group ref="child2" faims_style="even">
+        <label></label>
+          <input ref="questionChoice" faims_attribute_name="QuestionChoice" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+           <label>{Question Choice}</label>
+         </input>
+          </group>
+        </group>
         
+        <group ref="container5" faims_style="orientation">
+          <label></label>
+          <group ref="child1" faims_style="even">
+            <label></label>
+        <input ref="questionLanguage" faims_attribute_name="QuestionLanguage" faims_read_only="true" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{Language}</label>
+        </input>
+        </group>
+          
+           <group ref="child2" faims_style="even">
+        <label></label>
           <select1 ref="questionLanguageSelectionList" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" appearance="compact" faims_style_class="languageInQuestion-list">
-          <label>{Question Language}</label>
+          <label>{Language list}</label>
           <item>
             <label>placeholder</label>
             <value>placeholder</value>
           </item>
         </select1>
-
+           </group>
+        </group>
+        
+        
        <group ref="container2" faims_style="orientation">
           <label></label>
           <group ref="child1" faims_style="even">
@@ -439,12 +482,22 @@
           </group>      
         </group>
        
+       <group ref="container4" faims_style="orientation">
+          <label></label>
+        <group ref="child1" faims_style="even">
+            <label></label>
         <trigger ref="New_Language" faims_style_class="faims-blue">
                 <label>New Language</label>
         </trigger>
+        </group>
+         <group ref="child2" faims_style="even">
+            <label></label>
         <trigger ref="Finish_New_Question" faims_style_class="faims-blue">
                 <label>Create/Change Question</label>
         </trigger>
+        </group>  
+        </group>
+       
         </group>
     </group>
 

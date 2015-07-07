@@ -6,10 +6,10 @@
 }
 
 .questionQuestionnaire-list {
-    height: 100px;
+    height: 70px;
 }
 .languageInQuestion-list{
-    height: 100px;
+    height: 50px;
 }
 .language-list {
     height: 80%;
@@ -82,18 +82,17 @@
     background-color: #33b5e5;
     border-color: #26a0cd;
     color: white;
-        margin-top:5%;
-    margin-bottom:20%;
-        border-    border-radius:10%;
+    margin-top:10px;
+    margin-bottom:10px;
+       
     
 }
 .faims-blue-search {
     background-color: #33b5e5;
     border-color: #26a0cd;
     color: white;
-        margin-top:5px;
-    margin-bottom:1px;
-        border-    border-radius:10%;
+    margin-top:10px;
+    margin-bottom:10px;
     
 }
 
