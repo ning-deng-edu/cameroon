@@ -95,6 +95,7 @@ onEvent("questionnaire_question/questionnaire_question_info/questionList","click
 onEvent("questionnaire_question/questionnaire_question_info/questionInQuestionnaire","click","deleteSelectedQuestion()");
 onEvent("questionnaire_question/questionnaire_question_info/New_Question","click","newQuestion()");
 onEvent("questionnaire_question/questionnaire_question_info/Finish_Questionnaire_Creation","click","finishCreateQuestionnaire()");
+onEvent("questionnaire_question/questionnaire_question_info/Search_Question","click","searchQuestion()");
 
 finished_questionnaire_id=null;//flag for mark whether or not it's new questionnaire or showing/changing questionnaire
 questionCandidates=new ArrayList();//all questions
@@ -624,7 +625,55 @@ saveChangedQuestionnaire(Boolean question_change){
 }
 
 */
-
+searchQuestion(){
+	String keywordForQuestion=getFieldValue("questionnaire_question/questionnaire_question_info/keywordOfQuestion").trim();
+	if((!isNull(keywordForQuestion)) && (!keywordForQuestion.equals("*"))){
+	searchLanguageQueryFirstHalf="select uuid, measure from latestNonDeletedAentValue where " +
+						"latestNonDeletedAentValue.Measure like '%"; 
+	searchLanguageQueryLastHalf="%' and latestNonDeletedAentValue.AttributeID in "+
+								"(select AttributeID from IdealAent where IdealAent.AentTypeID in "+
+								"(select AEntTypeID from AEntType where AEntType.AEntTypeName= 'QuestionBank'));";
+	//String keywordForLanguage=getFieldValue("questionBank/questionInfo/keywordInput");
+	fetchAll(searchLanguageQueryFirstHalf+keywordForQuestion+searchLanguageQueryLastHalf,
+				new FetchCallback() {
+				onFetch(result) {
+						questionCandidatesContent.clear();
+						questionCandidates.clear();
+						questionCandidates.addAll(result);
+						questionCandidatesContent.addAll(result);
+						questionCandidatesContent.removeAll(questionSelected);
+						populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+				
+				}  
+		});
+	}
+	else if(isNull(keywordForQuestion)){
+		showWarning("Invalid input","You must input keyword");
+		/*
+		fetchAll(loadAllLanguageQuery,
+				new FetchCallback() {
+				onFetch(result) {
+				candidataLanguageList.clear();
+				candidataLanguageList.addAll(result);
+				populateDropDown("questionBank/questionInfo/questionLanguageDropdown", result);
+				}  
+		});
+		*/
+	}
+	else if(keywordForQuestion.equals("*")){
+		fetchAll(loadAllQuestionQuery,
+				new FetchCallback() {
+				onFetch(result) {
+					questionCandidatesContent.clear();
+					questionCandidates.clear();
+					questionCandidates.addAll(result);
+					questionCandidatesContent.addAll(result);
+					questionCandidatesContent.removeAll(questionSelected);
+					populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+				}  
+		});		
+	}
+}
 listChange(ArrayList targetList,ArrayList sourceList){
 	//showWarning("listChange","listChange");
 	Hashtable listChanges=new Hashtable();
@@ -691,9 +740,11 @@ onEvent("control/querytest/Submit","click","testQuery()");
 onEvent("questionBank/questionInfo/","show","initialQuestionCreation()");
 onEvent("control/question_control/questionList","click","loadQuestionInfo()");
 onEvent("questionBank/questionInfo/New_Language","click","newLanguage()");
-onEvent("questionBank/questionInfo/questionLanguageDropdown","click","setQuestionLanguageText()");
+onEvent("questionBank/questionInfo/questionLanguageSelectionList","click","setQuestionLanguageText()");
+onEvent("questionBank/questionInfo/Search_Language","click","searchLanguage()");
 question_id=null;
 candidataLanguageList=new ArrayList();
+current_selected_language_id=null;
 testQuery(){
 	query=getFieldValue("control/querytest/query");
 	//fetchAll("SELECT sql FROM sqlite_master WHERE name='archentity';",
@@ -737,12 +788,12 @@ saveNewQuestion(){
       question_id = uuid;
 	  //setFieldValue("questionBank/questionInfo/questionID", question_id);
       if (newRecord) {
-		saveEntitiesToRel("Question and Language",question_id,getFieldValue("questionBank/questionInfo/questionLanguageDropdown"));
+		saveEntitiesToRel("Question and Language",question_id,current_selected_language_id);
 		question_id=null;
         showToast("New record created");
       }
 	  else{
-		saveEntitiesToRel("Question and Language",question_id,getFieldValue("questionBank/questionInfo/questionLanguageDropdown"));
+		saveEntitiesToRel("Question and Language",question_id,current_selected_language_id);
 		showToast("Record changed");
 		question_id=null;
 	  }
@@ -767,12 +818,14 @@ initialQuestionCreation(){
 		setFieldValue("questionBank/questionInfo/questionID", autoQuestionId);
 		setFieldValue("questionBank/questionInfo/questionType", "N/A");
 		setFieldValue("questionBank/questionInfo/questionChoice", "N/A");
+		setFieldValue("questionBank/questionInfo/keywordInput", "*");
 		fetchAll(loadAllLanguageQuery,
 				 new FetchCallback() {
 				onFetch(result) {
 					//if(!isNull(result)){
 					candidataLanguageList.addAll(result);
-				populateDropDown("questionBank/questionInfo/questionLanguageDropdown", result);
+					populateList("questionBank/questionInfo/questionLanguageSelectionList",result);
+				//populateDropDown("questionBank/questionInfo/questionLanguageDropdown", result);
 				if(!isNull(result)){
 				setFieldValue("questionBank/questionInfo/questionLanguage",candidataLanguageList.get(0).get(1).toString());}
 				//}
@@ -780,16 +833,17 @@ initialQuestionCreation(){
 	});		
 	}
 	else{
-		showWarning("question id is",question_id);
+		//showWarning("question id is",question_id);
 	}
 	
 }
 
 setQuestionLanguageText(){
-	String question_language_id=getFieldValue("questionBank/questionInfo/questionLanguageDropdown");
+	String question_language_id=getListItemValue();
 	for (int i=0; i<candidataLanguageList.size();i++){
 			if (candidataLanguageList.get(i).get(0).toString().equals(question_language_id)) {
-				setFieldValue("questionBank/questionInfo/questionLanguage",candidataLanguageList.get(i).get(1).toString());				
+				setFieldValue("questionBank/questionInfo/questionLanguage",candidataLanguageList.get(i).get(1).toString());
+				current_selected_language_id=question_language_id;
 				//showWarning("get",questionCandidatesContent.get(idx_question).toString());
 				break;
 			}
@@ -868,9 +922,55 @@ question_id=getListItemValue();
 				onFetch(result) {
 				candidataLanguageList.clear();
 				candidataLanguageList.addAll(result);
-				populateDropDown("questionBank/questionInfo/questionLanguageDropdown", result);
+				populateList("questionBank/questionInfo/questionLanguageSelectionList",result);
+				//populateDropDown("questionBank/questionInfo/questionLanguageDropdown", result);
 				}  
 	});		
+}
+
+searchLanguage(){
+	String keywordForLanguage=getFieldValue("questionBank/questionInfo/keywordInput").trim();
+	if((!isNull(keywordForLanguage)) && (!keywordForLanguage.equals("*"))){
+	searchLanguageQueryFirstHalf="select uuid, measure from latestNonDeletedAentValue where " +
+						"latestNonDeletedAentValue.Measure like '%"; 
+	searchLanguageQueryLastHalf="%' and latestNonDeletedAentValue.AttributeID in "+
+								"(select AttributeID from IdealAent where IdealAent.AentTypeID in "+
+								"(select AEntTypeID from AEntType where AEntType.AEntTypeName= 'Language'));";
+	//String keywordForLanguage=getFieldValue("questionBank/questionInfo/keywordInput");
+	fetchAll(searchLanguageQueryFirstHalf+keywordForLanguage+searchLanguageQueryLastHalf,
+				new FetchCallback() {
+				onFetch(result) {
+				candidataLanguageList.clear();
+				candidataLanguageList.addAll(result);
+				populateList("questionBank/questionInfo/questionLanguageSelectionList",result);
+				//populateDropDown("questionBank/questionInfo/questionLanguageDropdown", result);
+				}  
+		});
+	}
+	else if(isNull(keywordForLanguage)){
+		showWarning("Invalid input","You must input keyword");
+		/*
+		fetchAll(loadAllLanguageQuery,
+				new FetchCallback() {
+				onFetch(result) {
+				candidataLanguageList.clear();
+				candidataLanguageList.addAll(result);
+				populateDropDown("questionBank/questionInfo/questionLanguageDropdown", result);
+				}  
+		});
+		*/
+	}
+	else if(keywordForLanguage.equals("*")){
+		fetchAll(loadAllLanguageQuery,
+				new FetchCallback() {
+				onFetch(result) {
+				candidataLanguageList.clear();
+				candidataLanguageList.addAll(result);
+				populateList("questionBank/questionInfo/questionLanguageSelectionList",result);
+				//populateDropDown("questionBank/questionInfo/questionLanguageDropdown", result);
+				}  
+		});		
+	}
 }
 
 
@@ -1027,8 +1127,11 @@ entityTypes.add(new NameValuePair("{Questionnaire}", "Questionnaire"));
 entityTypes.add(new NameValuePair("{Question}", "QuestionBank"));
 entityTypes.add(new NameValuePair("{Person}", "Person"));
 entityTypes.add(new NameValuePair("{Language}", "Language"));
+
 onEvent("control/search","show","initializeSearch()");
 onEvent("control/search/Record_Search","click","recordSearch()");
+onEvent("control/search/entityList","click","showEntity()");
+type=null;
 searchQuery_firstHalf="select uuid, measure from latestNonDeletedAentValue where " +
 "latestNonDeletedAentValue.Measure like '%"; 
 searchQuery_lastHalf="%' and latestNonDeletedAentValue.AttributeID in "+
@@ -1042,7 +1145,7 @@ initializeSearch(){
 recordSearch(){
 	searchResult=new ArrayList();
 	searchResult.clear();
-	String type = getFieldValue("control/search/entityTypes");
+	type = getFieldValue("control/search/entityTypes");
 	if(isNull(getFieldValue("control/search/keyword"))){
 		search_query="select uuid, measure from latestNonDeletedAentValue where "+
 		"latestNonDeletedAentValue.AttributeID in "+
@@ -1085,4 +1188,24 @@ recordSearch(){
 		//showWarning("query",search_query);
 		//populateCursorList("control/search/entityList", search_query, 25);
 	}
+}
+
+showEntity(){
+	entity_id=getListItemValue();
+	switch (type){
+		case "Questionnaire":
+			loadQuestionnaireInfo();
+			break;
+		case "Person":
+			loadPersonInfo();
+			break;
+		case "Language":
+			loadLanguageInfo();
+			break;
+		case "QuestionBank":
+			loadQuestionInfo();
+			break;
+			
+	}
+	
 }
