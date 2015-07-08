@@ -1178,7 +1178,7 @@ language_id=getListItemValue();
 	showTabGroup("language", language_id, new FetchCallback() {
         onFetch(result) {
             language=result;
-            showToast("Loaded person"+language.getId());            
+            showToast("Loaded language"+language.getId());            
         }
         onError(message) {
             showToast(message);
