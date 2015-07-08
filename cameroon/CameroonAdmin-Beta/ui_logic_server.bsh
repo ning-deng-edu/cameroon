@@ -853,7 +853,7 @@ saveNewQuestion(){
 //preparation for question creation
 initialQuestionCreation(){
 	candidateLanguageList.clear();
-	setFieldValue("questionBank/questionInfo/keywordInput", "*");
+	//setFieldValue("questionBank/questionInfo/keywordInput", "*");
 	if(isNull(question_id)){
 		String autoQuestionId=username+getCurrentTime();
 		setFieldValue("questionBank/questionInfo/questionID", autoQuestionId);
@@ -873,6 +873,7 @@ initialQuestionCreation(){
 		}  
 	});		
 	}
+	setFieldValue("questionBank/questionInfo/keywordInput", "*");
 	/*
 	else{
 		showWarning("initialQuestionCreation","else");
@@ -978,7 +979,8 @@ question_id=getListItemValue();
 	showTabGroup("questionBank", question_id, new FetchCallback() {
         onFetch(result) {
             //question.addAll(result);
-            showToast("Loaded question"+question_id);            
+            showToast("Loaded question"+question_id);
+			setFieldValue("questionBank/questionInfo/keywordInput", "*");
         }
         onError(message) {
             showToast(message);
