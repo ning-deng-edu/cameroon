@@ -84,16 +84,27 @@
     color: white;
     margin-top:10px;
     margin-bottom:10px;
-       
+
     
 }
+
+.faims-blue-parallel {
+    background-color: #33b5e5;
+    border-color: #26a0cd;
+    color: white;
+    margin-top:10px;
+    margin-bottom:10px;
+     width: 150px;  
+    
+}
+
 .faims-blue-search {
     background-color: #33b5e5;
     border-color: #26a0cd;
     color: white;
     margin-top:10px;
     margin-bottom:10px;
-    
+      width: auto;  
 }
 
 .faims-danger {
