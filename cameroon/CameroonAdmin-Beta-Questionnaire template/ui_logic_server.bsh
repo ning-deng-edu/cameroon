@@ -830,7 +830,8 @@ initialQuestionCreation(){
 					//populateList("questionBank/questionInfo/questionLanguageSelectionList",result);
 					populateDropDown("questionBank/questionInfo/questionLanguageSelectionList", result);
 				if(!isNull(result)){
-				setFieldValue("questionBank/questionInfo/questionLanguage",candidateLanguageList.get(0).get(1).toString());}
+				setFieldValue("questionBank/questionInfo/questionLanguage",candidateLanguageList.get(0).get(1).toString());
+				}
 				//}
 		}  
 	});		

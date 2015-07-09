@@ -207,7 +207,7 @@
         
         
         <group ref="questionnaire_control">
-            <label>Questionnaire</label>
+            <label>Quesnir</label>
             <!--No input here-->
             <trigger ref="New_Questionnaire" faims_style_class="faims-blue">
                 <label>New Questionnaire</label>

@@ -89,10 +89,12 @@
                             <Search_Question/>
                           </child2>
                         </container3>
-                        
-                        <New_Question/>                      
+                         
                         <Finish_Questionnaire_Creation/>
+                        <New_Question/>                      
+                       
                   </questionnaire_question_info>
+                 
                 </questionnaire_question>
                 
                <questionBank>
@@ -120,9 +122,9 @@
                         <Search_Language/>
                       </child2>
                     </container2>
-                                    
+                    <Finish_New_Question/>                 
                     <New_Language/>          
-                    <Finish_New_Question/>                   
+                                      
                   </questionInfo>
                 </questionBank>
                 
@@ -388,16 +390,16 @@
         
         </group>
           
-          
+          <trigger ref="Finish_Questionnaire_Creation" faims_style_class="faims-blue">
+            <label>Save Questionnaire</label>
+          </trigger>
           
           <trigger ref="New_Question" faims_style_class="faims-blue">
                 <label>New Question</label>
           </trigger>
           
           
-          <trigger ref="Finish_Questionnaire_Creation" faims_style_class="faims-blue">
-            <label>Create/Change Questionnaire</label>
-          </trigger>
+          
       
         </group>
     </group>
@@ -465,15 +467,17 @@
         </group>
        
      
-        <trigger ref="New_Language" faims_style_class="faims-blue">
-                <label>New Language</label>
-        </trigger>
+        
    
        
         <trigger ref="Finish_New_Question" faims_style_class="faims-blue">
-                <label>Create/Change Question</label>
+                <label>Save Question</label>
         </trigger>
- 
+        
+        
+        <trigger ref="New_Language" faims_style_class="faims-blue">
+                <label>New Language</label>
+        </trigger>
        
         </group>
     </group>
@@ -505,7 +509,7 @@
                 <label>Take Photo</label>
             </trigger>
             <trigger ref="Finish_New_Person" faims_style_class="faims-blue">
-                <label>Create/Change Person</label>
+                <label>Save Person</label>
             </trigger>
         </group>
     </group>
@@ -525,7 +529,7 @@
               <label>{Language Other Names}</label>
             </input>      
             <trigger ref="Finish_New_Language" faims_style_class="faims-blue">
-                <label>Create/Change Language</label>
+                <label>Save Language</label>
             </trigger>
       </group>
     </group>

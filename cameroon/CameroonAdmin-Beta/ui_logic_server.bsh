@@ -160,7 +160,7 @@ onEvent("questionnaire/questionnaire_info/Start_Question_Selection","click","sta
 onEvent("questionnaire_question/questionnaire_question_info","show","initializeQuestionSelect()");
 onEvent("questionnaire_question/questionnaire_question_info/questionList","click","questionSelection()");
 onEvent("questionnaire_question/questionnaire_question_info/questionInQuestionnaire","click","deleteSelectedQuestion()");
-onEvent("questionnaire_question/questionnaire_question_info/New_Question","click","newQuestion()");
+onEvent("questionnaire_question/questionnaire_question_info/New_Question","click","newQuestionFromQuestionnaire()");
 onEvent("questionnaire_question/questionnaire_question_info/Finish_Questionnaire_Creation","click","finishCreateQuestionnaire()");
 onEvent("questionnaire_question/questionnaire_question_info/Search_Question","click","searchQuestion()");
 
@@ -171,11 +171,13 @@ questionSelected=new ArrayList();//questions selected in questionnaire
 questionOriginal=new ArrayList();//when changing questionnaire, this is for showing whether or not the questions in questionnaire are changed
 questionnaireInfoOriginal=new ArrayList();//Comparing whether or not the questionnaire basic info is changed
 questionnaireInfoNew=new ArrayList();//Comparing whether or not the questionnaire basic info is changed
-
+//flag_return_questionnaire=false;
 //starting point of creating new questionnaire 
-newQuestionnaire(){
+newQuestionnaire(){	
     newTabGroup("questionnaire");
-    onEvent("questionnaire", "show", "showTab(\"questionnaire/questionnaire_info\");");   
+    onEvent("questionnaire", "show", "showTab(\"questionnaire/questionnaire_info\");");
+	finished_questionnaire_id=null;
+	//flag_return_questionnaire=false;
 }
 
 //load all questionnaire names
@@ -243,6 +245,9 @@ startQuestionSelection(){
             //cancelTab(\"questionnaire/questionnaire_info\", false);
             setFieldValue("questionnaire_question/questionnaire_question_info/questionnaireID", questionnaire_id);
             setFieldValue("questionnaire_question/questionnaire_question_info/questionnaireName", questionnaire_name);
+			/*if(!isNull(finished_questionnaire_id)){
+				flag_return_questionnaire=true;
+			}*/
         }
 }
 
@@ -250,6 +255,13 @@ startQuestionSelection(){
 		
 //when there is a selected questionnaire, basically show all the data in this questionnaire		
 //when there is no selected questionnaire, populate question candidate list for selection
+newQuestionFromQuestionnaire(){
+	//flag_return_questionnaire=true;
+	newTabGroup("questionBank");
+	onEvent("questionBank", "show", "showTab(\"questionBank/questionInfo\");");  
+}
+
+
 initializeQuestionSelect(){
 	//the query result is an ArrayList, and each item in query result is an ArrayList too
 		questionCandidates.clear();
@@ -603,6 +615,7 @@ finishCreateQuestionnaire(){
 		}
 		*/
 	}
+	//flag_return_questionnaire=false;
 	
 }
 /*
