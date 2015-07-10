@@ -773,6 +773,7 @@ testQuery(){
 */
 //Starting point of creating new question
 newQuestion(){
+	question_id=null;
 	newTabGroup("questionBank");
 	onEvent("questionBank", "show", "showTab(\"questionBank/questionInfo\");");  
 }
@@ -1050,6 +1051,7 @@ onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personI
 onEvent("control/user_control/userList","click","loadPersonInfo()");
 person_id=null;
 newPerson(){
+	language_id=null;
 	newTabGroup("person");
 	onEvent("person", "show", "showTab(\"person/personInfo\");");  
 }
@@ -1120,6 +1122,7 @@ onEvent("control/language_control","show","loadLanguage()");
 onEvent("control/language_control/languageList","click","loadLanguageInfo()");
 language_id=null;
 newLanguage(){
+	language_id=null;
 	newTabGroup("language");
 	onEvent("language", "show", "showTab(\"language/languageInfo\");");  
 }
