@@ -737,6 +737,7 @@ onEvent("control/question_control/questionList","click","loadQuestionInfo()");
 onEvent("questionBank/questionInfo/New_Language","click","newLanguage()");
 onEvent("questionBank/questionInfo/questionLanguageSelectionList","click","setQuestionLanguageText()");
 onEvent("questionBank/questionInfo/Search_Language","click","searchLanguage()");
+
 //indicates of there is selected question
 question_id=null;
 //All candidate lanaguages
@@ -775,7 +776,7 @@ testQuery(){
 newQuestion(){
 	question_id=null;
 	newTabGroup("questionBank");
-	onEvent("questionBank", "show", "showTab(\"questionBank/questionInfo\");");  
+	onEvent("questionBank", "show", "showTab(\"questionBank/questionInfo\");"); 
 }
 
 //save the question info and its relationship with language
@@ -792,13 +793,15 @@ saveNewQuestion(){
 	  //setFieldValue("questionBank/questionInfo/questionID", question_id);
       if (newRecord) {
 		saveEntitiesToRel("Question and Language",question_id,current_selected_language_id);
-		question_id=null;
+		//question_id=null;	
         showToast("New record created");
+		newQuestion();
+		initialQuestionCreation();
       }
 	  else{
 		saveEntitiesToRel("Question and Language",question_id,current_selected_language_id);
 		showToast("Record changed");
-		question_id=null;
+		//question_id=null;
 	  }
     }
     onError(message) {
@@ -822,7 +825,7 @@ initialQuestionCreation(){
 		setFieldValue("questionBank/questionInfo/questionID", autoQuestionId);
 		setFieldValue("questionBank/questionInfo/questionType", "N/A");
 		setFieldValue("questionBank/questionInfo/questionChoice", "N/A");
-		//setFieldValue("questionBank/questionInfo/keywordInput", "*");
+		//setFieldValue("questionBank/questionInfo/questionContent", "");
 		fetchAll(loadAllLanguageQuery,
 				 new FetchCallback() {
 				onFetch(result) {
@@ -1067,12 +1070,12 @@ saveNewPerson(){
     onSave(uuid, newRecord) {
       person_id = uuid;
       if (newRecord) {
-		person_id=null;
+		newPerson();
+		//person_id=null;
         showToast("New record created");
       }
 	  else{
-		person_id=null;
-		showToast("Record changed");
+		showToast("Record changed");	
 	  }
 	  
     }
@@ -1142,11 +1145,11 @@ saveNewLanguage(){
     onSave(uuid, newRecord) {
       language_id = uuid;
       if (newRecord) {
-		language_id=null;
+		newLanguage();
         showToast("New record created");
       }
 	  else{
-		language_id=null;
+		//language_id=null;
 		showToast("Record changed");
 	  }
     }
