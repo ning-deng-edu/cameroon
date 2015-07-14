@@ -1,0 +1,762 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms"
+        xmlns:h="http://www.w3.org/1999/xhtml"
+        xmlns:ev="http://www.w3.org/2001/xml-events"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:jr="http://openrosa.org/javarosa">
+
+
+<h:head>
+    <h:title>Linguistic data documentation</h:title>
+    <model>
+        <instance>
+            <faims id="ldd_client">
+
+               <style>
+            	<orientation>
+              		<orientation/>
+            	</orientation>
+            <even>
+              	<layout_weight/>
+            </even>
+            <large>
+              <layout_weight/>
+            </large>
+          </style>
+      
+                <user>
+                    <usertab>
+                        <users/>
+                        <login/>
+                    </usertab>
+                </user>
+                 
+                 
+                <control>
+                   
+                    <survey_control>
+        
+                        <questionnaireSelect/>
+                        <New_Survey/>
+                    </survey_control>
+                
+                    <session_control>
+                        <New_Session/>
+                        <container1>
+                            <child1>
+                            	<session_Name/>
+                            </child1>
+                            <child2>
+                            	<Session_Search/>
+                            </child2>
+                    	</container1>
+                        <sessionList/>
+                    </session_control>
+                    
+                  
+                    <user_control>
+                 
+                        <New_User/>
+                        <userList/>
+                    </user_control>
+                    
+                  
+                    <language_control>
+                    
+                        <New_Language/>
+                        <languageList/>
+                    </language_control>
+                    
+                    
+                  
+                    
+                    
+         
+                    <file_control>
+                     
+                        <New_File/>
+                        <fileList/>
+                    </file_control>
+                </control>
+                
+                
+                <questionnaireInfo>
+                    <surveyQuestionnaire>
+                        <surveyQuestionnaireID/>
+                        <surveyQuestionnaireName/>
+                        <surveyQuestionnaireDescription/>
+                        <surveyQuestionInQuestionnaire/>
+                    </surveyQuestionnaire>
+                </questionnaireInfo>
+                
+                <survey>
+                    <answer>
+                        <answerQuestionnaireID/>
+                        <answerQuestionID/>
+                        <answerChoice/>
+                        <answerText/>
+                        <answerFileList/>
+                        <file_Category/>
+                        <Add_New_File/>
+                        <answerFileList/>
+                        <container2>
+                            <child1>
+                                <answerInterviewerList/>
+                            </child1>
+                            <child2>
+                                <answerInterviewerSelectionList/>
+                            </child2>
+                        </container2>
+                        <container3>
+                            <child1>
+                                <answerIntervieweeList/>
+                            </child1>
+                            <child2>
+                                 <answerIntervieweeSelectionList/>
+                            </child2>
+                        </container3>                    
+                        <answerStartTimestamp/>
+                        <answerEndTimestamp/>
+                        <Finish_New_Answer/>
+                    </answer>
+                </survey>
+                
+                
+                 <session>
+                    <sessionInfo>
+                    	<sessionID/>
+                    	<sessionName/>
+                    	<sessionStartTimetamp/>
+                    	<sessionEndTimestamp/>
+                    	<container4>
+                    	    <child1>
+                    	        <sessionFileList/>
+                    	    </child1>
+                    	    <child2>
+                    	        <sessionFileSelectionList/>
+                    	    </child2>
+                    	</container4>
+                    	<Finish_New_Session/>
+                    </sessionInfo>
+                </session>
+                
+                 
+                  <audioFile>
+                    <audioFileInfo>
+                    	<audioFileID/>
+                    	<audioFileName/>
+                    	<audioFileType/>
+                    	<audioFileCreator/>
+                   	 	
+                   	 	<audioFileContent/>
+                    	<Take_Audio_File/>
+                    	<audioFilePath/>
+                    </audioFileInfo>
+                </audioFile>
+                
+                <videoFile>
+                    <videoFileInfo>
+                    	<videoFileID/>
+                    	<videoFileName/>
+                    	<videoFileType/>
+                    	<videoFileCreator/>
+                   	 	
+                   	 	<videoFileContent/>
+                    	<Take_Video_File/>
+                    	<videoFilePath/>
+                    </videoFileInfo>
+                </videoFile>
+                
+                <photoFile>
+                    <photoFileInfo>
+                    	<photoFileID/>
+                    	<photoFileName/>
+                    	<photoFileType/>
+                    	<photoFileCreator/>
+                   	 	
+                   	 	<photoFileContent/>
+                    	<Take_Photo_File/>
+                    	<photoFilePath/>
+                    </photoFileInfo>
+                </photoFile>
+                
+                <sketchFile>
+                    <sketchFileInfo>
+                    	<sketchFileID/>
+                    	<sketchFileName/>
+                    	<sketchFileType/>
+                    	<sketchFileCreator/>
+                   	 	
+                   	 	<sketchFileContent/>
+                    	<Take_Sketch_File/>
+                    	<sketchFilePath/>
+                    </sketchFileInfo>
+                </sketchFile>
+                 
+                
+                <person>
+                  <personInfo>
+                    <personID/>
+                    <personName/>
+                    <personOtherNames/>
+                    <personPhoto/>
+                    <Take_Photo/>
+                    <Finish_New_Person/>
+                  </personInfo>
+                </person>
+                
+                <language>
+                  <languageInfo>
+                    <languageID/>
+                    <languageName/>
+                    <languageOtherNames/>
+                    <Finish_New_Language/>
+                  </languageInfo>
+                </language>
+                
+                
+            </faims>
+        </instance>
+    </model>
+</h:head>
+
+
+<h:body>
+    <group ref="style">
+      <label/>
+      <group ref="orientation">
+        <label/>
+        <input ref="orientation">
+          <label>horizontal</label>
+        </input>
+      </group>
+      <group ref="even">
+        <label/>
+        <input ref="layout_weight">
+          <label>1</label>
+        </input>
+      </group>
+      <group ref="large">
+        <label/>
+        <input ref="layout_weight">
+          <label>3</label>
+        </input>
+      </group>
+    </group>
+    
+     <group ref="user">
+      <label>{User_List}</label>
+      <group ref="usertab">
+        <label>{User_List}</label>
+        <select1 appearance="compact" ref="users" faims_style_class="user-list">
+          <label>{Users}:</label>
+          <item>
+            <label>placeholder</label>
+            <value>placeholder</value>
+          </item>
+        </select1>
+      </group>
+    </group>
+    
+    <group ref="control">
+        
+        <label>{Control}</label>
+        
+        
+        <group ref="survey_control">
+            <label>{Survey}</label>
+            <!--No input here-->
+           
+            <select1  ref="questionnaireSelect" appearance="compact" faims_annotation="false" faims_certainty="false" faims_style_class="questionnaire-list">
+                <label>{TapQuestionnareID}</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
+            
+             <trigger ref="New_Survey" faims_style_class="faims-blue">
+                <label>New {survey}</label>
+            </trigger>
+        </group>
+        
+        <group ref="session_control">
+            <label>{Session}</label>
+             <trigger ref="New_Session" faims_style_class="faims-blue">
+                <label>New {session}</label>
+            </trigger>
+            
+             <group ref="container1" faims_style="orientation">
+               <label></label>
+              	<group ref="child1" faims_style="even">
+            	<label></label>
+            		<input ref="session_Name">
+            		    <label>{keyword of session}</label>
+            		</input>
+            	</group>
+            	
+              	<group ref="child2" faims_style="even">
+            	<label></label>
+            		<trigger ref="Session_Search" faims_style_class="faims-blue">
+            		    <label>{Search Session}</label>
+            		 </trigger>
+            		
+            	</group>
+           </group>
+           
+            <select1 ref="sessionList" appearance="compact" faims_annotation="false" faims_certainty="false"  faims_style_class="session-list">
+                <label>{TapSessionID}</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
+           
+        </group>
+        
+        
+        <group ref="user_control">
+            <label>{User}</label>
+            <trigger ref="New_User" faims_style_class="faims-blue">
+                <label>New {person}</label>
+            </trigger>
+        
+            <select1 appearance="compact" ref="userList" faims_style_class="user-list">
+                <label>{TapPersonID}</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
+        </group>
+        
+        
+        <group ref="language_control">
+            <label>{Language}</label>
+         
+            <trigger ref="New_Language" faims_style_class="faims-blue">
+                <label>New {language}</label>
+            </trigger>
+     
+            <select1 ref="languageList" appearance="compact" faims_annotation="false" faims_certainty="false" faims_style_class="language-list">
+                <label>{TapLanguageID}</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
+        </group>
+        
+        <group ref="file_control">
+            <label>{File}</label>
+         
+            <trigger ref="New_File" faims_style_class="faims-blue">
+                <label>New {file}</label>
+            </trigger>
+    
+            <select1 ref="fileList" appearance="compact" faims_annotation="false" faims_certainty="false" faims_style_class="file-list">
+                <label>{TapFileID}</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
+        </group>
+    </group>
+    
+    <group ref="questionnaireInfo" faims_archent_type="Questionnaire">
+          <label>questionnaire info</label>
+         	
+         <group ref="surveyQuestionnaire">
+            <label>questionnaire info</label>
+            <input ref="surveyQuestionnaireID" faims_attribute_name="QuestionnaireID" faims_attribute_type="measure" faims_read_only="true">
+            	<label>{Current questionnaire id}</label>
+            </input>
+            
+             <input ref="surveyQuestionnaireName" faims_attribute_name="QuestionnaireName" faims_attribute_type="measure" faims_read_only="true">
+            	<label>{Current questionnaire name}</label>
+            </input>
+            
+             <input ref="surveyQuestionnaireDescription" faims_attribute_name="QuestionnaireDescription" faims_attribute_type="measure" faims_read_only="true">
+            	<label>{Current questionnaire description}</label>
+            </input>
+            
+             <select1 appearance="compact" ref="surveyQuestionInQuestionnaire" faims_style_class="questionQuestionnaire-list">
+                <label>{question}</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+             </select1>
+        </group>
+      </group>
+      
+   
+    
+         <!-- TODO: Category List doesn't show items -->       
+     <group ref="survey" faims_archent_type="AnswerToQuestionnaire">
+        <label>{Survey-Answer}</label>
+        
+        <group ref="answer">
+            <label>Answer</label>
+            
+            <input ref="answerQuestionnaireID" faims_attribute_name="AnswerQuestionnaireID" faims_read_only="true">
+                <label>Questionnaire id</label>
+            </input>
+            
+            <input ref="answerQuestionID" faims_attribute_name="AnswerQuestionID" faims_read_only="true">
+                <label>Question id</label>
+            </input>
+            
+            <input ref="answerChoice" faims_attribute_name="AnswerChoice" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          		<label>{answerChoice}</label>
+        	</input>
+        	
+            <input ref="answerText" faims_attribute_name="AnswerText" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          		<label>{answerText}</label>
+        	</input>
+        	
+            <select1 ref="file_Category">
+            <label>Category List:</label>
+            	<item>
+                	<label>Audio</label>
+                	<value>0001</value>
+            	</item>
+            	<item>
+                	<label>Video</label>
+                	<value>0002</value>
+            	</item>
+            	<item>
+                	<label>Photo</label>
+                	<value>0003</value>
+            	</item>
+            	<item>
+                	<label>Other</label>
+                	<value>0004</value>
+            	</item>
+         	</select1>
+         
+            <trigger ref="Add_New_File" faims_style_class="faims-blue">
+                 <label>Add new file</label>
+            </trigger>
+            
+            <select1 appearance="compact" ref="answerFileList" faims_attribute_name="AnswerFile" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="answerFile-list">
+          		<label>{answerFile}</label>
+          		<item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+        	</select1>
+        	
+            <group ref="container2" faims_style="orientation">
+         		<label></label>
+          		<group ref="child1" faims_style="even">
+            		<label></label>
+            		<select1 appearance="compact" ref="answerInterviewerList" faims_attribute_name="AnswerInterviewerID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="person-list">
+          				<label>{answerInterviewer}</label>
+          				<item>
+                    		<label>placeholder</label>
+                    		<value>placeholder</value>
+                		</item>
+        			</select1>
+        	    </group>
+          
+       		   <group ref="child2" faims_style="even">
+            	   <label></label>
+               	   <select1 appearance="compact" ref="answerInterviewerSelectionList" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="person-list">
+          				<label>{addAnswerInterviewer}</label>
+          				<item>
+                    		<label>placeholder</label>
+                    		<value>placeholder</value>
+                		</item>
+        		 </select1>
+        	  </group>
+          </group>
+          
+            <group ref="container3" faims_style="orientation">
+         		<label></label>
+          		<group ref="child1" faims_style="even">
+            		<label></label>
+            		<select1 appearance="compact" ref="answerIntervieweeList" faims_attribute_name="AnswerIntervieweeID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="person-list">
+          				<label>{answerInterviewee}</label>
+          				<item>
+                    		<label>placeholder</label>
+                    		<value>placeholder</value>
+                		</item>
+        			</select1>
+        	    </group>
+          
+       		   <group ref="child2" faims_style="even">
+            	   <label></label>
+               	   <select1 appearance="compact" ref="answerIntervieweeSelectionList" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="person-list">
+          				<label>{addAnswerInterviewee}</label>
+          				<item>
+                    		<label>placeholder</label>
+                    		<value>placeholder</value>
+                		</item>
+        		 </select1>
+        	  </group>
+          </group>
+          
+        <input ref="answerStartTimestamp" faims_attribute_name="StartTimeStamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{answerStartTimestamp}</label>
+        </input>
+        <input ref="answerEndTimestamp" faims_attribute_name="EndTimeStamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{answerEndTimestamp}</label>
+        </input>
+        <trigger ref="Finish_New_Answer" faims_style_class="faims-blue">
+                <label>{Finish_New_Answer}</label>
+        </trigger>
+          
+    	</group>
+    </group>
+    
+     
+     
+                
+     <group ref="session" faims_archent_type="Session">
+        <label>{Session}</label>
+        <group ref="sessionInfo">
+            <label>{Session info}</label>
+        <input ref="sessionID" faims_attribute_name="SessionID" faims_attribute_type="measure" >
+            <label>{sessionID}</label>
+        </input>
+         <input ref="sessionName" faims_attribute_name="SessionName" faims_attribute_type="measure" >
+            <label>{sessionName}</label>
+        </input>
+        <input ref="sessionStartTimetamp" faims_attribute_name="SessionStartTimestamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{sessionTimestamp}</label>
+        </input>
+        <input ref="sessionEndTimestamp" faims_attribute_name="SessionEndTimestamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{sessionEndTimestamp}</label>
+        </input>
+          <group ref="container4" faims_style="orientation">
+         		<label></label>
+          		<group ref="child1" faims_style="even">
+            		<label></label>
+            		 <select1 appearance="compact" ref="sessionFileList" faims_annotation="false" faims_certainty="false" faims_style_class="file-list">
+                		<label>{deleteFileID}</label>
+                		<item>
+                    		<label>placeholder</label>
+                    		<value>placeholder</value>
+                		</item>
+        			</select1>
+            	</group>
+            	
+            	 <group ref="child2" faims_style="even">
+            	   <label></label>
+               	   <select1 appearance="compact" ref="sessionFileSelectionList" faims_certainty="false" faims_annotation="false" faims_style_class="file-list">
+          				<label>{addFile}</label>
+          				<item>
+                    		<label>placeholder</label>
+                    		<value>placeholder</value>
+                		</item>
+        		 </select1>
+        	  </group>
+        	  
+        	</group>
+            		
+       
+        <trigger ref="Finish_New_Session" faims_style_class="faims-blue">
+                <label>{Finish_New_Session}</label>
+        </trigger>
+       
+        </group>
+    </group>
+    
+     
+     <group ref="audioFile" faims_archent_type="File">
+        <label>{Audio File}</label>
+        <group ref="audioFileInfo">
+            <label>{audioFileInfo}</label>
+        <input ref="audioFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{audioFileID}</label>
+        </input>
+        <input ref="audioFileName" faims_attribute_name="FileName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{audioFileName}</label>
+        </input>
+        <input ref="audioFileType" faims_attribute_name="FileType" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
+          <label>{audioFileType}</label>
+        </input>
+        <input ref="audioFileCreator" faims_attribute_name="FileCreator" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{audioFileCreator}</label>
+        </input>
+          
+          <select ref="audioFileContent" faims_attribute_name="FileContent" faims_attribute_type="measure" faims_annotation="true" faims_sync="true"  type="file">
+          	<label>{audioFileContent}</label>
+          	<item>
+            	<label>placeholder</label>
+            	<value>placeholder</value>
+          	</item>
+       	 </select>
+        
+        <trigger ref="Take_Audio_File" faims_style_class="faims-blue">
+                <label>{Take_Audio_File}</label>
+        </trigger>
+        
+        <input ref="audioFilePath" faims_attribute_name="FilePath" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
+          <label>{"audioFilePath"}</label>
+        </input>
+        </group>
+    </group>
+    
+    
+     <group ref="videoFile" faims_archent_type="File">
+        <label>{videoFile}</label>
+        <group ref="videoFileInfo">
+          <label>{videoFileInfo}</label>
+        <input ref="videoFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{videoFileID}</label>
+        </input>
+        <input ref="videoFileName" faims_attribute_name="FileName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{videoFileName}</label>
+        </input>
+        <input ref="videoFileType" faims_attribute_name="FileType" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
+          <label>{videoFileType}</label>
+        </input>
+        <input ref="videoFileCreator" faims_attribute_name="FileCreator" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{videoFileCreator}</label>
+        </input>
+          
+          <select ref="videoFileContent" faims_attribute_name="FileContent" faims_attribute_type="measure" faims_annotation="true" faims_sync="true"  type="video">
+          	<label>{videoFileContent}</label>
+          	<item>
+            	<label>placeholder</label>
+            	<value>placeholder</value>
+          	</item>
+       	 </select>
+        
+        <trigger ref="Take_Video_File" faims_style_class="faims-blue">
+                <label>{Take_Video_File}</label>
+        </trigger>
+        
+        <input ref="videoFilePath" faims_attribute_name="FilePath" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
+          <label>{videoFilePath}</label>
+        </input>
+        </group>
+    </group>           
+      
+      <group ref="photoFile" faims_archent_type="File">
+        <label>{photoFile}</label>
+        <group ref="photoFileInfo">
+          <label>{photoFileInfo}</label>
+        <input ref="photoFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{photoFileID}</label>
+        </input>
+        <input ref="photoFileName" faims_attribute_name="FileName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{photoFileName}</label>
+        </input>
+        <input ref="photoFileType" faims_attribute_name="FileType" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
+          <label>{photoFileType}</label>
+        </input>
+        <input ref="photoFileCreator" faims_attribute_name="FileCreator" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{photoFileCreator}</label>
+        </input>
+          
+          <select ref="photoFileContent" faims_attribute_name="FileContent" faims_attribute_type="measure" faims_annotation="true" faims_sync="true"  type="camera">
+          	<label>{photoFileContent}</label>
+          	<item>
+            	<label>placeholder</label>
+            	<value>placeholder</value>
+          	</item>
+       	 </select>
+        
+        <trigger ref="Take_Photo_File" faims_style_class="faims-blue">
+                <label>{Take_Photo_File}</label>
+        </trigger>
+        
+        <input ref="photoFilePath" faims_attribute_name="FilePath" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
+          <label>{photoFilePath}</label>
+        </input>
+        </group>
+    </group>               
+     
+    
+    <group ref="sketchFile" faims_archent_type="File">
+        <label>{sketchFile}</label>
+        <group ref="sketchFileInfo">
+            <label>{sketchFileInfo}</label>
+        <input ref="sketchFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{sketchFileID}</label>
+        </input>
+        <input ref="sketchFileName" faims_attribute_name="FileName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{sketchFileName}</label>
+        </input>
+        <input ref="sketchFileType" faims_attribute_name="FileType" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
+          <label>{sketchFileType}</label>
+        </input>
+        <input ref="sketchFileCreator" faims_attribute_name="FileCreator" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>{sketchFileCreator}</label>
+        </input>
+          
+          <select ref="sketchFileContent" faims_attribute_name="FileContent" faims_attribute_type="measure" faims_annotation="true" faims_sync="true"  type="file">
+          	<label>{sketchFileContent}</label>
+          	<item>
+            	<label>placeholder</label>
+            	<value>placeholder</value>
+          	</item>
+       	 </select>
+        
+        <trigger ref="Take_Sketch_File" faims_style_class="faims-blue">
+                <label>{Take_Sketch_File}</label>
+        </trigger>
+        
+        <input ref="sketchFilePath" faims_attribute_name="FilePath" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
+          <label>{"sketchFilePath"}</label>
+        </input>
+        </group>
+    </group>
+    
+    
+    <group ref="person" faims_archent_type="Person">
+        <label>Person</label>
+        <group ref="personInfo">
+          <label>{Person Information}</label>
+           <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+              <label>{Person ID}</label>
+            </input>
+            <input ref="personName" faims_attribute_name="PersonName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+              <label>{Person Name}</label>
+            </input>
+            <input ref="personOtherNames" faims_attribute_name="PersonOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+              <label>{Person Other Names}</label>
+            </input>
+
+            <select type="camera" faims_sync="true" ref="personPhoto" faims_attribute_name="PersonPhoto" faims_attribute_type="measure" faims_certainty="true" faims_annotation="true" faims_read_only="false">
+            <label>{Photos}</label>
+              <item>
+                  <label>placeholder</label>
+                  <value>placeholder</value>
+              </item>
+            </select>
+            
+            <trigger ref="Take_Photo" faims_style_class="faims-blue">
+                <label>Take Photo</label>
+            </trigger>
+            <trigger ref="Finish_New_Person" faims_style_class="faims-blue">
+                <label>Save Person</label>
+            </trigger>
+        </group>
+    </group>
+    
+      <group ref="language" faims_archent_type="Language">
+        <label>Language</label>
+        <group ref="languageInfo">
+          <label>{Language Information}</label>
+            <input ref="languageID" faims_attribute_name="LanguageID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+              <label>{Language ID}</label>
+            </input>
+            <input ref="languageName" faims_attribute_name="LanguageName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+              <label>{Language Name}</label>
+            </input>
+            <input ref="languageOtherNames" faims_attribute_name="LanguageOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+              <label>{Language Other Names}</label>
+            </input>      
+            <trigger ref="Finish_New_Language" faims_style_class="faims-blue">
+                <label>Save Language</label>
+            </trigger>
+      </group>
+    </group>
+    
+ </h:body>
+</h:html>
