@@ -35,9 +35,9 @@
                 <control>
                    
                     <survey_control>
-        
+        				<New_Survey/>
                         <questionnaireSelect/>
-                        <New_Survey/>
+                        
                     </survey_control>
                 
                     <session_control>
@@ -266,7 +266,10 @@
         <group ref="survey_control">
             <label>{Survey}</label>
             <!--No input here-->
-           
+            <trigger ref="New_Survey" faims_style_class="faims-blue">
+                <label>New {survey}</label>
+            </trigger>
+            
             <select1  ref="questionnaireSelect" appearance="compact" faims_annotation="false" faims_certainty="false" faims_style_class="questionnaire-list">
                 <label>{TapQuestionnareID}</label>
                 <item>
@@ -275,9 +278,7 @@
                 </item>
             </select1>
             
-             <trigger ref="New_Survey" faims_style_class="faims-blue">
-                <label>New {survey}</label>
-            </trigger>
+            
         </group>
         
         <group ref="session_control">
