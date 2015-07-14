@@ -36,7 +36,7 @@
                    
                     <survey_control>
         				<New_Survey/>
-                        <questionnaireSelect/>
+                        <surveyList/>
                         
                     </survey_control>
                 
@@ -79,7 +79,12 @@
                     </file_control>
                 </control>
                 
-                
+                <questionnaireListAll>
+                   <questionnaireListInfo>
+                       <questionnaireListInDB/>
+                   </questionnaireListInfo> 
+                </questionnaireListAll>
+               
                 <questionnaireInfo>
                     <surveyQuestionnaire>
                         <surveyQuestionnaireID/>
@@ -270,8 +275,8 @@
                 <label>New {survey}</label>
             </trigger>
             
-            <select1  ref="questionnaireSelect" appearance="compact" faims_annotation="false" faims_certainty="false" faims_style_class="questionnaire-list">
-                <label>{TapQuestionnareID}</label>
+            <select1  ref="surveyList" appearance="compact" faims_annotation="false" faims_certainty="false" faims_style_class="survey-list">
+                <label>{surveyID}</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
@@ -364,6 +369,22 @@
             </select1>
         </group>
     </group>
+    
+                
+    <group ref="questionnaireListAll" >
+          <label>questionnaire list</label>
+           <group ref="questionnaireListInfo">
+            <label>questionnaire list info</label>
+            <select1 appearance="compact" ref="questionnaireListInDB" faims_style_class="questionnaire-list">
+                <label>{questionnaireList}</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+             </select1>
+            </group>
+    </group>
+    
     
     <group ref="questionnaireInfo" faims_archent_type="Questionnaire">
           <label>questionnaire info</label>

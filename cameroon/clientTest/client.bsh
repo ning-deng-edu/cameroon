@@ -33,7 +33,7 @@ login() {
 onEvent("control/survey_control/New_Survey","click","showTabDefined()");
 
 showTabDefined(){
-
+newTabGroup("questionnaireListAll");
 
 }
 
