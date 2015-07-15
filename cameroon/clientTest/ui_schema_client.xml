@@ -66,11 +66,7 @@
                         <New_Language/>
                         <languageList/>
                     </language_control>
-                    
-                    
-                  
-                    
-                    
+                   
          
                     <file_control>
                      
@@ -441,20 +437,8 @@
             <select1 ref="file_Category">
             <label>Category List:</label>
             	<item>
-                	<label>Audio</label>
-                	<value>0001</value>
-            	</item>
-            	<item>
-                	<label>Video</label>
-                	<value>0002</value>
-            	</item>
-            	<item>
-                	<label>Photo</label>
-                	<value>0003</value>
-            	</item>
-            	<item>
-                	<label>Other</label>
-                	<value>0004</value>
+                	<label>placeholder</label>
+                	<value>placeholder</value>
             	</item>
          	</select1>
          
@@ -474,7 +458,7 @@
          		<label></label>
           		<group ref="child1" faims_style="even">
             		<label></label>
-            		<select1 appearance="compact" ref="answerInterviewerList" faims_attribute_name="AnswerInterviewerID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="person-list">
+            		<select1 appearance="compact" ref="answerInterviewerList" faims_certainty="false" faims_annotation="false" faims_style_class="person-list">
           				<label>{answerInterviewer}</label>
           				<item>
                     		<label>placeholder</label>
@@ -485,7 +469,7 @@
           
        		   <group ref="child2" faims_style="even">
             	   <label></label>
-               	   <select1 appearance="compact" ref="answerInterviewerSelectionList" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="person-list">
+               	   <select1 appearance="compact" ref="answerInterviewerSelectionList" faims_certainty="false" faims_annotation="false" faims_style_class="person-list">
           				<label>{addAnswerInterviewer}</label>
           				<item>
                     		<label>placeholder</label>
@@ -499,7 +483,7 @@
          		<label></label>
           		<group ref="child1" faims_style="even">
             		<label></label>
-            		<select1 appearance="compact" ref="answerIntervieweeList" faims_attribute_name="AnswerIntervieweeID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="person-list">
+            		<select1 appearance="compact" ref="answerIntervieweeList" faims_certainty="false" faims_annotation="false" faims_style_class="person-list">
           				<label>{answerInterviewee}</label>
           				<item>
                     		<label>placeholder</label>
@@ -510,7 +494,7 @@
           
        		   <group ref="child2" faims_style="even">
             	   <label></label>
-               	   <select1 appearance="compact" ref="answerIntervieweeSelectionList" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="person-list">
+               	   <select1 appearance="compact" ref="answerIntervieweeSelectionList" faims_certainty="false" faims_annotation="false" faims_style_class="person-list">
           				<label>{addAnswerInterviewee}</label>
           				<item>
                     		<label>placeholder</label>
@@ -600,7 +584,7 @@
         <input ref="audioFileType" faims_attribute_name="FileType" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
           <label>{audioFileType}</label>
         </input>
-        <input ref="audioFileCreator" faims_attribute_name="FileCreator" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+        <input ref="audioFileCreator" faims_attribute_name="FileCreator" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
           <label>{audioFileCreator}</label>
         </input>
           
@@ -636,7 +620,7 @@
         <input ref="videoFileType" faims_attribute_name="FileType" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
           <label>{videoFileType}</label>
         </input>
-        <input ref="videoFileCreator" faims_attribute_name="FileCreator" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+        <input ref="videoFileCreator" faims_attribute_name="FileCreator" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
           <label>{videoFileCreator}</label>
         </input>
           
@@ -671,7 +655,7 @@
         <input ref="photoFileType" faims_attribute_name="FileType" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
           <label>{photoFileType}</label>
         </input>
-        <input ref="photoFileCreator" faims_attribute_name="FileCreator" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+        <input ref="photoFileCreator" faims_attribute_name="FileCreator" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
           <label>{photoFileCreator}</label>
         </input>
           
@@ -707,7 +691,7 @@
         <input ref="sketchFileType" faims_attribute_name="FileType" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
           <label>{sketchFileType}</label>
         </input>
-        <input ref="sketchFileCreator" faims_attribute_name="FileCreator" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+        <input ref="sketchFileCreator" faims_attribute_name="FileCreator" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
           <label>{sketchFileCreator}</label>
         </input>
           

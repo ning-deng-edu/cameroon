@@ -1,6 +1,11 @@
 .questionnaire-list {
+    height: 100%;
+}
+
+.survey-list {
     height: 60%;
 }
+
 .question-list {
     height: 60%;
 }
@@ -14,7 +19,7 @@
 	height: 70px;
 }
 .questionQuestionnaire-list {
-    height: 70px;
+    height: 100%;
 }
 .languageInQuestion-list{
     height: 50px;
