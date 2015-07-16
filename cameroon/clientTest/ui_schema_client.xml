@@ -90,6 +90,17 @@
                     </surveyQuestionnaire>
                 </questionnaireInfo>
                 
+                <answerToQuestion>
+                    <answerInfo>
+                        <answerListQuestionnaireID/>
+                        <answerListQuestionnaireName/>
+                        <answerListQuestionID/>
+                        <answerListQuestionContent/>
+                        <answerList/>
+                        <Create_New_Answer/>
+                    </answerInfo>
+                </answerToQuestion>
+                
                 <survey>
                     <answer>
                         <answerQuestionnaireID/>
@@ -409,9 +420,41 @@
         </group>
       </group>
       
-   
-    
-         <!-- TODO: Category List doesn't show items -->       
+      <group ref="answerToQuestion">
+          <label>answerToQuestion</label>
+         	
+         <group ref="answerInfo">
+            <label>answerInfo</label>
+            <input ref="answerListQuestionnaireID" faims_read_only="true">
+            	<label>{Current answerListQuestionnaireID}</label>
+            </input>
+            
+             <input ref="answerListQuestionnaireName" faims_read_only="true">
+            	<label>{Current answerListQuestionnaireName}</label>
+            </input>
+            
+             <input ref="answerListQuestionID" faims_read_only="true">
+            	<label>{Current answerListQuestionID}</label>
+            </input>
+            
+              <input ref="answerListQuestionContent" faims_read_only="true">
+            	<label>{Current answerListQuestionContent}</label>
+            </input>
+            
+            <trigger ref="Create_New_Answer" faims_style_class="faims-blue">
+                <label>{Create_New_Answer}</label>
+        	</trigger>
+        	
+             <select1 appearance="compact" ref="answerList" faims_style_class="answer-list">
+                <label>{answerList}</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+             </select1>
+        </group>
+      </group>
+      
      <group ref="survey" faims_archent_type="AnswerToQuestionnaire">
         <label>{Survey-Answer}</label>
         

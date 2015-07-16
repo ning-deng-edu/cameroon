@@ -5,6 +5,9 @@
 .survey-list {
     height: 60%;
 }
+.answer-list{
+	height: 90%;
+}
 
 .question-list {
     height: 60%;

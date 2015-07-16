@@ -47,6 +47,17 @@ saveEntitiesToRel(String type, String entity1, String entity2) {
     });
 }
 
+saveThreeEntitiesToRel(String type, String entity1, String entity2, String entity3) {
+    if (isNull(entity1) || isNull(entity2) || isNull(entity3)) return;
+    saveRel(null, type, null, null, new SaveCallback() {
+        onSave(rel_id, newRecord) {
+            addReln(entity1, rel_id, null);
+            addReln(entity2, rel_id, null);
+            addReln(entity3, rel_id, null);
+        }
+    });
+}
+
 onEvent("user/usertab/users", "click", "login()");
 
 loadUsers() {
@@ -77,17 +88,24 @@ onEvent("control/survey_control/New_Survey","click","showQuestionnaireList()");
 //onEvent("questionnaireListAll","show","loadAllQuesnir()");
 onEvent("questionnaireListAll/questionnaireListInfo/questionnaireListInDB","click","loadQuesnirInfo()");
 
-
+answer_id=null;
 survey_id=null;
 current_quesnir_id=null;
 current_question_id=null;
-
+current_quesnir_name=null;
+current_question_content=null;
+questionnaire_list=new ArrayList();
+ques_in_current_quesnir=new ArrayList();
 showQuestionnaireList(){
 	newTabGroup("questionnaireListAll");
 	onEvent("questionnaireListAll","show","loadAllQuesnir()");
 	survey_id=null;
 	current_quesnir_id=null;
 	current_question_id=null;
+	current_quesnir_name=null;
+	current_question_content=null;
+	questionnaire_list.clear();
+	ques_in_current_quesnir.clear();
 }
 
 loadAllQuesnir(){
@@ -96,6 +114,7 @@ loadAllQuesnir(){
 		new FetchCallback() {
         	onFetch(result) {
 				if (!isNull(result)) {
+					questionnaire_list.addAll(result);
 					populateList("questionnaireListAll/questionnaireListInfo/questionnaireListInDB", result);	
 				}	
 				else{
@@ -112,7 +131,6 @@ loadAllQuesnir(){
 
 loadQuesnirInfo(){
 	current_quesnir_id=getListItemValue();
-	ques_in_current_quesnir=new ArrayList();
 	if(isNull(current_quesnir_id)){
 		showWarning("No questionnaire selected","No questionnaire is selected, please select a questionnaire");
 		return;
@@ -121,7 +139,19 @@ loadQuesnirInfo(){
 		showWarning("No questionnaire available","No questionnaire available, please contact the admin");
 		return;
 	}
-
+	else{
+		/*
+		for(int i=0;i<=questionnaire_list.size();i++){
+			if(questionnaire_list.get(i).get(0).equals(current_quesnir_id)){			
+				current_quesnir_name=questionnaire_list.get(i).get(1);
+				break;
+			}
+		}
+		if(isNull(current_quesnir_name)){
+			showWarning("No questionnaire name available","Can't get the questionnaire name, please contact the admin");
+			return;
+		}
+		*/
 		questionnaire_question_query="SELECT uuid, measure "+
 		"from latestNonDeletedAentValue "+
 		"where latestNonDeletedAentValue.AttributeID in "+
@@ -155,16 +185,45 @@ loadQuesnirInfo(){
 		showTabGroup("questionnaireInfo", current_quesnir_id, new FetchCallback() {
         	onFetch(result) {	
         		populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
+        		current_quesnir_name=getFieldValue("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireName");
             	showToast("Loaded questionnaire"+result.getId());   	
         	}
         	onError(message) {
             showToast(message);
         	}
-   	 });
+   	 	});
+		
+		
+	}
 }
 
-onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","startNewAnswer()");
+onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","loadAnswer()");
 
+loadAnswer(){
+	if(isNull(current_quesnir_name)){
+		showWarning("No questionnaire name available","Can't get the questionnaire name, please contact the admin");
+		return;
+	}
+	newTabGroup("answerToQuestion");
+	current_question_id=getListItemValue();
+	for(int i=0;i<=ques_in_current_quesnir.size();i++){
+		if(ques_in_current_quesnir.get(i).get(0).equals(current_question_id))
+		{
+			current_question_content=ques_in_current_quesnir.get(i).get(1);
+			break;
+		}
+	}
+	if(isNull(current_question_content)){
+		showWarning("No question content available","Can't get the question content, please contact the admin");
+		return;
+	}
+	setFieldValue("answerToQuestion/answerInfo/answerListQuestionnaireID", current_quesnir_id);
+	setFieldValue("answerToQuestion/answerInfo/answerListQuestionID", current_question_id);
+	setFieldValue("answerToQuestion/answerInfo/answerListQuestionnaireName", current_quesnir_name);
+	setFieldValue("answerToQuestion/answerInfo/answerListQuestionContent", current_question_content);
+}
+
+onEvent("answerToQuestion/answerInfo/Create_New_Answer","click","startNewAnswer()");
 
 current_answer_interviewer=new ArrayList();
 selected_answer_interviewer=new ArrayList();
@@ -180,7 +239,7 @@ categoryTypes.add(new NameValuePair("{Photo}", "Photo"));
 categoryTypes.add(new NameValuePair("{Other}", "Other"));
 
 startNewAnswer(){
-	current_question_id=getListItemValue();
+	//current_question_id=getListItemValue();
 	String current_start_time=getCurrentTime();
 	
 	
@@ -319,21 +378,25 @@ newFileFromQuestion(){
 	switch (fileCategory){
 	case "Audio":		
 		newTabGroup("audioFile");
+		setFieldValue("audioFile/audioFileInfo/audioFileID","AudioFile-"+username+getCurrentTime());
 		setFieldValue("audioFile/audioFileInfo/audioFileCreator",username);
 		setFieldValue("audioFile/audioFileInfo/audioFileType","Audio");
 		break;
 	case "Video":
 		newTabGroup("videoFile");
+		setFieldValue("videoFile/videoFileInfo/videoFileID","VideoFile-"+username+getCurrentTime());
 		setFieldValue("videoFile/videoFileInfo/videoFileCreator",username);
 		setFieldValue("videoFile/videoFileInfo/videoFileType","Video");
 		break;
 	case "Photo":
 		newTabGroup("photoFile");
+		setFieldValue("photoFile/photoFileInfo/photoFileID","PhotoFile-"+username+getCurrentTime());
 		setFieldValue("photoFile/photoFileInfo/photoFileCreator",username);
 		setFieldValue("photoFile/photoFileInfo/photoFileType","Photo");
 		break;
 	case "Other":
 		newTabGroup("sketchFile");
+		setFieldValue("sketchFile/sketchFileInfo/sketchFileID","SketchFile-"+username+getCurrentTime());
 		setFieldValue("sketchFile/sketchFileInfo/sketchFileCreator",username);
 		setFieldValue("sketchFile/sketchFileInfo/sketchFileType","Sketch");
 		break;
@@ -341,7 +404,59 @@ newFileFromQuestion(){
 }
 
 onEvent("audioFile/audioFileInfo/Take_Audio_File","click","attachAudioToField(\"audioFile/audioFileInfo/audioFileContent\")");
+onEvent("audioFile/audioFileInfo/Save_New_Audio","click","saveAnswerAndFile(\"audioFile/audioFileInfo/audioFileName\")");
+files_in_current_ques=new ArrayList();
+saveAnswerAndFile(String ref){
+	if(isNull(getFieldValue(ref))){
+		showWarning("Warning","File name can not be null");
+		return;
+	}
+	else{
+		showAlert("Notification","Do you want to save this file to the answer?\n(This will also save the answer)","saveFileToAnswer(\""+ref+"\")","saveFileOnly()");
+	}
+}
 
+saveFileToAnswer(String ref){
+	/*Add new file to the file list of the answer, saveTabGroup("survey"), get the uuid of the answerid, save relationships*/
+	files_in_current_ques.add(getFieldValue(ref));
+	populateList("survey/answer/answerFileList",files_in_current_ques);
+	setFieldValue("survey/answer/answerEndTimestamp",getCurrentTime());
+	saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
+		//showWarning("saveTabGroup()","started");
+		onSave(uuid, newRecord) {
+		//showWarning("onSave()","started");
+			answer_id = uuid;
+	  //showWarning("finished_questionnaire_id()",finished_questionnaire_id);
+			if (newRecord) {
+				for (question : questionSelected){
+			 //showWarning("insertrelation()",question.get(0).toString());
+				saveEntitiesToRel("Questionnare and Question",finished_questionnaire_id,question.get(0));
+			//showWarning("savedrel()",question.get(0).toString());
+			}
+			questionOriginal.addAll(questionSelected);
+			showToast("New record created");
+			//finished_questionnaire_id=null;
+			}
+			else{
+				showWarning("Attention!","Something went wrong!");
+		//finished_questionnaire_id=null;
+			}
+		}
+		onError(message) {
+			showWarning("error",message);
+		}  
+		});
+	showWarning("files","populatedone");
+}
+saveFileOnly(){
+	showAlert("Notification","Do you want to save this file?\n (This will only save the file)","saveFile()","returnToCurrentPage()");
+}
+saveFile(){
+	showWarning("test","test");
+}
+returnToCurrentPage(){
+	return;
+}
 attachAudioToField(String ref) {
 	if(!isNull(getFieldValue(ref))){
 		showWarning("File exists","File exists, please Create New File");
@@ -350,7 +465,8 @@ attachAudioToField(String ref) {
 	recordAudio("setAudioToField(\""+ref+"\")");
 }
 
-
+/**
+  */
 setAudioToField(String ref) {
 	String filePath = getLastAudioFilePath();
 	List selectedFiles = null;
@@ -401,7 +517,8 @@ attachPictureToField(String ref) {
 	openCamera("setPictureToField(\""+ref+"\")");
 }
 
-
+/**
+  */
 setPictureToField(String ref) {
 	String filePath = getLastPictureFilePath();
 	List selectedFiles = null;
@@ -441,6 +558,7 @@ setFileToField(String ref) {
     setFieldValue(ref, _convertListToPairs(selectedFiles));
     setFieldValue("sketchFile/sketchFileInfo/sketchFilePath",filePath);
 }
+
 
 
 /*******Person********/
