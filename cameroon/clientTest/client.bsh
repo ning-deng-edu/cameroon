@@ -402,7 +402,47 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag){
 		
 	}
 }
-
+onEvent("survey/answer/Finish_New_Answer","click","addNewAnswerWithoutFile()");
+addNewAnswerWithoutFile(){
+	if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
+		showWarning("Warning","Please select interviewers and interviewees");
+		return;
+	}
+	if((selected_answer_interviewer.isEmpty()) || (selected_answer_interviewee.isEmpty())){
+		showWarning("Warning","No available interviwer or interviewee\n Please create person info");
+		return;
+	}
+	if(isNull(getFieldValue("survey/answer/answerText"))){
+		showWarning("Warning","Please input answer text");
+		return;
+	}
+	setFieldValue("survey/answer/answerEndTimestamp",getCurrentTime());
+	saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
+		onSave(uuid, newRecord) {
+			answer_id = uuid;
+			if (newRecord) {	
+				for(interviewer : selected_answer_interviewer){
+					saveEntitiesToRel("Answer and Interviewer",answer_id,interviewer.get(0));
+				}
+				for(interviewee : selected_answer_interviewee){
+					saveEntitiesToRel("Answer and Interviewer",answer_id,interviewee.get(0));		
+				}
+				showToast("new answer created");
+			}
+			else{
+				for(interviewer : selected_answer_interviewer){
+					saveEntitiesToRel("Answer and Interviewer",answer_id,interviewer.get(0));
+				}
+				for(interviewee : selected_answer_interviewee){
+					saveEntitiesToRel("Answer and Interviewer",answer_id,interviewee.get(0));		
+				}
+			}
+		}
+		onError(message) {
+			showWarning("error",message);
+		}  
+		});
+}
 onEvent("survey/answer/Add_New_File","click","newFileFromQuestion()");
 newFileFromQuestion(){
 	if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
@@ -464,23 +504,13 @@ saveFileToAnswer(String ref,String tabGroupRef){
 	files_in_current_ques.add(getFieldValue(ref));
 	populateList("survey/answer/answerFileList",files_in_current_ques);
 	setFieldValue("survey/answer/answerEndTimestamp",getCurrentTime());
+	if(isNull(answer_id)){//This is a new created answer
 	saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
-		//showWarning("saveTabGroup()","started");
 		onSave(uuid, newRecord) {
-		//showWarning("onSave()","started");
 			answer_id = uuid;
-	  //showWarning("finished_questionnaire_id()",finished_questionnaire_id);
 			if (newRecord) {	
 			saveThreeEntitiesToRel("Answer and Question",current_quesnir_id,current_question_id,answer_id);	
-			 //showWarning("insertrelation()",question.get(0).toString());
-			//showWarning("savedrel()",question.get(0).toString());
-			//showToast("New answer basic record created");
-			//finished_questionnaire_id=null;
 			}
-			//else{
-				//showWarning("Attention!","Something went wrong!");
-		//finished_questionnaire_id=null;
-			//}
 		}
 		onError(message) {
 			showWarning("error",message);
@@ -497,28 +527,23 @@ saveFileToAnswer(String ref,String tabGroupRef){
 	}
 	
 	saveTabGroup(tabGroupRef,current_answer_file_id, null, null, new SaveCallback() {
-		//showWarning("saveTabGroup()","started");
 		onSave(uuid, newRecord) {
-		//showWarning("onSave()","started");
 			current_answer_file_id = uuid;
-	  //showWarning("finished_questionnaire_id()",finished_questionnaire_id);
 			if (newRecord) {				
-			 //showWarning("insertrelation()",question.get(0).toString());
 			saveEntitiesToRel("Answer and File",answer_id,current_answer_file_id);			
-			//showWarning("savedrel()",question.get(0).toString());
 			showToast("New record created");
-			//finished_questionnaire_id=null;
 			}
-			//else{
-				//showWarning("Attention!","Something went wrong!");
-		//finished_questionnaire_id=null;
-			//}
 		}
 		onError(message) {
 			showWarning("error",message);
 		}  
 		});
-	//showWarning("files","populatedone");
+	}
+	//TODO: change files, inteviewers and interviewee in answer
+	else{//this is only to be changed answer
+		
+	}
+
 }
 saveFileOnly(){
 	showAlert("Notification","Do you want to save this file?\n (This will only save the file)","saveFile()","returnToCurrentPage()");
