@@ -148,10 +148,10 @@
                     	<audioFileName/>
                     	<audioFileType/>
                     	<audioFileCreator/>
-                   	 	
                    	 	<audioFileContent/>
                     	<Take_Audio_File/>
                     	<audioFilePath/>
+                    	<Save_New_Audio/>
                     </audioFileInfo>
                 </audioFile>
                 
@@ -160,11 +160,11 @@
                     	<videoFileID/>
                     	<videoFileName/>
                     	<videoFileType/>
-                    	<videoFileCreator/>
-                   	 	
+                    	<videoFileCreator/>                  	 	
                    	 	<videoFileContent/>
                     	<Take_Video_File/>
                     	<videoFilePath/>
+                    	<Save_New_Video/>
                     </videoFileInfo>
                 </videoFile>
                 
@@ -173,11 +173,11 @@
                     	<photoFileID/>
                     	<photoFileName/>
                     	<photoFileType/>
-                    	<photoFileCreator/>
-                   	 	
+                    	<photoFileCreator/>                	 	
                    	 	<photoFileContent/>
                     	<Take_Photo_File/>
                     	<photoFilePath/>
+                    	<Save_New_Photo/>
                     </photoFileInfo>
                 </photoFile>
                 
@@ -186,11 +186,11 @@
                     	<sketchFileID/>
                     	<sketchFileName/>
                     	<sketchFileType/>
-                    	<sketchFileCreator/>
-                   	 	
+                    	<sketchFileCreator/>              	 	
                    	 	<sketchFileContent/>
                     	<Take_Sketch_File/>
                     	<sketchFilePath/>
+                    	<Save_New_Sketch/>
                     </sketchFileInfo>
                 </sketchFile>
                  
@@ -603,6 +603,9 @@
         <input ref="audioFilePath" faims_attribute_name="FilePath" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
           <label>{"audioFilePath"}</label>
         </input>
+         <trigger ref="Save_New_Audio" faims_style_class="faims-blue">
+                <label>Save_New_Audio</label>
+        </trigger>
         </group>
     </group>
     
@@ -639,6 +642,9 @@
         <input ref="videoFilePath" faims_attribute_name="FilePath" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
           <label>{videoFilePath}</label>
         </input>
+         <trigger ref="Save_New_Video" faims_style_class="faims-blue">
+                <label>Save_New_Video</label>
+        </trigger>
         </group>
     </group>           
       
@@ -674,6 +680,9 @@
         <input ref="photoFilePath" faims_attribute_name="FilePath" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
           <label>{photoFilePath}</label>
         </input>
+        <trigger ref="Save_New_Photo" faims_style_class="faims-blue">
+                <label>Save_New_Photo</label>
+        </trigger>
         </group>
     </group>               
      
@@ -710,6 +719,9 @@
         <input ref="sketchFilePath" faims_attribute_name="FilePath" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
           <label>{"sketchFilePath"}</label>
         </input>
+        <trigger ref="Save_New_Sketch" faims_style_class="faims-blue">
+                <label>Save_New_Sketch</label>
+        </trigger>
         </group>
     </group>
     
