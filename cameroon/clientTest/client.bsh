@@ -339,6 +339,110 @@ newFileFromQuestion(){
 		break;
 	}
 }
+
+onEvent("audioFile/audioFileInfo/Take_Audio_File","click","attachAudioToField(\"audioFile/audioFileInfo/audioFileContent\")");
+
+attachAudioToField(String ref) {
+	if(!isNull(getFieldValue(ref))){
+		showWarning("File exists","File exists, please Create New File");
+		return;
+	}
+	recordAudio("setAudioToField(\""+ref+"\")");
+}
+
+
+setAudioToField(String ref) {
+	String filePath = getLastAudioFilePath();
+	List selectedFiles = null;
+    if (isNull(getFieldValue(ref))) {
+    	selectedFiles = new ArrayList();
+    	selectedFiles.add(filePath);
+    	addFile(ref, filePath);  	
+    } else {
+    	//selectedFiles = _convertPairsToList(getFieldValue(ref));
+    	showWarning("File exists","File exists, please Create New File");
+    }
+    setFieldValue(ref, _convertListToPairs(selectedFiles));
+    setFieldValue("audioFile/audioFileInfo/audioFilePath",filePath);
+}
+
+onEvent("videoFile/videoFileInfo/Take_Video_File","click","attachVideoToField(\"videoFile/videoFileInfo/videoFileContent\")");
+
+attachVideoToField(String ref) {
+	if(!isNull(getFieldValue(ref))){
+		showWarning("File exists","File exists, please Create New File");
+		return;
+	}
+	openVideo("setVideoToField(\""+ref+"\")");
+}
+
+
+setVideoToField(String ref) {
+	String filePath = getLastVideoFilePath();
+	List selectedFiles = null;
+    if (isNull(getFieldValue(ref))) {
+    	selectedFiles = new ArrayList();
+    	selectedFiles.add(filePath);
+    	addVideo(ref, filePath);
+    } else {
+    	//selectedFiles = _convertPairsToList(getFieldValue(ref));
+    	showWarning("File exists","File exists, please Create New File");
+    }
+    setFieldValue(ref, _convertListToPairs(selectedFiles));
+    setFieldValue("videoFile/videoFileInfo/videoFilePath",filePath);
+}
+
+onEvent("photoFile/photoFileInfo/Take_Photo_File","click","attachPictureToField(\"photoFile/photoFileInfo/photoFileContent\")");
+attachPictureToField(String ref) {
+	if(!isNull(getFieldValue(ref))){
+		showWarning("File exists","File exists, please Create New File");
+		return;
+	}
+	openCamera("setPictureToField(\""+ref+"\")");
+}
+
+
+setPictureToField(String ref) {
+	String filePath = getLastPictureFilePath();
+	List selectedFiles = null;
+    if (isNull(getFieldValue(ref))) {
+    	selectedFiles = new ArrayList();
+    	selectedFiles.add(filePath);
+    	addPicture(ref, filePath);
+    } else {
+    	//selectedFiles = _convertPairsToList(getFieldValue(ref));
+    	showWarning("File exists","File exists, please Create New File");
+    }
+    setFieldValue(ref, _convertListToPairs(selectedFiles));
+    setFieldValue("photoFile/photoFileInfo/photoFilePath",filePath);
+}
+
+onEvent("sketchFile/sketchFileInfo/Take_Sketch_File","click","attachFileToField(\"sketchFile/sketchFileInfo/sketchFileContent\")");
+attachFileToField(String ref) {
+	if(!isNull(getFieldValue(ref))){
+		showWarning("File exists","File exists, please Create New File");
+		return;
+	}
+	showFileBrowser("setFileToField(\""+ref+"\")");
+}
+
+
+setFileToField(String ref) {
+	String filePath = getLastSelectedFilepath();
+	List selectedFiles = null;
+    if (isNull(getFieldValue(ref))) {
+    	selectedFiles = new ArrayList();
+    	selectedFiles.add(filePath);
+    	addFile(ref, filePath);
+    } else {
+    	//selectedFiles = _convertPairsToList(getFieldValue(ref));
+    	showWarning("File exists","File exists, please Create New File");
+    }
+    setFieldValue(ref, _convertListToPairs(selectedFiles));
+    setFieldValue("sketchFile/sketchFileInfo/sketchFilePath",filePath);
+}
+
+
 /*******Person********/
 onEvent("control/user_control/New_User","click","newPerson()");
 onEvent("control/user_control","show","loadPerson()");
