@@ -62,7 +62,6 @@
                     
                   
                     <language_control>
-                    
                         <New_Language/>
                         <languageList/>
                     </language_control>
@@ -73,6 +72,11 @@
                         <New_File/>
                         <fileList/>
                     </file_control>
+                    
+                    <querytest>
+                        <query/>
+                        <Submit/>
+                    </querytest>
                 </control>
                 
                 <questionnaireListAll>
@@ -108,9 +112,7 @@
                         <answerChoice/>
                         <answerText/>
                         <answerFileList/>
-                        <file_Category/>
-                        <Add_New_File/>
-                        <answerFileList/>
+                        
                         <container2>
                             <child1>
                                 <answerInterviewerList/>
@@ -130,6 +132,9 @@
                         <answerStartTimestamp/>
                         <answerEndTimestamp/>
                         <Finish_New_Answer/>
+                        <file_Category/>
+                        <Add_New_File/>
+                        <answerFileList/>
                     </answer>
                 </survey>
                 
@@ -344,15 +349,15 @@
         </group>
         
         
-        <group ref="language_control">
-            <label>{Language}</label>
-         
+         <group ref="language_control">
+            <label>Language</label>
+            <!--No input here-->
             <trigger ref="New_Language" faims_style_class="faims-blue">
-                <label>New {language}</label>
+                <label>New Language</label>
             </trigger>
-     
-            <select1 ref="languageList" appearance="compact" faims_annotation="false" faims_certainty="false" faims_style_class="language-list">
-                <label>{TapLanguageID}</label>
+            <!--TODO: in ui_styling.css add language-list class-->
+            <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="languageList" faims_style_class="language-list">
+                <label>{Tap language to view details}</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
@@ -374,6 +379,19 @@
                     <value>placeholder</value>
                 </item>
             </select1>
+        </group>
+        
+        <group ref="querytest">
+        <label>{query}</label>
+        
+            <input ref="query" faims_attribute_type="freetext" faims_certainty="false" faims_annotation="false">
+              <label>{query}</label>
+            </input>
+    
+            <trigger ref="Submit" faims_style_class="faims-blue">
+                <label>New {submit}</label>
+            </trigger>
+   
         </group>
     </group>
     
@@ -477,25 +495,7 @@
           		<label>{answerText}</label>
         	</input>
         	
-            <select1 ref="file_Category">
-            <label>Category List:</label>
-            	<item>
-                	<label>placeholder</label>
-                	<value>placeholder</value>
-            	</item>
-         	</select1>
-         
-            <trigger ref="Add_New_File" faims_style_class="faims-blue">
-                 <label>Add new file</label>
-            </trigger>
-            
-            <select1 appearance="compact" ref="answerFileList" faims_attribute_name="AnswerFile" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="answerFile-list">
-          		<label>{answerFile}</label>
-          		<item>
-                    <label>placeholder</label>
-                    <value>placeholder</value>
-                </item>
-        	</select1>
+           
         	
             <group ref="container2" faims_style="orientation">
          		<label></label>
@@ -556,7 +556,25 @@
         <trigger ref="Finish_New_Answer" faims_style_class="faims-blue">
                 <label>{Finish_New_Answer}</label>
         </trigger>
-          
+           <select1 ref="file_Category">
+            <label>Category List:</label>
+            	<item>
+                	<label>placeholder</label>
+                	<value>placeholder</value>
+            	</item>
+         	</select1>
+         
+            <trigger ref="Add_New_File" faims_style_class="faims-blue">
+                 <label>Add new file</label>
+            </trigger>
+            
+            <select1 appearance="compact" ref="answerFileList" faims_attribute_name="AnswerFile" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="answerFile-list">
+          		<label>{answerFile}</label>
+          		<item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+        	</select1>
     	</group>
     </group>
     
@@ -800,7 +818,7 @@
         </group>
     </group>
     
-      <group ref="language" faims_archent_type="Language">
+       <group ref="language" faims_archent_type="Language">
         <label>Language</label>
         <group ref="languageInfo">
           <label>{Language Information}</label>

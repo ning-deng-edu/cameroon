@@ -14,6 +14,11 @@ loadAllPersonQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 	"WHERE latestNonDeletedAentValue.AttributeID "+
 	"IN (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonName') "+
 	"GROUP BY uuid;";
+
+loadAllLanguageQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+		"WHERE latestNonDeletedAentValue.AttributeID "+
+		"IN (SELECT AttributeID FROM AttributeKey WHERE AttributeName='LanguageName') "+
+		"GROUP BY uuid;";
 /***Enable data and file syncing***/
 addActionBarItem("sync", new ToggleActionButtonCallback() {
     actionOnLabel() {
@@ -36,15 +41,46 @@ addActionBarItem("sync", new ToggleActionButtonCallback() {
         showToast("Sync enabled.");
     }
 });
+
+onSyncEvent("onSyncStart()", "onSyncSuccess()", "onSyncFailure()");
+
+
+onSyncStart() {
+    showToast("sync started");
+}
+ 
+onSyncSuccess() {
+    showToast("sync success");
+}
+ 
+onSyncFailure() {
+    showToast("sync failed");
+}
+
 /***Save relationships among entities***/
 saveEntitiesToRel(String type, String entity1, String entity2) {
+	/*
     if (isNull(entity1) || isNull(entity2)) return;
     saveRel(null, type, null, null, new SaveCallback() {
         onSave(rel_id, newRecord) {
             addReln(entity1, rel_id, null);
             addReln(entity2, rel_id, null);
         }
-    });
+        onError(message) {
+			showWarning("error saveEntitiesToRel",message);
+		}  
+    });*/
+	 if (isNull(entity1) || isNull(entity2)) return;
+	    saveRel(null, type, null, null, new SaveCallback() {
+	        onSave(reln_id, newRecord) {
+	            addReln(entity1, reln_id, null);
+	            addReln(entity2, reln_id, null);
+	        }
+	        onError(message) {
+	            //Log.e("saveEntitiesToHierRel", message);
+	        	showWarning("error saveEntitiesToRel",message);
+	        }
+	    });
 }
 
 saveThreeEntitiesToRel(String type, String entity1, String entity2, String entity3) {
@@ -55,6 +91,9 @@ saveThreeEntitiesToRel(String type, String entity1, String entity2, String entit
             addReln(entity2, rel_id, null);
             addReln(entity3, rel_id, null);
         }
+        onError(message) {
+			showWarning("error saveThreeEntitiesToRel",message);
+		} 
     });
 }
 
@@ -96,6 +135,7 @@ current_quesnir_name=null;
 current_question_content=null;
 questionnaire_list=new ArrayList();
 ques_in_current_quesnir=new ArrayList();
+current_answer_file_id=null;
 showQuestionnaireList(){
 	newTabGroup("questionnaireListAll");
 	onEvent("questionnaireListAll","show","loadAllQuesnir()");
@@ -104,6 +144,7 @@ showQuestionnaireList(){
 	current_question_id=null;
 	current_quesnir_name=null;
 	current_question_content=null;
+	current_answer_file_id=null;
 	questionnaire_list.clear();
 	ques_in_current_quesnir.clear();
 }
@@ -140,18 +181,6 @@ loadQuesnirInfo(){
 		return;
 	}
 	else{
-		/*
-		for(int i=0;i<=questionnaire_list.size();i++){
-			if(questionnaire_list.get(i).get(0).equals(current_quesnir_id)){			
-				current_quesnir_name=questionnaire_list.get(i).get(1);
-				break;
-			}
-		}
-		if(isNull(current_quesnir_name)){
-			showWarning("No questionnaire name available","Can't get the questionnaire name, please contact the admin");
-			return;
-		}
-		*/
 		questionnaire_question_query="SELECT uuid, measure "+
 		"from latestNonDeletedAentValue "+
 		"where latestNonDeletedAentValue.AttributeID in "+
@@ -204,9 +233,8 @@ loadAnswer(){
 		showWarning("No questionnaire name available","Can't get the questionnaire name, please contact the admin");
 		return;
 	}
-	newTabGroup("answerToQuestion");
 	current_question_id=getListItemValue();
-	for(int i=0;i<=ques_in_current_quesnir.size();i++){
+	for(int i=0;i<ques_in_current_quesnir.size();i++){
 		if(ques_in_current_quesnir.get(i).get(0).equals(current_question_id))
 		{
 			current_question_content=ques_in_current_quesnir.get(i).get(1);
@@ -217,6 +245,7 @@ loadAnswer(){
 		showWarning("No question content available","Can't get the question content, please contact the admin");
 		return;
 	}
+	newTabGroup("answerToQuestion");
 	setFieldValue("answerToQuestion/answerInfo/answerListQuestionnaireID", current_quesnir_id);
 	setFieldValue("answerToQuestion/answerInfo/answerListQuestionID", current_question_id);
 	setFieldValue("answerToQuestion/answerInfo/answerListQuestionnaireName", current_quesnir_name);
@@ -266,6 +295,8 @@ startNewAnswer(){
 							candidate_answer_interviewer.addAll(result);
 							//candidate_answer_interviewee.clear();
 							candidate_answer_interviewee.addAll(result);
+							populateList("survey/answer/answerInterviewerList",selected_answer_interviewer);
+							populateList("survey/answer/answerIntervieweeList",selected_answer_interviewee);
 							populateList("survey/answer/answerInterviewerSelectionList",candidate_answer_interviewer);
 							populateList("survey/answer/answerIntervieweeSelectionList",candidate_answer_interviewee);
 						}
@@ -374,6 +405,14 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag){
 
 onEvent("survey/answer/Add_New_File","click","newFileFromQuestion()");
 newFileFromQuestion(){
+	if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
+		showWarning("Warning","Please select interviewers and interviewees");
+		return;
+	}
+	if((selected_answer_interviewer.isEmpty()) || (selected_answer_interviewee.isEmpty())){
+		showWarning("Warning","No available interviwer or interviewee\n Please create person info");
+		return;
+	}
 	String fileCategory=getFieldValue("survey/answer/file_Category");
 	switch (fileCategory){
 	case "Audio":		
@@ -404,19 +443,23 @@ newFileFromQuestion(){
 }
 
 onEvent("audioFile/audioFileInfo/Take_Audio_File","click","attachAudioToField(\"audioFile/audioFileInfo/audioFileContent\")");
-onEvent("audioFile/audioFileInfo/Save_New_Audio","click","saveAnswerAndFile(\"audioFile/audioFileInfo/audioFileName\")");
+onEvent("audioFile/audioFileInfo/Save_New_Audio","click","saveAnswerAndFile(\"audioFile/audioFileInfo/audioFileName\",\"audioFile/audioFileInfo/audioFileContent\",\"audioFile\")");
 files_in_current_ques=new ArrayList();
-saveAnswerAndFile(String ref){
+saveAnswerAndFile(String ref, String fileListViewRef, String tabGroupRef){
 	if(isNull(getFieldValue(ref))){
 		showWarning("Warning","File name can not be null");
 		return;
 	}
+	if(isNull(getFieldValue(fileListViewRef))){	
+		showWarning("Warning","File not recorded");
+		return;
+	}
 	else{
-		showAlert("Notification","Do you want to save this file to the answer?\n(This will also save the answer)","saveFileToAnswer(\""+ref+"\")","saveFileOnly()");
+		showAlert("Notification","Do you want to save this file to the answer?\n(This will also save the answer)","saveFileToAnswer(\""+ref+"\",\""+tabGroupRef+"\")","saveFileOnly()");
 	}
 }
 
-saveFileToAnswer(String ref){
+saveFileToAnswer(String ref,String tabGroupRef){
 	/*Add new file to the file list of the answer, saveTabGroup("survey"), get the uuid of the answerid, save relationships*/
 	files_in_current_ques.add(getFieldValue(ref));
 	populateList("survey/answer/answerFileList",files_in_current_ques);
@@ -427,26 +470,55 @@ saveFileToAnswer(String ref){
 		//showWarning("onSave()","started");
 			answer_id = uuid;
 	  //showWarning("finished_questionnaire_id()",finished_questionnaire_id);
-			if (newRecord) {
-				for (question : questionSelected){
+			if (newRecord) {	
+			saveThreeEntitiesToRel("Answer and Question",current_quesnir_id,current_question_id,answer_id);	
 			 //showWarning("insertrelation()",question.get(0).toString());
-				saveEntitiesToRel("Questionnare and Question",finished_questionnaire_id,question.get(0));
 			//showWarning("savedrel()",question.get(0).toString());
-			}
-			questionOriginal.addAll(questionSelected);
-			showToast("New record created");
+			//showToast("New answer basic record created");
 			//finished_questionnaire_id=null;
 			}
-			else{
-				showWarning("Attention!","Something went wrong!");
+			//else{
+				//showWarning("Attention!","Something went wrong!");
 		//finished_questionnaire_id=null;
-			}
+			//}
 		}
 		onError(message) {
 			showWarning("error",message);
 		}  
 		});
-	showWarning("files","populatedone");
+	
+	/**below 2 for loops can't be put in the above saveCallback, new threads could not be opened**/
+	for(interviewer : selected_answer_interviewer){
+		saveEntitiesToRel("Answer and Interviewer",answer_id,interviewer.get(0));		
+	}
+	
+	for(interviewee : selected_answer_interviewee){
+		saveEntitiesToRel("Answer and Interviewer",answer_id,interviewee.get(0));		
+	}
+	
+	saveTabGroup(tabGroupRef,current_answer_file_id, null, null, new SaveCallback() {
+		//showWarning("saveTabGroup()","started");
+		onSave(uuid, newRecord) {
+		//showWarning("onSave()","started");
+			current_answer_file_id = uuid;
+	  //showWarning("finished_questionnaire_id()",finished_questionnaire_id);
+			if (newRecord) {				
+			 //showWarning("insertrelation()",question.get(0).toString());
+			saveEntitiesToRel("Answer and File",answer_id,current_answer_file_id);			
+			//showWarning("savedrel()",question.get(0).toString());
+			showToast("New record created");
+			//finished_questionnaire_id=null;
+			}
+			//else{
+				//showWarning("Attention!","Something went wrong!");
+		//finished_questionnaire_id=null;
+			//}
+		}
+		onError(message) {
+			showWarning("error",message);
+		}  
+		});
+	//showWarning("files","populatedone");
 }
 saveFileOnly(){
 	showAlert("Notification","Do you want to save this file?\n (This will only save the file)","saveFile()","returnToCurrentPage()");
@@ -710,4 +782,33 @@ language_id=getListItemValue();
             showToast(message);
         }
     });
+}
+
+onEvent("control/querytest/Submit","click","testQuery()");
+
+testQuery(){
+	query=getFieldValue("control/querytest/query");
+	//fetchAll("SELECT sql FROM sqlite_master WHERE name='archentity';",
+	fetchAll(query.toString()+";",
+	new FetchCallback() {
+        onFetch(result) {
+			if (isNull(result)) {
+				//code
+				showWarning("no","no result");
+			}
+			else{
+			for (re : result) {
+				
+				showWarning("yes",re.toString());
+				//showWarning("me",re.toString());
+				
+			}		    
+            //populateList("control/question_control/questionList", result);
+        }
+		}
+        onError(message) {
+            showToast(message);
+        }
+    });
+	
 }
