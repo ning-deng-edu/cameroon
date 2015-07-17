@@ -134,9 +134,11 @@ current_quesnir_id=null;
 current_question_id=null;
 current_quesnir_name=null;
 current_question_content=null;
+current_answer_file_id=null;
+current_answer_id=null;
 questionnaire_list=new ArrayList();
 ques_in_current_quesnir=new ArrayList();
-current_answer_file_id=null;
+
 showQuestionnaireList(){
 	newTabGroup("questionnaireListAll");
 	onEvent("questionnaireListAll","show","loadAllQuesnir()");
@@ -146,6 +148,7 @@ showQuestionnaireList(){
 	current_quesnir_name=null;
 	current_question_content=null;
 	current_answer_file_id=null;
+	current_answer_id=null;
 	questionnaire_list.clear();
 	ques_in_current_quesnir.clear();
 }
@@ -184,7 +187,7 @@ loadQuesnirInfo(){
 	else{
 		questionnaire_question_query="SELECT uuid, measure "+
 		"from latestNonDeletedAentValue "+
-		"where latestNonDeletedAentValue.AttributeID in "+
+		"where latestNonDeletedAentValue.AttributeID = "+
 		"(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
 		"and uuid in "+
 		"(select AEntReln.uuid from AEntReln where AEntReln.uuid<>"+current_quesnir_id+" "+
@@ -194,7 +197,7 @@ loadQuesnirInfo(){
 		"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_quesnir_id+") tm "+
 		"on aer.AentRelnTimestamp=tm.maxtime group by relationshipID)) "+
 		"group by uuid;";
-		
+		ques_in_current_quesnir.clear();
 		fetchAll(questionnaire_question_query,
 				new FetchCallback() {
 					onFetch(result) {
@@ -313,6 +316,7 @@ startNewAnswer(){
 }
 
 loadAnswerListForQuesion(){
+	//TODO:CHANGE THE FREETEXT TO MEASURE
 	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
 			"WHERE latestNonDeletedAentValue.AttributeID = "+
 			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerText') "+
@@ -332,9 +336,10 @@ loadAnswerListForQuesion(){
 	fetchAll(loadAnswersForQuesion,
 			new FetchCallback() {
 		        onFetch(result) {
-					if (!isNull(result)) {
+					//if (!isNull(result)) {
 						populateList("answerToQuestion/answerInfo/answerList", result);	
-					}
+					//}
+					
 		        }
 
 		        onError(message) {
