@@ -479,11 +479,11 @@
         <group ref="answer">
             <label>Answer</label>
             
-            <input ref="answerQuestionnaireID" faims_attribute_name="AnswerQuestionnaireID" faims_certainty="false" faims_read_only="true">
+            <input ref="answerQuestionnaireID" faims_attribute_name="AnswerQuestionnaireID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
                 <label>Questionnaire id</label>
             </input>
             
-            <input ref="answerQuestionID" faims_attribute_name="AnswerQuestionID" faims_certainty="false" faims_read_only="true">
+            <input ref="answerQuestionID" faims_attribute_name="AnswerQuestionID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
                 <label>Question id</label>
             </input>
             
