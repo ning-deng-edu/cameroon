@@ -283,6 +283,9 @@ startNewAnswer(){
 	current_answer_interviewee.clear();
 	selected_answer_interviewee.clear();
 	candidate_answer_interviewee.clear();
+	answer_id=null;
+	current_answer_file_id=null;
+	current_answer_id=null;
 
 	
 	newTabGroup("survey");
@@ -325,12 +328,12 @@ loadAnswerListForQuesion(){
 				"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
 					"(select AttributeKey.AttributeID from AttributeKey "+
 					"where AttributeKey.AttributeName='AnswerQuestionnaireID') "+
-					"and latestNonDeletedAentValue.freetext="+current_quesnir_id+") t1 "+
+					"and latestNonDeletedAentValue.measure="+current_quesnir_id+") t1 "+
 			 "inner join "+
 			 	"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
 			 		"(select AttributeKey.AttributeID from AttributeKey "+
 			 		"where AttributeKey.AttributeName='AnswerQuestionID') "+
-			 		"and latestNonDeletedAentValue.freetext="+current_question_id+") t2 "+
+			 		"and latestNonDeletedAentValue.measure="+current_question_id+") t2 "+
 			 		"using(uuid))";
 	
 	fetchAll(loadAnswersForQuesion,
@@ -457,6 +460,8 @@ addNewAnswerWithoutFile(){
 		onSave(uuid, newRecord) {
 			answer_id = uuid;
 			if (newRecord) {	
+				saveThreeEntitiesToRel("Answer and Question",current_quesnir_id,current_question_id,answer_id);	
+				
 				for(interviewer : selected_answer_interviewer){
 					saveEntitiesToRel("Answer and Interviewer",answer_id,interviewer.get(0));
 				}
@@ -545,29 +550,30 @@ saveFileToAnswer(String ref,String tabGroupRef){
 		onSave(uuid, newRecord) {
 			answer_id = uuid;
 			if (newRecord) {	
-			saveThreeEntitiesToRel("Answer and Question",current_quesnir_id,current_question_id,answer_id);	
+				saveThreeEntitiesToRel("Answer and Question",current_quesnir_id,current_question_id,answer_id);	
+				
+				for(interviewer : selected_answer_interviewer){
+					saveEntitiesToRel("Answer and Interviewer",answer_id,interviewer.get(0));		
+				}
+
+				for(interviewee : selected_answer_interviewee){
+					saveEntitiesToRel("Answer and Interviewer",answer_id,interviewee.get(0));		
+				}
+				showToast("new answer record created");
 			}
 		}
 		onError(message) {
 			showWarning("error",message);
 		}  
 		});
-	
+	//TODO:below three function calls are not working
 	/**below 2 for loops can't be put in the above saveCallback, new threads could not be opened**/
-	for(interviewer : selected_answer_interviewer){
-		saveEntitiesToRel("Answer and Interviewer",answer_id,interviewer.get(0));		
-	}
-	
-	for(interviewee : selected_answer_interviewee){
-		saveEntitiesToRel("Answer and Interviewer",answer_id,interviewee.get(0));		
-	}
-	
 	saveTabGroup(tabGroupRef,current_answer_file_id, null, null, new SaveCallback() {
 		onSave(uuid, newRecord) {
 			current_answer_file_id = uuid;
 			if (newRecord) {				
 			saveEntitiesToRel("Answer and File",answer_id,current_answer_file_id);			
-			showToast("New record created");
+			showToast("New file record created");
 			}
 		}
 		onError(message) {
