@@ -7,18 +7,19 @@ String userid;
 /***query***/
 loadAllQuestionnaireQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 	"WHERE latestNonDeletedAentValue.AttributeID "+
-	"IN (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
+	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
 	"GROUP BY uuid;";
 
 loadAllPersonQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 	"WHERE latestNonDeletedAentValue.AttributeID "+
-	"IN (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonName') "+
+	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonName') "+
 	"GROUP BY uuid;";
-
 loadAllLanguageQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
-		"IN (SELECT AttributeID FROM AttributeKey WHERE AttributeName='LanguageName') "+
+		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='LanguageName') "+
 		"GROUP BY uuid;";
+
+//loadFilesForAnswer="select uuid, measure from AentValue where AentValue.AttributeID =(select AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerText') and AentValue.uuid in (select uuid from (SELECT uuid FROM AEntValue where AEntValue.AttributeID=(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionID') and AEntValue.freetext='1000011437080460685') t1 inner join (SELECT uuid FROM AEntValue where AEntValue.AttributeID=(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionnaireID') and AEntValue.freetext='1000011437080512135') t2 using(uuid))"
 /***Enable data and file syncing***/
 addActionBarItem("sync", new ToggleActionButtonCallback() {
     actionOnLabel() {
@@ -253,7 +254,7 @@ loadAnswer(){
 }
 
 onEvent("answerToQuestion/answerInfo/Create_New_Answer","click","startNewAnswer()");
-
+onEvent("answerToQuestion/answerInfo","show","loadAnswerListForQuesion()");
 current_answer_interviewer=new ArrayList();
 selected_answer_interviewer=new ArrayList();
 candidate_answer_interviewer=new ArrayList();
@@ -311,6 +312,36 @@ startNewAnswer(){
 			});
 }
 
+loadAnswerListForQuesion(){
+	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
+			"WHERE latestNonDeletedAentValue.AttributeID = "+
+			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerText') "+
+			"AND latestNonDeletedAentValue.uuid IN "+
+			"(select uuid from "+
+				"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+					"(select AttributeKey.AttributeID from AttributeKey "+
+					"where AttributeKey.AttributeName='AnswerQuestionnaireID') "+
+					"and latestNonDeletedAentValue.freetext="+current_quesnir_id+") t1 "+
+			 "inner join "+
+			 	"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+			 		"(select AttributeKey.AttributeID from AttributeKey "+
+			 		"where AttributeKey.AttributeName='AnswerQuestionID') "+
+			 		"and latestNonDeletedAentValue.freetext="+current_question_id+") t2 "+
+			 		"using(uuid))";
+	
+	fetchAll(loadAnswersForQuesion,
+			new FetchCallback() {
+		        onFetch(result) {
+					if (!isNull(result)) {
+						populateList("answerToQuestion/answerInfo/answerList", result);	
+					}
+		        }
+
+		        onError(message) {
+		            showToast(message);
+		        }
+		    });
+}
 onEvent("survey/answer/answerInterviewerSelectionList","click","addItemToTargetList(candidate_answer_interviewer,\"interviewer\")");
 onEvent("survey/answer/answerIntervieweeSelectionList","click","addItemToTargetList(candidate_answer_interviewee,\"interviewee\")");
 
