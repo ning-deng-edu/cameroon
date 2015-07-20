@@ -14,10 +14,19 @@ loadAllPersonQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 	"WHERE latestNonDeletedAentValue.AttributeID "+
 	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonName') "+
 	"GROUP BY uuid;";
+
 loadAllLanguageQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='LanguageName') "+
 		"GROUP BY uuid;";
+
+loadAllSurveyQuery="select uuid,measure from "+
+		"((select measure as quesnirid from latestNonDeletedAentValue where AttributeID = "+
+			"(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') group by measure) t1 "+
+		"inner join "+
+		"(select uuid, measure from latestNonDeletedAentValue where AttributeID= "+
+			"(select AttributeID from AttributeKey where AttributeName='QuestionnaireName')) t2 "+
+		"on t2.uuid=t1.quesnirid );";
 
 //loadFilesForAnswer="select uuid, measure from AentValue where AentValue.AttributeID =(select AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerText') and AentValue.uuid in (select uuid from (SELECT uuid FROM AEntValue where AEntValue.AttributeID=(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionID') and AEntValue.freetext='1000011437080460685') t1 inner join (SELECT uuid FROM AEntValue where AEntValue.AttributeID=(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionnaireID') and AEntValue.freetext='1000011437080512135') t2 using(uuid))"
 /***Enable data and file syncing***/
@@ -127,7 +136,7 @@ login() {
 onEvent("control/survey_control/New_Survey","click","showQuestionnaireList()");
 //onEvent("questionnaireListAll","show","loadAllQuesnir()");
 onEvent("questionnaireListAll/questionnaireListInfo/questionnaireListInDB","click","loadQuesnirInfo()");
-
+onEvent("control/survey_control","show","loadExistSurvey()");
 answer_id=null;
 survey_id=null;
 current_quesnir_id=null;
@@ -138,6 +147,8 @@ current_answer_file_id=null;
 current_answer_id=null;
 questionnaire_list=new ArrayList();
 ques_in_current_quesnir=new ArrayList();
+survey_list=new ArrayList();
+all_quesnir_list=new ArrayList();
 
 showQuestionnaireList(){
 	newTabGroup("questionnaireListAll");
@@ -151,6 +162,22 @@ showQuestionnaireList(){
 	current_answer_id=null;
 	questionnaire_list.clear();
 	ques_in_current_quesnir.clear();
+}
+
+loadExistSurvey(){
+	survey_list.clear();
+	fetchAll(loadAllSurveyQuery,
+			new FetchCallback() {
+	        	onFetch(result) {
+					if (!isNull(result)) {
+						survey_list.addAll(result);	
+						}
+					populateList("control/survey_control/surveyList", survey_list);	
+	       	 }
+	        	onError(message) {
+	            	showToast(message);
+	        	}
+	    	});
 }
 
 loadAllQuesnir(){
@@ -258,6 +285,7 @@ loadAnswer(){
 
 onEvent("answerToQuestion/answerInfo/Create_New_Answer","click","startNewAnswer()");
 onEvent("answerToQuestion/answerInfo","show","loadAnswerListForQuesion()");
+onEvent("answerToQuestion/answerInfo/answerList","click","loadAnswerInfo()");
 current_answer_interviewer=new ArrayList();
 selected_answer_interviewer=new ArrayList();
 candidate_answer_interviewer=new ArrayList();
@@ -283,6 +311,7 @@ startNewAnswer(){
 	current_answer_interviewee.clear();
 	selected_answer_interviewee.clear();
 	candidate_answer_interviewee.clear();
+	files_in_current_ques.clear();
 	answer_id=null;
 	current_answer_file_id=null;
 	current_answer_id=null;
@@ -319,7 +348,6 @@ startNewAnswer(){
 }
 
 loadAnswerListForQuesion(){
-	//TODO:CHANGE THE FREETEXT TO MEASURE
 	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
 			"WHERE latestNonDeletedAentValue.AttributeID = "+
 			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerText') "+
@@ -349,6 +377,113 @@ loadAnswerListForQuesion(){
 		            showToast(message);
 		        }
 		    });
+}
+
+files_in_current_ques=new ArrayList();
+loadAnswerInfo(){
+	current_answer_id=null;
+	current_answer_id=getListItemValue();
+	if(isNull(current_answer_id)){
+		showWarning("Error","Can't find this answer, please contact the admin");
+		return;
+	}
+	else{
+	loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileName') "+
+			"and uuid in "+
+				"(select uuid from AentReln where uuid <>"+current_answer_id+" "+
+				"and RelationshipID in "+
+					"(select RelationshipID from Relationship where RelnTypeID = "+
+						"(select RelnTypeID from RelnType where RelnTypeName='Answer and File')"+ 
+							"and RelationshipID in (select RelationshipID from AentReln where AentReln.uuid="+current_answer_id+" )))";
+
+	loadAnswerInterviewerQuery="select uuid, measure from latestNonDeletedAentValue "+
+			 		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+			 		"and uuid in "+
+			 			"(select uuid from AentReln where RelationshipID in "+
+			 				"(select RelationshipID from "+
+			 					"(select RelationshipID, AEntRelnTimestamp from AentReln where AentReln.uuid="+current_answer_id+" "+
+			 					"and RelationshipID in "+
+			 						"(select RelationshipID from Relationship where RelnTypeID="+
+			 							"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer'))) t1 "+
+			 					"inner join "+
+			 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_answer_id+") t2 "+
+			 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
+	
+	loadAnswerIntervieweeQuery="select uuid, measure from latestNonDeletedAentValue "+
+	 		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+	 		"and uuid in "+
+	 			"(select uuid from AentReln where RelationshipID in "+
+	 				"(select RelationshipID from "+
+	 					"(select RelationshipID, AEntRelnTimestamp from AentReln where AentReln.uuid="+current_answer_id+" "+
+	 					"and RelationshipID in "+
+	 						"(select RelationshipID from Relationship where RelnTypeID="+
+	 							"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee'))) t1 "+
+	 					"inner join "+
+	 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_answer_id+") t2 "+
+	 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
+	
+	fetchAll(loadFileForAnswerQuery, new FetchCallback() {
+        onFetch(result) {
+        	files_in_current_ques.clear();
+        	files_in_current_ques.addAll(result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+	fetchAll(loadAnswerInterviewerQuery, new FetchCallback() {
+        onFetch(result) {
+        	selected_answer_interviewer.clear();
+        	selected_answer_interviewer.addAll(result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+	fetchAll(loadAnswerInterviewerQuery, new FetchCallback() {
+        onFetch(result) {
+        	selected_answer_interviewer.clear();
+        	selected_answer_interviewer.addAll(result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+	fetchAll(loadAllPersonQuery, new FetchCallback() {
+        onFetch(result) {
+        	candidate_answer_interviewee.clear();
+        	candidate_answer_interviewee.addAll(result);
+        	candidate_answer_interviewer.clear();
+        	candidate_answer_interviewer.addAll(result);
+        	
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+	candidate_answer_interviewer.removeAll(selected_answer_interviewer);
+	candidate_answer_interviewee.removeAll(selected_answer_interviewer);
+	showTabGroup("survey", current_answer_id, new FetchCallback() {
+        onFetch(result) {
+            //person=result;
+        	populateList("survey/answer/answerFileList", files_in_current_ques);
+        	populateList("survey/answer/answerInterviewerList", selected_answer_interviewer);
+        	populateList("survey/answer/answerIntervieweeList", selected_answer_interviewee);
+        	populateList("survey/answer/answerInterviewerSelectionList", candidate_answer_interviewer);
+        	populateList("survey/answer/answerIntervieweeSelectionList", candidate_answer_interviewee);
+            showToast("Loaded answer"+result.getId());            
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+	}
+	
 }
 onEvent("survey/answer/answerInterviewerSelectionList","click","addItemToTargetList(candidate_answer_interviewer,\"interviewer\")");
 onEvent("survey/answer/answerIntervieweeSelectionList","click","addItemToTargetList(candidate_answer_interviewee,\"interviewee\")");
@@ -475,7 +610,7 @@ addNewAnswerWithoutFile(){
 					saveEntitiesToRel("Answer and Interviewer",answer_id,interviewer.get(0));
 				}
 				for(interviewee : selected_answer_interviewee){
-					saveEntitiesToRel("Answer and Interviewer",answer_id,interviewee.get(0));		
+					saveEntitiesToRel("Answer and Interviewee",answer_id,interviewee.get(0));		
 				}
 			}
 		}
@@ -525,7 +660,7 @@ newFileFromQuestion(){
 
 onEvent("audioFile/audioFileInfo/Take_Audio_File","click","attachAudioToField(\"audioFile/audioFileInfo/audioFileContent\")");
 onEvent("audioFile/audioFileInfo/Save_New_Audio","click","saveAnswerAndFile(\"audioFile/audioFileInfo/audioFileName\",\"audioFile/audioFileInfo/audioFileContent\",\"audioFile\")");
-files_in_current_ques=new ArrayList();
+
 saveAnswerAndFile(String ref, String fileListViewRef, String tabGroupRef){
 	if(isNull(getFieldValue(ref))){
 		showWarning("Warning","File name can not be null");
@@ -557,7 +692,7 @@ saveFileToAnswer(String ref,String tabGroupRef){
 				}
 
 				for(interviewee : selected_answer_interviewee){
-					saveEntitiesToRel("Answer and Interviewer",answer_id,interviewee.get(0));		
+					saveEntitiesToRel("Answer and Interviewee",answer_id,interviewee.get(0));		
 				}
 				showToast("new answer record created");
 			}

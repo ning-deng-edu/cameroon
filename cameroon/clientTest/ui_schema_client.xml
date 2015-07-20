@@ -111,8 +111,7 @@
                         <answerQuestionID/>
                         <answerChoice/>
                         <answerText/>
-                        <answerFileList/>
-                        
+                        <answerFileList/>          
                         <container2>
                             <child1>
                                 <answerInterviewerList/>
