@@ -32,12 +32,10 @@
                 </user>
                  
                  
-                <control>
-                   
+                <control>         
                     <survey_control>
         				<New_Survey/>
-                        <surveyList/>
-                        
+                        <surveyList/>                      
                     </survey_control>
                 
                     <session_control>
@@ -51,11 +49,9 @@
                             </child2>
                     	</container1>
                         <sessionList/>
-                    </session_control>
-                    
+                    </session_control>                    
                   
-                    <user_control>
-                 
+                    <user_control>              
                         <New_User/>
                         <userList/>
                     </user_control>
@@ -67,8 +63,7 @@
                     </language_control>
                    
          
-                    <file_control>
-                     
+                    <file_control>                    
                         <New_File/>
                         <fileList/>
                     </file_control>
@@ -104,6 +99,22 @@
                         <Create_New_Answer/>
                     </answerInfo>
                 </answerToQuestion>
+                
+                <answerToQuestionnaire>
+                    <answerQuesnirInfo>
+                        <answerListQuesnirID/>
+                        <answerListQuesnirName/>
+                        <View_All_Answer/>
+                        <container5>
+                            <child1>
+                                <quesInQuesnirList/>
+                            </child1>
+                            <child2>
+                                <answerInQuesnir/>
+                            </child2>
+                        </container5>
+                    </answerQuesnirInfo>                     
+                </answerToQuestionnaire>
                 
                 <survey>
                     <answer>
@@ -207,8 +218,7 @@
                     	<sketchFilePath/>
                     	<Save_New_Sketch/>
                     </sketchFileInfo>
-                </sketchFile>
-                 
+                </sketchFile>                 
                 
                 <person>
                   <personInfo>
@@ -437,6 +447,54 @@
         </group>
       </group>
       
+                
+     <group ref="answerToQuestionnaire">
+          <label>answerToQuestionnaire</label>
+         	
+         <group ref="answerQuesnirInfo">
+            <label>answerQuesnirInfo</label>
+            <input ref="answerListQuesnirID" faims_read_only="true">
+            	<label>{Current answerListQuesnirID}</label>
+            </input>
+            
+             <input ref="answerListQuesnirName" faims_read_only="true">
+            	<label>{Current answerListQuesnirName}</label>
+            </input>
+            
+             <trigger ref="View_All_Answer" faims_style_class="faims-blue">
+                <label>{View_All_Answer}</label>
+        	</trigger>
+        	
+             <group ref="container5" faims_style="orientation">
+         		<label></label>
+          		<group ref="child1" faims_style="even">
+            		<label></label>
+            		<select1 appearance="compact" ref="quesInQuesnirList" faims_certainty="false" faims_annotation="false" faims_style_class="questionQuestionnaire-list">
+          				<label>{quesInQuesnirList}</label>
+          				<item>
+                    		<label>placeholder</label>
+                    		<value>placeholder</value>
+                		</item>
+        			</select1>
+        	    </group>
+          
+       		   <group ref="child2" faims_style="even">
+            	   <label></label>
+               	   <select1 appearance="compact" ref="answerInQuesnir" faims_certainty="false" faims_annotation="false" faims_style_class="answer-list">
+          				<label>{answerInQuesnir}</label>
+          				<item>
+                    		<label>placeholder</label>
+                    		<value>placeholder</value>
+                		</item>
+        		 </select1>
+        	  </group>
+          </group>
+            
+      
+        </group>
+      </group>
+    
+    
       <group ref="answerToQuestion">
           <label>answerToQuestion</label>
          	

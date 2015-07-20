@@ -137,6 +137,7 @@ onEvent("control/survey_control/New_Survey","click","showQuestionnaireList()");
 //onEvent("questionnaireListAll","show","loadAllQuesnir()");
 onEvent("questionnaireListAll/questionnaireListInfo/questionnaireListInDB","click","loadQuesnirInfo()");
 onEvent("control/survey_control","show","loadExistSurvey()");
+onEvent("control/survey_control/surveyList","click","loadAnswersForQuestionnaire()");
 answer_id=null;
 survey_id=null;
 current_quesnir_id=null;
@@ -148,7 +149,8 @@ current_answer_id=null;
 questionnaire_list=new ArrayList();
 ques_in_current_quesnir=new ArrayList();
 survey_list=new ArrayList();
-all_quesnir_list=new ArrayList();
+//all_quesnir_list=new ArrayList();
+answer_quesnir_list=new ArrayList();
 
 showQuestionnaireList(){
 	newTabGroup("questionnaireListAll");
@@ -162,6 +164,8 @@ showQuestionnaireList(){
 	current_answer_id=null;
 	questionnaire_list.clear();
 	ques_in_current_quesnir.clear();
+	answer_quesnir_list.clear();
+	survey_list.clear();
 }
 
 loadExistSurvey(){
@@ -178,6 +182,73 @@ loadExistSurvey(){
 	            	showToast(message);
 	        	}
 	    	});
+}
+
+loadAnswersForQuestionnaire(){
+	current_quesnir_id=getListItemValue();
+	if(isNull(current_quesnir_id)){
+		showWarning("Survey not selected","Survey not selected or not available");
+		return;
+	}
+	else{
+	newTabGroup("answerToQuestionnaire");
+	loadAnswersForQuesnirQuery="select uuid,measure from latestNonDeletedAentValue "+
+	"where latestNonDeletedAentValue.AttributeID="+
+			"(select AttributeID from Attributekey where AttributeKey.AttributeName='AnswerText') "+
+	"and latestNonDeletedAentValue.uuid in "+
+			"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+				"(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+			"and latestNonDeletedAentValue.measure="+current_quesnir_id+");";
+	fetchAll(loadAnswersForQuesnirQuery,
+				new FetchCallback() {
+					onFetch(result) {
+						if (!isNull(result)) {		
+							answer_quesnir_list.clear();
+							answer_quesnir_list.addAll(result);
+							populateList("answerToQuestionnaire/answerQuesnirInfo/answerInQuesnir",answer_quesnir_list);
+						}
+						else{
+							showWarning("No answer in this questionnaire","This questionnaire is not ready yet");
+							return;
+						}
+					}
+			       
+				onError(message) {
+					showToast(message);
+				}
+				});
+		
+	questionnaire_question_query="SELECT uuid, measure "+
+			"from latestNonDeletedAentValue "+
+			"where latestNonDeletedAentValue.AttributeID = "+
+			"(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
+			"and uuid in "+
+			"(select AEntReln.uuid from AEntReln where AEntReln.uuid<>"+current_quesnir_id+" "+
+			"and AEntReln.RelationshipID IN "+
+			"(select  relationshipID from AEntReln aer "+
+			"inner join "+
+			"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_quesnir_id+") tm "+
+			"on aer.AentRelnTimestamp=tm.maxtime group by relationshipID)) "+
+			"group by uuid;";
+	fetchAll(questionnaire_question_query,
+			new FetchCallback() {
+				onFetch(result) {
+					if (!isNull(result)) {		
+					ques_in_current_quesnir.clear();
+					ques_in_current_quesnir.addAll(result);
+					populateList("answerToQuestionnaire/answerQuesnirInfo/quesInQuesnirList",ques_in_current_quesnir);
+					}
+					else{
+						showWarning("No question in this questionnaire","This questionnaire is not ready yet");
+						return;
+					}
+				}
+		       
+			onError(message) {
+				showToast(message);
+			}
+			});
+	}
 }
 
 loadAllQuesnir(){
