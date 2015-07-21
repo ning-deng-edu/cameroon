@@ -63,7 +63,8 @@
                     </language_control>
                    
          
-                    <file_control>                    
+                    <file_control> 
+                        <fileCategorySelect/>                   
                         <New_File/>
                         <fileList/>
                     </file_control>
@@ -376,7 +377,14 @@
         
         <group ref="file_control">
             <label>{File}</label>
-         
+ 
+          <select1 ref="fileCategorySelect">
+            <label>File Category:</label>
+            	<item>
+                	<label>placeholder</label>
+                	<value>placeholder</value>
+            	</item>
+         	</select1>
             <trigger ref="New_File" faims_style_class="faims-blue">
                 <label>New {file}</label>
             </trigger>

@@ -28,6 +28,10 @@ loadAllSurveyQuery="select uuid,measure from "+
 			"(select AttributeID from AttributeKey where AttributeName='QuestionnaireName')) t2 "+
 		"on t2.uuid=t1.quesnirid );";
 
+loadAllFileQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+		"WHERE latestNonDeletedAentValue.AttributeID "+
+		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='FileName') "+
+		"GROUP BY uuid;";
 //loadFilesForAnswer="select uuid, measure from AentValue where AentValue.AttributeID =(select AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerText') and AentValue.uuid in (select uuid from (SELECT uuid FROM AEntValue where AEntValue.AttributeID=(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionID') and AEntValue.freetext='1000011437080460685') t1 inner join (SELECT uuid FROM AEntValue where AEntValue.AttributeID=(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionnaireID') and AEntValue.freetext='1000011437080512135') t2 using(uuid))"
 /***Enable data and file syncing***/
 addActionBarItem("sync", new ToggleActionButtonCallback() {
@@ -996,7 +1000,7 @@ newFileFromQuestion(){
 	}
 }
 viewOrDeleteFileReln(){
-	showAlert("View File Info","Do you want to view file info?","loadAnswerFileInfo()","deleteRelnAlert()");
+	showAlert("View File Info","Do you want to view file info?","loadAnswerFileInfo(\"answer\")","deleteRelnAlert()");
 }
 deleteRelnAlert(){
 	showAlert("Delete File","Do you want to delete this file from this answer?","deleteFileRelation()","returnToCurrentPage()");
@@ -1032,11 +1036,28 @@ deleteFileRelation(){
 	}
 	*/
 }
-loadAnswerFileInfo(){
-	current_answer_file_id=getListItemValue();
-	checkFileTypeQuery="select measure from latestNonDeletedAentValue where latestNonDeletedAentValue.uuid="+current_answer_file_id+" "+
+loadAnswerFileInfo(String typeFlag){
+	String view_file_id=null;
+	if(typeFlag.equals("answer")){
+		current_answer_file_id=getListItemValue();
+		if(isNull(current_answer_file_id)){
+			showWarning("No file chosen","No file is selected, or the file is not available");
+			return;
+		}
+		view_file_id=current_answer_file_id;
+	}
+	else{
+		file_id=getListItemValue();
+		if(isNull(file_id)){
+			showWarning("No file chosen","No file is selected, or the file is not available");
+			return;
+		}
+		view_file_id=file_id;
+		
+	}
+	checkFileTypeQuery="select measure from latestNonDeletedAentValue where latestNonDeletedAentValue.uuid="+view_file_id+" "+
 	"and latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeKey.AttributeName='FileType');";
-	showWarning("checkFileTypeQuery",checkFileTypeQuery);
+	//showWarning("checkFileTypeQuery",checkFileTypeQuery);
 	fetchAll(checkFileTypeQuery,
 			new FetchCallback() {
 		        onFetch(result) {
@@ -1046,7 +1067,7 @@ loadAnswerFileInfo(){
 						//showWarning("fetchAll",currentType);
 						switch (currentType){
 						case "Audio":		
-							showTabGroup("audioFile", current_answer_file_id, new FetchCallback() {
+							showTabGroup("audioFile", view_file_id, new FetchCallback() {
 						        onFetch(result) {						  
 						            showToast("Loaded audio file"+result.getId());            
 						        }
@@ -1056,7 +1077,7 @@ loadAnswerFileInfo(){
 						    });
 							break;
 						case "Video":
-							showTabGroup("videoFile", current_answer_file_id, new FetchCallback() {
+							showTabGroup("videoFile", view_file_id, new FetchCallback() {
 						        onFetch(result) {						  
 						            showToast("Loaded video file"+result.getId());            
 						        }
@@ -1066,7 +1087,7 @@ loadAnswerFileInfo(){
 						    });
 							break;
 						case "Photo":
-							showTabGroup("photoFile", current_answer_file_id, new FetchCallback() {
+							showTabGroup("photoFile", view_file_id, new FetchCallback() {
 						        onFetch(result) {						  
 						            showToast("Loaded photo file"+result.getId());            
 						        }
@@ -1076,7 +1097,7 @@ loadAnswerFileInfo(){
 						    });
 							break;
 						case "Other":
-							showTabGroup("sketchFile", current_answer_file_id, new FetchCallback() {
+							showTabGroup("sketchFile", view_file_id, new FetchCallback() {
 						        onFetch(result) {						  
 						            showToast("Loaded sketch file"+result.getId());            
 						        }
@@ -1405,7 +1426,33 @@ language_id=getListItemValue();
         }
     });
 }
+/*** File ***/
+onEvent("control/file_control","show","loadFile()");
+onEvent("control/file_control/fileList","click","loadAnswerFileInfo(\"fileView\")");
+file_id=null;
+fileCategory=new ArrayList();
+fileCategory.add(new NameValuePair("{Audio}", "Audio"));
+fileCategory.add(new NameValuePair("{Video}", "Video"));
+fileCategory.add(new NameValuePair("{Photo}", "Photo"));
+fileCategory.add(new NameValuePair("{Other}", "Other"));
+loadFile(){
+	file_id=null;
+	populateDropDown("control/file_control/fileCategorySelect",fileCategory);
 
+	fetchAll(loadAllFileQuery, new FetchCallback() {
+        onFetch(result) {
+            populateList("control/file_control/fileList", result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+
+
+/*** query ***/
 onEvent("control/querytest/Submit","click","testQuery()");
 
 testQuery(){
