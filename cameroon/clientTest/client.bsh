@@ -704,7 +704,7 @@ onEvent("survey/answer/answerIntervieweeSelectionList","click","addItemToTargetL
 onEvent("survey/answer/answerInterviewerList","click","deleteItemFromTargetList(selected_answer_interviewer,\"interviewer\")");
 onEvent("survey/answer/answerIntervieweeList","click","deleteItemFromTargetList(selected_answer_interviewee,\"interviewee\")");
 onEvent("survey/answer/Finish_New_Answer","click","saveNewAnswer()");
-onEvent("survey/answer/Add_New_File","click","newFileFromQuestion()");
+onEvent("survey/answer/Add_New_File","click","newFile(\"answer\")");
 onEvent("survey/answer/answerFileList","click","viewOrDeleteFileReln()");
 
 
@@ -962,16 +962,24 @@ listChange(ArrayList targetList,ArrayList sourceList){
 	return listChanges;
 }
 
-newFileFromQuestion(){
-	if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
-		showWarning("Warning","Please select interviewers and interviewees");
-		return;
+newFile(String typeFlag){
+	String fileCategory=null;
+	if(typeFlag.equals("answer")){
+		if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
+			showWarning("Warning","Please select interviewers and interviewees");
+			return;
+		}
+		if((selected_answer_interviewer.isEmpty()) || (selected_answer_interviewee.isEmpty())){
+			showWarning("Warning","No available interviwer or interviewee\n Please create person info");
+			return;
+		}
+		fileCategory=getFieldValue("survey/answer/file_Category");
+		answerFile=true;
 	}
-	if((selected_answer_interviewer.isEmpty()) || (selected_answer_interviewee.isEmpty())){
-		showWarning("Warning","No available interviwer or interviewee\n Please create person info");
-		return;
+	else{
+		fileCategory=getFieldValue("control/file_control/fileCategorySelect");
+		answerFile=false;
 	}
-	String fileCategory=getFieldValue("survey/answer/file_Category");
 	switch (fileCategory){
 	case "Audio":		
 		newTabGroup("audioFile");
@@ -996,6 +1004,9 @@ newFileFromQuestion(){
 		setFieldValue("sketchFile/sketchFileInfo/sketchFileID","SketchFile-"+username+getCurrentTime());
 		setFieldValue("sketchFile/sketchFileInfo/sketchFileCreator",username);
 		setFieldValue("sketchFile/sketchFileInfo/sketchFileType","Sketch");
+		break;
+	default:
+		showWarning("Invalid category","Please select a valid file category");
 		break;
 	}
 }
@@ -1036,14 +1047,17 @@ deleteFileRelation(){
 	}
 	*/
 }
+Boolean answerFile=false;//flag of whether user is viewing file from answer page
 loadAnswerFileInfo(String typeFlag){
 	String view_file_id=null;
+	//showWarning("typeFlag",typeFlag);
 	if(typeFlag.equals("answer")){
 		current_answer_file_id=getListItemValue();
 		if(isNull(current_answer_file_id)){
 			showWarning("No file chosen","No file is selected, or the file is not available");
 			return;
 		}
+		answerFile=true;
 		view_file_id=current_answer_file_id;
 	}
 	else{
@@ -1052,9 +1066,10 @@ loadAnswerFileInfo(String typeFlag){
 			showWarning("No file chosen","No file is selected, or the file is not available");
 			return;
 		}
+		answerFile=false;
 		view_file_id=file_id;
-		
 	}
+	//showWarning("answerfile",answerFile.toString());
 	checkFileTypeQuery="select measure from latestNonDeletedAentValue where latestNonDeletedAentValue.uuid="+view_file_id+" "+
 	"and latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeKey.AttributeName='FileType');";
 	//showWarning("checkFileTypeQuery",checkFileTypeQuery);
@@ -1132,6 +1147,8 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef){
 		return;
 	}
 	else{
+		//showWarning("answerfile",answerFile.toString());
+		if(answerFile){
 		saveTabGroup(tabGroupRef,current_answer_file_id, null, null, new SaveCallback() {
 			onSave(uuid, newRecord) {
 				current_answer_file_id = uuid;
@@ -1155,12 +1172,42 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef){
 					//saveEntitiesToRel("Answer and File",answer_id,current_answer_file_id);			
 					showToast("New file record created");
 				}
+				else{
+					for(changeFile:files_in_current_ques){
+						if(changeFile.get(0).equals(current_answer_file_id)){
+							newFile=new ArrayList();
+							newFile.add(current_answer_file_id);
+							newFile.add(getFieldValue(ref));
+							files_in_current_ques.remove(changeFile);
+							files_in_current_ques.add(newFile);
+							populateList("survey/answer/answerFileList",files_in_current_ques);
+							break;
+						}
+					}
+					showToast("file record changed");
+				}
 			}
 			onError(message) {
 				showWarning("error",message);
 			}  
 			});
-		//showAlert("Notification","Do you want to save this file to the answer?\n(This will also save the answer)","saveFileToAnswer(\""+ref+"\",\""+tabGroupRef+"\")","saveFileOnly()");
+		}
+		else{
+			saveTabGroup(tabGroupRef,file_id, null, null, new SaveCallback() {
+				onSave(uuid, newRecord) {
+					file_id = uuid;
+					if (newRecord) {				
+						showToast("New file record created");
+					}
+					else{
+						showToast("file record changed");
+					}
+				}
+				onError(message) {
+					showWarning("error",message);
+				}  
+				});
+		}
 	}
 }
 
@@ -1428,6 +1475,7 @@ language_id=getListItemValue();
 }
 /*** File ***/
 onEvent("control/file_control","show","loadFile()");
+onEvent("control/file_control/New_File","click","newFile(\"file\")");
 onEvent("control/file_control/fileList","click","loadAnswerFileInfo(\"fileView\")");
 file_id=null;
 fileCategory=new ArrayList();
