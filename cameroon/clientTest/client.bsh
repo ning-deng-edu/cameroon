@@ -107,6 +107,7 @@ saveThreeEntitiesToRel(String type, String entity1, String entity2, String entit
     });
 }
 */
+/***User***/
 onEvent("user/usertab/users", "click", "login()");
 
 loadUsers() {
@@ -132,15 +133,10 @@ login() {
         }
     });
 }
-
+/***Survey Control***/
 onEvent("control/survey_control/New_Survey","click","showQuestionnaireList()");
-//onEvent("questionnaireListAll","show","loadAllQuesnir()");
-onEvent("questionnaireListAll/questionnaireListInfo/questionnaireListInDB","click","loadQuesnirInfo()");
 onEvent("control/survey_control","show","loadExistSurvey()");
 onEvent("control/survey_control/surveyList","click","loadAnswersForQuestionnaire(\"New\")");
-onEvent("answerToQuestionnaire/answerQuesnirInfo/answerInQuesnir","click","loadAnswerInfo()");
-onEvent("answerToQuestionnaire/answerQuesnirInfo/quesInQuesnirList","click","ViewAnswersOfQuesion()");
-onEvent("answerToQuestionnaire/answerQuesnirInfo/View_All_Answer","click","loadAnswersForQuestionnaire(\"Refresh\")");
 answer_id=null;
 survey_id=null;
 current_quesnir_id=null;
@@ -169,6 +165,27 @@ showQuestionnaireList(){
 	ques_in_current_quesnir.clear();
 	answer_quesnir_list.clear();
 	survey_list.clear();
+}
+
+loadAllQuesnir(){
+	fetchAll(
+		loadAllQuestionnaireQuery,
+		new FetchCallback() {
+        	onFetch(result) {
+				if (!isNull(result)) {
+					questionnaire_list.addAll(result);
+					populateList("questionnaireListAll/questionnaireListInfo/questionnaireListInDB", result);	
+				}	
+				else{
+			    	showWarning("No questionnaire","No questionnaire is available, please contact the admin");
+					return;
+				}
+       	 }
+
+        	onError(message) {
+            	showToast(message);
+        	}
+    	});
 }
 
 loadExistSurvey(){
@@ -291,58 +308,8 @@ loadAnswersForQuestionnaire(String typeFlag){
 							});
 	}
 }
-ViewAnswersOfQuesion(){
-	current_question_id=getListItemValue();
-	current_quesnir_id=getFieldValue("answerToQuestionnaire/answerQuesnirInfo/answerListQuesnirID");
-	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
-			"WHERE latestNonDeletedAentValue.AttributeID = "+
-			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerText') "+
-			"AND latestNonDeletedAentValue.uuid IN "+
-			"(select uuid from "+
-				"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
-					"(select AttributeKey.AttributeID from AttributeKey "+
-					"where AttributeKey.AttributeName='AnswerQuestionnaireID') "+
-					"and latestNonDeletedAentValue.measure="+current_quesnir_id+") t1 "+
-			 "inner join "+
-			 	"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
-			 		"(select AttributeKey.AttributeID from AttributeKey "+
-			 		"where AttributeKey.AttributeName='AnswerQuestionID') "+
-			 		"and latestNonDeletedAentValue.measure="+current_question_id+") t2 "+
-			 		"using(uuid))";	
-	
-	fetchAll(loadAnswersForQuesion,
-			new FetchCallback() {
-		        onFetch(result) {
-						populateList("answerToQuestionnaire/answerQuesnirInfo/answerInQuesnir", result);	
-					
-		        }
 
-		        onError(message) {
-		            showToast(message);
-		        }
-		    });
-}
-loadAllQuesnir(){
-	fetchAll(
-		loadAllQuestionnaireQuery,
-		new FetchCallback() {
-        	onFetch(result) {
-				if (!isNull(result)) {
-					questionnaire_list.addAll(result);
-					populateList("questionnaireListAll/questionnaireListInfo/questionnaireListInDB", result);	
-				}	
-				else{
-			    	showWarning("No questionnaire","No questionnaire is available, please contact the admin");
-					return;
-				}
-       	 }
-
-        	onError(message) {
-            	showToast(message);
-        	}
-    	});
-}
-
+onEvent("questionnaireListAll/questionnaireListInfo/questionnaireListInDB","click","loadQuesnirInfo()");
 loadQuesnirInfo(){
 	current_quesnir_id=getListItemValue();
 	if(isNull(current_quesnir_id)){
@@ -400,129 +367,12 @@ loadQuesnirInfo(){
 	}
 }
 
-onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","loadAnswer()");
-
-loadAnswer(){
-	if(isNull(current_quesnir_name)){
-		showWarning("No questionnaire name available","Can't get the questionnaire name, please contact the admin");
-		return;
-	}
-	current_question_id=getListItemValue();
-	for(int i=0;i<ques_in_current_quesnir.size();i++){
-		if(ques_in_current_quesnir.get(i).get(0).equals(current_question_id))
-		{
-			current_question_content=ques_in_current_quesnir.get(i).get(1);
-			break;
-		}
-	}
-	if(isNull(current_question_content)){
-		showWarning("No question content available","Can't get the question content, please contact the admin");
-		return;
-	}
-	newTabGroup("answerToQuestion");
-	setFieldValue("answerToQuestion/answerInfo/answerListQuestionnaireID", current_quesnir_id);
-	setFieldValue("answerToQuestion/answerInfo/answerListQuestionID", current_question_id);
-	setFieldValue("answerToQuestion/answerInfo/answerListQuestionnaireName", current_quesnir_name);
-	setFieldValue("answerToQuestion/answerInfo/answerListQuestionContent", current_question_content);
-}
-
-onEvent("answerToQuestion/answerInfo/Create_New_Answer","click","startNewAnswer()");
-onEvent("answerToQuestion/answerInfo","show","loadAnswerListForQuesion()");
-onEvent("answerToQuestion/answerInfo/answerList","click","loadAnswerInfo()");
-current_answer_interviewer=new ArrayList();
-selected_answer_interviewer=new ArrayList();
-candidate_answer_interviewer=new ArrayList();
-
-current_answer_interviewee=new ArrayList();
-selected_answer_interviewee=new ArrayList();
-candidate_answer_interviewee=new ArrayList();
-categoryTypes=new ArrayList();
-categoryTypes.add(new NameValuePair("{Audio}", "Audio"));
-categoryTypes.add(new NameValuePair("{Video}", "Video"));
-categoryTypes.add(new NameValuePair("{Photo}", "Photo"));
-categoryTypes.add(new NameValuePair("{Other}", "Other"));
-
-startNewAnswer(){
-	//current_question_id=getListItemValue();
-	String current_start_time=getCurrentTime();
-	
-	
-	current_answer_interviewer.clear();
-	selected_answer_interviewer.clear();
-	candidate_answer_interviewer.clear();
-
-	current_answer_interviewee.clear();
-	selected_answer_interviewee.clear();
-	candidate_answer_interviewee.clear();
-	files_in_current_ques.clear();
-	answer_id=null;
-	current_answer_file_id=null;
-	current_answer_id=null;
-
-	
-	newTabGroup("survey");
-	setFieldValue("survey/answer/answerQuestionnaireID", current_quesnir_id);
-	setFieldValue("survey/answer/answerQuestionID", current_question_id);
-	setFieldValue("survey/answer/answerStartTimestamp", current_start_time);
-	populateDropDown("survey/answer/file_Category",categoryTypes);
-	
-	fetchAll(loadAllPersonQuery,
-				new FetchCallback() {
-					onFetch(result) {
-						if (!isNull(result)) {	
-							//candidate_answer_interviewer.clear();	
-							candidate_answer_interviewer.addAll(result);
-							//candidate_answer_interviewee.clear();
-							candidate_answer_interviewee.addAll(result);
-							populateList("survey/answer/answerInterviewerList",selected_answer_interviewer);
-							populateList("survey/answer/answerIntervieweeList",selected_answer_interviewee);
-							populateList("survey/answer/answerInterviewerSelectionList",candidate_answer_interviewer);
-							populateList("survey/answer/answerIntervieweeSelectionList",candidate_answer_interviewee);
-						}
-						else{
-							showWarning("No person info available","No person info available\n"+"Please add person info first");
-						}
-					}
-			       
-				onError(message) {
-					showToast(message);
-				}
-			});
-}
-
-loadAnswerListForQuesion(){
-	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
-			"WHERE latestNonDeletedAentValue.AttributeID = "+
-			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerText') "+
-			"AND latestNonDeletedAentValue.uuid IN "+
-			"(select uuid from "+
-				"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
-					"(select AttributeKey.AttributeID from AttributeKey "+
-					"where AttributeKey.AttributeName='AnswerQuestionnaireID') "+
-					"and latestNonDeletedAentValue.measure="+current_quesnir_id+") t1 "+
-			 "inner join "+
-			 	"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
-			 		"(select AttributeKey.AttributeID from AttributeKey "+
-			 		"where AttributeKey.AttributeName='AnswerQuestionID') "+
-			 		"and latestNonDeletedAentValue.measure="+current_question_id+") t2 "+
-			 		"using(uuid))";
-	
-	fetchAll(loadAnswersForQuesion,
-			new FetchCallback() {
-		        onFetch(result) {
-					//if (!isNull(result)) {
-						populateList("answerToQuestion/answerInfo/answerList", result);	
-					//}
-					
-		        }
-
-		        onError(message) {
-		            showToast(message);
-		        }
-		    });
-}
+onEvent("answerToQuestionnaire/answerQuesnirInfo/answerInQuesnir","click","loadAnswerInfo()");
+onEvent("answerToQuestionnaire/answerQuesnirInfo/quesInQuesnirList","click","ViewAnswersOfQuesion()");
+onEvent("answerToQuestionnaire/answerQuesnirInfo/View_All_Answer","click","loadAnswersForQuestionnaire(\"Refresh\")");
 
 files_in_current_ques=new ArrayList();
+
 loadAnswerInfo(){
 	current_answer_id=null;
 	current_answer_id=getListItemValue();
@@ -619,6 +469,7 @@ loadAnswerInfo(){
         	populateList("survey/answer/answerIntervieweeList", selected_answer_interviewee);
         	populateList("survey/answer/answerInterviewerSelectionList", candidate_answer_interviewer);
         	populateList("survey/answer/answerIntervieweeSelectionList", candidate_answer_interviewee);
+        	populateDropDown("survey/answer/file_Category",categoryTypes);
             showToast("Loaded answer"+result.getId());            
         }
         onError(message) {
@@ -628,9 +479,169 @@ loadAnswerInfo(){
 	}
 	
 }
+
+ViewAnswersOfQuesion(){
+	current_question_id=getListItemValue();
+	current_quesnir_id=getFieldValue("answerToQuestionnaire/answerQuesnirInfo/answerListQuesnirID");
+	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
+			"WHERE latestNonDeletedAentValue.AttributeID = "+
+			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerText') "+
+			"AND latestNonDeletedAentValue.uuid IN "+
+			"(select uuid from "+
+				"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+					"(select AttributeKey.AttributeID from AttributeKey "+
+					"where AttributeKey.AttributeName='AnswerQuestionnaireID') "+
+					"and latestNonDeletedAentValue.measure="+current_quesnir_id+") t1 "+
+			 "inner join "+
+			 	"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+			 		"(select AttributeKey.AttributeID from AttributeKey "+
+			 		"where AttributeKey.AttributeName='AnswerQuestionID') "+
+			 		"and latestNonDeletedAentValue.measure="+current_question_id+") t2 "+
+			 		"using(uuid))";	
+	
+	fetchAll(loadAnswersForQuesion,
+			new FetchCallback() {
+		        onFetch(result) {
+						populateList("answerToQuestionnaire/answerQuesnirInfo/answerInQuesnir", result);	
+					
+		        }
+
+		        onError(message) {
+		            showToast(message);
+		        }
+		    });
+}
+
+onEvent("answerToQuestion/answerInfo/Create_New_Answer","click","startNewAnswer()");
+onEvent("answerToQuestion/answerInfo","show","loadAnswerListForQuesion()");
+onEvent("answerToQuestion/answerInfo/answerList","click","loadAnswerInfo()");
+
+current_answer_interviewer=new ArrayList();
+selected_answer_interviewer=new ArrayList();
+candidate_answer_interviewer=new ArrayList();
+
+current_answer_interviewee=new ArrayList();
+selected_answer_interviewee=new ArrayList();
+candidate_answer_interviewee=new ArrayList();
+categoryTypes=new ArrayList();
+categoryTypes.add(new NameValuePair("{Audio}", "Audio"));
+categoryTypes.add(new NameValuePair("{Video}", "Video"));
+categoryTypes.add(new NameValuePair("{Photo}", "Photo"));
+categoryTypes.add(new NameValuePair("{Other}", "Other"));
+
+startNewAnswer(){
+	//current_question_id=getListItemValue();
+	String current_start_time=getCurrentTime();
+	
+	
+	current_answer_interviewer.clear();
+	selected_answer_interviewer.clear();
+	candidate_answer_interviewer.clear();
+
+	current_answer_interviewee.clear();
+	selected_answer_interviewee.clear();
+	candidate_answer_interviewee.clear();
+	files_in_current_ques.clear();
+	answer_id=null;
+	current_answer_file_id=null;
+	current_answer_id=null;
+
+	
+	newTabGroup("survey");
+	setFieldValue("survey/answer/answerQuestionnaireID", current_quesnir_id);
+	setFieldValue("survey/answer/answerQuestionID", current_question_id);
+	setFieldValue("survey/answer/answerStartTimestamp", current_start_time);
+	populateDropDown("survey/answer/file_Category",categoryTypes);
+	
+	fetchAll(loadAllPersonQuery,
+				new FetchCallback() {
+					onFetch(result) {
+						if (!isNull(result)) {	
+							//candidate_answer_interviewer.clear();	
+							candidate_answer_interviewer.addAll(result);
+							//candidate_answer_interviewee.clear();
+							candidate_answer_interviewee.addAll(result);
+							populateList("survey/answer/answerInterviewerList",selected_answer_interviewer);
+							populateList("survey/answer/answerIntervieweeList",selected_answer_interviewee);
+							populateList("survey/answer/answerInterviewerSelectionList",candidate_answer_interviewer);
+							populateList("survey/answer/answerIntervieweeSelectionList",candidate_answer_interviewee);
+						}
+						else{
+							showWarning("No person info available","No person info available\n"+"Please add person info first");
+						}
+					}
+			       
+				onError(message) {
+					showToast(message);
+				}
+			});
+}
+
+loadAnswerListForQuesion(){
+	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
+			"WHERE latestNonDeletedAentValue.AttributeID = "+
+			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerText') "+
+			"AND latestNonDeletedAentValue.uuid IN "+
+			"(select uuid from "+
+				"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+					"(select AttributeKey.AttributeID from AttributeKey "+
+					"where AttributeKey.AttributeName='AnswerQuestionnaireID') "+
+					"and latestNonDeletedAentValue.measure="+current_quesnir_id+") t1 "+
+			 "inner join "+
+			 	"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+			 		"(select AttributeKey.AttributeID from AttributeKey "+
+			 		"where AttributeKey.AttributeName='AnswerQuestionID') "+
+			 		"and latestNonDeletedAentValue.measure="+current_question_id+") t2 "+
+			 		"using(uuid))";
+	
+	fetchAll(loadAnswersForQuesion,
+			new FetchCallback() {
+		        onFetch(result) {
+					//if (!isNull(result)) {
+						populateList("answerToQuestion/answerInfo/answerList", result);	
+					//}
+					
+		        }
+
+		        onError(message) {
+		            showToast(message);
+		        }
+		    });
+}
+
+onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","loadAnswer()");
+
+loadAnswer(){
+	if(isNull(current_quesnir_name)){
+		showWarning("No questionnaire name available","Can't get the questionnaire name, please contact the admin");
+		return;
+	}
+	current_question_id=getListItemValue();
+	for(int i=0;i<ques_in_current_quesnir.size();i++){
+		if(ques_in_current_quesnir.get(i).get(0).equals(current_question_id))
+		{
+			current_question_content=ques_in_current_quesnir.get(i).get(1);
+			break;
+		}
+	}
+	if(isNull(current_question_content)){
+		showWarning("No question content available","Can't get the question content, please contact the admin");
+		return;
+	}
+	newTabGroup("answerToQuestion");
+	setFieldValue("answerToQuestion/answerInfo/answerListQuestionnaireID", current_quesnir_id);
+	setFieldValue("answerToQuestion/answerInfo/answerListQuestionID", current_question_id);
+	setFieldValue("answerToQuestion/answerInfo/answerListQuestionnaireName", current_quesnir_name);
+	setFieldValue("answerToQuestion/answerInfo/answerListQuestionContent", current_question_content);
+}
+
 onEvent("survey/answer/answerInterviewerSelectionList","click","addItemToTargetList(candidate_answer_interviewer,\"interviewer\")");
 onEvent("survey/answer/answerIntervieweeSelectionList","click","addItemToTargetList(candidate_answer_interviewee,\"interviewee\")");
-
+onEvent("survey/answer/answerInterviewerList","click","deleteItemFromTargetList(selected_answer_interviewer,\"interviewer\")");
+onEvent("survey/answer/answerIntervieweeList","click","deleteItemFromTargetList(selected_answer_interviewee,\"interviewee\")");
+onEvent("survey/answer/Finish_New_Answer","click","addNewAnswerWithoutFile()");
+onEvent("survey/answer/Add_New_File","click","newFileFromQuestion()");
+onEvent("survey/answer/answerFileList","click","loadAnswerFileInfo()");
 addItemToTargetList(ArrayList sourceList, String type_flag){	
 	itemId=getListItemValue();	
 	int idx_item=-1;
@@ -674,8 +685,7 @@ addItemToTargetList(ArrayList sourceList, String type_flag){
 		
 	}
 }
-onEvent("survey/answer/answerInterviewerList","click","deleteItemFromTargetList(selected_answer_interviewer,\"interviewer\")");
-onEvent("survey/answer/answerIntervieweeList","click","deleteItemFromTargetList(selected_answer_interviewee,\"interviewee\")");
+
 
 deleteItemFromTargetList(ArrayList targetList, String type_flag){
 	deleteItemId=getListItemValue();
@@ -719,7 +729,7 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag){
 		
 	}
 }
-onEvent("survey/answer/Finish_New_Answer","click","addNewAnswerWithoutFile()");
+
 addNewAnswerWithoutFile(){
 	if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
 		showWarning("Warning","Please select interviewers and interviewees");
@@ -762,7 +772,7 @@ addNewAnswerWithoutFile(){
 		}  
 		});
 }
-onEvent("survey/answer/Add_New_File","click","newFileFromQuestion()");
+
 newFileFromQuestion(){
 	if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
 		showWarning("Warning","Please select interviewers and interviewees");
@@ -800,6 +810,72 @@ newFileFromQuestion(){
 		break;
 	}
 }
+
+loadAnswerFileInfo(){
+	current_answer_file_id=getListItemValue();
+	checkFileTypeQuery="select measure from latestNonDeletedAentValue where latestNonDeletedAentValue.uuid="+current_answer_file_id+" "+
+	"and latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeKey.AttributeName='FileType');";
+	showWarning("checkFileTypeQuery",checkFileTypeQuery);
+	fetchAll(checkFileTypeQuery,
+			new FetchCallback() {
+		        onFetch(result) {
+					if (!isNull(result)) {
+						//showWarning("fetchAll",result.getClass.getName());				
+						String currentType=result.get(0).get(0);
+						//showWarning("fetchAll",currentType);
+						switch (currentType){
+						case "Audio":		
+							showTabGroup("audioFile", current_answer_file_id, new FetchCallback() {
+						        onFetch(result) {						  
+						            showToast("Loaded audio file"+result.getId());            
+						        }
+						        onError(message) {
+						            showToast(message);
+						        }
+						    });
+							break;
+						case "Video":
+							showTabGroup("videoFile", current_answer_file_id, new FetchCallback() {
+						        onFetch(result) {						  
+						            showToast("Loaded video file"+result.getId());            
+						        }
+						        onError(message) {
+						            showToast(message);
+						        }
+						    });
+							break;
+						case "Photo":
+							showTabGroup("photoFile", current_answer_file_id, new FetchCallback() {
+						        onFetch(result) {						  
+						            showToast("Loaded photo file"+result.getId());            
+						        }
+						        onError(message) {
+						            showToast(message);
+						        }
+						    });
+							break;
+						case "Other":
+							showTabGroup("sketchFile", current_answer_file_id, new FetchCallback() {
+						        onFetch(result) {						  
+						            showToast("Loaded sketch file"+result.getId());            
+						        }
+						        onError(message) {
+						            showToast(message);
+						        }
+						    });
+							break;
+						}
+					}
+					
+		        }
+
+		        onError(message) {
+		            showToast(message);
+		        }
+		    });
+	
+}
+
 
 onEvent("audioFile/audioFileInfo/Take_Audio_File","click","attachAudioToField(\"audioFile/audioFileInfo/audioFileContent\")");
 onEvent("audioFile/audioFileInfo/Save_New_Audio","click","saveAnswerAndFile(\"audioFile/audioFileInfo/audioFileName\",\"audioFile/audioFileInfo/audioFileContent\",\"audioFile\")");
@@ -865,6 +941,7 @@ saveFileToAnswer(String ref,String tabGroupRef){
 	}
 
 }
+
 saveFileOnly(){
 	showAlert("Notification","Do you want to save this file?\n (This will only save the file)","saveFile()","returnToCurrentPage()");
 }
@@ -874,6 +951,7 @@ saveFile(){
 returnToCurrentPage(){
 	return;
 }
+
 attachAudioToField(String ref) {
 	if(!isNull(getFieldValue(ref))){
 		showWarning("File exists","File exists, please Create New File");
@@ -900,6 +978,7 @@ setAudioToField(String ref) {
 }
 
 onEvent("videoFile/videoFileInfo/Take_Video_File","click","attachVideoToField(\"videoFile/videoFileInfo/videoFileContent\")");
+onEvent("videoFile/videoFileInfo/Save_New_Video","click","saveAnswerAndFile(\"videoFile/videoFileInfo/videoFileName\",\"videoFile/videoFileInfo/videoFileContent\",\"videoFile\")");
 
 attachVideoToField(String ref) {
 	if(!isNull(getFieldValue(ref))){
@@ -926,6 +1005,8 @@ setVideoToField(String ref) {
 }
 
 onEvent("photoFile/photoFileInfo/Take_Photo_File","click","attachPictureToField(\"photoFile/photoFileInfo/photoFileContent\")");
+onEvent("photoFile/photoFileInfo/Save_New_Photo","click","saveAnswerAndFile(\"photoFile/photoFileInfo/photoFileName\",\"photoFile/photoFileInfo/photoFileContent\",\"photoFile\")");
+
 attachPictureToField(String ref) {
 	if(!isNull(getFieldValue(ref))){
 		showWarning("File exists","File exists, please Create New File");
@@ -952,6 +1033,7 @@ setPictureToField(String ref) {
 }
 
 onEvent("sketchFile/sketchFileInfo/Take_Sketch_File","click","attachFileToField(\"sketchFile/sketchFileInfo/sketchFileContent\")");
+onEvent("sketchFile/sketchFileInfo/Save_New_Sketch","click","saveAnswerAndFile(\"sketchFile/sketchFileInfo/sketchFileName\",\"sketchFile/sketchFileInfo/sketchFileContent\",\"sketchFile\")");
 attachFileToField(String ref) {
 	if(!isNull(getFieldValue(ref))){
 		showWarning("File exists","File exists, please Create New File");

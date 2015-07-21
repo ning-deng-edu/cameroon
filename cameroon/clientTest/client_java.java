@@ -469,6 +469,7 @@ loadAnswerInfo(){
         	populateList("survey/answer/answerIntervieweeList", selected_answer_interviewee);
         	populateList("survey/answer/answerInterviewerSelectionList", candidate_answer_interviewer);
         	populateList("survey/answer/answerIntervieweeSelectionList", candidate_answer_interviewee);
+        	populateDropDown("survey/answer/file_Category",categoryTypes);
             showToast("Loaded answer"+result.getId());            
         }
         onError(message) {
@@ -811,9 +812,7 @@ newFileFromQuestion(){
 }
 
 loadAnswerFileInfo(){
-	showWarning("loadAnswerFileInfo","loadAnswerFileInfo");
 	current_answer_file_id=getListItemValue();
-	showWarning("current_answer_file_id",current_answer_file_id);
 	checkFileTypeQuery="select measure from latestNonDeletedAentValue where latestNonDeletedAentValue.uuid="+current_answer_file_id+" "+
 	"and latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeKey.AttributeName='FileType');";
 	showWarning("checkFileTypeQuery",checkFileTypeQuery);
@@ -821,10 +820,10 @@ loadAnswerFileInfo(){
 			new FetchCallback() {
 		        onFetch(result) {
 					if (!isNull(result)) {
-						//TODO:这里出错，进不来
-						showWarning("fetchAll",result.getClass.getName());
-						showWarning("fetchAll",result.get(0).getClass.getName());
-						switch (result.get(0)){
+						//showWarning("fetchAll",result.getClass.getName());				
+						String currentType=result.get(0).get(0);
+						//showWarning("fetchAll",currentType);
+						switch (currentType){
 						case "Audio":		
 							showTabGroup("audioFile", current_answer_file_id, new FetchCallback() {
 						        onFetch(result) {						  
