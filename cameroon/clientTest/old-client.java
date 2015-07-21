@@ -152,6 +152,8 @@ survey_list=new ArrayList();
 answer_quesnir_list=new ArrayList();
 
 showQuestionnaireList(){
+	newTabGroup("questionnaireListAll");
+	onEvent("questionnaireListAll","show","loadAllQuesnir()");
 	survey_id=null;
 	current_quesnir_id=null;
 	current_question_id=null;
@@ -159,15 +161,10 @@ showQuestionnaireList(){
 	current_question_content=null;
 	current_answer_file_id=null;
 	current_answer_id=null;
-	
+	questionnaire_list.clear();
 	ques_in_current_quesnir.clear();
 	answer_quesnir_list.clear();
 	survey_list.clear();
-	questionnaire_list.clear();
-	
-	newTabGroup("questionnaireListAll");
-	onEvent("questionnaireListAll","show","loadAllQuesnir()");
-
 }
 
 loadAllQuesnir(){
@@ -176,7 +173,7 @@ loadAllQuesnir(){
 		new FetchCallback() {
         	onFetch(result) {
 				if (!isNull(result)) {
-					//questionnaire_list.addAll(result);
+					questionnaire_list.addAll(result);
 					populateList("questionnaireListAll/questionnaireListInfo/questionnaireListInDB", result);	
 				}	
 				else{
@@ -273,24 +270,15 @@ loadAnswersForQuestionnaire(String typeFlag){
 				showToast(message);
 			}
 			});
-	for(survey:survey_list){
-		if(survey.get(0).equals(current_quesnir_id))
-		{
-			current_quesnir_name=survey.get(1);
-			setFieldValue("answerToQuestionnaire/answerQuesnirInfo/answerListQuesnirName",current_quesnir_name);
-		}
-		}
-		}
-	/*
-		for(int i=0;i<survey_list.size();i++){
+	
+	for(int i=0;i<survey_list.size();i++){
 		if(survey_list.get(i).get(0).equals(current_quesnir_id))
 		{
 			current_quesnir_name=survey_list.get(i).get(1);
 			setFieldValue("answerToQuestionnaire/answerQuesnirInfo/answerListQuesnirName",current_quesnir_name);
 		}
-		}
-		}
-		*/
+	}
+	}
 	}
 	else{
 		loadAnswersForQuesnirQuery="select uuid,measure from latestNonDeletedAentValue "+
@@ -384,7 +372,6 @@ onEvent("answerToQuestionnaire/answerQuesnirInfo/quesInQuesnirList","click","Vie
 onEvent("answerToQuestionnaire/answerQuesnirInfo/View_All_Answer","click","loadAnswersForQuestionnaire(\"Refresh\")");
 
 files_in_current_ques=new ArrayList();
-files_origin=new ArrayList();
 
 loadAnswerInfo(){
 	current_answer_id=null;
@@ -394,7 +381,6 @@ loadAnswerInfo(){
 		return;
 	}
 	else{
-		/*
 	loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileName') "+
 			"and uuid in "+
@@ -403,22 +389,7 @@ loadAnswerInfo(){
 					"(select RelationshipID from Relationship where RelnTypeID = "+
 						"(select RelnTypeID from RelnType where RelnTypeName='Answer and File')"+ 
 							"and RelationshipID in (select RelationshipID from AentReln where AentReln.uuid="+current_answer_id+" )))";
-		 */
-	loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
-				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileName') "+
-				"and uuid in "+
-	 			"(select uuid from AentReln where RelationshipID in "+
-	 				"(select RelationshipID from "+
-	 					"(select RelationshipID, AEntRelnTimestamp from AentReln where AentReln.uuid="+current_answer_id+" "+
-	 					"and RelationshipID in "+
-	 						"(select RelationshipID from Relationship where RelnTypeID="+
-	 							"(select RelnTypeID from RelnType where RelnTypeName='Answer and File'))) t1 "+
-	 					"inner join "+
-	 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_answer_id+" "+
-	 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
-	 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and File'))) t2 "+
-	 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
-	
+
 	loadAnswerInterviewerQuery="select uuid, measure from latestNonDeletedAentValue "+
 			 		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
 			 		"and uuid in "+
@@ -429,9 +400,7 @@ loadAnswerInfo(){
 			 						"(select RelationshipID from Relationship where RelnTypeID="+
 			 							"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer'))) t1 "+
 			 					"inner join "+
-			 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_answer_id+" "+
-			 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
-			 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer'))) t2 "+
+			 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_answer_id+") t2 "+
 			 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
 	
 	loadAnswerIntervieweeQuery="select uuid, measure from latestNonDeletedAentValue "+
@@ -444,17 +413,13 @@ loadAnswerInfo(){
 	 						"(select RelationshipID from Relationship where RelnTypeID="+
 	 							"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee'))) t1 "+
 	 					"inner join "+
-	 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_answer_id+" "+
-	 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
-	 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee'))) t2 "+
+	 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_answer_id+") t2 "+
 	 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
 	
 	fetchAll(loadFileForAnswerQuery, new FetchCallback() {
         onFetch(result) {
         	files_in_current_ques.clear();
-        	files_origin.clear();
         	files_in_current_ques.addAll(result);
-        	files_origin.addAll(result);
         }
 
         onError(message) {
@@ -492,15 +457,15 @@ loadAnswerInfo(){
         	candidate_answer_interviewee.addAll(result);
         	candidate_answer_interviewer.clear();
         	candidate_answer_interviewer.addAll(result);
-        	candidate_answer_interviewer.removeAll(selected_answer_interviewer);
-        	candidate_answer_interviewee.removeAll(selected_answer_interviewee);    	
+        	
         }
 
         onError(message) {
             showToast(message);
         }
     });
-	
+	candidate_answer_interviewer.removeAll(selected_answer_interviewer);
+	candidate_answer_interviewee.removeAll(selected_answer_interviewee);
 	showTabGroup("survey", current_answer_id, new FetchCallback() {
         onFetch(result) {
             //person=result;
@@ -586,31 +551,25 @@ startNewAnswer(){
 	origin_selected_interviewee.clear();
 	selected_answer_interviewee.clear();
 	candidate_answer_interviewee.clear();
-	
-	answerInfoOriginal.clear();
-	answerInfoNew.clear();
-	
 	files_in_current_ques.clear();
-	files_origin.clear();
-	
 	answer_id=null;
 	current_answer_file_id=null;
 	current_answer_id=null;
-	
+
 	
 	newTabGroup("survey");
 	setFieldValue("survey/answer/answerQuestionnaireID", current_quesnir_id);
 	setFieldValue("survey/answer/answerQuestionID", current_question_id);
 	setFieldValue("survey/answer/answerStartTimestamp", current_start_time);
-	populateList("survey/answer/answerFileList",files_in_current_ques);
-
 	populateDropDown("survey/answer/file_Category",categoryTypes);
 	
 	fetchAll(loadAllPersonQuery,
 				new FetchCallback() {
 					onFetch(result) {
 						if (!isNull(result)) {	
+							//candidate_answer_interviewer.clear();	
 							candidate_answer_interviewer.addAll(result);
+							//candidate_answer_interviewee.clear();
 							candidate_answer_interviewee.addAll(result);
 							populateList("survey/answer/answerInterviewerList",selected_answer_interviewer);
 							populateList("survey/answer/answerIntervieweeList",selected_answer_interviewee);
@@ -660,22 +619,14 @@ loadAnswerListForQuesion(){
 		    });
 }
 
-onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","loadAnswerFromQuesInQuesnir()");
+onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","loadAnswer()");
 
-loadAnswerFromQuesInQuesnir(){
+loadAnswer(){
 	if(isNull(current_quesnir_name)){
 		showWarning("No questionnaire name available","Can't get the questionnaire name, please contact the admin");
 		return;
 	}
 	current_question_id=getListItemValue();
-	for(ques: ques_in_current_quesnir){
-		if(ques.get(0).equals(current_question_id))
-		{
-			current_question_content=ques.get(1);
-			break;
-		}
-	}
-	/*
 	for(int i=0;i<ques_in_current_quesnir.size();i++){
 		if(ques_in_current_quesnir.get(i).get(0).equals(current_question_id))
 		{
@@ -683,7 +634,6 @@ loadAnswerFromQuesInQuesnir(){
 			break;
 		}
 	}
-	*/
 	if(isNull(current_question_content)){
 		showWarning("No question content available","Can't get the question content, please contact the admin");
 		return;
@@ -699,11 +649,9 @@ onEvent("survey/answer/answerInterviewerSelectionList","click","addItemToTargetL
 onEvent("survey/answer/answerIntervieweeSelectionList","click","addItemToTargetList(candidate_answer_interviewee,\"interviewee\")");
 onEvent("survey/answer/answerInterviewerList","click","deleteItemFromTargetList(selected_answer_interviewer,\"interviewer\")");
 onEvent("survey/answer/answerIntervieweeList","click","deleteItemFromTargetList(selected_answer_interviewee,\"interviewee\")");
-onEvent("survey/answer/Finish_New_Answer","click","saveNewAnswer()");
+onEvent("survey/answer/Finish_New_Answer","click","addNewAnswerWithoutFile()");
 onEvent("survey/answer/Add_New_File","click","newFileFromQuestion()");
-onEvent("survey/answer/answerFileList","click","viewOrDeleteFileReln()");
-
-
+onEvent("survey/answer/answerFileList","click","loadAnswerFileInfo()");
 addItemToTargetList(ArrayList sourceList, String type_flag){	
 	itemId=getListItemValue();	
 	int idx_item=-1;
@@ -717,8 +665,6 @@ addItemToTargetList(ArrayList sourceList, String type_flag){
 		return;
 	}
 	else{	
-		
-		
 		for (int i=0; i<sourceList.size();i++){
 			if (sourceList.get(i).get(0).equals(itemId)) {
 				idx_item=i;
@@ -763,7 +709,6 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag){
 		return;
 	}
 	else{	
-		
 		for (int i=0; i<targetList.size();i++){
 			if (targetList.get(i).get(0).equals(deleteItemId)) {
 				idx_delete=i;
@@ -795,7 +740,7 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag){
 	}
 }
 
-saveNewAnswer(){
+addNewAnswerWithoutFile(){
 	if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
 		showWarning("Warning","Please select interviewers and interviewees");
 		return;
@@ -822,9 +767,6 @@ saveNewAnswer(){
 				for(interviewee : selected_answer_interviewee){
 					saveEntitiesToRel("Answer and Interviewee",answer_id,interviewee.get(0));		
 				}
-				for(file : files_in_current_ques){
-					saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
-				}
 				showToast("new answer created");
 			}
 			else{
@@ -833,9 +775,6 @@ saveNewAnswer(){
 				}
 				for(interviewee : selected_answer_interviewee){
 					saveEntitiesToRel("Answer and Interviewee",answer_id,interviewee.get(0));		
-				}
-				for(file : files_in_current_ques){
-					saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
 				}
 			}
 			current_answer_id=answer_id;
@@ -846,38 +785,18 @@ saveNewAnswer(){
 		});
 	}
 	else{
-		
 		answerInfoNew.add(getFieldValue("survey/answer/answerChoice"));
 		answerInfoNew.add(getFieldValue("survey/answer/answerText"));
-		
 		Hashtable interviewerChange=listChange(selected_answer_interviewer,origin_selected_interviewer);
 		Hashtable intervieweeChange=listChange(selected_answer_interviewee,origin_selected_interviewee);
-		Hashtable fileListChange=listChange(files_in_current_ques,files_origin);
 		Hashtable answerBasicInfoChange=listChange(answerInfoNew,answerInfoOriginal);
-		
-
 		if(answerBasicInfoChange.containsKey("EQUAL")){//no basic info is changed in the answer basic info
-			if((interviewerChange.containsKey("EQUAL"))&&(intervieweeChange.containsKey("EQUAL"))&&(fileListChange.containsKey("EQUAL"))){
+			if((interviewerChange.containsKey("EQUAL"))&&(intervieweeChange.containsKey("EQUAL"))){
 				showWarning("Answer Modification","No data is changed");
 				return;
 			}
-			else if((interviewerChange.containsKey("EQUAL"))&&(intervieweeChange.containsKey("EQUAL"))&&(!fileListChange.containsKey("EQUAL"))){
-				for(file : files_in_current_ques){
-					saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
-				}
-				files_origin.clear();
-				files_origin.addAll(files_in_current_ques);
-				showToast("file list changed");
-			}
+			
 			else{
-				if(!fileListChange.containsKey("EQUAL")){
-					for(file : files_in_current_ques){
-						saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
-					}
-					files_origin.clear();
-					files_origin.addAll(files_in_current_ques);
-					showToast("file list changed");
-				}
 				for(interviewer : selected_answer_interviewer){
 					saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
 				}
@@ -887,7 +806,7 @@ saveNewAnswer(){
 				origin_selected_interviewer.clear();
 				origin_selected_interviewer.addAll(selected_answer_interviewer);
 				origin_selected_interviewee.clear();
-				origin_selected_interviewee.addAll(selected_answer_interviewee);			
+				origin_selected_interviewee.addAll(selected_answer_interviewee);
 				showToast("Interviewee and interviewer lists changed");
 			}
 		}
@@ -901,9 +820,6 @@ saveNewAnswer(){
 						}
 						for(interviewee : selected_answer_interviewee){
 							saveEntitiesToRel("Answer and Interviewee",current_answer_id,interviewee.get(0));		
-						}
-						for(file : files_in_current_ques){
-							saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
 						}
 						answerInfoOriginal.clear();
 						answerInfoOriginal.addAll(answerInfoNew);
@@ -957,7 +873,6 @@ listChange(ArrayList targetList,ArrayList sourceList){
 	}
 	return listChanges;
 }
-
 newFileFromQuestion(){
 	if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
 		showWarning("Warning","Please select interviewers and interviewees");
@@ -995,43 +910,7 @@ newFileFromQuestion(){
 		break;
 	}
 }
-viewOrDeleteFileReln(){
-	showAlert("View File Info","Do you want to view file info?","loadAnswerFileInfo()","deleteRelnAlert()");
-}
-deleteRelnAlert(){
-	showAlert("Delete File","Do you want to delete this file from this answer?","deleteFileRelation()","returnToCurrentPage()");
-}
-deleteFileRelation(){		
-	delete_file_id=getListItemValue();
-	if(isNull(delete_file_id)){
-		showWarning("Error","No file selected or file is not available,please contact the admin");
-		return;
-	}
-	if(files_in_current_ques.size()==1){
-		placeholder=new ArrayList();
-		placeholder.add("0000");
-		placeholder.add("No-file-placeholder");
-		files_in_current_ques.add(placeholder);
-	}
-	for(deleteFile:files_in_current_ques){
-		if(deleteFile.get(0).equals(delete_file_id))
-		{
-			files_in_current_ques.remove(deleteFile);
-			populateList("survey/answer/answerFileList",files_in_current_ques);
-			break;
-		}
-	}
-	/*
-	for(int i=0;i<files_in_current_ques.size();i++){
-		if(files_in_current_ques.get(i).get(0).equals(delete_file_id))
-		{
-			files_in_current_ques.remove(i);
-			populateList("survey/answer/answerFileList",files_in_current_ques);
-			break;
-		}
-	}
-	*/
-}
+
 loadAnswerFileInfo(){
 	current_answer_file_id=getListItemValue();
 	checkFileTypeQuery="select measure from latestNonDeletedAentValue where latestNonDeletedAentValue.uuid="+current_answer_file_id+" "+
@@ -1099,9 +978,9 @@ loadAnswerFileInfo(){
 
 
 onEvent("audioFile/audioFileInfo/Take_Audio_File","click","attachAudioToField(\"audioFile/audioFileInfo/audioFileContent\")");
-onEvent("audioFile/audioFileInfo/Save_New_Audio","click","saveFileFromAnswer(\"audioFile/audioFileInfo/audioFileName\",\"audioFile/audioFileInfo/audioFileContent\",\"audioFile\")");
+onEvent("audioFile/audioFileInfo/Save_New_Audio","click","saveAnswerAndFile(\"audioFile/audioFileInfo/audioFileName\",\"audioFile/audioFileInfo/audioFileContent\",\"audioFile\")");
 
-saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef){
+saveAnswerAndFile(String ref, String fileListViewRef, String tabGroupRef){
 	if(isNull(getFieldValue(ref))){
 		showWarning("Warning","File name can not be null");
 		return;
@@ -1111,38 +990,66 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef){
 		return;
 	}
 	else{
-		saveTabGroup(tabGroupRef,current_answer_file_id, null, null, new SaveCallback() {
-			onSave(uuid, newRecord) {
-				current_answer_file_id = uuid;
-				if (newRecord) {	
-					newFile=new ArrayList();
-					newFile.add(current_answer_file_id);
-					newFile.add(getFieldValue(ref));
-					files_in_current_ques.add(newFile);
-					/*
-					placeholder=new ArrayList();
-					placeholder.add("0000");
-					placeholder.add("No-file-placeholder");*/
-					for(file:files_in_current_ques){
-						if(file.get(0).equals("0000")){
-							files_in_current_ques.remove(file);
-							break;
-						}
-					}
-					//showWarning("add file",files_in_current_ques.size().toString());
-					populateList("survey/answer/answerFileList",files_in_current_ques);
-					//saveEntitiesToRel("Answer and File",answer_id,current_answer_file_id);			
-					showToast("New file record created");
-				}
-			}
-			onError(message) {
-				showWarning("error",message);
-			}  
-			});
-		//showAlert("Notification","Do you want to save this file to the answer?\n(This will also save the answer)","saveFileToAnswer(\""+ref+"\",\""+tabGroupRef+"\")","saveFileOnly()");
+		showAlert("Notification","Do you want to save this file to the answer?\n(This will also save the answer)","saveFileToAnswer(\""+ref+"\",\""+tabGroupRef+"\")","saveFileOnly()");
 	}
 }
 
+saveFileToAnswer(String ref,String tabGroupRef){
+	/*Add new file to the file list of the answer, saveTabGroup("survey"), get the uuid of the answerid, save relationships*/
+	files_in_current_ques.add(getFieldValue(ref));
+	populateList("survey/answer/answerFileList",files_in_current_ques);
+	setFieldValue("survey/answer/answerEndTimestamp",getCurrentTime());
+	if(isNull(answer_id)){//This is a new created answer
+	saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
+		onSave(uuid, newRecord) {
+			answer_id = uuid;
+			if (newRecord) {	
+				//saveThreeEntitiesToRel("Answer and Question",current_quesnir_id,current_question_id,answer_id);	
+				
+				for(interviewer : selected_answer_interviewer){
+					saveEntitiesToRel("Answer and Interviewer",answer_id,interviewer.get(0));		
+				}
+
+				for(interviewee : selected_answer_interviewee){
+					saveEntitiesToRel("Answer and Interviewee",answer_id,interviewee.get(0));		
+				}
+				showToast("new answer record created");
+				
+				saveTabGroup(tabGroupRef,current_answer_file_id, null, null, new SaveCallback() {
+					onSave(uuid, newRecord) {
+						current_answer_file_id = uuid;
+						if (newRecord) {				
+							saveEntitiesToRel("Answer and File",answer_id,current_answer_file_id);			
+							showToast("New file record created");
+						}
+					}
+					onError(message) {
+						showWarning("error",message);
+					}  
+					});
+			}
+		}
+		onError(message) {
+			showWarning("error",message);
+		}  
+		});
+	//TODO:below three function calls are not working
+	/**below 2 for loops can't be put in the above saveCallback, new threads could not be opened**/
+	
+	}
+	//TODO: change files, inteviewers and interviewee in answer
+	else{//this is only to be changed answer
+		
+	}
+
+}
+
+saveFileOnly(){
+	showAlert("Notification","Do you want to save this file?\n (This will only save the file)","saveFile()","returnToCurrentPage()");
+}
+saveFile(){
+	showWarning("test","test");
+}
 returnToCurrentPage(){
 	return;
 }
@@ -1173,7 +1080,7 @@ setAudioToField(String ref) {
 }
 
 onEvent("videoFile/videoFileInfo/Take_Video_File","click","attachVideoToField(\"videoFile/videoFileInfo/videoFileContent\")");
-onEvent("videoFile/videoFileInfo/Save_New_Video","click","saveFileFromAnswer(\"videoFile/videoFileInfo/videoFileName\",\"videoFile/videoFileInfo/videoFileContent\",\"videoFile\")");
+onEvent("videoFile/videoFileInfo/Save_New_Video","click","saveAnswerAndFile(\"videoFile/videoFileInfo/videoFileName\",\"videoFile/videoFileInfo/videoFileContent\",\"videoFile\")");
 
 attachVideoToField(String ref) {
 	if(!isNull(getFieldValue(ref))){
@@ -1200,7 +1107,7 @@ setVideoToField(String ref) {
 }
 
 onEvent("photoFile/photoFileInfo/Take_Photo_File","click","attachPictureToField(\"photoFile/photoFileInfo/photoFileContent\")");
-onEvent("photoFile/photoFileInfo/Save_New_Photo","click","saveFileFromAnswer(\"photoFile/photoFileInfo/photoFileName\",\"photoFile/photoFileInfo/photoFileContent\",\"photoFile\")");
+onEvent("photoFile/photoFileInfo/Save_New_Photo","click","saveAnswerAndFile(\"photoFile/photoFileInfo/photoFileName\",\"photoFile/photoFileInfo/photoFileContent\",\"photoFile\")");
 
 attachPictureToField(String ref) {
 	if(!isNull(getFieldValue(ref))){
@@ -1228,7 +1135,7 @@ setPictureToField(String ref) {
 }
 
 onEvent("sketchFile/sketchFileInfo/Take_Sketch_File","click","attachFileToField(\"sketchFile/sketchFileInfo/sketchFileContent\")");
-onEvent("sketchFile/sketchFileInfo/Save_New_Sketch","click","saveFileFromAnswer(\"sketchFile/sketchFileInfo/sketchFileName\",\"sketchFile/sketchFileInfo/sketchFileContent\",\"sketchFile\")");
+onEvent("sketchFile/sketchFileInfo/Save_New_Sketch","click","saveAnswerAndFile(\"sketchFile/sketchFileInfo/sketchFileName\",\"sketchFile/sketchFileInfo/sketchFileContent\",\"sketchFile\")");
 attachFileToField(String ref) {
 	if(!isNull(getFieldValue(ref))){
 		showWarning("File exists","File exists, please Create New File");
