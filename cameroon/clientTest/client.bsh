@@ -32,6 +32,12 @@ loadAllFileQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='FileName') "+
 		"GROUP BY uuid;";
+
+loadAllSessionQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+		"WHERE latestNonDeletedAentValue.AttributeID "+
+		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionName') "+
+		"GROUP BY uuid;";
+
 //loadFilesForAnswer="select uuid, measure from AentValue where AentValue.AttributeID =(select AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerText') and AentValue.uuid in (select uuid from (SELECT uuid FROM AEntValue where AEntValue.AttributeID=(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionID') and AEntValue.freetext='1000011437080460685') t1 inner join (SELECT uuid FROM AEntValue where AEntValue.AttributeID=(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionnaireID') and AEntValue.freetext='1000011437080512135') t2 using(uuid))"
 /***Enable data and file syncing***/
 addActionBarItem("sync", new ToggleActionButtonCallback() {
@@ -744,6 +750,12 @@ addItemToTargetList(ArrayList sourceList, String type_flag){
 					populateList("survey/answer/answerIntervieweeList", selected_answer_interviewee);
 					populateList("survey/answer/answerIntervieweeSelectionList", candidate_answer_interviewee);
 					break;
+			case "sessionFile":
+				selected_files_session.add(sourceList.get(idx_item));
+				candidate_files_session.remove(idx_item);
+				populateList("session/sessionInfo/sessionFileList", selected_files_session);
+				populateList("session/sessionInfo/sessionFileSelectionList", candidate_files_session);
+				break;
 			
 			}
 		}
@@ -789,7 +801,12 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag){
 				populateList("survey/answer/answerIntervieweeList", selected_answer_interviewee);
 				populateList("survey/answer/answerIntervieweeSelectionList", candidate_answer_interviewee);
 				break;
-			
+			case "sessionFile":
+				candidate_files_session.add(targetList.get(idx_delete));
+				selected_files_session.remove(idx_delete);
+				populateList("session/sessionInfo/sessionFileList", selected_files_session);
+				populateList("session/sessionInfo/sessionFileSelectionList", candidate_files_session);
+				break;
 			}
 		}
 		else{
@@ -1498,7 +1515,178 @@ loadFile(){
     });
 }
 
+/***session***/
+onEvent("control/session_control","show","loadSessionList()");
+onEvent("control/session_control/New_Session","click","newSession()");
+onEvent("control/session_control/sessionList","click","loadSessionInfo()");
+onEvent("session/sessionInfo/Finish_New_Session","click","saveSession()");
+onEvent("session/sessionInfo/sessionFileList","click","deleteItemFromTargetList(selected_files_session,\"sessionFile\")");
+onEvent("session/sessionInfo/sessionFileSelectionList","click","addItemToTargetList(candidate_files_session,\"sessionFile\")");
 
+session_id=null;
+selected_files_session=new ArrayList();
+candidate_files_session=new ArrayList();
+original_files_session=new ArrayList();
+sessionInfoOrigin=new ArrayList();
+sessionInfoNew=new ArrayList();
+loadSessionList(){
+	fetchAll(loadAllSessionQuery, new FetchCallback() {
+        onFetch(result) {
+            populateList("control/session_control/sessionList", result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+newSession(){
+	session_id=null;
+	selected_files_session.clear();
+	candidate_files_session.clear();
+	original_files_session.clear();
+	sessionInfoOrigin.clear();
+	sessionInfoNew.clear();
+	
+	newTabGroup("session");
+	fetchAll(loadAllFileQuery, new FetchCallback() {
+        onFetch(result) {
+        	candidate_files_session.addAll(result);
+            populateList("session/sessionInfo/sessionFileSelectionList", candidate_files_session);
+            populateList("session/sessionInfo/sessionFileList", selected_files_session);
+            setFieldValue("session/sessionInfo/sessionStartTimetamp",getCurrentTime());
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+loadSessionInfo(){
+	session_id=getListItemValue();
+	if(isNull(session_id)){
+		showWarning("Invalid session","No session is selected or session is not available");
+		return;
+	}
+	loadFileForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileName') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+ 				"(select RelationshipID from "+
+ 					"(select RelationshipID, AEntRelnTimestamp from AentReln where AentReln.uuid="+session_id+" "+
+ 					"and RelationshipID in "+
+ 						"(select RelationshipID from Relationship where RelnTypeID="+
+ 							"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t1 "+
+ 					"inner join "+
+ 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+session_id+" "+
+ 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
+ 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t2 "+
+ 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
+	
+	fetchAll(loadFileForSessionQuery, new FetchCallback() {
+        onFetch(result) {
+        	selected_files_session.clear();
+        	selected_files_session.addAll(result);
+        	original_files_session.clear();
+        	original_files_session.addAll(result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+	
+	fetchAll(loadAllFileQuery, new FetchCallback() {
+        onFetch(result) {
+        	candidate_files_session.clear();
+        	candidate_files_session.addAll(result);
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+	
+	showTabGroup("session", session_id, new FetchCallback() {
+        onFetch(result) {
+        	sessionInfoOrigin.add(getFieldValue("session/sessionInfo/sessionID"));
+        	sessionInfoOrigin.add(getFieldValue("session/sessionInfo/sessionName"));
+        	sessionInfoOrigin.add(getFieldValue("session/sessionInfo/sessionStartTimetamp"));
+        	sessionInfoOrigin.add(getFieldValue("session/sessionInfo/sessionEndTimestamp"));
+        	candidate_files_session.removeAll(selected_files_session);
+        	populateList("session/sessionInfo/sessionFileSelectionList", candidate_files_session);
+            populateList("session/sessionInfo/sessionFileList", selected_files_session);
+            showToast("Loaded session"+result.getId());            
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+saveSession(){
+	//TODO:change answer and session to be file and session
+	if(isNull(session_id)){//create new session
+		if((isNull(getFieldValue("session/sessionInfo/sessionID"))) || 
+				(isNull(getFieldValue("session/sessionInfo/sessionName"))) || 
+				(isNull(getFieldValue("session/sessionInfo/sessionStartTimetamp"))) || 
+				(isNull(getFieldValue("session/sessionInfo/sessionEndTimestamp"))))
+		{
+			showWarning("Incomplete Data","Please make sure that data is complete");
+			return;
+		}
+		else{
+			saveTabGroup("session", session_id, null, null, new SaveCallback() {
+			    onSave(uuid, newRecord) {
+			    	session_id = uuid;
+			      if (newRecord) {
+			    	  for(sessionFile:selected_files_session){
+			    		  saveEntitiesToRel("Answer and Session",session_id,sessionFile.get(0));
+			    	  }
+			        showToast("New record created");
+			      }
+			    }
+			    onError(message) {
+			        showWarning("error",message);
+			    }  
+			  });
+		}
+	}
+	else{//change session info
+		sessionInfoNew.add(getFieldValue("session/sessionInfo/sessionID"));
+		sessionInfoNew.add(getFieldValue("session/sessionInfo/sessionName"));
+		sessionInfoNew.add(getFieldValue("session/sessionInfo/sessionStartTimetamp"));
+		sessionInfoNew.add(getFieldValue("session/sessionInfo/sessionEndTimestamp"));
+		Hashtable sessionInfoChange=listChange(sessionInfoNew,sessionInfoOrigin);
+		Hashtable sessionFileChange=listChange(selected_files_session,original_files_session);
+		if(sessionInfoChange.containsKey("EQUAL")){
+			if(sessionFileChange.containsKey("EQUAL")){
+				showWarning("No change","No data changed");
+				return;
+			}
+			else{
+				//showWarning("yes change","beginingchange file");
+				for(sessionFile:selected_files_session){
+		    		  saveEntitiesToRel("Answer and Session",session_id,sessionFile.get(0));
+		    	  }
+				showToast("file in session changed");
+			}
+		}
+		else{
+			saveTabGroup("session", session_id, null, null, new SaveCallback() {
+			    onSave(uuid, newRecord) {
+			    	for(sessionFile:selected_files_session){
+			    		  saveEntitiesToRel("Answer and Session",session_id,sessionFile.get(0));
+			    	  }
+			        showToast("session data changed");
+
+			    }
+			    onError(message) {
+			        showWarning("error",message);
+			    }  
+			  });
+		}
+	}
+}
 
 /*** query ***/
 onEvent("control/querytest/Submit","click","testQuery()");

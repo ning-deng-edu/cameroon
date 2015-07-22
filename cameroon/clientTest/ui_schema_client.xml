@@ -666,7 +666,7 @@
          		<label></label>
           		<group ref="child1" faims_style="even">
             		<label></label>
-            		 <select1 appearance="compact" ref="sessionFileList" faims_annotation="false" faims_certainty="false" faims_style_class="file-list">
+            		 <select1 appearance="compact" ref="sessionFileList" faims_annotation="false" faims_certainty="false" faims_style_class="session-file-list">
                 		<label>{deleteFileID}</label>
                 		<item>
                     		<label>placeholder</label>
@@ -677,7 +677,7 @@
             	
             	 <group ref="child2" faims_style="even">
             	   <label></label>
-               	   <select1 appearance="compact" ref="sessionFileSelectionList" faims_certainty="false" faims_annotation="false" faims_style_class="file-list">
+               	   <select1 appearance="compact" ref="sessionFileSelectionList" faims_certainty="false" faims_annotation="false" faims_style_class="session-file-list">
           				<label>{addFile}</label>
           				<item>
                     		<label>placeholder</label>

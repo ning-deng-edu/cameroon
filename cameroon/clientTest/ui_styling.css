@@ -18,6 +18,9 @@
 .file-list{
 	height: 65%;
 }
+.session-file-list{
+	height: 100px;
+}
 .answerFile-list{
 	height: 70px;
 }
