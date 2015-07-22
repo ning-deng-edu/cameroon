@@ -606,6 +606,7 @@ startNewAnswer(){
 	answer_id=null;
 	current_answer_file_id=null;
 	current_answer_id=null;
+	answerFile=true;
 	
 	
 	newTabGroup("survey");
@@ -992,10 +993,12 @@ newFile(String typeFlag){
 		}
 		fileCategory=getFieldValue("survey/answer/file_Category");
 		answerFile=true;
+		current_answer_file_id=null;
 	}
 	else{
 		fileCategory=getFieldValue("control/file_control/fileCategorySelect");
 		answerFile=false;
+		file_id=null;
 	}
 	switch (fileCategory){
 	case "Audio":		
@@ -1028,6 +1031,11 @@ newFile(String typeFlag){
 	}
 }
 viewOrDeleteFileReln(){
+	select_file_id=getListItemValue();
+	if(isNull(select_file_id) || select_file_id.equals("0000")){
+		showWarning("Invalid file","File not exist");
+		return;
+	}
 	showAlert("View File Info","Do you want to view file info?","loadAnswerFileInfo(\"answer\")","deleteRelnAlert()");
 }
 deleteRelnAlert(){
@@ -1174,10 +1182,6 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef){
 					newFile.add(current_answer_file_id);
 					newFile.add(getFieldValue(ref));
 					files_in_current_ques.add(newFile);
-					/*
-					placeholder=new ArrayList();
-					placeholder.add("0000");
-					placeholder.add("No-file-placeholder");*/
 					for(file:files_in_current_ques){
 						if(file.get(0).equals("0000")){
 							files_in_current_ques.remove(file);
@@ -1187,7 +1191,7 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef){
 					//showWarning("add file",files_in_current_ques.size().toString());
 					populateList("survey/answer/answerFileList",files_in_current_ques);
 					//saveEntitiesToRel("Answer and File",answer_id,current_answer_file_id);			
-					showToast("New file record created");
+					showToast("New file record for answer created");
 				}
 				else{
 					for(changeFile:files_in_current_ques){
@@ -1201,7 +1205,7 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef){
 							break;
 						}
 					}
-					showToast("file record changed");
+					showToast("file record for answer changed");
 				}
 			}
 			onError(message) {
@@ -1577,11 +1581,11 @@ loadSessionInfo(){
  					"(select RelationshipID, AEntRelnTimestamp from AentReln where AentReln.uuid="+session_id+" "+
  					"and RelationshipID in "+
  						"(select RelationshipID from Relationship where RelnTypeID="+
- 							"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t1 "+
+ 							"(select RelnTypeID from RelnType where RelnTypeName='File and Session'))) t1 "+
  					"inner join "+
  					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+session_id+" "+
  					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
- 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t2 "+
+ 					"(select RelnTypeID from RelnType where RelnTypeName='File and Session'))) t2 "+
  					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
 	
 	fetchAll(loadFileForSessionQuery, new FetchCallback() {
@@ -1623,6 +1627,7 @@ loadSessionInfo(){
         }
     });
 }
+
 saveSession(){
 	//TODO:change answer and session to be file and session
 	if(isNull(session_id)){//create new session
@@ -1640,7 +1645,7 @@ saveSession(){
 			    	session_id = uuid;
 			      if (newRecord) {
 			    	  for(sessionFile:selected_files_session){
-			    		  saveEntitiesToRel("Answer and Session",session_id,sessionFile.get(0));
+			    		  saveEntitiesToRel("File and Session",session_id,sessionFile.get(0));
 			    	  }
 			        showToast("New record created");
 			      }
@@ -1666,7 +1671,7 @@ saveSession(){
 			else{
 				//showWarning("yes change","beginingchange file");
 				for(sessionFile:selected_files_session){
-		    		  saveEntitiesToRel("Answer and Session",session_id,sessionFile.get(0));
+		    		  saveEntitiesToRel("File and Session",session_id,sessionFile.get(0));
 		    	  }
 				showToast("file in session changed");
 			}
@@ -1675,7 +1680,7 @@ saveSession(){
 			saveTabGroup("session", session_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
 			    	for(sessionFile:selected_files_session){
-			    		  saveEntitiesToRel("Answer and Session",session_id,sessionFile.get(0));
+			    		  saveEntitiesToRel("File and Session",session_id,sessionFile.get(0));
 			    	  }
 			        showToast("session data changed");
 

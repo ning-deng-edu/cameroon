@@ -6,7 +6,7 @@
         <description> Implements a 1:N relationship between QuestionBank and Question</description>
     </RelationshipElement>
     
-    <RelationshipElement name="Questionnare and Question" type="bidirectional">
+    <RelationshipElement name="Questionnaire and Question" type="bidirectional">
         <description>Implements a 1:N relationship between Questionnaire and Question</description>
     </RelationshipElement>
     
@@ -36,6 +36,10 @@
     
     <RelationshipElement name="Answer and Session" type="bidirectional">
         <description>Implements a N:1 relationship between Answer and Session</description>
+    </RelationshipElement>
+    
+     <RelationshipElement name="File and FieldTrip" type="bidirectional">
+        <description>Implements a N:N relationship between File and FieldTrip</description>
     </RelationshipElement>
     
     <RelationshipElement name="Person and Language" type="bidirectional">
