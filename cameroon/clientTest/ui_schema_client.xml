@@ -38,18 +38,10 @@
                         <surveyList/>                      
                     </survey_control>
                 
-                    <session_control>
-                        <New_Session/>
-                        <container1>
-                            <child1>
-                            	<session_Name/>
-                            </child1>
-                            <child2>
-                            	<Session_Search/>
-                            </child2>
-                    	</container1>
-                        <sessionList/>
-                    </session_control>                    
+                    <fileGroup_control>
+                    	<sessionGroup/>
+                    	<fieldTripGroup/>
+                    </fileGroup_control>                    
                   
                     <user_control>              
                         <New_User/>
@@ -91,10 +83,13 @@
                 </questionnaireInfo>
                 
                 <answerToQuestion>
-                    <answerInfo>
+                    <answerInfoHidden>
                         <answerListQuestionnaireID/>
-                        <answerListQuestionnaireName/>
                         <answerListQuestionID/>
+                    </answerInfoHidden>
+                    
+                    <answerInfo>                        
+                        <answerListQuestionnaireName/>
                         <answerListQuestionContent/>
                         <answerList/>
                         <Create_New_Answer/>
@@ -154,11 +149,8 @@
                         <Add_New_File/>
                         <answerFileList/>
                          <Finish_New_Answer/>
-                   </answerFile>    
-                       
-                        
-                </survey>
-                
+                   </answerFile>                                              
+                </survey>                
                 
                  <session>
                     <sessionInfo>
@@ -251,7 +243,37 @@
                   </languageInfo>
                 </language>
                 
-                
+               
+                <sessionGroup>
+                  <sessionInfo>
+                        <New_Session/>
+                        <container1>
+                            <child1>
+                            	<session_Name/>
+                            </child1>
+                            <child2>
+                            	<Session_Search/>
+                            </child2>
+                    	</container1>
+                        <sessionList/>
+                    </sessionInfo>   
+				</sessionGroup>  
+				
+                 <fieldTripGroup>
+                  <fieldTripInfo>
+                        <New_FieldTrip/>
+                        <container1>
+                            <child1>
+                            	<fieldTrip_Name/>
+                            </child1>
+                            <child2>
+                            	<fieldTrip_Search/>
+                            </child2>
+                    	</container1>
+                        <fieldTripList/>
+                    </fieldTripInfo>   
+				</fieldTripGroup>  
+				
             </faims>
         </instance>
     </model>
@@ -318,39 +340,17 @@
             
         </group>
         
-        <group ref="session_control">
-            <label>{Session}</label>
-             <trigger ref="New_Session" faims_style_class="faims-blue">
-                <label>New Session</label>
+        <group ref="fileGroup_control">
+            <label>{File group}</label>
+             <trigger ref="sessionGroup" faims_style_class="faims-blue">
+                <label>Session</label>
             </trigger>
-            
-             <group ref="container1" faims_style="orientation">
-               <label></label>
-              	<group ref="child1" faims_style="even">
-            	<label></label>
-            		<input ref="session_Name">
-            		    <label>{keyword of session}</label>
-            		</input>
-            	</group>
-            	
-              	<group ref="child2" faims_style="even">
-            	<label></label>
-            		<trigger ref="Session_Search" faims_style_class="faims-blue">
-            		    <label>{Search Session}</label>
-            		 </trigger>
-            		
-            	</group>
-           </group>
            
-            <select1 ref="sessionList" appearance="compact" faims_annotation="false" faims_certainty="false"  faims_style_class="session-list">
-                <label>Tap to view session</label>
-                <item>
-                    <label>placeholder</label>
-                    <value>placeholder</value>
-                </item>
-            </select1>
-           
+             <trigger ref="fieldTripGroup" faims_style_class="faims-blue">
+                <label>Field Trip</label>
+            </trigger>
         </group>
+          
         
         
         <group ref="user_control">
@@ -516,18 +516,22 @@
       <group ref="answerToQuestion">
           <label>answerToQuestion</label>
          	
-         <group ref="answerInfo">
-            <label>answerInfo</label>
-            <input ref="answerListQuestionnaireID" faims_read_only="true">
+          <group ref="answerInfoHidden" faims_hidden="true">
+              <label></label>     
+               <input ref="answerListQuestionnaireID" faims_read_only="true">
             	<label>Current questionnaire id</label>
             </input>
+               <input ref="answerListQuestionID" faims_read_only="true">
+            	<label>Current question id</label>
+            </input>
+          </group>
+          
+          
+         <group ref="answerInfo">
+            <label>answerInfo</label>           
             
              <input ref="answerListQuestionnaireName" faims_read_only="true">
             	<label>Current questionnaire name</label>
-            </input>
-            
-             <input ref="answerListQuestionID" faims_read_only="true">
-            	<label>Current question id</label>
             </input>
             
               <input ref="answerListQuestionContent" faims_read_only="true">
@@ -576,10 +580,10 @@
           		<label>Answer text</label>
         	</input>
         	
-             <input ref="answerStartTimestamp" faims_attribute_name="StartTimeStamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+             <input ref="answerStartTimestamp" faims_attribute_name="StartTimeStamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
           <label>Start timestamp</label>
         </input>
-        <input ref="answerEndTimestamp" faims_attribute_name="EndTimeStamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+        <input ref="answerEndTimestamp" faims_attribute_name="EndTimeStamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
           <label>End timestamp</label>
         </input>
         </group>
@@ -906,7 +910,7 @@
         </group>
     </group>
     
-       <group ref="language" faims_archent_type="Language">
+     <group ref="language" faims_archent_type="Language">
         <label>Language</label>
         <group ref="languageInfo">
           <label>{Language Information}</label>
@@ -924,6 +928,80 @@
             </trigger>
       </group>
     </group>
+    
+      <group ref="sessionGroup">   
+           <label>{Session}</label> 
+      <group ref="sessionInfo">
+            <label>{Session}</label>
+             <trigger ref="New_Session" faims_style_class="faims-blue">
+                <label>New Session</label>
+            </trigger>
+            
+             <group ref="container1" faims_style="orientation">
+               <label></label>
+              	<group ref="child1" faims_style="even">
+            	<label></label>
+            		<input ref="session_Name">
+            		    <label>{keyword of session}</label>
+            		</input>
+            	</group>
+            	
+              	<group ref="child2" faims_style="even">
+            	<label></label>
+            		<trigger ref="Session_Search" faims_style_class="faims-blue">
+            		    <label>{Search Session}</label>
+            		 </trigger>
+            		
+            	</group>
+           </group>
+           
+            <select1 ref="sessionList" appearance="compact" faims_annotation="false" faims_certainty="false"  faims_style_class="session-list">
+                <label>Tap to view session</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
+           
+        </group>
+    </group>  
+    
+     <group ref="fieldTripGroup">   
+           <label>{FieldTrip}</label> 
+      <group ref="fieldTripInfo">
+            <label>{FieldTrip}</label>
+             <trigger ref="New_FieldTrip" faims_style_class="faims-blue">
+                <label>New FieldTrip</label>
+            </trigger>
+            
+             <group ref="container1" faims_style="orientation">
+               <label></label>
+              	<group ref="child1" faims_style="even">
+            	<label></label>
+            		<input ref="fieldTrip_Name">
+            		    <label>{keyword of fieldTrip}</label>
+            		</input>
+            	</group>
+            	
+              	<group ref="child2" faims_style="even">
+            	<label></label>
+            		<trigger ref="fieldTrip_Search" faims_style_class="faims-blue">
+            		    <label>{Search FieldTrip}</label>
+            		 </trigger>
+            		
+            	</group>
+           </group>
+           
+            <select1 ref="fieldTripList" appearance="compact" faims_annotation="false" faims_certainty="false"  faims_style_class="session-list">
+                <label>Tap to view fieldTrip</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
+           
+        </group>
+    </group> 
     
  </h:body>
 </h:html>

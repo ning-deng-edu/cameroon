@@ -700,8 +700,8 @@ loadAnswerFromQuesInQuesnir(){
 		return;
 	}
 	newTabGroup("answerToQuestion");
-	setFieldValue("answerToQuestion/answerInfo/answerListQuestionnaireID", current_quesnir_id);
-	setFieldValue("answerToQuestion/answerInfo/answerListQuestionID", current_question_id);
+	setFieldValue("answerToQuestion/answerInfoHidden/answerListQuestionnaireID", current_quesnir_id);
+	setFieldValue("answerToQuestion/answerInfoHidden/answerListQuestionID", current_question_id);
 	setFieldValue("answerToQuestion/answerInfo/answerListQuestionnaireName", current_quesnir_name);
 	setFieldValue("answerToQuestion/answerInfo/answerListQuestionContent", current_question_content);
 }
@@ -1520,9 +1520,10 @@ loadFile(){
 }
 
 /***session***/
-onEvent("control/session_control","show","loadSessionList()");
-onEvent("control/session_control/New_Session","click","newSession()");
-onEvent("control/session_control/sessionList","click","loadSessionInfo()");
+onEvent("control/fileGroup_control/sessionGroup","click","showSession()");
+onEvent("sessionGroup/sessionInfo","show","loadSessionList()");
+onEvent("sessionGroup/sessionInfo/New_Session","click","newSession()");
+onEvent("sessionGroup/sessionInfo/sessionList","click","loadSessionInfo()");
 onEvent("session/sessionInfo/Finish_New_Session","click","saveSession()");
 onEvent("session/sessionInfo/sessionFileList","click","deleteItemFromTargetList(selected_files_session,\"sessionFile\")");
 onEvent("session/sessionInfo/sessionFileSelectionList","click","addItemToTargetList(candidate_files_session,\"sessionFile\")");
@@ -1533,10 +1534,14 @@ candidate_files_session=new ArrayList();
 original_files_session=new ArrayList();
 sessionInfoOrigin=new ArrayList();
 sessionInfoNew=new ArrayList();
+showSession(){
+	showTabGroup("sessionGroup");
+}
+
 loadSessionList(){
 	fetchAll(loadAllSessionQuery, new FetchCallback() {
         onFetch(result) {
-            populateList("control/session_control/sessionList", result);
+            populateList("sessionGroup/sessionInfo/sessionList", result);
         }
 
         onError(message) {
@@ -1692,6 +1697,13 @@ saveSession(){
 		}
 	}
 }
+/***fieldTrip***/
+
+onEvent("control/fileGroup_control/fieldTripGroup","click","showFieldTrip()");
+showFieldTrip(){
+	showTabGroup("fieldTripGroup");
+}
+
 
 /*** query ***/
 onEvent("control/querytest/Submit","click","testQuery()");
