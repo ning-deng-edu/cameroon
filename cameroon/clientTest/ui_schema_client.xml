@@ -116,10 +116,11 @@
                     <answerHidden>
                         <answerQuestionnaireID/>
                         <answerQuestionID/>
+                        <answerChoice/>
                     </answerHidden>
                     
                     <answerBasic>      
-                        <answerChoice/>
+                        <answerLabel/>
                         <answerText/>
                          <answerStartTimestamp/>
                         <answerEndTimestamp/>
@@ -524,9 +525,11 @@
                <input ref="answerListQuestionnaireID" faims_read_only="true">
             	<label>Current questionnaire id</label>
             </input>
+            
                <input ref="answerListQuestionID" faims_read_only="true">
             	<label>Current question id</label>
-            </input>
+            </input> 
+            
           </group>
           
           
@@ -568,6 +571,10 @@
             <input ref="answerQuestionID" faims_attribute_name="AnswerQuestionID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
                 <label>Question id</label>
             </input>
+            
+               <input ref="answerChoice" faims_attribute_name="AnswerChoice" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
+                <label>answerChoice</label>
+            </input>
         </group>
         
         <group ref="answerBasic">
@@ -575,7 +582,7 @@
             
            
             
-            <input ref="answerChoice" faims_attribute_name="AnswerChoice" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+            <input ref="answerLabel" faims_attribute_name="AnswerLabel" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
           		<label>Answer id</label>
         	</input>
         	

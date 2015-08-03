@@ -524,7 +524,7 @@ loadAnswerInfo(){
         	populateList("survey/answerPerson/answerInterviewerSelectionList", candidate_answer_interviewer);
         	populateList("survey/answerPerson/answerIntervieweeSelectionList", candidate_answer_interviewee);
         	populateDropDown("survey/answerFile/file_Category",categoryTypes);
-        	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerChoice"));
+        	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerLabel"));
         	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerText"));
             showToast("Loaded answer"+result.getId());            
         }
@@ -616,6 +616,7 @@ startNewAnswer(){
 	newTabGroup("survey");
 	setFieldValue("survey/answerHidden/answerQuestionnaireID", current_quesnir_id);
 	setFieldValue("survey/answerHidden/answerQuestionID", current_question_id);
+	setFieldValue("survey/answerHidden/answerChoice", "N/A");
 	setFieldValue("survey/answerBasic/answerStartTimestamp", current_start_time);
 	populateList("survey/answerFile/answerFileList",files_in_current_ques);
 
@@ -873,7 +874,7 @@ saveNewAnswer(){
 	}
 	else{
 		
-		answerInfoNew.add(getFieldValue("survey/answerBasic/answerChoice"));
+		answerInfoNew.add(getFieldValue("survey/answerBasic/answerLabel"));
 		answerInfoNew.add(getFieldValue("survey/answerBasic/answerText"));
 		
 		Hashtable interviewerChange=listChange(selected_answer_interviewer,origin_selected_interviewer);
@@ -1658,7 +1659,6 @@ loadSessionInfo(){
 }
 
 saveSession(){
-
 	if(isNull(session_id)){//create new session
 		if((isNull(getFieldValue("session/sessionBasicInfo/sessionID"))) || 
 				(isNull(getFieldValue("session/sessionBasicInfo/sessionName"))) || 
