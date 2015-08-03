@@ -153,12 +153,15 @@
                 </survey>                
                 
                  <session>
-                    <sessionInfo>
+                    <sessionBasicInfo>
                     	<sessionID/>
                     	<sessionName/>
                     	<sessionStartTimetamp/>
                     	<sessionEndTimestamp/>
-                    	<container4>
+                    </sessionBasicInfo>
+                    
+                    <sessionFiles>
+                        <container4>
                     	    <child1>
                     	        <sessionFileList/>
                     	    </child1>
@@ -167,7 +170,7 @@
                     	    </child2>
                     	</container4>
                     	<Finish_New_Session/>
-                    </sessionInfo>
+                    </sessionFiles>
                 </session>
                 
                  
@@ -675,7 +678,7 @@
                 
      <group ref="session" faims_archent_type="Session">
         <label>{Session}</label>
-        <group ref="sessionInfo">
+        <group ref="sessionBasicInfo">
             <label>{Session info}</label>
         <input ref="sessionID" faims_attribute_name="SessionID" faims_attribute_type="measure" >
             <label>Session id</label>
@@ -688,8 +691,13 @@
         </input>
         <input ref="sessionEndTimestamp" faims_attribute_name="SessionEndTimestamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
           <label>End timestamp</label>
-        </input>
-          <group ref="container4" faims_style="orientation">
+        </input>             
+        </group>
+        
+        
+        <group ref="sessionFiles">
+             <label>{Session files}</label>
+              <group ref="container4" faims_style="orientation">
          		<label></label>
           		<group ref="child1" faims_style="even">
             		<label></label>
@@ -719,7 +727,6 @@
         <trigger ref="Finish_New_Session" faims_style_class="faims-blue">
                 <label>Save Session</label>
         </trigger>
-       
         </group>
     </group>
     

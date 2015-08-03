@@ -758,8 +758,8 @@ addItemToTargetList(ArrayList sourceList, String type_flag){
 			case "sessionFile":
 				selected_files_session.add(sourceList.get(idx_item));
 				candidate_files_session.remove(idx_item);
-				populateList("session/sessionInfo/sessionFileList", selected_files_session);
-				populateList("session/sessionInfo/sessionFileSelectionList", candidate_files_session);
+				populateList("session/sessionFiles/sessionFileList", selected_files_session);
+				populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
 				break;
 			
 			}
@@ -809,8 +809,8 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag){
 			case "sessionFile":
 				candidate_files_session.add(targetList.get(idx_delete));
 				selected_files_session.remove(idx_delete);
-				populateList("session/sessionInfo/sessionFileList", selected_files_session);
-				populateList("session/sessionInfo/sessionFileSelectionList", candidate_files_session);
+				populateList("session/sessionFiles/sessionFileList", selected_files_session);
+				populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
 				break;
 			}
 		}
@@ -1528,9 +1528,9 @@ onEvent("control/fileGroup_control/sessionGroup","click","showSession()");
 onEvent("sessionGroup/sessionInfo","show","loadSessionList()");
 onEvent("sessionGroup/sessionInfo/New_Session","click","newSession()");
 onEvent("sessionGroup/sessionInfo/sessionList","click","loadSessionInfo()");
-onEvent("session/sessionInfo/Finish_New_Session","click","saveSession()");
-onEvent("session/sessionInfo/sessionFileList","click","deleteItemFromTargetList(selected_files_session,\"sessionFile\")");
-onEvent("session/sessionInfo/sessionFileSelectionList","click","addItemToTargetList(candidate_files_session,\"sessionFile\")");
+onEvent("session/sessionFiles/Finish_New_Session","click","saveSession()");
+onEvent("session/sessionFiles/sessionFileList","click","deleteItemFromTargetList(selected_files_session,\"sessionFile\")");
+onEvent("session/sessionFiles/sessionFileSelectionList","click","addItemToTargetList(candidate_files_session,\"sessionFile\")");
 
 session_id=null;
 selected_files_session=new ArrayList();
@@ -1565,9 +1565,9 @@ newSession(){
 	fetchAll(loadAllAnswerQuery, new FetchCallback() {
         onFetch(result) {
         	candidate_files_session.addAll(result);
-            populateList("session/sessionInfo/sessionFileSelectionList", candidate_files_session);
-            populateList("session/sessionInfo/sessionFileList", selected_files_session);
-            setFieldValue("session/sessionInfo/sessionStartTimetamp",getCurrentTime());
+            populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
+            populateList("session/sessionFiles/sessionFileList", selected_files_session);
+            setFieldValue("session/sessionBasicInfo/sessionStartTimetamp",getCurrentTime());
         }
 
         onError(message) {
@@ -1619,10 +1619,10 @@ loadSessionInfo(){
 	
 	showTabGroup("session", session_id, new FetchCallback() {
         onFetch(result) {
-        	sessionInfoOrigin.add(getFieldValue("session/sessionInfo/sessionID"));
-        	sessionInfoOrigin.add(getFieldValue("session/sessionInfo/sessionName"));
-        	sessionInfoOrigin.add(getFieldValue("session/sessionInfo/sessionStartTimetamp"));
-        	sessionInfoOrigin.add(getFieldValue("session/sessionInfo/sessionEndTimestamp"));  
+        	sessionInfoOrigin.add(getFieldValue("session/sessionBasicInfo/sessionID"));
+        	sessionInfoOrigin.add(getFieldValue("session/sessionBasicInfo/sessionName"));
+        	sessionInfoOrigin.add(getFieldValue("session/sessionBasicInfo/sessionStartTimetamp"));
+        	sessionInfoOrigin.add(getFieldValue("session/sessionBasicInfo/sessionEndTimestamp"));  
         	fetchAll(loadAnswerForSessionQuery, new FetchCallback() {
                 onFetch(result) {
                 	selected_files_session.clear();
@@ -1635,8 +1635,8 @@ loadSessionInfo(){
                         	candidate_files_session.clear();
                         	candidate_files_session.addAll(result);
                         	candidate_files_session.removeAll(selected_files_session);
-                        	populateList("session/sessionInfo/sessionFileSelectionList", candidate_files_session);
-                            populateList("session/sessionInfo/sessionFileList", selected_files_session);
+                        	populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
+                            populateList("session/sessionFiles/sessionFileList", selected_files_session);
                         }
                         onError(message) {
                             showToast(message);
@@ -1658,12 +1658,12 @@ loadSessionInfo(){
 }
 
 saveSession(){
-	//TODO:change answer and session to be file and session
+
 	if(isNull(session_id)){//create new session
-		if((isNull(getFieldValue("session/sessionInfo/sessionID"))) || 
-				(isNull(getFieldValue("session/sessionInfo/sessionName"))) || 
-				(isNull(getFieldValue("session/sessionInfo/sessionStartTimetamp"))) || 
-				(isNull(getFieldValue("session/sessionInfo/sessionEndTimestamp"))))
+		if((isNull(getFieldValue("session/sessionBasicInfo/sessionID"))) || 
+				(isNull(getFieldValue("session/sessionBasicInfo/sessionName"))) || 
+				(isNull(getFieldValue("session/sessionBasicInfo/sessionStartTimetamp"))) || 
+				(isNull(getFieldValue("session/sessionBasicInfo/sessionEndTimestamp"))))
 		{
 			showWarning("Incomplete Data","Please make sure that data is complete");
 			return;
@@ -1686,10 +1686,10 @@ saveSession(){
 		}
 	}
 	else{//change session info
-		sessionInfoNew.add(getFieldValue("session/sessionInfo/sessionID"));
-		sessionInfoNew.add(getFieldValue("session/sessionInfo/sessionName"));
-		sessionInfoNew.add(getFieldValue("session/sessionInfo/sessionStartTimetamp"));
-		sessionInfoNew.add(getFieldValue("session/sessionInfo/sessionEndTimestamp"));
+		sessionInfoNew.add(getFieldValue("session/sessionBasicInfo/sessionID"));
+		sessionInfoNew.add(getFieldValue("session/sessionBasicInfo/sessionName"));
+		sessionInfoNew.add(getFieldValue("session/sessionBasicInfo/sessionStartTimetamp"));
+		sessionInfoNew.add(getFieldValue("session/sessionBasicInfo/sessionEndTimestamp"));
 		Hashtable sessionInfoChange=listChange(sessionInfoNew,sessionInfoOrigin);
 		Hashtable sessionFileChange=listChange(selected_files_session,original_files_session);
 		if(sessionInfoChange.containsKey("EQUAL")){
