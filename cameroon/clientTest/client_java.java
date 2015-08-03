@@ -38,6 +38,10 @@ loadAllSessionQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionName') "+
 		"GROUP BY uuid;";
 
+loadAllAnswerQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+		"WHERE latestNonDeletedAentValue.AttributeID "+
+		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='AnswerChoice') "+
+		"GROUP BY uuid;";
 //loadFilesForAnswer="select uuid, measure from AentValue where AentValue.AttributeID =(select AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerText') and AentValue.uuid in (select uuid from (SELECT uuid FROM AEntValue where AEntValue.AttributeID=(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionID') and AEntValue.freetext='1000011437080460685') t1 inner join (SELECT uuid FROM AEntValue where AEntValue.AttributeID=(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionnaireID') and AEntValue.freetext='1000011437080512135') t2 using(uuid))"
 /***Enable data and file syncing***/
 addActionBarItem("sync", new ToggleActionButtonCallback() {
@@ -1558,7 +1562,7 @@ newSession(){
 	sessionInfoNew.clear();
 	
 	newTabGroup("session");
-	fetchAll(loadAllFileQuery, new FetchCallback() {
+	fetchAll(loadAllAnswerQuery, new FetchCallback() {
         onFetch(result) {
         	candidate_files_session.addAll(result);
             populateList("session/sessionInfo/sessionFileSelectionList", candidate_files_session);
@@ -1578,6 +1582,22 @@ loadSessionInfo(){
 		showWarning("Invalid session","No session is selected or session is not available");
 		return;
 	}
+	loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerChoice') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+ 				"(select RelationshipID from "+
+ 					"(select RelationshipID, AEntRelnTimestamp from AentReln where AentReln.uuid="+session_id+" "+
+ 					"and RelationshipID in "+
+ 						"(select RelationshipID from Relationship where RelnTypeID="+
+ 							"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t1 "+
+ 					"inner join "+
+ 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+session_id+" "+
+ 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
+ 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t2 "+
+ 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
+	
+	/*
 	loadFileForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileName') "+
 			"and uuid in "+
@@ -1592,39 +1612,43 @@ loadSessionInfo(){
  					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
  					"(select RelnTypeID from RelnType where RelnTypeName='File and Session'))) t2 "+
  					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
+	*/
 	
-	fetchAll(loadFileForSessionQuery, new FetchCallback() {
-        onFetch(result) {
-        	selected_files_session.clear();
-        	selected_files_session.addAll(result);
-        	original_files_session.clear();
-        	original_files_session.addAll(result);
-        }
-
-        onError(message) {
-            showToast(message);
-        }
-    });
 	
-	fetchAll(loadAllFileQuery, new FetchCallback() {
-        onFetch(result) {
-        	candidate_files_session.clear();
-        	candidate_files_session.addAll(result);
-        }
-        onError(message) {
-            showToast(message);
-        }
-    });
+	
 	
 	showTabGroup("session", session_id, new FetchCallback() {
         onFetch(result) {
         	sessionInfoOrigin.add(getFieldValue("session/sessionInfo/sessionID"));
         	sessionInfoOrigin.add(getFieldValue("session/sessionInfo/sessionName"));
         	sessionInfoOrigin.add(getFieldValue("session/sessionInfo/sessionStartTimetamp"));
-        	sessionInfoOrigin.add(getFieldValue("session/sessionInfo/sessionEndTimestamp"));
-        	candidate_files_session.removeAll(selected_files_session);
-        	populateList("session/sessionInfo/sessionFileSelectionList", candidate_files_session);
-            populateList("session/sessionInfo/sessionFileList", selected_files_session);
+        	sessionInfoOrigin.add(getFieldValue("session/sessionInfo/sessionEndTimestamp"));  
+        	fetchAll(loadAnswerForSessionQuery, new FetchCallback() {
+                onFetch(result) {
+                	selected_files_session.clear();
+                	selected_files_session.addAll(result);
+                	original_files_session.clear();
+                	original_files_session.addAll(result);
+                	
+                	fetchAll(loadAllAnswerQuery, new FetchCallback() {
+                        onFetch(result) {
+                        	candidate_files_session.clear();
+                        	candidate_files_session.addAll(result);
+                        	candidate_files_session.removeAll(selected_files_session);
+                        	populateList("session/sessionInfo/sessionFileSelectionList", candidate_files_session);
+                            populateList("session/sessionInfo/sessionFileList", selected_files_session);
+                        }
+                        onError(message) {
+                            showToast(message);
+                        }
+                    });
+                }
+
+                onError(message) {
+                    showToast(message);
+                }
+            });
+        	
             showToast("Loaded session"+result.getId());            
         }
         onError(message) {
@@ -1650,7 +1674,7 @@ saveSession(){
 			    	session_id = uuid;
 			      if (newRecord) {
 			    	  for(sessionFile:selected_files_session){
-			    		  saveEntitiesToRel("File and Session",session_id,sessionFile.get(0));
+			    		  saveEntitiesToRel("Answer and Session",session_id,sessionFile.get(0));
 			    	  }
 			        showToast("New record created");
 			      }
@@ -1676,7 +1700,7 @@ saveSession(){
 			else{
 				//showWarning("yes change","beginingchange file");
 				for(sessionFile:selected_files_session){
-		    		  saveEntitiesToRel("File and Session",session_id,sessionFile.get(0));
+		    		  saveEntitiesToRel("Answer and Session",session_id,sessionFile.get(0));
 		    	  }
 				showToast("file in session changed");
 			}
@@ -1685,7 +1709,7 @@ saveSession(){
 			saveTabGroup("session", session_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
 			    	for(sessionFile:selected_files_session){
-			    		  saveEntitiesToRel("File and Session",session_id,sessionFile.get(0));
+			    		  saveEntitiesToRel("Answer and Session",session_id,sessionFile.get(0));
 			    	  }
 			        showToast("session data changed");
 
