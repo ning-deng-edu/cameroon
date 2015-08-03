@@ -514,14 +514,14 @@ loadAnswerInfo(){
 	showTabGroup("survey", current_answer_id, new FetchCallback() {
         onFetch(result) {
             //person=result;
-        	populateList("survey/answer/answerFileList", files_in_current_ques);
-        	populateList("survey/answer/answerInterviewerList", selected_answer_interviewer);
-        	populateList("survey/answer/answerIntervieweeList", selected_answer_interviewee);
-        	populateList("survey/answer/answerInterviewerSelectionList", candidate_answer_interviewer);
-        	populateList("survey/answer/answerIntervieweeSelectionList", candidate_answer_interviewee);
-        	populateDropDown("survey/answer/file_Category",categoryTypes);
-        	answerInfoOriginal.add(getFieldValue("survey/answer/answerChoice"));
-        	answerInfoOriginal.add(getFieldValue("survey/answer/answerText"));
+        	populateList("survey/answerFile/answerFileList", files_in_current_ques);
+        	populateList("survey/answerPerson/answerInterviewerList", selected_answer_interviewer);
+        	populateList("survey/answerPerson/answerIntervieweeList", selected_answer_interviewee);
+        	populateList("survey/answerPerson/answerInterviewerSelectionList", candidate_answer_interviewer);
+        	populateList("survey/answerPerson/answerIntervieweeSelectionList", candidate_answer_interviewee);
+        	populateDropDown("survey/answerFile/file_Category",categoryTypes);
+        	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerChoice"));
+        	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerText"));
             showToast("Loaded answer"+result.getId());            
         }
         onError(message) {
@@ -610,12 +610,12 @@ startNewAnswer(){
 	
 	
 	newTabGroup("survey");
-	setFieldValue("survey/answer/answerQuestionnaireID", current_quesnir_id);
-	setFieldValue("survey/answer/answerQuestionID", current_question_id);
-	setFieldValue("survey/answer/answerStartTimestamp", current_start_time);
-	populateList("survey/answer/answerFileList",files_in_current_ques);
+	setFieldValue("survey/answerHidden/answerQuestionnaireID", current_quesnir_id);
+	setFieldValue("survey/answerHidden/answerQuestionID", current_question_id);
+	setFieldValue("survey/answerBasic/answerStartTimestamp", current_start_time);
+	populateList("survey/answerFile/answerFileList",files_in_current_ques);
 
-	populateDropDown("survey/answer/file_Category",categoryTypes);
+	populateDropDown("survey/answerFile/file_Category",categoryTypes);
 	
 	fetchAll(loadAllPersonQuery,
 				new FetchCallback() {
@@ -623,10 +623,10 @@ startNewAnswer(){
 						if (!isNull(result)) {	
 							candidate_answer_interviewer.addAll(result);
 							candidate_answer_interviewee.addAll(result);
-							populateList("survey/answer/answerInterviewerList",selected_answer_interviewer);
-							populateList("survey/answer/answerIntervieweeList",selected_answer_interviewee);
-							populateList("survey/answer/answerInterviewerSelectionList",candidate_answer_interviewer);
-							populateList("survey/answer/answerIntervieweeSelectionList",candidate_answer_interviewee);
+							populateList("survey/answerPerson/answerInterviewerList",selected_answer_interviewer);
+							populateList("survey/answerPerson/answerIntervieweeList",selected_answer_interviewee);
+							populateList("survey/answerPerson/answerInterviewerSelectionList",candidate_answer_interviewer);
+							populateList("survey/answerPerson/answerIntervieweeSelectionList",candidate_answer_interviewee);
 						}
 						else{
 							showWarning("No person info available","No person info available\n"+"Please add person info first");
@@ -706,13 +706,13 @@ loadAnswerFromQuesInQuesnir(){
 	setFieldValue("answerToQuestion/answerInfo/answerListQuestionContent", current_question_content);
 }
 
-onEvent("survey/answer/answerInterviewerSelectionList","click","addItemToTargetList(candidate_answer_interviewer,\"interviewer\")");
-onEvent("survey/answer/answerIntervieweeSelectionList","click","addItemToTargetList(candidate_answer_interviewee,\"interviewee\")");
-onEvent("survey/answer/answerInterviewerList","click","deleteItemFromTargetList(selected_answer_interviewer,\"interviewer\")");
-onEvent("survey/answer/answerIntervieweeList","click","deleteItemFromTargetList(selected_answer_interviewee,\"interviewee\")");
-onEvent("survey/answer/Finish_New_Answer","click","saveNewAnswer()");
-onEvent("survey/answer/Add_New_File","click","newFile(\"answer\")");
-onEvent("survey/answer/answerFileList","click","viewOrDeleteFileReln()");
+onEvent("survey/answerPerson/answerInterviewerSelectionList","click","addItemToTargetList(candidate_answer_interviewer,\"interviewer\")");
+onEvent("survey/answerPerson/answerIntervieweeSelectionList","click","addItemToTargetList(candidate_answer_interviewee,\"interviewee\")");
+onEvent("survey/answerPerson/answerInterviewerList","click","deleteItemFromTargetList(selected_answer_interviewer,\"interviewer\")");
+onEvent("survey/answerPerson/answerIntervieweeList","click","deleteItemFromTargetList(selected_answer_interviewee,\"interviewee\")");
+onEvent("survey/answerFile/Finish_New_Answer","click","saveNewAnswer()");
+onEvent("survey/answerFile/Add_New_File","click","newFile(\"answer\")");
+onEvent("survey/answerFile/answerFileList","click","viewOrDeleteFileReln()");
 
 
 addItemToTargetList(ArrayList sourceList, String type_flag){	
@@ -742,14 +742,14 @@ addItemToTargetList(ArrayList sourceList, String type_flag){
 			case "interviewer":		
 					selected_answer_interviewer.add(sourceList.get(idx_item));
 					candidate_answer_interviewer.remove(idx_item);
-					populateList("survey/answer/answerInterviewerList", selected_answer_interviewer);
-					populateList("survey/answer/answerInterviewerSelectionList", candidate_answer_interviewer);
+					populateList("survey/answerPerson/answerInterviewerList", selected_answer_interviewer);
+					populateList("survey/answerPerson/answerInterviewerSelectionList", candidate_answer_interviewer);
 					break;
 			case "interviewee":
 					selected_answer_interviewee.add(sourceList.get(idx_item));
 					candidate_answer_interviewee.remove(idx_item);
-					populateList("survey/answer/answerIntervieweeList", selected_answer_interviewee);
-					populateList("survey/answer/answerIntervieweeSelectionList", candidate_answer_interviewee);
+					populateList("survey/answerPerson/answerIntervieweeList", selected_answer_interviewee);
+					populateList("survey/answerPerson/answerIntervieweeSelectionList", candidate_answer_interviewee);
 					break;
 			case "sessionFile":
 				selected_files_session.add(sourceList.get(idx_item));
@@ -793,14 +793,14 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag){
 			case "interviewer":		
 				candidate_answer_interviewer.add(targetList.get(idx_delete));
 				selected_answer_interviewer.remove(idx_delete);
-				populateList("survey/answer/answerInterviewerList", selected_answer_interviewer);
-				populateList("survey/answer/answerInterviewerSelectionList", candidate_answer_interviewer);
+				populateList("survey/answerPerson/answerInterviewerList", selected_answer_interviewer);
+				populateList("survey/answerPerson/answerInterviewerSelectionList", candidate_answer_interviewer);
 				break;
 			case "interviewee":
 				candidate_answer_interviewee.add(targetList.get(idx_delete));
 				selected_answer_interviewee.remove(idx_delete);
-				populateList("survey/answer/answerIntervieweeList", selected_answer_interviewee);
-				populateList("survey/answer/answerIntervieweeSelectionList", candidate_answer_interviewee);
+				populateList("survey/answerPerson/answerIntervieweeList", selected_answer_interviewee);
+				populateList("survey/answerPerson/answerIntervieweeSelectionList", candidate_answer_interviewee);
 				break;
 			case "sessionFile":
 				candidate_files_session.add(targetList.get(idx_delete));
@@ -826,12 +826,12 @@ saveNewAnswer(){
 		showWarning("Warning","No available interviwer or interviewee\n Please create person info");
 		return;
 	}
-	if(isNull(getFieldValue("survey/answer/answerText"))){
+	if(isNull(getFieldValue("survey/answerBasic/answerText"))){
 		showWarning("Warning","Please input answer text");
 		return;
 	}
 	if(isNull(current_answer_id)){//create new answer
-	setFieldValue("survey/answer/answerEndTimestamp",getCurrentTime());
+	setFieldValue("survey/answerBasic/answerEndTimestamp",getCurrentTime());
 	saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
 		onSave(uuid, newRecord) {
 			answer_id = uuid;
@@ -869,8 +869,8 @@ saveNewAnswer(){
 	}
 	else{
 		
-		answerInfoNew.add(getFieldValue("survey/answer/answerChoice"));
-		answerInfoNew.add(getFieldValue("survey/answer/answerText"));
+		answerInfoNew.add(getFieldValue("survey/answerBasic/answerChoice"));
+		answerInfoNew.add(getFieldValue("survey/answerBasic/answerText"));
 		
 		Hashtable interviewerChange=listChange(selected_answer_interviewer,origin_selected_interviewer);
 		Hashtable intervieweeChange=listChange(selected_answer_interviewee,origin_selected_interviewee);
@@ -914,7 +914,7 @@ saveNewAnswer(){
 			}
 		}
 		else{//basic info is changed
-			setFieldValue("survey/answer/answerEndTimestamp",getCurrentTime());
+			setFieldValue("survey/answerBasic/answerEndTimestamp",getCurrentTime());
 			saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
 				onSave(uuid, newRecord) {
 					answer_id = uuid;					
@@ -991,7 +991,7 @@ newFile(String typeFlag){
 			showWarning("Warning","No available interviwer or interviewee\n Please create person info");
 			return;
 		}
-		fileCategory=getFieldValue("survey/answer/file_Category");
+		fileCategory=getFieldValue("survey/answerFile/file_Category");
 		answerFile=true;
 		current_answer_file_id=null;
 	}
@@ -1057,7 +1057,7 @@ deleteFileRelation(){
 		if(deleteFile.get(0).equals(delete_file_id))
 		{
 			files_in_current_ques.remove(deleteFile);
-			populateList("survey/answer/answerFileList",files_in_current_ques);
+			populateList("survey/answerFile/answerFileList",files_in_current_ques);
 			break;
 		}
 	}
@@ -1189,7 +1189,7 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef){
 						}
 					}
 					//showWarning("add file",files_in_current_ques.size().toString());
-					populateList("survey/answer/answerFileList",files_in_current_ques);
+					populateList("survey/answerFile/answerFileList",files_in_current_ques);
 					//saveEntitiesToRel("Answer and File",answer_id,current_answer_file_id);			
 					showToast("New file record for answer created");
 				}
@@ -1201,7 +1201,7 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef){
 							newFile.add(getFieldValue(ref));
 							files_in_current_ques.remove(changeFile);
 							files_in_current_ques.add(newFile);
-							populateList("survey/answer/answerFileList",files_in_current_ques);
+							populateList("survey/answerFile/answerFileList",files_in_current_ques);
 							break;
 						}
 					}

@@ -118,12 +118,19 @@
                 </answerToQuestionnaire>
                 
                 <survey>
-                    <answer>
+                    <answerHidden>
                         <answerQuestionnaireID/>
                         <answerQuestionID/>
+                    </answerHidden>
+                    
+                    <answerBasic>      
                         <answerChoice/>
                         <answerText/>
-                                  
+                         <answerStartTimestamp/>
+                        <answerEndTimestamp/>
+                   </answerBasic>
+                   
+                   <answerPerson>
                         <container2>
                             <child1>
                                 <answerInterviewerList/>
@@ -139,14 +146,17 @@
                             <child2>
                                  <answerIntervieweeSelectionList/>
                             </child2>
-                        </container3>                    
-                        <answerStartTimestamp/>
-                        <answerEndTimestamp/>
-                        <Finish_New_Answer/>
-                        <file_Category/>
+                        </container3>                 
+                   </answerPerson>               
+                                         
+                   <answerFile>
+                       <file_Category/>
                         <Add_New_File/>
                         <answerFileList/>
-                    </answer>
+                         <Finish_New_Answer/>
+                   </answerFile>    
+                       
+                        
                 </survey>
                 
                 
@@ -541,16 +551,22 @@
      <group ref="survey" faims_archent_type="AnswerToQuestionnaire">
         <label>{Survey-Answer}</label>
         
-        <group ref="answer">
-            <label>Answer</label>
-            
-            <input ref="answerQuestionnaireID" faims_attribute_name="AnswerQuestionnaireID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
+        
+        <group ref="answerHidden" faims_hidden="true">
+            <label></label>
+             <input ref="answerQuestionnaireID" faims_attribute_name="AnswerQuestionnaireID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
                 <label>Questionnaire id</label>
             </input>
             
             <input ref="answerQuestionID" faims_attribute_name="AnswerQuestionID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
                 <label>Question id</label>
             </input>
+        </group>
+        
+        <group ref="answerBasic">
+            <label>Answer Basic</label>
+            
+           
             
             <input ref="answerChoice" faims_attribute_name="AnswerChoice" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
           		<label>Answer id</label>
@@ -560,8 +576,16 @@
           		<label>Answer text</label>
         	</input>
         	
+             <input ref="answerStartTimestamp" faims_attribute_name="StartTimeStamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>Start timestamp</label>
+        </input>
+        <input ref="answerEndTimestamp" faims_attribute_name="EndTimeStamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>End timestamp</label>
+        </input>
+        </group>
            
-        	
+        	<group ref="answerPerson">
+        	     <label>Answer Person</label>
             <group ref="container2" faims_style="orientation">
          		<label></label>
           		<group ref="child1" faims_style="even">
@@ -612,15 +636,14 @@
         	  </group>
           </group>
           
-        <input ref="answerStartTimestamp" faims_attribute_name="StartTimeStamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-          <label>Start timestamp</label>
-        </input>
-        <input ref="answerEndTimestamp" faims_attribute_name="EndTimeStamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-          <label>End timestamp</label>
-        </input>
-        <trigger ref="Finish_New_Answer" faims_style_class="faims-blue">
+       </group>
+       
+        <group ref="answerFile">
+             <label>Answer file</label>
+    	<trigger ref="Finish_New_Answer" faims_style_class="faims-blue">
                 <label>Save Answer</label>
-        </trigger>
+       		 </trigger>
+    	
            <select1 ref="file_Category">
             <label>Category List:</label>
             	<item>
@@ -640,7 +663,7 @@
                     <value>placeholder</value>
                 </item>
         	</select1>
-    	</group>
+        	</group>
     </group>
     
      
