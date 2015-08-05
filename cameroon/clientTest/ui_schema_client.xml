@@ -127,6 +127,17 @@
                    </answerBasic>
                    
                    <answerPerson>
+                       
+                       <container6>
+                          <child1>
+                            <personType/>
+                          </child1>
+                          <child2>
+                           <keywordOfPerson/>
+                          </child2>
+                        </container6>
+                        <Search_Person/>
+                        
                         <container2>
                             <child1>
                                 <answerInterviewerList/>
@@ -135,6 +146,7 @@
                                 <answerInterviewerSelectionList/>
                             </child2>
                         </container2>
+                        
                         <container3>
                             <child1>
                                 <answerIntervieweeList/>
@@ -598,8 +610,36 @@
         </input>
         </group>
            
-        	<group ref="answerPerson">
-        	     <label>Answer Person</label>
+       <group ref="answerPerson">
+        	 <label>Answer Person</label>
+        	     
+      <group ref="container6" faims_style="orientation">
+        
+          <label></label>
+          <group ref="child1" faims_style="even">
+            <label></label>
+             <select1 ref="personType" faims_annotation="false" faims_certainty="false">
+            <label>Item List:</label>
+            <item>
+                <label>placeholder</label>
+                <value>placeholder</value>
+            </item>
+         
+         </select1>
+          </group>
+       <group ref="child2" faims_style="even">
+            <label></label>
+               <input ref="keywordOfPerson" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+                <label>Enter keyword here</label>
+            </input>
+          </group>
+        
+        </group>
+        
+       <trigger ref="Search_Person" faims_style_class="faims-blue">
+                <label>Search Person</label>
+        	</trigger>
+        	
             <group ref="container2" faims_style="orientation">
          		<label></label>
           		<group ref="child1" faims_style="even">
@@ -625,6 +665,8 @@
         	  </group>
           </group>
           
+         
+        
             <group ref="container3" faims_style="orientation">
          		<label></label>
           		<group ref="child1" faims_style="even">

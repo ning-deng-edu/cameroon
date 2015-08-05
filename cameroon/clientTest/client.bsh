@@ -524,6 +524,7 @@ loadAnswerInfo(){
         	populateList("survey/answerPerson/answerInterviewerSelectionList", candidate_answer_interviewer);
         	populateList("survey/answerPerson/answerIntervieweeSelectionList", candidate_answer_interviewee);
         	populateDropDown("survey/answerFile/file_Category",categoryTypes);
+        	populateDropDown("survey/answerPerson/personType",personTypes);
         	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerLabel"));
         	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerText"));
             showToast("Loaded answer"+result.getId());            
@@ -619,8 +620,8 @@ startNewAnswer(){
 	setFieldValue("survey/answerHidden/answerChoice", "N/A");
 	setFieldValue("survey/answerBasic/answerStartTimestamp", current_start_time);
 	populateList("survey/answerFile/answerFileList",files_in_current_ques);
-
 	populateDropDown("survey/answerFile/file_Category",categoryTypes);
+	populateDropDown("survey/answerPerson/personType",personTypes);
 	
 	fetchAll(loadAllPersonQuery,
 				new FetchCallback() {
@@ -718,6 +719,12 @@ onEvent("survey/answerPerson/answerIntervieweeList","click","deleteItemFromTarge
 onEvent("survey/answerFile/Finish_New_Answer","click","saveNewAnswer()");
 onEvent("survey/answerFile/Add_New_File","click","newFile(\"answer\")");
 onEvent("survey/answerFile/answerFileList","click","viewOrDeleteFileReln()");
+onEvent("survey/answerPerson/Search_Person","click","searchPersonForAnswer()");
+//onEvent("survey/answerPerson","show","searchPersonForAnswer()");
+
+personTypes = new ArrayList();
+personTypes.add(new NameValuePair("Interviewer", "Interviewer"));
+personTypes.add(new NameValuePair("Interviewee", "Interviewee"));
 
 
 addItemToTargetList(ArrayList sourceList, String type_flag){	
@@ -1163,6 +1170,98 @@ loadAnswerFileInfo(String typeFlag){
 	
 }
 
+searchPersonForAnswer(){
+	//searchResult=new ArrayList();
+	//searchResult.clear();
+	personType = null;
+	personType = getFieldValue("survey/answerPerson/personType");
+	//showWarning("type",personType);
+	keywordOfPerson=getFieldValue("survey/answerPerson/keywordOfPerson").trim();
+	
+	if(isNull(keywordOfPerson) || keywordOfPerson.equals("*")){
+		fetchAll(loadAllPersonQuery, new FetchCallback() {
+	        onFetch(result) {
+				if(!isNull(result)){
+				//searchResult.clear();
+				//searchResult.addAll(result);
+				switch (personType){
+				case "Interviewer":
+					//showWarning("case","Interviewer");
+					candidate_answer_interviewer.clear();
+					candidate_answer_interviewer.addAll(result);
+					if(!isNull(selected_answer_interviewer)){
+					candidate_answer_interviewer.removeAll(selected_answer_interviewer);       
+					} 
+					populateList("survey/answerPerson/answerInterviewerSelectionList",candidate_answer_interviewer);
+					break;
+				case "Interviewee":
+					//showWarning("case","Interviewee");
+					candidate_answer_interviewee.clear();
+					candidate_answer_interviewee.addAll(result);
+					if(!isNull(selected_answer_interviewer)){
+						candidate_answer_interviewee.removeAll(selected_answer_interviewee);
+		        	}
+					populateList("survey/answerPerson/answerIntervieweeSelectionList",candidate_answer_interviewee);
+					break;					
+			}
+	           				
+	        }
+				else{
+					showWarning("No result","Sorry, no result is found");
+				}
+	        onError(message) {
+	            showToast(message);
+	        }
+	        }
+	    });
+		 //populateCursorList("control/search/entityList", "select uuid, response from latestNonDeletedArchEntFormattedIdentifiers where aenttypename = '" + type + "' limit ? offset ?;", 25);
+	}
+	else{
+		
+		searchPersonNameQueryFirstHalf="select uuid, measure from latestNonDeletedAentValue where " +
+				"latestNonDeletedAentValue.Measure like '%"; 
+		searchPersonNameQueryLastHalf="%' and latestNonDeletedAentValue.AttributeID = "+
+				"(select AttributeID from AttributeKey where AttributeName='PersonName')";
+		
+		fetchAll(searchPersonNameQueryFirstHalf+keywordOfPerson+searchPersonNameQueryLastHalf, new FetchCallback() {
+        onFetch(result) {
+			if(!isNull(result)){
+			//searchResult.clear();
+			//searchResult.addAll(result);
+			switch (personType){
+
+			case "Interviewer":
+				candidate_answer_interviewer.clear();
+				candidate_answer_interviewer.addAll(result);
+				if(!isNull(selected_answer_interviewer)){
+					candidate_answer_interviewer.removeAll(selected_answer_interviewer);       
+					}   
+				populateList("survey/answerPerson/answerInterviewerSelectionList",candidate_answer_interviewer);
+				break;
+			case "Interviewee":
+				candidate_answer_interviewee.clear();
+				candidate_answer_interviewee.addAll(result);
+				if(!isNull(selected_answer_interviewer)){
+		        	candidate_answer_interviewee.removeAll(selected_answer_interviewee);
+		        	}
+				populateList("survey/answerPerson/answerIntervieweeSelectionList",candidate_answer_interviewee);
+				break;
+				
+		}
+           
+			
+        }
+			else{
+				showWarning("No result","Sorry, no result is found");
+			}
+        onError(message) {
+            showToast(message);
+        }
+    }
+        });
+		
+	}
+}
 
 onEvent("audioFile/audioFileInfo/Take_Audio_File","click","attachAudioToField(\"audioFile/audioFileInfo/audioFileContent\")");
 onEvent("audioFile/audioFileInfo/Save_New_Audio","click","saveFileFromAnswer(\"audioFile/audioFileInfo/audioFileName\",\"audioFile/audioFileInfo/audioFileContent\",\"audioFile\")");
