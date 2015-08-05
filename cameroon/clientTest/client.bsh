@@ -40,7 +40,7 @@ loadAllSessionQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 
 loadAllAnswerQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
-		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='AnswerChoice') "+
+		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='AnswerLabel') "+
 		"GROUP BY uuid;";
 //loadFilesForAnswer="select uuid, measure from AentValue where AentValue.AttributeID =(select AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerText') and AentValue.uuid in (select uuid from (SELECT uuid FROM AEntValue where AEntValue.AttributeID=(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionID') and AEntValue.freetext='1000011437080460685') t1 inner join (SELECT uuid FROM AEntValue where AEntValue.AttributeID=(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionnaireID') and AEntValue.freetext='1000011437080512135') t2 using(uuid))"
 /***Enable data and file syncing***/
@@ -1683,7 +1683,7 @@ loadSessionInfo(){
 		return;
 	}
 	loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
-			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerChoice') "+
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
 			"and uuid in "+
  			"(select uuid from AentReln where RelationshipID in "+
  				"(select RelationshipID from "+
