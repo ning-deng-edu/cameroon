@@ -35,6 +35,14 @@
                 <control>         
                     <survey_control>
         				<New_Survey/>
+        				 <container7>
+                            <child1>
+                            	<survey_keyword/>
+                            </child1>
+                            <child2>
+                            	<Survey_Search/>
+                            </child2>
+                    	</container7>
                         <surveyList/>                      
                     </survey_control>
                 
@@ -45,12 +53,28 @@
                   
                     <user_control>              
                         <New_User/>
+                         <container8>
+                            <child1>
+                            	<person_keyword/>
+                            </child1>
+                            <child2>
+                            	<Person_Search/>
+                            </child2>
+                    	</container8>
                         <userList/>
                     </user_control>
                     
                   
                     <language_control>
                         <New_Language/>
+                         <container9>
+                            <child1>
+                            	<language_keyword/>
+                            </child1>
+                            <child2>
+                            	<Language_Search/>
+                            </child2>
+                    	</container9>
                         <languageList/>
                     </language_control>
                    
@@ -58,6 +82,14 @@
                     <file_control> 
                         <fileCategorySelect/>                   
                         <New_File/>
+                        <container10>
+                            <child1>
+                            	<file_keyword/>
+                            </child1>
+                            <child2>
+                            	<File_Search/>
+                            </child2>
+                    	</container10>
                         <fileList/>
                     </file_control>
                     
@@ -345,6 +377,25 @@
                 <label>New Survey</label>
             </trigger>
             
+            <group ref="container7" faims_style="orientation">
+        
+          <label></label>
+          <group ref="child1" faims_style="even">
+            <label></label>
+             <input ref="survey_keyword">
+            	<label>survey keyword</label>
+            </input>
+        </group>
+       <group ref="child2" faims_style="even">
+            <label></label>
+             <trigger ref="Survey_Search" faims_style_class="faims-blue">
+                <label>Search</label>
+            </trigger>
+          </group>
+        
+        </group>
+        
+            
             <select1  ref="surveyList" appearance="compact" faims_annotation="false" faims_certainty="false" faims_style_class="survey-list">
                 <label>Tap to view survey</label>
                 <item>
@@ -374,7 +425,24 @@
             <trigger ref="New_User" faims_style_class="faims-blue">
                 <label>New Person</label>
             </trigger>
+        <group ref="container8" faims_style="orientation">
         
+          <label></label>
+          <group ref="child1" faims_style="even">
+            <label></label>
+             <input ref="person_keyword">
+            	<label>person keyword</label>
+            </input>
+         
+          </group>
+       <group ref="child2" faims_style="even">
+            <label></label>
+             <trigger ref="Person_Search" faims_style_class="faims-blue">
+                <label>Search</label>
+            </trigger>
+          </group>
+        </group>
+
             <select1 appearance="compact" ref="userList" faims_style_class="user-list">
                 <label>Tap to view person</label>
                 <item>
@@ -391,6 +459,25 @@
             <trigger ref="New_Language" faims_style_class="faims-blue">
                 <label>New Language</label>
             </trigger>
+            
+             <group ref="container9" faims_style="orientation">
+        
+          <label></label>
+          <group ref="child1" faims_style="even">
+            <label></label>
+             <input ref="language_keyword">
+            	<label>language keyword</label>
+            </input>
+         
+          </group>
+       <group ref="child2" faims_style="even">
+            <label></label>
+             <trigger ref="Language_Search" faims_style_class="faims-blue">
+                <label>Search</label>
+            </trigger>
+          </group>
+        </group>
+        
             <!--TODO: in ui_styling.css add language-list class-->
             <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="languageList" faims_style_class="language-list">
                 <label>Tap to view language</label>
@@ -415,6 +502,24 @@
                 <label>New File</label>
             </trigger>
     
+             <group ref="container10" faims_style="orientation">
+        
+          <label></label>
+          <group ref="child1" faims_style="even">
+            <label></label>
+             <input ref="file_keyword">
+            	<label>filename keyword</label>
+            </input>
+         
+          </group>
+       <group ref="child2" faims_style="even">
+            <label></label>
+             <trigger ref="File_Search" faims_style_class="faims-blue">
+                <label>Search</label>
+            </trigger>
+          </group>
+        </group>
+        
             <select1 ref="fileList" appearance="compact" faims_annotation="false" faims_certainty="false" faims_style_class="file-list">
                 <label>Tap to view file</label>
                 <item>
