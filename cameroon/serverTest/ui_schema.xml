@@ -394,7 +394,7 @@
        <group ref="child2" faims_style="even">
             <label></label>
              <trigger ref="Search_Question" faims_style_class="faims-blue-search">
-             <label>Search Question</label>
+             <label>Search</label>
            </trigger>
           </group>
         
@@ -495,7 +495,7 @@
        <group ref="child2" faims_style="even">
             <label></label>
            <trigger ref="Search_Language" faims_style_class="faims-blue-search">
-             <label>Search Language</label>
+             <label>Search</label>
            </trigger>
           </group>      
         </group>
