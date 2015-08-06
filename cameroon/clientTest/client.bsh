@@ -230,7 +230,7 @@ loadAnswersForQuestionnaire(String typeFlag){
 	}
 	else{
 	newTabGroup("answerToQuestionnaire");
-	setFieldValue("answerToQuestionnaire/answerQuesnirInfo/answerListQuesnirID",current_quesnir_id);
+	setFieldValue("answerToQuestionnaire/answerListQuesnirHidden/answerListQuesnirID",current_quesnir_id);
 	loadAnswersForQuesnirQuery="select uuid,measure from latestNonDeletedAentValue "+
 	"where latestNonDeletedAentValue.AttributeID="+
 			"(select AttributeID from Attributekey where AttributeKey.AttributeName='AnswerText') "+
@@ -539,7 +539,7 @@ loadAnswerInfo(){
 
 ViewAnswersOfQuesion(){
 	current_question_id=getListItemValue();
-	current_quesnir_id=getFieldValue("answerToQuestionnaire/answerQuesnirInfo/answerListQuesnirID");
+	current_quesnir_id=getFieldValue("answerToQuestionnaire/answerListQuesnirHidden/answerListQuesnirID");
 	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
 			"WHERE latestNonDeletedAentValue.AttributeID = "+
 			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerText') "+
@@ -1662,14 +1662,19 @@ newSession(){
 	original_files_session.clear();
 	sessionInfoOrigin.clear();
 	sessionInfoNew.clear();
+	currentDateTimeArray=new ArrayList();
 	
 	newTabGroup("session");
 	fetchAll(loadAllAnswerQuery, new FetchCallback() {
         onFetch(result) {
         	candidate_files_session.addAll(result);
+        	String currentTime=getCurrentTime();
+            currentDateTimeArray=getCurrentTime().toString().split("\\s+");
+            showWarning("date",currentDateTimeArray[0]);
             populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
             populateList("session/sessionFiles/sessionFileList", selected_files_session);
-            setFieldValue("session/sessionBasicInfo/sessionStartTimetamp",getCurrentTime());
+            setFieldValue("session/sessionBasicInfo/sessionStartTimetamp",currentTime);           
+            setFieldValue("session/sessionBasicInfo/sessionEndTimestamp",currentDateTimeArray[0]+" 23:59:59");
         }
 
         onError(message) {
@@ -1865,6 +1870,7 @@ onEvent("control/survey_control/Survey_Search","click","entitySearch(\"survey\",
 onEvent("control/user_control/Person_Search","click","entitySearch(\"person\",\"control/user_control/person_keyword\",\"control/user_control/userList\",null)");
 onEvent("control/language_control/Language_Search","click","entitySearch(\"language\",\"control/language_control/language_keyword\",\"control/language_control/languageList\",null)");
 onEvent("control/file_control/File_Search","click","entitySearch(\"file\",\"control/file_control/file_keyword\",\"control/file_control/fileList\",\"control/file_control/fileCategorySelect\")");
+onEvent("sessionGroup/sessionInfo/Session_Search","click","entitySearch(\"session\",\"sessionGroup/sessionInfo/session_Name\",\"sessionGroup/sessionInfo/sessionList\",null)");
 entitySearch(String entityNameRef, String keywordRef, String listRef, String fileTypeRef){
 	String entityName= entityNameRef;
 	String keywordOfEntity= getFieldValue(keywordRef).trim();
@@ -1904,6 +1910,19 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 			
 		case "language":	
 			fetchAll(loadAllLanguageQuery,
+					new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+					populateList(listRef, result);}
+						else{
+							showWarning("No result","No record matches the keyword");
+						}
+					}  
+			});
+			break;
+			
+		case "session":	
+			fetchAll(loadAllSessionQuery,
 					new FetchCallback() {
 					onFetch(result) {
 						if(!isNull(result)){
@@ -2069,6 +2088,23 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 					"%' and latestNonDeletedAentValue.AttributeID = "+
 					"(select AttributeID from AttributeKey where AttributeName='LanguageName')";
 			fetchAll(searchPersonQuery,
+					new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+							populateList(listRef, result);}
+						else{
+							showWarning("No result","No record matches the keyword");
+						}
+					}  
+			});
+			break;
+			
+		case "session":		
+			searchSessionQuery="select uuid, measure from latestNonDeletedAentValue where " +
+					"latestNonDeletedAentValue.Measure like '%"+ keywordOfEntity +
+					"%' and latestNonDeletedAentValue.AttributeID = "+
+					"(select AttributeID from AttributeKey where AttributeName='SessionName')";
+			fetchAll(searchSessionQuery,
 					new FetchCallback() {
 					onFetch(result) {
 						if(!isNull(result)){

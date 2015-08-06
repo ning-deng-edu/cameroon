@@ -129,8 +129,10 @@
                 </answerToQuestion>
                 
                 <answerToQuestionnaire>
-                    <answerQuesnirInfo>
+                     <answerListQuesnirHidden>
                         <answerListQuesnirID/>
+                        </answerListQuesnirHidden>
+                       <answerQuesnirInfo>
                         <answerListQuesnirName/>
                         <View_All_Answer/>
                         <container5>
@@ -586,15 +588,21 @@
         </group>
       </group>
       
+ 
                 
      <group ref="answerToQuestionnaire">
           <label>answerToQuestionnaire</label>
          	
-         <group ref="answerQuesnirInfo">
-            <label>answerQuesnirInfo</label>
+        <group ref="answerListQuesnirHidden" faims_hidden="true">
+            <label>answerQuesnirHiddenInfo</label>
             <input ref="answerListQuesnirID" faims_read_only="true">
             	<label>Current questionnaire id</label>
             </input>
+        </group>
+            
+            
+             <group ref="answerQuesnirInfo">
+            <label>answerQuesnirInfo</label>
             
              <input ref="answerListQuesnirName" faims_read_only="true">
             	<label>Current questionnaire name</label>
