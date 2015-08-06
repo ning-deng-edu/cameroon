@@ -1604,14 +1604,16 @@ onEvent("control/file_control/New_File","click","newFile(\"file\")");
 onEvent("control/file_control/fileList","click","loadAnswerFileInfo(\"fileView\")");
 file_id=null;
 fileCategory=new ArrayList();
+fileCategory.add(new NameValuePair("{All}", "All"));
 fileCategory.add(new NameValuePair("{Audio}", "Audio"));
 fileCategory.add(new NameValuePair("{Video}", "Video"));
 fileCategory.add(new NameValuePair("{Photo}", "Photo"));
 fileCategory.add(new NameValuePair("{Other}", "Other"));
+
 loadFile(){
 	file_id=null;
 	populateDropDown("control/file_control/fileCategorySelect",fileCategory);
-
+	setFieldValue("control/file_control/file_keyword","*");
 	fetchAll(loadAllFileQuery, new FetchCallback() {
         onFetch(result) {
             populateList("control/file_control/fileList", result);
@@ -1857,3 +1859,335 @@ testQuery(){
     });
 	
 }
+
+/***Search button ***/
+onEvent("control/survey_control/Survey_Search","click","entitySearch(\"survey\",\"control/survey_control/survey_keyword\",\"control/survey_control/surveyList\",null)");
+onEvent("control/user_control/Person_Search","click","entitySearch(\"person\",\"control/user_control/person_keyword\",\"control/user_control/userList\",null)");
+onEvent("control/language_control/Language_Search","click","entitySearch(\"language\",\"control/language_control/language_keyword\",\"control/language_control/languageList\",null)");
+onEvent("control/file_control/File_Search","click","entitySearch(\"file\",\"control/file_control/file_keyword\",\"control/file_control/fileList\",\"control/file_control/fileCategorySelect\")");
+entitySearch(String entityNameRef, String keywordRef, String listRef, String fileTypeRef){
+	String entityName= entityNameRef;
+	String keywordOfEntity= getFieldValue(keywordRef).trim();
+	if((isNull(keywordOfEntity)) || (keywordOfEntity.equals("*"))){
+		switch (entityName){
+		case "survey":		
+			
+			fetchAll(loadAllSurveyQuery,
+					new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+					populateList(listRef, result);}
+						else{
+							showWarning("No result","No record matches the keyword");
+						}
+					}  
+			});
+			break;
+		
+		case "person":
+			loadAllPersonIDQuery="SELECT uuid, group_concat(coalesce(measure, ''),' - ') as response " +
+				    "FROM (select * from latestNonDeletedArchentIdentifiers) " +
+				    "WHERE aenttypename = 'Person' " +
+				    "GROUP BY uuid " +
+				    "order by response;";
+			fetchAll(loadAllPersonIDQuery,
+					new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+					populateList(listRef, result);}
+						else{
+							showWarning("No result","No record matches the keyword");
+						}
+					}  
+			});
+			break;
+			
+		case "language":	
+			fetchAll(loadAllLanguageQuery,
+					new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+					populateList(listRef, result);}
+						else{
+							showWarning("No result","No record matches the keyword");
+						}
+					}  
+			});
+			break;
+			
+		case "file":
+			String fileType=getFieldValue(fileTypeRef);
+			switch (fileType){
+			case "Audio":
+				//select uuid,measure from 
+				//((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Audio' 
+				//and AttributeID = (select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 
+				//inner join 
+				//(select uuid,measure from latestNonDeletedAentValue where AttributeID=
+				//(select AttributeID from AttributeKey where AttributeName='FileName')) t2 on t1.fileID=t2.uuid);
+				searchAudioFileQuery="select uuid,measure from "+
+						"((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Audio' and AttributeID = "+
+							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
+						"inner join "+
+						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
+							"(select AttributeID from AttributeKey where AttributeName='FileName')) t2 "+
+							"on t1.fileID=t2.uuid );";
+				fetchAll(searchAudioFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				
+				break;
+			case "Video":
+				searchVideoFileQuery="select uuid,measure from "+
+						"((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Video' and AttributeID = "+
+							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
+						"inner join "+
+						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
+							"(select AttributeID from AttributeKey where AttributeName='FileName')) t2 "+
+							"on t1.fileID=t2.uuid );";
+				fetchAll(searchVideoFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				break;
+			case "Photo":
+				searchPhotoFileQuery="select uuid,measure from "+
+						"((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Photo' and AttributeID = "+
+							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
+						"inner join "+
+						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
+							"(select AttributeID from AttributeKey where AttributeName='FileName')) t2 "+
+							"on t1.fileID=t2.uuid );";
+				fetchAll(searchPhotoFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				break;
+			case "Other":
+				searchOtherFileQuery="select uuid,measure from "+
+						"((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Other' and AttributeID = "+
+							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
+						"inner join "+
+						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
+							"(select AttributeID from AttributeKey where AttributeName='FileName')) t2 "+
+							"on t1.fileID=t2.uuid );";
+				fetchAll(searchOtherFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				
+				break;
+			case "All":
+				fetchAll(loadAllFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				break;
+			}
+			
+			break;
+		}
+			
+			
+		}
+	
+	else{
+		
+		switch (entityName){
+		case "survey":		
+			searchSureyQuery="select uuid,measure from "+
+			"((select measure as quesnirid from latestNonDeletedAentValue where AttributeID = "+
+				"(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') group by measure) t1 "+
+			"inner join "+
+			"(select uuid, measure from latestNonDeletedAentValue where AttributeID= "+
+				"(select AttributeID from AttributeKey where AttributeName='QuestionnaireName') AND latestNonDeletedAentValue.Measure like '%"+
+				keywordOfEntity+ "%') t2 "+
+				"on t2.uuid=t1.quesnirid );";
+			fetchAll(searchSureyQuery,
+					new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+							populateList(listRef, result);}
+						else{
+							showWarning("No result","No record matches the keyword");
+						}
+					}  
+			});
+			break;
+			
+		case "person":		
+			searchPersonQuery="select uuid, measure from latestNonDeletedAentValue where " +
+					"latestNonDeletedAentValue.Measure like '%"+ keywordOfEntity +
+					"%' and latestNonDeletedAentValue.AttributeID = "+
+					"(select AttributeID from AttributeKey where AttributeName='PersonID')";
+			fetchAll(searchPersonQuery,
+					new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+							populateList(listRef, result);}
+						else{
+							showWarning("No result","No record matches the keyword");
+						}
+					}  
+			});
+			break;
+			
+		case "language":		
+			searchPersonQuery="select uuid, measure from latestNonDeletedAentValue where " +
+					"latestNonDeletedAentValue.Measure like '%"+ keywordOfEntity +
+					"%' and latestNonDeletedAentValue.AttributeID = "+
+					"(select AttributeID from AttributeKey where AttributeName='LanguageName')";
+			fetchAll(searchPersonQuery,
+					new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+							populateList(listRef, result);}
+						else{
+							showWarning("No result","No record matches the keyword");
+						}
+					}  
+			});
+			break;
+			
+		case "file":
+			String fileType=getFieldValue(fileTypeRef);
+			switch (fileType){
+			case "Audio":
+				//select uuid,measure from 
+				//((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Audio' 
+				//and AttributeID = (select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 
+				//inner join 
+				//(select uuid,measure from latestNonDeletedAentValue where AttributeID=
+				//(select AttributeID from AttributeKey where AttributeName='FileName')) t2 on t1.fileID=t2.uuid);
+				searchAudioFileQuery="select uuid,measure from "+
+						"((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Audio' and AttributeID = "+
+							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
+						"inner join "+
+						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
+							"(select AttributeID from AttributeKey where AttributeName='FileName') and measure like '%"+keywordOfEntity+"%') t2 "+
+							"on t1.fileID=t2.uuid );";
+				fetchAll(searchAudioFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				
+				break;
+			case "Video":
+				searchVideoFileQuery="select uuid,measure from "+
+						"((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Video' and AttributeID = "+
+							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
+						"inner join "+
+						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
+						"(select AttributeID from AttributeKey where AttributeName='FileName') and measure like '%"+keywordOfEntity+"%') t2 "+
+							"on t1.fileID=t2.uuid );";
+				fetchAll(searchVideoFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				break;
+			case "Photo":
+				searchPhotoFileQuery="select uuid,measure from "+
+						"((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Photo' and AttributeID = "+
+							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
+						"inner join "+
+						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
+						"(select AttributeID from AttributeKey where AttributeName='FileName') and measure like '%"+keywordOfEntity+"%') t2 "+
+							"on t1.fileID=t2.uuid );";
+				fetchAll(searchPhotoFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				break;
+			case "Other":
+				searchOtherFileQuery="select uuid,measure from "+
+						"((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Other' and AttributeID = "+
+							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
+						"inner join "+
+						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
+						"(select AttributeID from AttributeKey where AttributeName='FileName') and measure like '%"+keywordOfEntity+"%') t2 "+
+							"on t1.fileID=t2.uuid );";
+				fetchAll(searchOtherFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				
+				break;
+			case "All":
+				searchAllFileQuery="select uuid, measure from latestNonDeletedAentValue where " +
+						"latestNonDeletedAentValue.Measure like '%"+ keywordOfEntity +
+						"%' and latestNonDeletedAentValue.AttributeID = "+
+						"(select AttributeID from AttributeKey where AttributeName='FileName')";
+				fetchAll(searchAllFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				break;
+			}
+			
+			break;
+		}
+	}
+  }
+	
+//}
