@@ -774,6 +774,13 @@ addItemToTargetList(ArrayList sourceList, String type_flag){
 				populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
 				break;
 			
+			case "fieldTripSession":
+				selected_session_fieldTrip.add(sourceList.get(idx_item));
+				candidate_session_fieldTrip.remove(idx_item);
+				populateList("fieldTrip/fieldTripSession/fieldTripFileList", selected_session_fieldTrip);
+				populateList("fieldTrip/fieldTripSession/fieldTripFileSelectionList", candidate_session_fieldTrip);
+				break;
+			
 			}
 		}
 		else{
@@ -823,6 +830,12 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag){
 				selected_files_session.remove(idx_delete);
 				populateList("session/sessionFiles/sessionFileList", selected_files_session);
 				populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
+				break;
+			case "fieldTripSession":
+				candidate_session_fieldTrip.add(targetList.get(idx_delete));
+				selected_session_fieldTrip.remove(idx_delete);
+				populateList("fieldTrip/fieldTripSession/fieldTripFileList", selected_session_fieldTrip);
+				populateList("fieldTrip/fieldTripSession/fieldTripFileSelectionList", candidate_session_fieldTrip);
 				break;
 			}
 		}
@@ -1840,7 +1853,8 @@ saveSession(){
 onEvent("control/fileGroup_control/fieldTripGroup","click","showFieldTrip()");
 onEvent("fieldTripGroup/fieldTripInfo/New_FieldTrip","click","startNewFieldTrip()");
 onEvent("fieldTrip/fieldTripSession/Finish_New_FieldTrip","click","saveFieldTrip()");
-
+onEvent("fieldTrip/fieldTripSession/fieldTripFileSelectionList","click","addItemToTargetList(candidate_session_fieldTrip,\"fieldTripSession\")");
+onEvent("fieldTrip/fieldTripSession/fieldTripFileList","click","deleteItemFromTargetList(selected_session_fieldTrip,\"fieldTripSession\")");
 fieldTrip_id=null;
 selected_session_fieldTrip=new ArrayList();
 candidate_session_fieldTrip=new ArrayList();
@@ -1868,8 +1882,6 @@ startNewFieldTrip(){
         	candidate_session_fieldTrip.addAll(result);
             populateList("fieldTrip/fieldTripSession/fieldTripFileSelectionList", candidate_session_fieldTrip);
             populateList("fieldTrip/fieldTripSession/fieldTripFileList", selected_session_fieldTrip);
-            //showWarning("date",getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripStartTimetamp"));
-            //setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripStartTimetamp","11/08/2015");
         }
 
         onError(message) {
@@ -1880,10 +1892,74 @@ startNewFieldTrip(){
 }
 
 saveFieldTrip(){
-	String dateToConvert=getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker");
-	showWarning("dateToConvert",dateToConvert);
-	dateParser(dateToConvert);
 	
+	String startDateToConvert=getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker");
+	String startDate=dateParser(startDateToConvert);
+	
+	String endDateToConvert=getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripEndDatePicker");
+	String endDate=dateParser(endDateToConvert);
+	
+	if(isNull(fieldTrip_id)){//create new session
+		if((isNull(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID"))) || 
+				(isNull(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripName"))))
+		{
+			showWarning("Incomplete Data","Please make sure that data is complete");
+			return;
+		}
+		else{
+			setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp",startDate);
+			setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp",endDate);
+			saveTabGroup("fieldTrip", fieldTrip_id, null, null, new SaveCallback() {
+			    onSave(uuid, newRecord) {
+			    	fieldTrip_id = uuid;
+			      if (newRecord) {
+			    	  for(session:selected_session_fieldTrip){
+			    		  saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
+			    	  }
+			        showToast("New fieldtrip record created");
+			      }
+			    }
+			    onError(message) {
+			        showWarning("error",message);
+			    }  
+			  });
+		}
+	}
+	else{//change session info
+		fieldTripInfoNew.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID"));
+		fieldTripInfoNew.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripName"));
+		fieldTripInfoNew.add(startDate);
+		fieldTripInfoNew.add(endDate);
+		Hashtable fieldTripInfoChange=listChange(fieldTripInfoNew,fieldTripInfoOrigin);
+		Hashtable fieldTripSessionChange=listChange(selected_session_fieldTrip,original_session_fieldTrip);
+		if(fieldTripInfoChange.containsKey("EQUAL")){
+			if(fieldTripSessionChange.containsKey("EQUAL")){
+				showWarning("No change","No data changed");
+				return;
+			}
+			else{
+				//showWarning("yes change","beginingchange file");
+				for(session:selected_session_fieldTrip){
+		    		  saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
+		    	  }
+				showToast("session in FieldTrip changed");
+			}
+		}
+		else{
+			saveTabGroup("fieldTrip", fieldTrip_id, null, null, new SaveCallback() {
+			    onSave(uuid, newRecord) {
+			    	for(session:selected_session_fieldTrip){
+			    		  saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
+			    	  }
+			        showToast("fieldTrip data changed");
+
+			    }
+			    onError(message) {
+			        showWarning("error",message);
+			    }  
+			  });
+		}
+	}
 }
 
 dateParser(String sourceDate){
@@ -1892,7 +1968,9 @@ dateParser(String sourceDate){
 	Pattern datePattern=Pattern.compile(dateRegex);
 	Matcher dateMatcher=datePattern.matcher(sourceDate);
 	if (dateMatcher.find()){
-		showWarning("match",sourceDate+"matches");
+		String [] dateParts=sourceDate.split("/");
+		String targetDate=dateParts[2]+"-"+dateParts[1]+"-"+dateParts[0];
+		return targetDate;
 	}
 	//convert yyyy-mm-dd to dd/mm/yy
 }
