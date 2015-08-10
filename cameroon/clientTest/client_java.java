@@ -2033,6 +2033,8 @@ saveFieldTrip(){
 			}
 		}
 		else{
+			setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp",startDate);
+			setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp",endDate);
 			saveTabGroup("fieldTrip", fieldTrip_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
 			    	for(session:selected_session_fieldTrip){
