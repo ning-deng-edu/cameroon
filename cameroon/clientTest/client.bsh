@@ -40,6 +40,11 @@ loadAllSessionQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionName') "+
 		"GROUP BY uuid;";
 
+loadAllFieldTripQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+		"WHERE latestNonDeletedAentValue.AttributeID "+
+		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='FieldTripName') "+
+		"GROUP BY uuid;";
+
 loadAllAnswerQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='AnswerLabel') "+
@@ -1851,6 +1856,7 @@ saveSession(){
 /***fieldTrip***/
 
 onEvent("control/fileGroup_control/fieldTripGroup","click","showFieldTrip()");
+onEvent("fieldTripGroup/fieldTripInfo","show","loadFieldTripList()");
 onEvent("fieldTripGroup/fieldTripInfo/New_FieldTrip","click","startNewFieldTrip()");
 onEvent("fieldTrip/fieldTripSession/Finish_New_FieldTrip","click","saveFieldTrip()");
 onEvent("fieldTrip/fieldTripSession/fieldTripFileSelectionList","click","addItemToTargetList(candidate_session_fieldTrip,\"fieldTripSession\")");
@@ -1864,6 +1870,18 @@ fieldTripInfoNew=new ArrayList();
 
 showFieldTrip(){
 	showTabGroup("fieldTripGroup");
+}
+
+loadFieldTripList(){
+	fetchAll(loadAllFieldTripQuery, new FetchCallback() {
+        onFetch(result) {
+            populateList("fieldTripGroup/fieldTripInfo/fieldTripList", result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
 }
 
 startNewFieldTrip(){
@@ -1882,8 +1900,6 @@ startNewFieldTrip(){
         	candidate_session_fieldTrip.addAll(result);
             populateList("fieldTrip/fieldTripSession/fieldTripFileSelectionList", candidate_session_fieldTrip);
             populateList("fieldTrip/fieldTripSession/fieldTripFileList", selected_session_fieldTrip);
-            //showWarning("date",getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripStartTimetamp"));
-            //setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripStartTimetamp","11/08/2015");
         }
 
         onError(message) {
@@ -1966,12 +1982,21 @@ saveFieldTrip(){
 
 dateParser(String sourceDate){
 	//convert dd/mm/yyyy to yyyy-mm-dd
-	String dateRegex="^\\d{2}[/]\\d{2}[/]\\d{4}$";
-	Pattern datePattern=Pattern.compile(dateRegex);
-	Matcher dateMatcher=datePattern.matcher(sourceDate);
-	if (dateMatcher.find()){
+	String slashDateRegex="^\\d{2}[/]\\d{2}[/]\\d{4}$";
+	Pattern slashDatePattern=Pattern.compile(slashDateRegex);
+	Matcher slashDateMatcher=slashDatePattern.matcher(sourceDate);
+	if (slashDateMatcher.find()){
 		String [] dateParts=sourceDate.split("/");
 		String targetDate=dateParts[2]+"-"+dateParts[1]+"-"+dateParts[0];
+		return targetDate;
+	}
+	
+	String slashDateRegex="^\\d{2}[-]\\d{2}[-]\\d{4}$";
+	Pattern slashDatePattern=Pattern.compile(slashDateRegex);
+	Matcher slashDateMatcher=slashDatePattern.matcher(sourceDate);
+	if (slashDateMatcher.find()){
+		String [] dateParts=sourceDate.split("-");
+		String targetDate=dateParts[2]+"/"+dateParts[1]+"/"+dateParts[0];
 		return targetDate;
 	}
 	//convert yyyy-mm-dd to dd/mm/yy
