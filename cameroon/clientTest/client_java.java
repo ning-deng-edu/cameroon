@@ -207,6 +207,7 @@ loadAllQuesnir(){
 
 loadExistSurvey(){
 	survey_list.clear();
+	setFieldValue("control/survey_control/survey_keyword","*");
 	fetchAll(loadAllSurveyQuery,
 			new FetchCallback() {
 	        	onFetch(result) {
@@ -1459,7 +1460,8 @@ person_id=null;
 newPerson(){
 	person_id=null;
 	newTabGroup("person");
-	onEvent("person", "show", "showTab(\"person/personInfo\");");  
+	onEvent("person", "show", "showTab(\"person/personInfo\");");
+
 }
 
 loadPerson(){
@@ -1534,6 +1536,7 @@ newLanguage(){
 	language_id=null;
 	newTabGroup("language");
 	onEvent("language", "show", "showTab(\"language/languageInfo\");");  
+
 }
 saveNewLanguage(){
 
@@ -1830,10 +1833,14 @@ saveSession(){
 /***fieldTrip***/
 
 onEvent("control/fileGroup_control/fieldTripGroup","click","showFieldTrip()");
+onEvent("fieldTripGroup/fieldTripInfo/New_FieldTrip","click","startNewFieldTrip()");
 showFieldTrip(){
 	showTabGroup("fieldTripGroup");
 }
 
+startNewFieldTrip(){
+	newTabGroup("fieldTrip");
+}
 
 /*** query ***/
 onEvent("control/querytest/Submit","click","testQuery()");

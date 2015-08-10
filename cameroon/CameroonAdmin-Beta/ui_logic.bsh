@@ -154,7 +154,7 @@ login() {
 /***Questionnaire***/
 
 onEvent("control/questionnaire_control/New_Questionnaire","click","newQuestionnaire()");
-onEvent("control/questionnaire_control/New_Questionnaire","show","loadQuestionnaire()");
+onEvent("control/questionnaire_control","show","loadQuestionnaire()");
 onEvent("control/questionnaire_control/questionnaireList","click","loadQuestionnaireInfo()");
 onEvent("questionnaire/questionnaire_info/Start_Question_Selection","click","startQuestionSelection()");
 onEvent("questionnaire_question/questionnaire_question_info","show","initializeQuestionSelect()");
@@ -731,7 +731,7 @@ listChange(ArrayList targetList,ArrayList sourceList){
 onEvent("control/question_control/New_Question","click","newQuestion()");
 onEvent("questionBank/questionInfo/Finish_New_Question","click","saveNewQuestion()");
 onEvent("control/question_control","show","loadQuestionBank()");
-//onEvent("control/querytest/Submit","click","testQuery()");
+onEvent("control/querytest/Submit","click","testQuery()");
 onEvent("questionBank/questionInfo/","show","initialQuestionCreation()");
 onEvent("control/question_control/questionList","click","loadQuestionInfo()");
 onEvent("questionBank/questionInfo/New_Language","click","newLanguage()");
@@ -744,7 +744,7 @@ question_id=null;
 candidateLanguageList=new ArrayList();
 //selected language
 current_selected_language_id=null;
-/*
+
 testQuery(){
 	query=getFieldValue("control/querytest/query");
 	//fetchAll("SELECT sql FROM sqlite_master WHERE name='archentity';",
@@ -771,7 +771,7 @@ testQuery(){
     });
 	
 }
-*/
+
 //Starting point of creating new question
 newQuestion(){
 	question_id=null;
@@ -1054,7 +1054,7 @@ onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personI
 onEvent("control/user_control/userList","click","loadPersonInfo()");
 person_id=null;
 newPerson(){
-	person_id=null;
+	language_id=null;
 	newTabGroup("person");
 	onEvent("person", "show", "showTab(\"person/personInfo\");");  
 }

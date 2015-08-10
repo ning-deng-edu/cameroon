@@ -220,6 +220,27 @@
                     </sessionFiles>
                 </session>
                 
+                 <fieldTrip>
+                    <fieldTripBasicInfo>
+                    	<fieldTripID/>
+                    	<fieldTripName/>
+                    	<fieldTripStartTimetamp/>
+                    	<fieldTripEndTimestamp/>
+                    </fieldTripBasicInfo>
+                    
+                    <fieldTripSession>
+                        <container11>
+                    	    <child1>
+                    	        <fieldTripFileList/>
+                    	    </child1>
+                    	    <child2>
+                    	        <fieldTripFileSelectionList/>
+                    	    </child2>
+                    	</container11>
+                    	<Finish_New_FieldTrip/>
+                    </fieldTripSession>
+                </fieldTrip>
+                
                  
                   <audioFile>
                     <audioFileInfo>
@@ -892,6 +913,61 @@
         </group>
     </group>
     
+ 
+       <group ref="fieldTrip" faims_archent_type="FieldTrip">
+        <label>{fieldTripBasicInfo}</label>
+        <group ref="fieldTripBasicInfo">
+            <label>{Session info}</label>
+        <input ref="fieldTripID" faims_attribute_name="FieldTripID" faims_attribute_type="measure" >
+            <label>fieldTrip id</label>
+        </input>
+         <input ref="fieldTripName" faims_attribute_name="FieldTripName" faims_attribute_type="measure" >
+            <label>fieldTripName</label>
+        </input>
+        <input ref="fieldTripStartTimetamp" faims_attribute_name="FieldTripStartTime" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>fieldTrip timestamp</label>
+        </input>
+        <input ref="fieldTripEndTimestamp" faims_attribute_name="FieldTripEndTime" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>fieldTrip End timestamp</label>
+        </input>             
+        </group>
+        
+        
+        <group ref="fieldTripSession">
+             <label>{fieldTrip files}</label>
+              <group ref="container11" faims_style="orientation">
+         		<label></label>
+          		<group ref="child1" faims_style="even">
+            		<label></label>
+            		 <select1 appearance="compact" ref="fieldTripFileList" faims_annotation="false" faims_certainty="false" faims_style_class="session-file-list">
+                		<label>Files</label>
+                		<item>
+                    		<label>placeholder</label>
+                    		<value>placeholder</value>
+                		</item>
+        			</select1>
+            	</group>
+            	
+            	 <group ref="child2" faims_style="even">
+            	   <label></label>
+               	   <select1 appearance="compact" ref="fieldTripFileSelectionList" faims_certainty="false" faims_annotation="false" faims_style_class="session-file-list">
+          				<label>Select file</label>
+          				<item>
+                    		<label>placeholder</label>
+                    		<value>placeholder</value>
+                		</item>
+        		 </select1>
+        	  </group>
+        	  
+        	</group>
+            		
+       
+        <trigger ref="Finish_New_FieldTrip" faims_style_class="faims-blue">
+                <label>Save fieldTrip</label>
+        </trigger>
+        </group>
+    </group>          
+     
      
      <group ref="audioFile" faims_archent_type="File">
         <label>{Audio File}</label>
