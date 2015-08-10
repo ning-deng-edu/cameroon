@@ -224,9 +224,14 @@
                     <fieldTripBasicInfo>
                     	<fieldTripID/>
                     	<fieldTripName/>
+                    	<fieldTripStartDatePicker/>
+                    	<fieldTripEndDatePicker/>
+                    </fieldTripBasicInfo>
+                    
+                    <fieldTripBasicInfoHidden>
                     	<fieldTripStartTimetamp/>
                     	<fieldTripEndTimestamp/>
-                    </fieldTripBasicInfo>
+                    </fieldTripBasicInfoHidden>
                     
                     <fieldTripSession>
                         <container11>
@@ -347,6 +352,8 @@
 				
             </faims>
         </instance>
+        <bind nodeset="/ldd_client/fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker" type="date"/>
+        <bind nodeset="/ldd_client/fieldTrip/fieldTripBasicInfo/fieldTripEndDatePicker" type="date"/>
     </model>
 </h:head>
 
@@ -913,17 +920,30 @@
         </group>
     </group>
     
+     
+
  
        <group ref="fieldTrip" faims_archent_type="FieldTrip">
         <label>{fieldTripBasicInfo}</label>
         <group ref="fieldTripBasicInfo">
             <label>{Session info}</label>
-        <input ref="fieldTripID" faims_attribute_name="FieldTripID" faims_attribute_type="measure" >
+        <input ref="fieldTripID" faims_attribute_name="FieldTripID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
             <label>fieldTrip id</label>
         </input>
-         <input ref="fieldTripName" faims_attribute_name="FieldTripName" faims_attribute_type="measure" >
+         <input ref="fieldTripName" faims_attribute_name="FieldTripName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
             <label>fieldTripName</label>
         </input>
+        <input ref="fieldTripStartDatePicker" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>fieldTrip timestamp</label>
+        </input>
+        <input ref="fieldTripEndDatePicker" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>fieldTrip End timestamp</label>
+        </input>             
+        </group>
+        
+         <group ref="fieldTripBasicInfoHidden" faims_hidden="true">
+            <label>{Session info}</label>
+      
         <input ref="fieldTripStartTimetamp" faims_attribute_name="FieldTripStartTime" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
           <label>fieldTrip timestamp</label>
         </input>

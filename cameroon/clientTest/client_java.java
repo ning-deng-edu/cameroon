@@ -1,5 +1,7 @@
 import java.util.concurrent.Callable;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 /*** 'Editable' - you can edit the code below based on the needs ***/
 User user; // don't touch
 String userid;
@@ -42,6 +44,7 @@ loadAllAnswerQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='AnswerLabel') "+
 		"GROUP BY uuid;";
+
 //loadFilesForAnswer="select uuid, measure from AentValue where AentValue.AttributeID =(select AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerText') and AentValue.uuid in (select uuid from (SELECT uuid FROM AEntValue where AEntValue.AttributeID=(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionID') and AEntValue.freetext='1000011437080460685') t1 inner join (SELECT uuid FROM AEntValue where AEntValue.AttributeID=(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionnaireID') and AEntValue.freetext='1000011437080512135') t2 using(uuid))"
 /***Enable data and file syncing***/
 addActionBarItem("sync", new ToggleActionButtonCallback() {
@@ -1643,6 +1646,7 @@ candidate_files_session=new ArrayList();
 original_files_session=new ArrayList();
 sessionInfoOrigin=new ArrayList();
 sessionInfoNew=new ArrayList();
+
 showSession(){
 	showTabGroup("sessionGroup");
 }
@@ -1658,6 +1662,7 @@ loadSessionList(){
         }
     });
 }
+
 newSession(){
 	session_id=null;
 	selected_files_session.clear();
@@ -1673,11 +1678,11 @@ newSession(){
         	candidate_files_session.addAll(result);
         	String currentTime=getCurrentTime();
             currentDateTimeArray=getCurrentTime().toString().split("\\s+");
-            showWarning("date",currentDateTimeArray[0]);
+            String currentDate=currentDateTimeArray[0];
             populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
             populateList("session/sessionFiles/sessionFileList", selected_files_session);
-            setFieldValue("session/sessionBasicInfo/sessionStartTimetamp",currentTime);           
-            setFieldValue("session/sessionBasicInfo/sessionEndTimestamp",currentDateTimeArray[0]+" 23:59:59");
+            setFieldValue("session/sessionBasicInfo/sessionStartTimetamp",currentDate+" 00:00:00");           
+            setFieldValue("session/sessionBasicInfo/sessionEndTimestamp",currentDate+" 23:59:59");
         }
 
         onError(message) {
@@ -1834,14 +1839,63 @@ saveSession(){
 
 onEvent("control/fileGroup_control/fieldTripGroup","click","showFieldTrip()");
 onEvent("fieldTripGroup/fieldTripInfo/New_FieldTrip","click","startNewFieldTrip()");
+onEvent("fieldTrip/fieldTripSession/Finish_New_FieldTrip","click","saveFieldTrip()");
+
+fieldTrip_id=null;
+selected_session_fieldTrip=new ArrayList();
+candidate_session_fieldTrip=new ArrayList();
+original_session_fieldTrip=new ArrayList();
+fieldTripInfoOrigin=new ArrayList();
+fieldTripInfoNew=new ArrayList();
+
 showFieldTrip(){
 	showTabGroup("fieldTripGroup");
 }
 
 startNewFieldTrip(){
+	fieldTrip_id=null;
+	selected_session_fieldTrip.clear();
+	candidate_session_fieldTrip.clear();
+	original_session_fieldTrip.clear();
+	fieldTripInfoOrigin.clear();
+	fieldTripInfoNew.clear();
+	currentDateTimeArray=new ArrayList();
+	
 	newTabGroup("fieldTrip");
+	
+	fetchAll(loadAllSessionQuery, new FetchCallback() {
+        onFetch(result) {
+        	candidate_session_fieldTrip.addAll(result);
+            populateList("fieldTrip/fieldTripSession/fieldTripFileSelectionList", candidate_session_fieldTrip);
+            populateList("fieldTrip/fieldTripSession/fieldTripFileList", selected_session_fieldTrip);
+            //showWarning("date",getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripStartTimetamp"));
+            //setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripStartTimetamp","11/08/2015");
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+	
 }
 
+saveFieldTrip(){
+	String dateToConvert=getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker");
+	showWarning("dateToConvert",dateToConvert);
+	dateParser(dateToConvert);
+	
+}
+
+dateParser(String sourceDate){
+	//convert dd/mm/yyyy to yyyy-mm-dd
+	String dateRegex="^\\d{2}[/]\\d{2}[/]\\d{4}$";
+	Pattern datePattern=Pattern.compile(dateRegex);
+	Matcher dateMatcher=datePattern.matcher(sourceDate);
+	if (dateMatcher.find()){
+		showWarning("match",sourceDate+"matches");
+	}
+	//convert yyyy-mm-dd to dd/mm/yy
+}
 /*** query ***/
 onEvent("control/querytest/Submit","click","testQuery()");
 
