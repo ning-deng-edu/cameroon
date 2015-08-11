@@ -2,6 +2,9 @@ import java.util.concurrent.Callable;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 /*** 'Editable' - you can edit the code below based on the needs ***/
 User user; // don't touch
 String userid;
@@ -63,7 +66,7 @@ addActionBarItem("sync", new ToggleActionButtonCallback() {
     }
     isActionOff() {
         isSyncEnabled();
-    }
+    } 
     actionOffLabel() {
         "Enable Sync";
     }
@@ -1801,6 +1804,9 @@ saveSession(){
 			return;
 		}
 		else{
+			String startTimeStamp=getFieldValue("session/sessionBasicInfo/sessionStartTimetamp");
+			String endTimeStamp=getFieldValue("session/sessionBasicInfo/sessionEndTimestamp");
+			if(sessionTimeValidation(startTimeStamp,endTimeStamp)){
 			saveTabGroup("session", session_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
 			    	session_id = uuid;
@@ -1816,6 +1822,11 @@ saveSession(){
 			    }  
 			  });
 		}
+			else{
+				showWarning("Invalid timestamp","Start timestamp should before end timestamp or the dates should be the same");
+				return;
+			}
+		}	
 	}
 	else{//change session info
 		sessionInfoNew.add(getFieldValue("session/sessionBasicInfo/sessionID"));
@@ -1838,6 +1849,9 @@ saveSession(){
 			}
 		}
 		else{
+			String startTimeStamp=getFieldValue("session/sessionBasicInfo/sessionStartTimetamp");
+			String endTimeStamp=getFieldValue("session/sessionBasicInfo/sessionEndTimestamp");
+			if(sessionTimeValidation(startTimeStamp,endTimeStamp)){
 			saveTabGroup("session", session_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
 			    	for(sessionFile:selected_files_session){
@@ -1851,6 +1865,39 @@ saveSession(){
 			    }  
 			  });
 		}
+			else{
+				showWarning("Invalid timestamp","Start timestamp should before end timestamp or the dates should be the same");
+				return;
+			}
+		}
+	}
+}
+sessionTimeValidation(String startDateTime, String endDateTime){
+	DateFormat df=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+	try{
+		Date sdt=df.parse(startDateTime);
+		Date edt=df.parse(endDateTime);
+		//showWarning("date sdt",sdt.getTime().toString());
+		//showWarning("date edt",edt.getTime().toString());
+		if(sdt.getTime()>edt.getTime()){
+			//showWarning("date invalid",sdt.getTime().toString());
+			return false;
+		}
+		
+		else{
+			String [] startTime=startDateTime.split("\\s+");
+			String [] endTime=endDateTime.split("\\s+");
+			if(startTime[0].equals(endTime[0])){
+				return true;
+			}
+			else{
+				return false;
+			}
+		}
+	}
+	catch(Exception excption){
+		exception.printStackTrace();
+		return false;
 	}
 }
 /***fieldTrip***/
