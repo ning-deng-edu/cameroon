@@ -1806,7 +1806,7 @@ saveSession(){
 		else{
 			String startTimeStamp=getFieldValue("session/sessionBasicInfo/sessionStartTimetamp");
 			String endTimeStamp=getFieldValue("session/sessionBasicInfo/sessionEndTimestamp");
-			if(sessionTimeValidation(startTimeStamp,endTimeStamp)){
+			if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 			saveTabGroup("session", session_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
 			    	session_id = uuid;
@@ -1851,7 +1851,7 @@ saveSession(){
 		else{
 			String startTimeStamp=getFieldValue("session/sessionBasicInfo/sessionStartTimetamp");
 			String endTimeStamp=getFieldValue("session/sessionBasicInfo/sessionEndTimestamp");
-			if(sessionTimeValidation(startTimeStamp,endTimeStamp)){
+			if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 			saveTabGroup("session", session_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
 			    	for(sessionFile:selected_files_session){
@@ -1872,32 +1872,52 @@ saveSession(){
 		}
 	}
 }
-sessionTimeValidation(String startDateTime, String endDateTime){
-	DateFormat df=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+timeValidation(String startDateTime, String endDateTime, String flag){
+	switch(flag){
+	case ("sessionTime"):
+		DateFormat df=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+		try{
+			Date sdt=df.parse(startDateTime);
+			Date edt=df.parse(endDateTime);
+			if(sdt.getTime()>edt.getTime()){
+				return false;
+			}
+		
+			else{
+				String [] startTime=startDateTime.split("\\s+");
+				String [] endTime=endDateTime.split("\\s+");
+				if(startTime[0].equals(endTime[0])){
+					return true;
+				}
+				else{
+					return false;
+				}
+			}
+		}
+		catch(Exception excption){
+			exception.printStackTrace();
+			return false;
+		}
+		break;
+		
+	case ("fieldTripTime"):
+		DateFormat df=new SimpleDateFormat("yyyy-MM-dd");
 	try{
 		Date sdt=df.parse(startDateTime);
 		Date edt=df.parse(endDateTime);
-		//showWarning("date sdt",sdt.getTime().toString());
-		//showWarning("date edt",edt.getTime().toString());
 		if(sdt.getTime()>edt.getTime()){
-			//showWarning("date invalid",sdt.getTime().toString());
 			return false;
 		}
-		
+	
 		else{
-			String [] startTime=startDateTime.split("\\s+");
-			String [] endTime=endDateTime.split("\\s+");
-			if(startTime[0].equals(endTime[0])){
-				return true;
-			}
-			else{
-				return false;
-			}
+			return true;
 		}
 	}
 	catch(Exception excption){
 		exception.printStackTrace();
 		return false;
+	}
+		break;
 	}
 }
 /***fieldTrip***/
@@ -2043,6 +2063,7 @@ saveFieldTrip(){
 		else{
 			setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp",startDate);
 			setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp",endDate);
+			if(timeValidation(startDate,endDate,"fieldTripTime")){
 			saveTabGroup("fieldTrip", fieldTrip_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
 			    	fieldTrip_id = uuid;
@@ -2057,6 +2078,11 @@ saveFieldTrip(){
 			        showWarning("error",message);
 			    }  
 			  });
+		}
+			else{
+				showWarning("Invalid date","Start date should before end date");
+				return;
+			}
 		}
 	}
 	else{//change session info
@@ -2082,6 +2108,7 @@ saveFieldTrip(){
 		else{
 			setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp",startDate);
 			setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp",endDate);
+			if(timeValidation(startDate,endDate,"fieldTripTime")){
 			saveTabGroup("fieldTrip", fieldTrip_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
 			    	for(session:selected_session_fieldTrip){
@@ -2094,6 +2121,11 @@ saveFieldTrip(){
 			        showWarning("error",message);
 			    }  
 			  });
+		}
+			else{
+				showWarning("Invalid date","Start date should before end date");
+				return;
+			}
 		}
 	}
 }
