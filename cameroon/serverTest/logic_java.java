@@ -23,6 +23,8 @@ loadAllLanguageQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 	"WHERE latestNonDeletedAentValue.AttributeID "+
 	"IN (SELECT AttributeID FROM AttributeKey WHERE AttributeName='LanguageName') "+
 	"GROUP BY uuid;";
+
+loadAllUserQuery="select userid, fname || ' ' || lname from user where userdeleted is null";
 /*Common queries end*/
 
 /***Query instance examples***/
@@ -126,9 +128,10 @@ saveEntitiesToRel(String type, String entity1, String entity2) {
 
 /*** USER ***/
 onEvent("user/usertab/users", "click", "login()");
+onEvent("user/usertab/user_Search", "click", "userSearch()");
 
 loadUsers() {
-    fetchAll("select userid, fname || ' ' || lname from user where userdeleted is null", new FetchCallback() {
+    fetchAll(loadAllUserQuery, new FetchCallback() {
         onFetch(result) {
             populateList("user/usertab/users", result);
         }
@@ -150,7 +153,25 @@ login() {
         }
     });
 }
-
+userSearch(){
+	String userKeyword=getFieldValue("user/usertab/user_keyword");
+	if((isNull(userKeyword)) || userKeyword.equals("*")){
+		 fetchAll(loadAllUserQuery, new FetchCallback() {
+		        onFetch(result) {
+		            populateList("user/usertab/users", result);
+		        }
+		    });
+	}
+	else{
+		searchUserQuery="select userid, fname || ' ' || lname from user where userdeleted is null and fname like '%"
+						+userKeyword+"%'or lname like '%"+userKeyword+"%'";
+		fetchAll(searchUserQuery, new FetchCallback() {
+	        onFetch(result) {
+	            populateList("user/usertab/users", result);
+	        }
+	    });
+	}
+}
 /***Questionnaire***/
 
 onEvent("control/questionnaire_control/New_Questionnaire","click","newQuestionnaire()");

@@ -20,6 +20,14 @@
           </style>
           <user>
             <usertab>
+                <container6>
+                           <child1>
+                            	<user_keyword/>
+                            </child1>
+                            <child2>
+                            	<user_Search/>
+                            </child2>
+                    	</container6>
               <users/>
               <login/>
             </usertab>
@@ -107,14 +115,14 @@
                 
                <questionBank>
                    <questionInforHidden>       
-                    <container3>
+                    <container5>
                       <child1>
                     <questionType/>
                     </child1>
                       <child2>
                     <questionChoice/>
                     </child2>
-                    </container3>
+                    </container5>
                    </questionInforHidden>
                    
                   <questionInfo>
@@ -194,7 +202,26 @@
       <label>{User_List}</label>
       <group ref="usertab">
         <label>User List</label>
-        <select1 appearance="compact" ref="users" faims_style_class="user-list">
+         
+         <group ref="container6" faims_style="orientation">
+        
+          <label></label>
+          <group ref="child1" faims_style="even">
+            <label></label>
+             <input ref="user_keyword">
+            	<label>user name</label>
+            </input>
+        </group>
+       <group ref="child2" faims_style="even">
+            <label></label>
+             <trigger ref="user_Search" faims_style_class="faims-blue">
+                <label>Search</label>
+            </trigger>
+          </group>
+        
+        </group>
+        
+        <select1 appearance="compact" ref="users" faims_style_class="user_list">
           <label>{Users}:</label>
           <item>
             <label>placeholder</label>
@@ -248,7 +275,7 @@
                 <label>New Person</label>
             </trigger>
 
-            <select1 appearance="compact" ref="userList" faims_style_class="user_list">
+            <select1 appearance="compact" ref="userList" faims_style_class="user-list">
                 <label>{Tap person id to view details}</label>
                 <item>
                     <label>placeholder</label>
@@ -439,7 +466,7 @@
  
         <group ref="questionInforHidden" faims_hidden="true">
             <label></label>
-            <group ref="container3" faims_style="orientation">
+            <group ref="container5" faims_style="orientation">
           
            <label></label>
           <group ref="child1" faims_style="even">
