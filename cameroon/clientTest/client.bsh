@@ -1823,7 +1823,10 @@ saveSession(){
 			  });
 		}
 			else{
-				showWarning("Invalid timestamp","Start timestamp should before end timestamp or the dates should be the same");
+				showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
+			+"2.Datetime input should be valid \n"+
+						"3.Start timestamp should be before end timestamp \n"+
+									"4.Two dates should be the same");
 				return;
 			}
 		}	
@@ -1866,7 +1869,10 @@ saveSession(){
 			  });
 		}
 			else{
-				showWarning("Invalid timestamp","Start timestamp should before end timestamp or the dates should be the same");
+				showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
+						+"2.Datetime input should be valid \n"+
+									"3.Start timestamp should be before end timestamp \n"+
+												"4.Two dates should be the same");
 				return;
 			}
 		}
@@ -1875,13 +1881,15 @@ saveSession(){
 timeValidation(String startDateTime, String endDateTime, String flag){
 	switch(flag){
 	case ("sessionTime"):
-		DateFormat df=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+		DateFormat df=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		df.setLenient(false);
 		try{
+			
 			Date sdt=df.parse(startDateTime);
-			Date edt=df.parse(endDateTime);
+			Date edt=df.parse(endDateTime);	
 			if(sdt.getTime()>edt.getTime()){
-				return false;
-			}
+					return false;}
+			
 		
 			else{
 				String [] startTime=startDateTime.split("\\s+");
@@ -1895,7 +1903,8 @@ timeValidation(String startDateTime, String endDateTime, String flag){
 			}
 		}
 		catch(Exception excption){
-			exception.printStackTrace();
+			//String message = getStackTrace(excption);
+			//exception.printStackTrace();
 			return false;
 		}
 		break;
@@ -1914,7 +1923,7 @@ timeValidation(String startDateTime, String endDateTime, String flag){
 		}
 	}
 	catch(Exception excption){
-		exception.printStackTrace();
+		//exception.printStackTrace();
 		return false;
 	}
 		break;
