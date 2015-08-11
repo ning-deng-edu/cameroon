@@ -53,6 +53,8 @@ loadAllAnswerQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='AnswerLabel') "+
 		"GROUP BY uuid;";
 
+loadAllUserQuery="select userid, fname || ' ' || lname from user where userdeleted is null";
+
 //loadFilesForAnswer="select uuid, measure from AentValue where AentValue.AttributeID =(select AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerText') and AentValue.uuid in (select uuid from (SELECT uuid FROM AEntValue where AEntValue.AttributeID=(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionID') and AEntValue.freetext='1000011437080460685') t1 inner join (SELECT uuid FROM AEntValue where AEntValue.AttributeID=(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionnaireID') and AEntValue.freetext='1000011437080512135') t2 using(uuid))"
 /***Enable data and file syncing***/
 addActionBarItem("sync", new ToggleActionButtonCallback() {
@@ -134,9 +136,9 @@ saveThreeEntitiesToRel(String type, String entity1, String entity2, String entit
 */
 /***User***/
 onEvent("user/usertab/users", "click", "login()");
-
+onEvent("user/usertab/user_Search", "click", "userSearch()");
 loadUsers() {
-    fetchAll("select userid, fname || ' ' || lname from user where userdeleted is null", new FetchCallback() {
+    fetchAll(loadAllUserQuery, new FetchCallback() {
         onFetch(result) {
             populateList("user/usertab/users", result);
         }
@@ -157,6 +159,25 @@ login() {
             showTabGroup("control");
         }
     });
+}
+userSearch(){
+	String userKeyword=getFieldValue("user/usertab/user_keyword");
+	if((isNull(userKeyword)) || userKeyword.equals("*")){
+		 fetchAll(loadAllUserQuery, new FetchCallback() {
+		        onFetch(result) {
+		            populateList("user/usertab/users", result);
+		        }
+		    });
+	}
+	else{
+		searchUserQuery="select userid, fname || ' ' || lname from user where userdeleted is null and fname like '%"
+						+userKeyword+"%'or lname like '%"+userKeyword+"%'";
+		fetchAll(searchUserQuery, new FetchCallback() {
+	        onFetch(result) {
+	            populateList("user/usertab/users", result);
+	        }
+	    });
+	}
 }
 /***Survey Control***/
 onEvent("control/survey_control/New_Survey","click","showQuestionnaireList()");

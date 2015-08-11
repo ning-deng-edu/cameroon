@@ -26,6 +26,14 @@
       
                 <user>
                     <usertab>
+                         <container12>
+                            <child1>
+                            	<user_keyword/>
+                            </child1>
+                            <child2>
+                            	<user_Search/>
+                            </child2>
+                    	</container12>
                         <users/>
                         <login/>
                     </usertab>
@@ -380,11 +388,29 @@
         </input>
       </group>
     </group>
-    
+   
      <group ref="user">
       <label>User List</label>
       <group ref="usertab">
         <label>User List</label>
+         <group ref="container12" faims_style="orientation">
+        
+          <label></label>
+          <group ref="child1" faims_style="even">
+            <label></label>
+             <input ref="user_keyword">
+            	<label>user name</label>
+            </input>
+        </group>
+       <group ref="child2" faims_style="even">
+            <label></label>
+             <trigger ref="user_Search" faims_style_class="faims-blue">
+                <label>Search</label>
+            </trigger>
+          </group>
+        
+        </group>
+        
         <select1 appearance="compact" ref="users" faims_style_class="user-list">
           <label>Users:</label>
           <item>
