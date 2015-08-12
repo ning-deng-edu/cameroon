@@ -181,6 +181,7 @@ userSearch(){
 }
 /***Survey Control***/
 onEvent("control/survey_control/New_Survey","click","showQuestionnaireList()");
+
 onEvent("control/survey_control","show","loadExistSurvey()");
 onEvent("control/survey_control/surveyList","click","loadAnswersForQuestionnaire(\"New\")");
 answer_id=null;//new answer_id
@@ -224,6 +225,7 @@ loadAllQuesnir(){
 				if (!isNull(result)) {
 					//questionnaire_list.addAll(result);
 					populateList("questionnaireListAll/questionnaireListInfo/questionnaireListInDB", result);	
+					setFieldValue("questionnaireListAll/questionnaireListInfo/quesnir_keyword","*");
 				}	
 				else{
 			    	showWarning("No questionnaire","No questionnaire is available, please contact the admin");
@@ -652,6 +654,7 @@ startNewAnswer(){
 	setFieldValue("survey/answerHidden/answerQuestionID", current_question_id);
 	setFieldValue("survey/answerHidden/answerChoice", "N/A");
 	setFieldValue("survey/answerBasic/answerStartTimestamp", current_start_time);
+	setFieldValue("survey/answerBasic/answerEndTimestamp", "placeholder");
 	setFieldValue("survey/answerBasic/answerLabel", "Ans-"+username+"-"+current_start_time);
 	populateList("survey/answerFile/answerFileList",files_in_current_ques);
 	populateDropDown("survey/answerFile/file_Category",categoryTypes);
@@ -1739,6 +1742,7 @@ newSession(){
             populateList("session/sessionFiles/sessionFileList", selected_files_session);
             setFieldValue("session/sessionBasicInfo/sessionStartTimetamp",currentDate+" 00:00:00");           
             setFieldValue("session/sessionBasicInfo/sessionEndTimestamp",currentDate+" 23:59:59");
+            setFieldValue("session/sessionBasicInfo/sessionID","sss-"+username+"-"+currentTime);
         }
 
         onError(message) {
@@ -2231,6 +2235,8 @@ onEvent("control/user_control/Person_Search","click","entitySearch(\"person\",\"
 onEvent("control/language_control/Language_Search","click","entitySearch(\"language\",\"control/language_control/language_keyword\",\"control/language_control/languageList\",null)");
 onEvent("control/file_control/File_Search","click","entitySearch(\"file\",\"control/file_control/file_keyword\",\"control/file_control/fileList\",\"control/file_control/fileCategorySelect\")");
 onEvent("sessionGroup/sessionInfo/Session_Search","click","entitySearch(\"session\",\"sessionGroup/sessionInfo/session_Name\",\"sessionGroup/sessionInfo/sessionList\",null)");
+onEvent("questionnaireListAll/questionnaireListInfo/quesnir_Search","click","entitySearch(\"questionnaire\",\"questionnaireListAll/questionnaireListInfo/quesnir_keyword\",\"questionnaireListAll/questionnaireListInfo/questionnaireListInDB\",null)");
+
 entitySearch(String entityNameRef, String keywordRef, String listRef, String fileTypeRef){
 	String entityName= entityNameRef;
 	String keywordOfEntity= getFieldValue(keywordRef).trim();
@@ -2292,6 +2298,23 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 						}
 					}  
 			});
+			break;
+			
+		case "questionnaire":
+			fetchAll(loadAllQuestionnaireQuery,
+					new FetchCallback() {
+			        	onFetch(result) {
+							if (!isNull(result)) {
+								populateList(listRef, result);}	
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+			       	 }
+
+			        	onError(message) {
+			            	showToast(message);
+			        	}
+			    	});
 			break;
 			
 		case "file":
@@ -2475,7 +2498,22 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 					}  
 			});
 			break;
-			
+		case "questionnaire":
+			searchQuesnirQuery="select uuid, measure from latestNonDeletedAentValue where " +
+					"latestNonDeletedAentValue.Measure like '%"+ keywordOfEntity +
+					"%' and latestNonDeletedAentValue.AttributeID = "+
+					"(select AttributeID from AttributeKey where AttributeName='QuestionnaireName')";
+			fetchAll(searchQuesnirQuery,
+					new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+							populateList(listRef, result);}
+						else{
+							showWarning("No result","No record matches the keyword");
+						}
+					}  
+			});
+			break;
 		case "file":
 			String fileType=getFieldValue(fileTypeRef);
 			switch (fileType){

@@ -109,6 +109,14 @@
                 
                 <questionnaireListAll>
                    <questionnaireListInfo>
+                       <container13>
+                            <child1>
+                            	<quesnir_keyword/>
+                            </child1>
+                            <child2>
+                            	<quesnir_Search/>
+                            </child2>
+                    	</container13>
                        <questionnaireListInDB/>
                    </questionnaireListInfo> 
                 </questionnaireListAll>
@@ -399,7 +407,7 @@
           <group ref="child1" faims_style="even">
             <label></label>
              <input ref="user_keyword">
-            	<label>user name</label>
+            	<label>User name</label>
             </input>
         </group>
        <group ref="child2" faims_style="even">
@@ -427,7 +435,7 @@
         
         
         <group ref="survey_control">
-            <label>{Survey}</label>
+            <label>Survey</label>
             <!--No input here-->
             <trigger ref="New_Survey" faims_style_class="faims-blue">
                 <label>New Survey</label>
@@ -464,7 +472,7 @@
         </group>
         
         <group ref="fileGroup_control">
-            <label>{File group}</label>
+            <label>File group</label>
              <trigger ref="sessionGroup" faims_style_class="faims-blue">
                 <label>Session</label>
             </trigger>
@@ -477,7 +485,7 @@
         
         
         <group ref="user_control">
-            <label>{User}</label>
+            <label>Person</label>
             <trigger ref="New_User" faims_style_class="faims-blue">
                 <label>New Person</label>
             </trigger>
@@ -487,7 +495,7 @@
           <group ref="child1" faims_style="even">
             <label></label>
              <input ref="person_keyword">
-            	<label>person keyword</label>
+            	<label>name keyword</label>
             </input>
          
           </group>
@@ -545,7 +553,7 @@
         </group>
         
         <group ref="file_control">
-            <label>{File}</label>
+            <label>File</label>
  
           <select1 ref="fileCategorySelect">
             <label>File Category:</label>
@@ -585,7 +593,7 @@
             </select1>
         </group>
         
-        <group ref="querytest">
+        <group ref="querytest" faims_hidden="true">
         <label>{query}</label>
         
             <input ref="query" faims_attribute_type="freetext" faims_certainty="false" faims_annotation="false">
@@ -599,11 +607,27 @@
         </group>
     </group>
     
-                
     <group ref="questionnaireListAll" >
           <label>Questionnaire list</label>
            <group ref="questionnaireListInfo">
             <label>Questionnaire list</label>
+             <group ref="container13" faims_style="orientation">
+        
+          <label></label>
+          <group ref="child1" faims_style="even">
+            <label></label>
+             <input ref="quesnir_keyword">
+            	<label>questionnaire keyword</label>
+            </input>
+         
+          </group>
+       <group ref="child2" faims_style="even">
+            <label></label>
+             <trigger ref="quesnir_Search" faims_style_class="faims-blue">
+                <label>Search</label>
+            </trigger>
+          </group>
+        </group>
             <select1 appearance="compact" ref="questionnaireListInDB" faims_style_class="questionnaire-list">
                 <label>Questionnaire list</label>
                 <item>
@@ -616,19 +640,19 @@
     
     
     <group ref="questionnaireInfo" faims_archent_type="Questionnaire">
-          <label>questionnaire info</label>
+          <label>Questionnaire info</label>
          	
          <group ref="surveyQuestionnaire">
-            <label>questionnaire info</label>
-            <input ref="surveyQuestionnaireID" faims_attribute_name="QuestionnaireID" faims_attribute_type="measure" faims_read_only="true">
+            <label>Questionnaire info</label>
+            <input ref="surveyQuestionnaireID" faims_attribute_name="QuestionnaireID" faims_attribute_type="measure" faims_read_only="true" faims_certainty="false" faims_annotation="false">
             	<label>Current questionnaire id</label>
             </input>
             
-             <input ref="surveyQuestionnaireName" faims_attribute_name="QuestionnaireName" faims_attribute_type="measure" faims_read_only="true">
+             <input ref="surveyQuestionnaireName" faims_attribute_name="QuestionnaireName" faims_attribute_type="measure" faims_read_only="true" faims_certainty="false" faims_annotation="false">
             	<label>Current questionnaire name</label>
             </input>
             
-             <input ref="surveyQuestionnaireDescription" faims_attribute_name="QuestionnaireDescription" faims_attribute_type="measure" faims_read_only="true">
+             <input ref="surveyQuestionnaireDescription" faims_attribute_name="QuestionnaireDescription" faims_attribute_type="measure" faims_read_only="true" faims_certainty="false" faims_annotation="false">
             	<label>Current questionnaire description</label>
             </input>
             
@@ -645,7 +669,7 @@
  
                 
      <group ref="answerToQuestionnaire">
-          <label>answerToQuestionnaire</label>
+          <label>AnswerToQuestionnaire</label>
          	
         <group ref="answerListQuesnirHidden" faims_hidden="true">
             <label>answerQuesnirHiddenInfo</label>
@@ -656,7 +680,7 @@
             
             
              <group ref="answerQuesnirInfo">
-            <label>answerQuesnirInfo</label>
+            <label>AnswerQuesnirInfo</label>
             
              <input ref="answerListQuesnirName" faims_read_only="true">
             	<label>Current questionnaire name</label>
@@ -697,7 +721,7 @@
     
     
       <group ref="answerToQuestion">
-          <label>answerToQuestion</label>
+          <label>AnswerToQuestion</label>
          	
           <group ref="answerInfoHidden" faims_hidden="true">
               <label></label>     
@@ -713,7 +737,7 @@
           
           
          <group ref="answerInfo">
-            <label>answerInfo</label>           
+            <label>AnswerInfo</label>           
             
              <input ref="answerListQuestionnaireName" faims_read_only="true">
             	<label>Current questionnaire name</label>
@@ -738,7 +762,7 @@
       </group>
       
      <group ref="survey" faims_archent_type="AnswerToQuestionnaire">
-        <label>{Survey-Answer}</label>
+        <label>Survey-Answer</label>
         
         
         <group ref="answerHidden" faims_hidden="true">
@@ -757,15 +781,15 @@
         </group>
         
         <group ref="answerBasic">
-            <label>Answer Basic</label>
+            <label>Answer Basic Info</label>
             
            
             
             <input ref="answerLabel" faims_attribute_name="AnswerLabel" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
-          		<label>Answer id</label>
+          		<label>Answer label</label>
         	</input>
         	
-            <input ref="answerText" faims_attribute_name="AnswerText" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+            <input ref="answerText" faims_attribute_name="AnswerText" faims_attribute_type="measure" faims_certainty="false">
           		<label>Answer text</label>
         	</input>
         	
@@ -797,14 +821,14 @@
        <group ref="child2" faims_style="even">
             <label></label>
                <input ref="keywordOfPerson" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-                <label>Enter keyword here</label>
+                <label>Name keyword</label>
             </input>
           </group>
         
         </group>
         
        <trigger ref="Search_Person" faims_style_class="faims-blue">
-                <label>Search Person</label>
+                <label>Search</label>
         	</trigger>
         	
             <group ref="container2" faims_style="orientation">
@@ -867,7 +891,7 @@
                 <label>Save Answer</label>
        		 </trigger>
     	
-           <select1 ref="file_Category">
+           <select1 ref="file_Category" faims_certainty="false" faims_annotation="false">
             <label>Category List:</label>
             	<item>
                 	<label>placeholder</label>
@@ -893,9 +917,9 @@
      
                 
      <group ref="session" faims_archent_type="Session">
-        <label>{Session}</label>
+        <label>Session</label>
         <group ref="sessionBasicInfo">
-            <label>{Session info}</label>
+            <label>Session info</label>
         <input ref="sessionID" faims_attribute_name="SessionID" faims_attribute_type="measure" faims_certainty="false">
             <label>Session id</label>
         </input>
@@ -912,7 +936,7 @@
         
         
         <group ref="sessionFiles">
-             <label>{Session files}</label>
+             <label>Session files</label>
               <group ref="container4" faims_style="orientation">
          		<label></label>
           		<group ref="child1" faims_style="even">
@@ -950,25 +974,25 @@
 
  
        <group ref="fieldTrip" faims_archent_type="FieldTrip">
-        <label>{fieldTripBasicInfo}</label>
+        <label>FieldtripBasicInfo</label>
         <group ref="fieldTripBasicInfo">
-            <label>{Session info}</label>
+            <label>Fieldtrip info</label>
         <input ref="fieldTripID" faims_attribute_name="FieldTripID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-            <label>fieldTrip id</label>
+            <label>Fieldtrip id</label>
         </input>
          <input ref="fieldTripName" faims_attribute_name="FieldTripName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-            <label>fieldTripName</label>
+            <label>FieldtripName</label>
         </input>
         <input ref="fieldTripStartDatePicker" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-          <label>fieldTrip timestamp</label>
+          <label>Start timestamp</label>
         </input>
         <input ref="fieldTripEndDatePicker" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-          <label>fieldTrip End timestamp</label>
+          <label>End timestamp</label>
         </input>             
         </group>
         
          <group ref="fieldTripBasicInfoHidden" faims_hidden="true">
-            <label>{Session info}</label>
+            <label>fieldtrip info</label>
       
         <input ref="fieldTripStartTimetamp" faims_attribute_name="FieldTripStartTime" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
           <label>fieldTrip timestamp</label>
@@ -980,13 +1004,13 @@
         
         
         <group ref="fieldTripSession">
-             <label>{fieldTrip files}</label>
+             <label>FieldTrip session</label>
               <group ref="container11" faims_style="orientation">
          		<label></label>
           		<group ref="child1" faims_style="even">
             		<label></label>
             		 <select1 appearance="compact" ref="fieldTripFileList" faims_annotation="false" faims_certainty="false" faims_style_class="session-file-list">
-                		<label>Files</label>
+                		<label>Sessions</label>
                 		<item>
                     		<label>placeholder</label>
                     		<value>placeholder</value>
@@ -997,7 +1021,7 @@
             	 <group ref="child2" faims_style="even">
             	   <label></label>
                	   <select1 appearance="compact" ref="fieldTripFileSelectionList" faims_certainty="false" faims_annotation="false" faims_style_class="session-file-list">
-          				<label>Select file</label>
+          				<label>Select session</label>
           				<item>
                     		<label>placeholder</label>
                     		<value>placeholder</value>
@@ -1016,9 +1040,9 @@
      
      
      <group ref="audioFile" faims_archent_type="File">
-        <label>{Audio File}</label>
+        <label>Audio File</label>
         <group ref="audioFileInfo">
-            <label>{audioFileInfo}</label>
+            <label>Audio file info</label>
         <input ref="audioFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
           <label>Audio file id</label>
         </input>
@@ -1055,9 +1079,9 @@
     
     
      <group ref="videoFile" faims_archent_type="File">
-        <label>{videoFile}</label>
+        <label>videoFile</label>
         <group ref="videoFileInfo">
-          <label>{videoFileInfo}</label>
+          <label>Video file info</label>
         <input ref="videoFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
           <label>Video file id}</label>
         </input>
@@ -1084,7 +1108,7 @@
         </trigger>
         
         <input ref="videoFilePath" faims_attribute_name="FilePath" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
-          <label>Video file path}</label>
+          <label>Video file path</label>
         </input>
          <trigger ref="Save_New_Video" faims_style_class="faims-blue">
                 <label>Save file</label>
@@ -1093,11 +1117,11 @@
     </group>           
       
       <group ref="photoFile" faims_archent_type="File">
-        <label>{photoFile}</label>
+        <label>photoFile</label>
         <group ref="photoFileInfo">
-          <label>{photoFileInfo}</label>
+          <label>Photo file info</label>
         <input ref="photoFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
-          <label>Photo file id}</label>
+          <label>Photo file id</label>
         </input>
         <input ref="photoFileName" faims_attribute_name="FileName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
           <label>Photo file name</label>
@@ -1132,9 +1156,9 @@
      
     
     <group ref="sketchFile" faims_archent_type="File">
-        <label>{sketchFile}</label>
+        <label>sketchFile</label>
         <group ref="sketchFileInfo">
-            <label>{sketchFileInfo}</label>
+            <label>Sketch file info</label>
         <input ref="sketchFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
           <label>Sketch file id</label>
         </input>
@@ -1173,8 +1197,8 @@
     <group ref="person" faims_archent_type="Person">
         <label>Person</label>
         <group ref="personInfo">
-          <label>{Person Information}</label>
-           <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
+          <label>Person info</label>
+           <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
               <label>Person id</label>
             </input>
             <input ref="personName" faims_attribute_name="PersonName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
@@ -1204,7 +1228,7 @@
      <group ref="language" faims_archent_type="Language">
         <label>Language</label>
         <group ref="languageInfo">
-          <label>{Language Information}</label>
+          <label>Language Info</label>
             <input ref="languageID" faims_attribute_name="LanguageID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
               <label>Language id</label>
             </input>
@@ -1221,9 +1245,9 @@
     </group>
     
       <group ref="sessionGroup">   
-           <label>{Session}</label> 
+           <label>Session</label> 
       <group ref="sessionInfo">
-            <label>{Session}</label>
+            <label>Session</label>
              <trigger ref="New_Session" faims_style_class="faims-blue">
                 <label>New Session</label>
             </trigger>
@@ -1233,14 +1257,14 @@
               	<group ref="child1" faims_style="even">
             	<label></label>
             		<input ref="session_Name">
-            		    <label>{keyword of session}</label>
+            		    <label>keyword of session</label>
             		</input>
             	</group>
             	
               	<group ref="child2" faims_style="even">
             	<label></label>
             		<trigger ref="Session_Search" faims_style_class="faims-blue">
-            		    <label>{Search Session}</label>
+            		    <label>Search</label>
             		 </trigger>
             		
             	</group>
@@ -1258,11 +1282,11 @@
     </group>  
     
      <group ref="fieldTripGroup">   
-           <label>{FieldTrip}</label> 
+           <label>FieldTrip</label> 
       <group ref="fieldTripInfo">
-            <label>{FieldTrip}</label>
+            <label>Fieldtrip</label>
              <trigger ref="New_FieldTrip" faims_style_class="faims-blue">
-                <label>New FieldTrip</label>
+                <label>New Fieldtrip</label>
             </trigger>
             
              <group ref="container1" faims_style="orientation">
@@ -1270,14 +1294,14 @@
               	<group ref="child1" faims_style="even">
             	<label></label>
             		<input ref="fieldTrip_Name">
-            		    <label>{keyword of fieldTrip}</label>
+            		    <label>keyword of fieldtrip</label>
             		</input>
             	</group>
             	
               	<group ref="child2" faims_style="even">
             	<label></label>
             		<trigger ref="fieldTrip_Search" faims_style_class="faims-blue">
-            		    <label>{Search FieldTrip}</label>
+            		    <label>Search</label>
             		 </trigger>
             		
             	</group>
