@@ -185,6 +185,7 @@ onEvent("questionnaire_question/questionnaire_question_info/New_Question","click
 onEvent("questionnaire_question/questionnaire_question_info/Finish_Questionnaire_Creation","click","finishCreateQuestionnaire()");
 onEvent("questionnaire_question/questionnaire_question_info/Change_Questionnaire","click","finishChangeQuestionnaire()");
 onEvent("questionnaire_question/questionnaire_question_info/Search_Question","click","searchQuestion()");
+onEvent("questionnaire", "show", "showTab(\"questionnaire/questionnaire_info\");");
 
 finished_questionnaire_id=null;//flag for marking if any questionnaire is selected
 questionCandidates=new ArrayList();//original questions to be selected in questionnaire
@@ -197,8 +198,14 @@ questionnaireInfoNew=new ArrayList();//Comparing whether or not the questionnair
 //starting point of creating new questionnaire 
 newQuestionnaire(){	
     newTabGroup("questionnaire");
-    onEvent("questionnaire", "show", "showTab(\"questionnaire/questionnaire_info\");");
+    questionCandidates.clear();
+    questionCandidatesContent.clear();
+    questionSelected.clear();
+    questionOriginal.clear();
+    questionnaireInfoOriginal.clear();
+    questionnaireInfoNew.clear();
 	finished_questionnaire_id=null;
+	setFieldValue("questionnaire/questionnaire_info/questionnaireID","Quesnir-"+username+"-"+getCurrentTime());
 	//flag_return_questionnaire=false;
 }
 
@@ -265,7 +272,7 @@ startQuestionSelection(){
 			questionnaireInfoNew.add(getFieldValue("questionnaire/questionnaire_info/questionnaireDescription"));
             showTabGroup("questionnaire_question");
             //cancelTab(\"questionnaire/questionnaire_info\", false);
-            setFieldValue("questionnaire_question/questionnaire_question_info/questionnaireID", questionnaire_id);
+            //setFieldValue("questionnaire_question/questionnaire_question_info/questionnaireID", questionnaire_id);
             setFieldValue("questionnaire_question/questionnaire_question_info/questionnaireName", questionnaire_name);
 			/*if(!isNull(finished_questionnaire_id)){
 				flag_return_questionnaire=true;
@@ -834,7 +841,7 @@ initialQuestionCreation(){
 	candidateLanguageList.clear();
 	//setFieldValue("questionBank/questionInfo/keywordInput", "*");
 	if(isNull(question_id)){
-		String autoQuestionId=username+getCurrentTime();
+		String autoQuestionId="Ques-"+username+"-"+getCurrentTime();
 		setFieldValue("questionBank/questionInfo/questionID", autoQuestionId);
 		setFieldValue("questionBank/questionInforHidden/questionType", "N/A");
 		setFieldValue("questionBank/questionInforHidden/questionChoice", "N/A");
@@ -1067,8 +1074,9 @@ saveNewPerson(){
 		showWarning("Validation Error", "You must fill in the Person Name before you can continue");
         return;
 	}
-	setFieldValue("person/personInfo/personID", getFieldValue("person/personInfo/personName")+getCurrentTime());
-	
+	if(isNull(getFieldValue("person/personInfo/personID"))){
+		setFieldValue("person/personInfo/personID", getFieldValue("person/personInfo/personName")+getCurrentTime());
+	}
 	saveTabGroup("person", person_id, null, null, new SaveCallback() {
     onSave(uuid, newRecord) {
       person_id = uuid;

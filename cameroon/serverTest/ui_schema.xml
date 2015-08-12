@@ -6,7 +6,7 @@
     <!--model lists user interface tabgroups, tabs and content of tabs-->
     <model>
       <instance>
-        <faims id="Linguistics Admin">
+        <faims id="Linguistics_Admin">
           <style>
             <orientation>
               <orientation/>
@@ -78,7 +78,7 @@
                 
                 <questionnaire_question>
                   <questionnaire_question_info>
-                        <questionnaireID/>
+                       
                         <questionnaireName/>
                         <container1>
                           <child1>
@@ -166,14 +166,8 @@
                   </languageInfo>
                 </language>
                 
-                
-                
         </faims>
       </instance>
-      <bind nodeset="faims/questionnaire/questionnaire_info/questionnaireName" type="freetext"/>
-      <bind nodeset="faims/questionnaire/questionnaire_info/questionnaireDescription" type="freetext"/>
-      <bind nodeset="faims/person/personInfo/personName" type="freetext"/>
-      <bind nodeset="faims/person/personInfo/personOtherNames" type="freetext"/>
     </model>
   </h:head>
   <h:body>
@@ -348,12 +342,12 @@
         <label>Questionnaire</label>
         
         <group ref="questionnaire_info">
-          <label>Questionnaire Information</label>
+          <label>Questionnaire Basic Data</label>
           <input ref="questionnaireID" faims_attribute_name="QuestionnaireID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="false" faims_style_class="required">
-            <label>{Questionnaire ID}</label>
+            <label>{Questionnaire Label}</label>
           </input>
           
-          <input ref="questionnaireName" faims_attribute_name="QuestionnaireName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <input ref="questionnaireName" faims_attribute_name="QuestionnaireName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
             <label>{Questionnaire Name}</label>
           </input>
           
@@ -373,12 +367,10 @@
      <group ref="questionnaire_question">
         <label>Questionnaire</label>
         
-        <group ref="questionnaire_question_info">
+        
+        <group ref="questionnaire_question_info" faims_scrollable="false">
           <label>{Questionnaire Question Selction}</label>
-          <input ref="questionnaireID" faims_read_only="true">
-            <label>{Current Questionnaire ID}</label>
-          </input>
-          
+         
           <input ref="questionnaireName" faims_read_only="true">
             <label>{Current Questionnaire Name}</label>
           </input>
@@ -487,10 +479,10 @@
         
         <group ref="questionInfo">
           <label>{Question Information}</label>
-          <input ref="questionID" faims_attribute_name="QuestionID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <input ref="questionID" faims_attribute_name="QuestionID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
           <label>{Question ID}</label>
         </input>
-        <input ref="questionContent" faims_attribute_name="QuestionContent" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+        <input ref="questionContent" faims_attribute_name="QuestionContent" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
           <label>{Question Content}</label>
         </input>
         
@@ -548,10 +540,10 @@
         <label>Person</label>
         <group ref="personInfo">
           <label>{Person Information}</label>
-           <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+           <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" >
               <label>{Person ID}</label>
             </input>
-            <input ref="personName" faims_attribute_name="PersonName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+            <input ref="personName" faims_attribute_name="PersonName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
               <label>{Person Name}</label>
             </input>
             <input ref="personOtherNames" faims_attribute_name="PersonOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
@@ -580,10 +572,10 @@
         <label>Language</label>
         <group ref="languageInfo">
           <label>{Language Information}</label>
-            <input ref="languageID" faims_attribute_name="LanguageID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+            <input ref="languageID" faims_attribute_name="LanguageID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
               <label>{Language ID}</label>
             </input>
-            <input ref="languageName" faims_attribute_name="LanguageName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+            <input ref="languageName" faims_attribute_name="LanguageName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
               <label>{Language Name}</label>
             </input>
             <input ref="languageOtherNames" faims_attribute_name="LanguageOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
