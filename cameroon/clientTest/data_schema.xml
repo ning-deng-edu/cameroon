@@ -108,7 +108,7 @@
         <property name="AnswerQuestionnaireID" isIdentifier="true" type="freetext"></property>
         <property name="AnswerQuestionID" isIdentifier="true" type="freetext"></property>
         <property name="AnswerChoice" type="freetext"></property>
-        <property name="AnswerLabel" type="freetext"></property>
+        <property name="AnswerLabel" isIdentifier="true" type="freetext"></property>
         <property name="AnswerText" type="freetext"></property>
         <property name="AnswerFile" type="freetext"></property>
         <property name="AnswerInterviewerID" type="freetext"></property>

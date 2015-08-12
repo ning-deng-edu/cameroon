@@ -761,7 +761,7 @@
             
            
             
-            <input ref="answerLabel" faims_attribute_name="AnswerLabel" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+            <input ref="answerLabel" faims_attribute_name="AnswerLabel" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
           		<label>Answer id</label>
         	</input>
         	
@@ -896,10 +896,10 @@
         <label>{Session}</label>
         <group ref="sessionBasicInfo">
             <label>{Session info}</label>
-        <input ref="sessionID" faims_attribute_name="SessionID" faims_attribute_type="measure" >
+        <input ref="sessionID" faims_attribute_name="SessionID" faims_attribute_type="measure" faims_certainty="false">
             <label>Session id</label>
         </input>
-         <input ref="sessionName" faims_attribute_name="SessionName" faims_attribute_type="measure" >
+         <input ref="sessionName" faims_attribute_name="SessionName" faims_attribute_type="measure" faims_certainty="false">
             <label>Session name</label>
         </input>
         <input ref="sessionStartTimetamp" faims_attribute_name="SessionStartTimestamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
@@ -1019,10 +1019,10 @@
         <label>{Audio File}</label>
         <group ref="audioFileInfo">
             <label>{audioFileInfo}</label>
-        <input ref="audioFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+        <input ref="audioFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
           <label>Audio file id</label>
         </input>
-        <input ref="audioFileName" faims_attribute_name="FileName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+        <input ref="audioFileName" faims_attribute_name="FileName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
           <label>Audio file name</label>
         </input>
         <input ref="audioFileType" faims_attribute_name="FileType" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
@@ -1058,10 +1058,10 @@
         <label>{videoFile}</label>
         <group ref="videoFileInfo">
           <label>{videoFileInfo}</label>
-        <input ref="videoFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+        <input ref="videoFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
           <label>Video file id}</label>
         </input>
-        <input ref="videoFileName" faims_attribute_name="FileName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+        <input ref="videoFileName" faims_attribute_name="FileName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
           <label>Video file name</label>
         </input>
         <input ref="videoFileType" faims_attribute_name="FileType" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
@@ -1096,10 +1096,10 @@
         <label>{photoFile}</label>
         <group ref="photoFileInfo">
           <label>{photoFileInfo}</label>
-        <input ref="photoFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+        <input ref="photoFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
           <label>Photo file id}</label>
         </input>
-        <input ref="photoFileName" faims_attribute_name="FileName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+        <input ref="photoFileName" faims_attribute_name="FileName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
           <label>Photo file name</label>
         </input>
         <input ref="photoFileType" faims_attribute_name="FileType" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
@@ -1135,10 +1135,10 @@
         <label>{sketchFile}</label>
         <group ref="sketchFileInfo">
             <label>{sketchFileInfo}</label>
-        <input ref="sketchFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+        <input ref="sketchFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
           <label>Sketch file id</label>
         </input>
-        <input ref="sketchFileName" faims_attribute_name="FileName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+        <input ref="sketchFileName" faims_attribute_name="FileName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
           <label>Sketch file name</label>
         </input>
         <input ref="sketchFileType" faims_attribute_name="FileType" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
@@ -1174,10 +1174,10 @@
         <label>Person</label>
         <group ref="personInfo">
           <label>{Person Information}</label>
-           <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+           <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
               <label>Person id</label>
             </input>
-            <input ref="personName" faims_attribute_name="PersonName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+            <input ref="personName" faims_attribute_name="PersonName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
               <label>Person name</label>
             </input>
             <input ref="personOtherNames" faims_attribute_name="PersonOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
@@ -1205,10 +1205,10 @@
         <label>Language</label>
         <group ref="languageInfo">
           <label>{Language Information}</label>
-            <input ref="languageID" faims_attribute_name="LanguageID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+            <input ref="languageID" faims_attribute_name="LanguageID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
               <label>Language id</label>
             </input>
-            <input ref="languageName" faims_attribute_name="LanguageName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+            <input ref="languageName" faims_attribute_name="LanguageName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
               <label>Language name</label>
             </input>
             <input ref="languageOtherNames" faims_attribute_name="LanguageOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">

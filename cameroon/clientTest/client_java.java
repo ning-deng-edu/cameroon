@@ -266,7 +266,7 @@ loadAnswersForQuestionnaire(String typeFlag){
 	setFieldValue("answerToQuestionnaire/answerListQuesnirHidden/answerListQuesnirID",current_quesnir_id);
 	loadAnswersForQuesnirQuery="select uuid,measure from latestNonDeletedAentValue "+
 	"where latestNonDeletedAentValue.AttributeID="+
-			"(select AttributeID from Attributekey where AttributeKey.AttributeName='AnswerText') "+
+			"(select AttributeID from Attributekey where AttributeKey.AttributeName='AnswerLabel') "+
 	"and latestNonDeletedAentValue.uuid in "+
 			"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
 				"(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
@@ -342,7 +342,7 @@ loadAnswersForQuestionnaire(String typeFlag){
 	else{
 		loadAnswersForQuesnirQuery="select uuid,measure from latestNonDeletedAentValue "+
 				"where latestNonDeletedAentValue.AttributeID="+
-						"(select AttributeID from Attributekey where AttributeKey.AttributeName='AnswerText') "+
+						"(select AttributeID from Attributekey where AttributeKey.AttributeName='AnswerLabel') "+
 				"and latestNonDeletedAentValue.uuid in "+
 						"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
 							"(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
@@ -575,7 +575,7 @@ ViewAnswersOfQuesion(){
 	current_quesnir_id=getFieldValue("answerToQuestionnaire/answerListQuesnirHidden/answerListQuesnirID");
 	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
 			"WHERE latestNonDeletedAentValue.AttributeID = "+
-			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerText') "+
+			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerLabel') "+
 			"AND latestNonDeletedAentValue.uuid IN "+
 			"(select uuid from "+
 				"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
@@ -652,6 +652,7 @@ startNewAnswer(){
 	setFieldValue("survey/answerHidden/answerQuestionID", current_question_id);
 	setFieldValue("survey/answerHidden/answerChoice", "N/A");
 	setFieldValue("survey/answerBasic/answerStartTimestamp", current_start_time);
+	setFieldValue("survey/answerBasic/answerLabel", "Ans-"+username+"-"+current_start_time);
 	populateList("survey/answerFile/answerFileList",files_in_current_ques);
 	populateDropDown("survey/answerFile/file_Category",categoryTypes);
 	populateDropDown("survey/answerPerson/personType",personTypes);
@@ -681,7 +682,7 @@ startNewAnswer(){
 loadAnswerListForQuesion(){
 	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
 			"WHERE latestNonDeletedAentValue.AttributeID = "+
-			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerText') "+
+			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerLabel') "+
 			"AND latestNonDeletedAentValue.uuid IN "+
 			"(select uuid from "+
 				"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
@@ -884,9 +885,20 @@ saveNewAnswer(){
 		showWarning("Warning","No available interviwer or interviewee\n Please create person info");
 		return;
 	}
-	if(isNull(getFieldValue("survey/answerBasic/answerText"))){
-		showWarning("Warning","Please input answer text");
+	if(isNull(getFieldValue("survey/answerBasic/answerLabel"))){
+		showWarning("Warning","You must input valid answer label");
 		return;
+	}
+	if(isNull(getFieldValue("survey/answerBasic/answerText"))){
+		if(isNull(files_in_current_ques)){
+			showWarning("Warning","Please input answer text or adding an answer file");
+			return;
+		}
+		else if((files_in_current_ques.size()==1) && files_in_current_ques.get(0).get(0).equals("0000")){
+			showWarning("Warning","Please input answer text or adding an answer file");
+			return;
+		}
+		
 	}
 	if(isNull(current_answer_id)){//create new answer
 	setFieldValue("survey/answerBasic/answerEndTimestamp",getCurrentTime());
@@ -1088,6 +1100,7 @@ newFile(String typeFlag){
 		break;
 	}
 }
+
 viewOrDeleteFileReln(){
 	select_file_id=getListItemValue();
 	if(isNull(select_file_id) || select_file_id.equals("0000")){
@@ -1549,8 +1562,9 @@ saveNewPerson(){
 		showWarning("Validation Error", "You must fill in the Person Name before you can continue");
         return;
 	}
-	setFieldValue("person/personInfo/personID", getFieldValue("person/personInfo/personName")+getCurrentTime());
-	
+	if(isNull(getFieldValue("person/personInfo/personID"))){
+		setFieldValue("person/personInfo/personID", getFieldValue("person/personInfo/personName")+getCurrentTime());
+	}
 	saveTabGroup("person", person_id, null, null, new SaveCallback() {
     onSave(uuid, newRecord) {
       person_id = uuid;
