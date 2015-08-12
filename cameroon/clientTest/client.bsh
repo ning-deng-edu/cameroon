@@ -1210,7 +1210,7 @@ loadAnswerFileInfo(String typeFlag){
 						        }
 						    });
 							break;
-						case "Other":
+						case "Sketch":
 							showTabGroup("sketchFile", view_file_id, new FetchCallback() {
 						        onFetch(result) {						  
 						            showToast("Loaded sketch file"+result.getId());            
