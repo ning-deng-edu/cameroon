@@ -5,6 +5,8 @@ import java.util.regex.Pattern;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import android.util.Log;
+import java.io.File;
 /*** 'Editable' - you can edit the code below based on the needs ***/
 User user; // don't touch
 String userid;
@@ -2019,7 +2021,7 @@ saveSession(String typeflag){
 			else{
 				String endTimeAuto=getCurrentTime();
 				setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
-				String startTimeStamp=getFieldValue("session/sessionBasicInfo/sessionStartTimetamp");
+				String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
 				String endTimeStamp=endTimeAuto;
 				if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
@@ -2105,7 +2107,9 @@ timeValidation(String startDateTime, String endDateTime, String flag){
 			Date sdt=df.parse(startDateTime);
 			Date edt=df.parse(endDateTime);	
 			if(sdt.getTime()>edt.getTime()){
-					return false;}
+				//showWarning("std<edt","sdt<edt");
+					return false;
+					}
 			
 		
 			else{
@@ -2115,11 +2119,13 @@ timeValidation(String startDateTime, String endDateTime, String flag){
 					return true;
 				}
 				else{
+					//showWarning("std!=etd","std!=etd");
 					return false;
 				}
 			}
 		}
-		catch(Exception excption){
+		catch(Exception ex){
+			Log.e("error", ex.getMessage().toString());
 			//String message = getStackTrace(excption);
 			//exception.printStackTrace();
 			return false;
