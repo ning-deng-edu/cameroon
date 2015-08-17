@@ -183,9 +183,9 @@ userSearch(){
 }
 /***Survey Control***/
 onEvent("control/survey_control/New_Survey","click","newSessionForAnswer()");
-onEvent("control/survey_control","show","loadExistSurvey()");
-onEvent("control/survey_control/surveyList","click","loadAnswersForQuestionnaire(\"New\")");
-
+onEvent("control/survey_control","show","loadSessionList(\"answer\")");
+//onEvent("control/survey_control/surveyList","click","loadAnswersForQuestionnaire(\"New\")");
+onEvent("control/survey_control/surveyList","click","loadSessionInfo(\"answer\")");
 /***session for answer***/
 onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","showQuestionnaireList()");
 onEvent("sessionForAnswer/sssAnsList/Save_Session","click","saveSession(\"answer\")");
@@ -1779,9 +1779,9 @@ loadFile(){
 
 /***session***/
 onEvent("control/fileGroup_control/sessionGroup","click","showSession()");
-onEvent("sessionGroup/sessionInfo","show","loadSessionList()");
+onEvent("sessionGroup/sessionInfo","show","loadSessionList(\"session\")");
 onEvent("sessionGroup/sessionInfo/New_Session","click","newSession()");
-onEvent("sessionGroup/sessionInfo/sessionList","click","loadSessionInfo()");
+onEvent("sessionGroup/sessionInfo/sessionList","click","loadSessionInfo(\"session\")");
 onEvent("session/sessionFiles/Finish_New_Session","click","saveSession(\"session\")");
 onEvent("session/sessionFiles/sessionFileList","click","deleteItemFromTargetList(selected_files_session,\"sessionFile\")");
 onEvent("session/sessionFiles/sessionFileSelectionList","click","addItemToTargetList(candidate_files_session,\"sessionFile\")");
@@ -1797,10 +1797,18 @@ showSession(){
 	showTabGroup("sessionGroup");
 }
 
-loadSessionList(){
+loadSessionList(String typeflag){
 	fetchAll(loadAllSessionQuery, new FetchCallback() {
         onFetch(result) {
-            populateList("sessionGroup/sessionInfo/sessionList", result);
+        	switch(typeflag){
+        	case "session":
+        		populateList("sessionGroup/sessionInfo/sessionList", result);
+        		break;
+        	case "answer":
+        		populateList("control/survey_control/surveyList", result);
+        		break;
+        	}
+            
         }
 
         onError(message) {
@@ -1838,7 +1846,9 @@ newSession(){
     });
 }
 
-loadSessionInfo(){
+loadSessionInfo(String typeFlag){
+	switch (typeFlag){
+	case "session":
 	session_id=getListItemValue();
 	if(isNull(session_id)){
 		showWarning("Invalid session","No session is selected or session is not available");
@@ -1858,27 +1868,6 @@ loadSessionInfo(){
  					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
  					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t2 "+
  					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
-	
-	/*
-	loadFileForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
-			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileName') "+
-			"and uuid in "+
- 			"(select uuid from AentReln where RelationshipID in "+
- 				"(select RelationshipID from "+
- 					"(select RelationshipID, AEntRelnTimestamp from AentReln where AentReln.uuid="+session_id+" "+
- 					"and RelationshipID in "+
- 						"(select RelationshipID from Relationship where RelnTypeID="+
- 							"(select RelnTypeID from RelnType where RelnTypeName='File and Session'))) t1 "+
- 					"inner join "+
- 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+session_id+" "+
- 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
- 					"(select RelnTypeID from RelnType where RelnTypeName='File and Session'))) t2 "+
- 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
-	*/
-	
-	
-	
-	
 	showTabGroup("session", session_id, new FetchCallback() {
         onFetch(result) {
         	sessionInfoOrigin.add(getFieldValue("session/sessionBasicInfo/sessionID"));
@@ -1917,6 +1906,55 @@ loadSessionInfo(){
             showToast(message);
         }
     });
+	break;
+	
+	case "answer":
+		sss_id=getListItemValue();
+		if(isNull(sss_id)){
+			showWarning("Invalid session","No session is selected or session is not available");
+			return;
+		}
+		loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+				"and uuid in "+
+	 			"(select uuid from AentReln where RelationshipID in "+
+	 				"(select RelationshipID from "+
+	 					"(select RelationshipID, AEntRelnTimestamp from AentReln where AentReln.uuid="+sss_id+" "+
+	 					"and RelationshipID in "+
+	 						"(select RelationshipID from Relationship where RelnTypeID="+
+	 							"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t1 "+
+	 					"inner join "+
+	 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+sss_id+" "+
+	 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
+	 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t2 "+
+	 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
+		showTabGroup("sessionForAnswer", sss_id, new FetchCallback() {
+	        onFetch(result) {
+	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
+	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
+	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
+	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));  
+	        	fetchAll(loadAnswerForSessionQuery, new FetchCallback() {
+	                onFetch(result) {
+	                	original_sss_answer_list.clear();
+	                	original_sss_answer_list.addAll(result);
+	                	
+	                	populateList("sessionForAnswer/sssAnsList/sssAnswerList",original_sss_answer_list);
+	                }
+
+	                onError(message) {
+	                    showToast(message);
+	                }
+	            });
+	        	
+	            showToast("Loaded session"+result.getId());            
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+		break;
+	}
 }
 
 saveSession(String typeflag){
