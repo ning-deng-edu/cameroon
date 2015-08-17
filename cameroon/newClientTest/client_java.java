@@ -591,7 +591,6 @@ loadAnswerInfo(){
 }
 
 ViewAnswersOfQuestion(){
-	if (!isNull(sss_id)){
 	current_question_id=getListItemValue();
 	current_quesnir_id=getFieldValue("answerToQuestionnaire/answerListQuesnirHidden/answerListQuesnirID");
 	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
@@ -609,7 +608,7 @@ ViewAnswersOfQuestion(){
 			 		"where AttributeKey.AttributeName='AnswerQuestionID') "+
 			 		"and latestNonDeletedAentValue.measure="+current_question_id+") t2 "+
 			 		"using(uuid))";	
-
+	
 	fetchAll(loadAnswersForQuesion,
 			new FetchCallback() {
 		        onFetch(result) {
@@ -621,7 +620,6 @@ ViewAnswersOfQuestion(){
 		            showToast(message);
 		        }
 		    });
-	}
 	
 }
 
@@ -733,8 +731,8 @@ loadAnswerListForQuesion(){
 		 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t6 "+
 		 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID)) t3"+
 			 		"using(uuid))";	
-
-	/*
+	}
+	else{
 	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
 			"WHERE latestNonDeletedAentValue.AttributeID = "+
 			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerLabel') "+
@@ -750,7 +748,7 @@ loadAnswerListForQuesion(){
 			 		"where AttributeKey.AttributeName='AnswerQuestionID') "+
 			 		"and latestNonDeletedAentValue.measure="+current_question_id+") t2 "+
 			 		"using(uuid))";
-	*/
+	}
 	fetchAll(loadAnswersForQuesion,
 			new FetchCallback() {
 		        onFetch(result) {
@@ -764,7 +762,7 @@ loadAnswerListForQuesion(){
 		            showToast(message);
 		        }
 		    });
-	}
+	
 }
 
 onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","loadAnswerFromQuesInQuesnir()");
@@ -982,9 +980,8 @@ saveNewAnswer(){
 				showToast("new answer created");
 				cancelTabGroup("survey", true);
 				cancelTabGroup("answerToQuestion", true);
-				//cancelTabGroup("questionnaireInfo", true);
-				//cancelTabGroup("questionnaireListAll", true);
 				showTabGroup("questionnaireInfo");
+				showTab("sessionForAnswer/sssAnsList");
 			}
 			else{
 				for(interviewer : selected_answer_interviewer){
@@ -1007,6 +1004,7 @@ saveNewAnswer(){
 				//cancelTabGroup("questionnaireInfo", true);
 				//cancelTabGroup("questionnaireListAll", true);
 				showTabGroup("questionnaireInfo");
+				showTab("sessionForAnswer/sssAnsList");
 			}
 			current_answer_id=answer_id;
 		}
