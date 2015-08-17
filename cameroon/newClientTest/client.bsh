@@ -183,7 +183,10 @@ userSearch(){
 onEvent("control/survey_control/New_Survey","click","newSessionForAnswer()");
 onEvent("control/survey_control","show","loadExistSurvey()");
 onEvent("control/survey_control/surveyList","click","loadAnswersForQuestionnaire(\"New\")");
+
+/***session for answer***/
 onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","showQuestionnaireList()");
+onEvent("sessionForAnswer/sssAnsList/Save_Session","click","saveSession(\"answer\")");
 
 /***variables for answers***/
 answer_id=null;//new answer_id
@@ -204,9 +207,14 @@ sss_id=null;
 sss_answer_list=new ArrayList();
 sssOriginInfo=new ArrayList();
 sssNewInfo=new ArrayList();
-
+original_sss_answer_list=new ArrayList();
 /***Starting from creating a session***/
 newSessionForAnswer(){
+	sss_id=null;
+	sss_answer_list.clear();
+	sssOriginInfo.clear();
+	sssNewInfo.clear();
+	original_sss_answer_list.clear();
 	newTabGroup("sessionForAnswer");
 	String currentTime=getCurrentTime();
     currentDateTimeArray=getCurrentTime().toString().split("\\s+");
@@ -1772,7 +1780,7 @@ onEvent("control/fileGroup_control/sessionGroup","click","showSession()");
 onEvent("sessionGroup/sessionInfo","show","loadSessionList()");
 onEvent("sessionGroup/sessionInfo/New_Session","click","newSession()");
 onEvent("sessionGroup/sessionInfo/sessionList","click","loadSessionInfo()");
-onEvent("session/sessionFiles/Finish_New_Session","click","saveSession()");
+onEvent("session/sessionFiles/Finish_New_Session","click","saveSession(\"session\")");
 onEvent("session/sessionFiles/sessionFileList","click","deleteItemFromTargetList(selected_files_session,\"sessionFile\")");
 onEvent("session/sessionFiles/sessionFileSelectionList","click","addItemToTargetList(candidate_files_session,\"sessionFile\")");
 
@@ -1909,7 +1917,9 @@ loadSessionInfo(){
     });
 }
 
-saveSession(){
+saveSession(String typeflag){
+	switch(typeflag){
+	case "session":
 	if(isNull(session_id)){//create new session
 		if((isNull(getFieldValue("session/sessionBasicInfo/sessionID"))) || 
 				(isNull(getFieldValue("session/sessionBasicInfo/sessionName"))) || 
@@ -1992,6 +2002,97 @@ saveSession(){
 				return;
 			}
 		}
+	}
+	break;
+	
+	case "answer":
+		
+		if(isNull(sss_id)){//create new session
+			if((isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"))) || 
+					(isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"))) || 
+					(isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"))) || 
+					(isNull(sss_answer_list)))
+			{
+				showWarning("Incomplete Data","Please make sure that data is complete");
+				return;
+			}
+			else{
+				String endTimeAuto=getCurrentTime();
+				setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
+				String startTimeStamp=getFieldValue("session/sessionBasicInfo/sessionStartTimetamp");
+				String endTimeStamp=endTimeAuto;
+				if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+				    onSave(uuid, newRecord) {
+				    	sss_id = uuid;
+				      if (newRecord) {
+				    	  for(answer:sss_answer_list){
+				    		  saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
+				    	  }
+				        showToast("New session contains answer(s) created");
+				      }
+				    }
+				    onError(message) {
+				        showWarning("error",message);
+				    }  
+				  });
+			}
+				else{
+					showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
+				+"2.Datetime input should be valid \n"+
+							"3.Start timestamp should be before end timestamp \n"+
+										"4.Two dates should be the same");
+					return;
+				}
+			}	
+		}
+		else{//change session info
+			sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
+			sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
+			sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
+			sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));
+			Hashtable sssInfoChange=listChange(sssNewInfo,sssOriginInfo);
+			Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
+			if(sssInfoChange.containsKey("EQUAL")){
+				if(sssAnsChange.containsKey("EQUAL")){
+					showWarning("No change","No data changed");
+					return;
+				}
+				else{
+					//showWarning("yes change","beginingchange file");
+					 for(answer:sss_answer_list){
+			    		  saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
+			    	  }
+					showToast("Answer in session changed");
+				}
+			}
+			else{
+				String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+				String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+				if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+				saveTabGroup("session", sss_id, null, null, new SaveCallback() {
+				    onSave(uuid, newRecord) {
+				    	 for(answer:sss_answer_list){
+				    		  saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
+				    	  }
+				        showToast("Session info changed");
+
+				    }
+				    onError(message) {
+				        showWarning("error",message);
+				    }  
+				  });
+			}
+				else{
+					showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
+							+"2.Datetime input should be valid \n"+
+										"3.Start timestamp should be before end timestamp \n"+
+													"4.Two dates should be the same");
+					return;
+				}
+			}
+		}
+		break;
 	}
 }
 timeValidation(String startDateTime, String endDateTime, String flag){
