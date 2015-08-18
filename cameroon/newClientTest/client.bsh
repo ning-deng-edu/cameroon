@@ -2002,7 +2002,8 @@ loadSessionInfo(String typeFlag){
 	                onFetch(result) {
 	                	original_sss_answer_list.clear();
 	                	original_sss_answer_list.addAll(result);
-	                	
+	                	sss_answer_list.clear();
+	                	sss_answer_list.addAll(result);
 	                	populateList("sessionForAnswer/sssAnsList/sssAnswerList",original_sss_answer_list);
 	                }
 
@@ -2151,10 +2152,12 @@ saveSession(String typeflag){
 			}	
 		}
 		else{//change session info
+			String endTimeAuto=getCurrentTime();
+			setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
 			sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
 			sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
 			sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
-			sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));
+			sssNewInfo.add(endTimeAuto);
 			Hashtable sssInfoChange=listChange(sssNewInfo,sssOriginInfo);
 			Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
 			if(sssInfoChange.containsKey("EQUAL")){
