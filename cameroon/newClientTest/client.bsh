@@ -186,6 +186,7 @@ onEvent("control/survey_control/New_Survey","click","newSessionForAnswer()");
 onEvent("control/survey_control","show","loadSessionList(\"answer\")");
 //onEvent("control/survey_control/surveyList","click","loadAnswersForQuestionnaire(\"New\")");
 onEvent("control/survey_control/surveyList","click","loadSessionInfo(\"answer\")");
+onEvent("sessionForAnswer/sssAnsList/sssAnswerList","click","loadAnswerInfo()");
 /***session for answer***/
 onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","showQuestionnaireList()");
 onEvent("sessionForAnswer/sssAnsList/Save_Session","click","saveSession(\"answer\")");
@@ -215,8 +216,9 @@ newSessionForAnswer(){
 	sss_id=null;
 	sss_answer_list.clear();
 	sssOriginInfo.clear();
-	sssNewInfo.clear();
+	sssNewInfo.clear();	
 	original_sss_answer_list.clear();
+	
 	newTabGroup("sessionForAnswer");
 	String currentTime=getCurrentTime();
     currentDateTimeArray=getCurrentTime().toString().split("\\s+");
@@ -224,6 +226,7 @@ newSessionForAnswer(){
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp",currentTime);           
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",currentDate+" 23:59:59");
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID","sss-"+username+"-"+currentTime);
+    populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
 }
 
 showQuestionnaireList(){
@@ -712,7 +715,28 @@ startNewAnswer(){
 }
 
 loadAnswerListForQuesion(){
+	//showWarning("sss_id",sss_id);
+	//showWarning("quersionnaire",current_quesnir_id);
+	//showWarning("question",current_question_id);
+	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
+			"WHERE latestNonDeletedAentValue.AttributeID = "+
+			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerLabel') "+
+			"AND latestNonDeletedAentValue.uuid IN "+
+			"(select uuid from "+
+				"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+					"(select AttributeKey.AttributeID from AttributeKey "+
+					"where AttributeKey.AttributeName='AnswerQuestionnaireID') "+
+					"and latestNonDeletedAentValue.measure="+current_quesnir_id+") t1 "+
+			 "inner join "+
+			 	"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+			 		"(select AttributeKey.AttributeID from AttributeKey "+
+			 		"where AttributeKey.AttributeName='AnswerQuestionID') "+
+			 		"and latestNonDeletedAentValue.measure="+current_question_id+") t2 "+
+			 		"using(uuid))";
 	if(!isNull(sss_id)){
+		answerForSessionTemp=new ArrayList();
+		answerForQuestionTemp=new ArrayList();
+		/* below query is not working, it's over complicated and hence this query is divided to two queries
 	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
 			"WHERE latestNonDeletedAentValue.AttributeID = "+
 			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerLabel') "+
@@ -739,26 +763,65 @@ loadAnswerListForQuesion(){
 		 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+sss_id+" "+
 		 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
 		 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t6 "+
-		 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID)) t3"+
+		 					"on t5.AentRelnTimestamp=t6.maxtime group by relationshipID)) t3"+
 			 		"using(uuid))";	
+	*/
+	loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+ 				"(select RelationshipID from "+
+ 					"(select RelationshipID, AEntRelnTimestamp from AentReln where AentReln.uuid="+sss_id+" "+
+ 					"and RelationshipID in "+
+ 						"(select RelationshipID from Relationship where RelnTypeID="+
+ 							"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t1 "+
+ 					"inner join "+
+ 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+sss_id+" "+
+ 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
+ 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t2 "+
+ 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
+	
+	
+	fetchAll(loadAnswerForSessionQuery,
+			new FetchCallback() {
+		        onFetch(result) {
+					if (!isNull(result)) {
+		        	answerForSessionTemp.clear();
+		        	answerForSessionTemp.addAll(result);
+		        	
+		        	fetchAll(loadAnswersForQuesion,
+		        			new FetchCallback() {
+		        		        onFetch(result) {
+		        					if (!isNull(result)) {
+		        						answerForQuestionTemp.clear();
+		        						answerForQuestionTemp.addAll(result);
+		        						answerForSessionTemp.retainAll(answerForQuestionTemp);
+		        						populateList("answerToQuestion/answerInfo/answerList", answerForSessionTemp);	
+		        					}
+		        					
+		        		        }
+
+		        		        onError(message) {
+		        		        	Log.e("error",message);
+		        		            showToast(message);
+		        		        }
+		        		    });
+		        	
+						//populateList("answerToQuestion/answerInfo/answerList", result);	
+					}
+					
+		        }
+
+		        onError(message) {
+		        	Log.e("error",message);
+		            showToast(message);
+		        }
+		    });
+	
+	
 	}
 	else{
-	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
-			"WHERE latestNonDeletedAentValue.AttributeID = "+
-			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerLabel') "+
-			"AND latestNonDeletedAentValue.uuid IN "+
-			"(select uuid from "+
-				"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
-					"(select AttributeKey.AttributeID from AttributeKey "+
-					"where AttributeKey.AttributeName='AnswerQuestionnaireID') "+
-					"and latestNonDeletedAentValue.measure="+current_quesnir_id+") t1 "+
-			 "inner join "+
-			 	"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
-			 		"(select AttributeKey.AttributeID from AttributeKey "+
-			 		"where AttributeKey.AttributeName='AnswerQuestionID') "+
-			 		"and latestNonDeletedAentValue.measure="+current_question_id+") t2 "+
-			 		"using(uuid))";
-	}
+	
 	fetchAll(loadAnswersForQuesion,
 			new FetchCallback() {
 		        onFetch(result) {
@@ -769,10 +832,11 @@ loadAnswerListForQuesion(){
 		        }
 
 		        onError(message) {
+		        	Log.e("error",message);
 		            showToast(message);
 		        }
 		    });
-	
+	}
 }
 
 onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","loadAnswerFromQuesInQuesnir()");
@@ -2445,6 +2509,7 @@ testQuery(){
         }
 		}
         onError(message) {
+        	Log.e("query error",message);
             showToast(message);
         }
     });

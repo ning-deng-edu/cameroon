@@ -609,7 +609,7 @@
             </select1>
         </group>
         
-        <group ref="querytest" faims_hidden="true">
+        <group ref="querytest">
         <label>{query}</label>
         
             <input ref="query" faims_attribute_type="freetext" faims_certainty="false" faims_annotation="false">
