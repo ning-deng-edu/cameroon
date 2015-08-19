@@ -1856,6 +1856,7 @@ candidate_files_session=new ArrayList();
 original_files_session=new ArrayList();
 sessionInfoOrigin=new ArrayList();
 sessionInfoNew=new ArrayList();
+sessionAnswerRelnOrigin=new ArrayList();
 
 showSession(){
 	showTabGroup("sessionGroup");
@@ -1888,6 +1889,7 @@ newSession(){
 	original_files_session.clear();
 	sessionInfoOrigin.clear();
 	sessionInfoNew.clear();
+	sessionAnswerRelnOrigin.clear();
 	currentDateTimeArray=new ArrayList();
 	
 	newTabGroup("session");
@@ -1918,6 +1920,7 @@ loadSessionInfo(String typeFlag){
 		showWarning("Invalid session","No session is selected or session is not available");
 		return;
 	}
+	/*
 	loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
 			"and uuid in "+
@@ -1932,6 +1935,33 @@ loadSessionInfo(String typeFlag){
  					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
  					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t2 "+
  					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
+	*/
+	//showWarning("session id",session_id);
+	loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+			"(select RelationshipID from AEntReln where AEntReln.uuid="+session_id+" "+
+ 			"AND RelationshipID in "+
+			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+ 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)))";
+ 	
+	loadAnsSssRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+session_id+" "+
+ 					"and RelationshipID in "+
+ 					"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+ 					"and latestNonDeletedRelationship.Deleted IS NULL)";
+	
+	fetchAll(loadAnsSssRelnQuery, new FetchCallback() {
+        onFetch(result) {
+        	sessionAnswerRelnOrigin.clear();
+        	sessionAnswerRelnOrigin.addAll(result);
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+	
 	showTabGroup("session", session_id, new FetchCallback() {
         onFetch(result) {
         	sessionInfoOrigin.add(getFieldValue("session/sessionBasicInfo/sessionID"));
@@ -2046,6 +2076,8 @@ saveSession(String typeflag){
 			    		  saveEntitiesToRel("Answer and Session",session_id,sessionFile.get(0));
 			    	  }
 			        showToast("New record created");
+			        cancelTabGroup("session", true);
+
 			      }
 			    }
 			    onError(message) {
@@ -2076,10 +2108,17 @@ saveSession(String typeflag){
 			}
 			else{
 				//showWarning("yes change","beginingchange file");
+				
+				for(ansDelete:sessionAnswerRelnOrigin){
+					//showWarning("relnid",ansDelete.get(0));
+					 deleteRel(ansDelete.get(0));
+		    	  }
+				
 				for(sessionFile:selected_files_session){
 		    		  saveEntitiesToRel("Answer and Session",session_id,sessionFile.get(0));
 		    	  }
 				showToast("file in session changed");
+				//cancelTabGroup("session", true);
 			}
 		}
 		else{
@@ -2088,10 +2127,16 @@ saveSession(String typeflag){
 			if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 			saveTabGroup("session", session_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
+			    	
+			    	for(ansDelete:sessionAnswerRelnOrigin){
+						 deleteRel(ansDelete.get(0));
+			    	  }
+			    	
 			    	for(sessionFile:selected_files_session){
 			    		  saveEntitiesToRel("Answer and Session",session_id,sessionFile.get(0));
 			    	  }
 			        showToast("session data changed");
+			        cancelTabGroup("session", true);
 
 			    }
 			    onError(message) {
