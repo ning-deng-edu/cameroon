@@ -488,6 +488,7 @@ loadAnswerInfo(){
 						"(select RelnTypeID from RelnType where RelnTypeName='Answer and File')"+ 
 							"and RelationshipID in (select RelationshipID from AentReln where AentReln.uuid="+current_answer_id+" )))";
 		 */
+		/*
 	loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileName') "+
 				"and uuid in "+
@@ -501,8 +502,34 @@ loadAnswerInfo(){
 	 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_answer_id+" "+
 	 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
 	 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and File'))) t2 "+
-	 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
+	 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";*/
+	loadFileAnsRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+current_answer_id+" "+
+				"and RelationshipID in "+
+				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL)";
+	fetchAll(loadFileAnsRelnQuery, new FetchCallback() {
+        onFetch(result) {
+        	ansFileOriginReln.clear();
+        	ansFileOriginReln.addAll(result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
 	
+	loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileName') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+			"(select RelationshipID from AEntReln where AEntReln.uuid="+current_answer_id+" "+
+ 			"AND RelationshipID in "+
+			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+ 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)))";
+	
+	
+	/*
 	loadAnswerInterviewerQuery="select uuid, measure from latestNonDeletedAentValue "+
 			 		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
 			 		"and uuid in "+
@@ -516,8 +543,33 @@ loadAnswerInfo(){
 			 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_answer_id+" "+
 			 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
 			 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer'))) t2 "+
-			 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
+			 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";*/
+	loadAnsInterviewerRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+current_answer_id+" "+
+			"and RelationshipID in "+
+			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)";
+	fetchAll(loadAnsInterviewerRelnQuery, new FetchCallback() {
+        onFetch(result) {
+        	ansInterviewerOriginReln.clear();
+        	ansInterviewerOriginReln.addAll(result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
 	
+	loadAnswerInterviewerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+			"(select RelationshipID from AEntReln where AEntReln.uuid="+current_answer_id+" "+
+ 			"AND RelationshipID in "+
+			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+ 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)))";
+	
+	/*
 	loadAnswerIntervieweeQuery="select uuid, measure from latestNonDeletedAentValue "+
 	 		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
 	 		"and uuid in "+
@@ -531,7 +583,32 @@ loadAnswerInfo(){
 	 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_answer_id+" "+
 	 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
 	 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee'))) t2 "+
-	 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
+	 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";*/
+	loadAnsIntervieweeRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+current_answer_id+" "+
+			"and RelationshipID in "+
+			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)";
+	fetchAll(loadAnsIntervieweeRelnQuery, new FetchCallback() {
+        onFetch(result) {
+        	ansIntervieweeOriginReln.clear();
+        	ansIntervieweeOriginReln.addAll(result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+	
+	loadAnswerIntervieweeQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+			"(select RelationshipID from AEntReln where AEntReln.uuid="+current_answer_id+" "+
+ 			"AND RelationshipID in "+
+			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+ 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)))";
+	
 	
 	fetchAll(loadFileForAnswerQuery, new FetchCallback() {
         onFetch(result) {
@@ -653,6 +730,10 @@ candidate_answer_interviewee=new ArrayList();
 answerInfoOriginal=new ArrayList();
 answerInfoNew=new ArrayList();
 
+ansInterviewerOriginReln=new ArrayList();
+ansIntervieweeOriginReln=new ArrayList();
+ansFileOriginReln=new ArrayList();
+
 categoryTypes=new ArrayList();
 categoryTypes.add(new NameValuePair("{Audio}", "Audio"));
 categoryTypes.add(new NameValuePair("{Video}", "Video"));
@@ -768,7 +849,7 @@ loadAnswerListForQuesion(){
 		 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t6 "+
 		 					"on t5.AentRelnTimestamp=t6.maxtime group by relationshipID)) t3"+
 			 		"using(uuid))";	
-	*/
+	
 	loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
 			"and uuid in "+
@@ -783,7 +864,16 @@ loadAnswerListForQuesion(){
  					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
  					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t2 "+
  					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
-	
+	*/
+	loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+			"(select RelationshipID from AEntReln where AEntReln.uuid="+sss_id+" "+
+ 			"AND RelationshipID in "+
+			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+ 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)))";
 	
 	fetchAll(loadAnswerForSessionQuery,
 			new FetchCallback() {
@@ -1060,6 +1150,7 @@ saveNewAnswer(){
 				showTabGroup("questionnaireInfo");
 				showTab("sessionForAnswer/sssAnsList");
 			}
+			/*
 			else{
 				for(interviewer : selected_answer_interviewer){
 					saveEntitiesToRel("Answer and Interviewer",answer_id,interviewer.get(0));
@@ -1082,7 +1173,7 @@ saveNewAnswer(){
 				//cancelTabGroup("questionnaireListAll", true);
 				showTabGroup("questionnaireInfo");
 				showTab("sessionForAnswer/sssAnsList");
-			}
+			}*/
 			current_answer_id=answer_id;
 		}
 		onError(message) {
@@ -1107,15 +1198,26 @@ saveNewAnswer(){
 				return;
 			}
 			else if((interviewerChange.containsKey("EQUAL"))&&(intervieweeChange.containsKey("EQUAL"))&&(!fileListChange.containsKey("EQUAL"))){
+				
+				for(fileDelete:ansFileOriginReln){
+					deleteRel(fileDelete.get(0));
+				}
+				
 				for(file : files_in_current_ques){
 					saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
 				}
+				
 				files_origin.clear();
 				files_origin.addAll(files_in_current_ques);
 				showToast("file list changed");
 			}
 			else{
 				if(!fileListChange.containsKey("EQUAL")){
+					
+					for(fileDelete:ansFileOriginReln){
+						deleteRel(fileDelete.get(0));
+					}
+					
 					for(file : files_in_current_ques){
 						saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
 					}
@@ -1123,11 +1225,23 @@ saveNewAnswer(){
 					files_origin.addAll(files_in_current_ques);
 					showToast("file list changed");
 				}
-				for(interviewer : selected_answer_interviewer){
-					saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
+				if(!interviewerChange.containsKey("EQUAL")){
+					for(interviewerDelete:ansInterviewerOriginReln){
+						deleteRel(interviewerDelete.get(0));
+					}
+				
+					for(interviewer : selected_answer_interviewer){
+						saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
+					}
 				}
-				for(interviewee : selected_answer_interviewee){
-					saveEntitiesToRel("Answer and Interviewee",current_answer_id,interviewee.get(0));		
+				if(!intervieweeChange.containsKey("EQUAL")){
+					
+					for(intervieweeDelete:ansIntervieweeOriginReln){
+						deleteRel(intervieweeDelete.get(0));
+					}
+					for(interviewee : selected_answer_interviewee){
+						saveEntitiesToRel("Answer and Interviewee",current_answer_id,interviewee.get(0));		
+					}
 				}
 				origin_selected_interviewer.clear();
 				origin_selected_interviewer.addAll(selected_answer_interviewer);
@@ -1140,12 +1254,21 @@ saveNewAnswer(){
 			setFieldValue("survey/answerBasic/answerEndTimestamp",getCurrentTime());
 			saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
 				onSave(uuid, newRecord) {
-					answer_id = uuid;					
+					answer_id = uuid;	//not sure how it's working
+						for(interviewerDelete:ansInterviewerOriginReln){
+							deleteRel(interviewerDelete.get(0));
+						}
 						for(interviewer : selected_answer_interviewer){
 							saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
 						}
+						for(intervieweeDelete:ansIntervieweeOriginReln){
+							deleteRel(intervieweeDelete.get(0));
+						}
 						for(interviewee : selected_answer_interviewee){
 							saveEntitiesToRel("Answer and Interviewee",current_answer_id,interviewee.get(0));		
+						}
+						for(fileDelete:ansFileOriginReln){
+							deleteRel(fileDelete.get(0));
 						}
 						for(file : files_in_current_ques){
 							saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
