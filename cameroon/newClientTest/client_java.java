@@ -200,6 +200,8 @@ current_quesnir_name=null;
 current_question_content=null;
 current_answer_file_id=null;
 current_answer_id=null;
+toAddIntervieweeID=null;
+
 questionnaire_list=new ArrayList();
 ques_in_current_quesnir=new ArrayList();
 survey_list=new ArrayList();
@@ -734,6 +736,7 @@ ansInterviewerOriginReln=new ArrayList();
 ansIntervieweeOriginReln=new ArrayList();
 ansFileOriginReln=new ArrayList();
 
+ansListForQues=new ArrayList();//Store answers for current question in questionnaire, used for checking if one person has already answered this question or not
 categoryTypes=new ArrayList();
 categoryTypes.add(new NameValuePair("{Audio}", "Audio"));
 categoryTypes.add(new NameValuePair("{Video}", "Video"));
@@ -758,11 +761,13 @@ startNewAnswer(){
 	
 	files_in_current_ques.clear();
 	files_origin.clear();
+	ansListForQues.clear();
 	
 	answer_id=null;
 	current_answer_file_id=null;
 	current_answer_id=null;
 	answerFile=true;
+	toAddIntervieweeID=null;
 	
 	
 	newTabGroup("survey");
@@ -820,6 +825,7 @@ loadAnswerListForQuesion(){
 	if(!isNull(sss_id)){
 		answerForSessionTemp=new ArrayList();
 		answerForQuestionTemp=new ArrayList();
+		
 		/* below query is not working, it's over complicated and hence this query is divided to two queries
 	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
 			"WHERE latestNonDeletedAentValue.AttributeID = "+
@@ -889,6 +895,8 @@ loadAnswerListForQuesion(){
 		        						answerForQuestionTemp.clear();
 		        						answerForQuestionTemp.addAll(result);
 		        						answerForSessionTemp.retainAll(answerForQuestionTemp);
+		        						ansListForQues.clear();
+		        						ansListForQues.addAll(result);//Answer list for a question in a questionnaire stored
 		        						populateList("answerToQuestion/answerInfo/answerList", answerForSessionTemp);	
 		        					}
 		        					
@@ -967,8 +975,8 @@ loadAnswerFromQuesInQuesnir(){
 	setFieldValue("answerToQuestion/answerInfo/answerListQuestionContent", current_question_content);
 }
 
-onEvent("survey/answerPerson/answerInterviewerSelectionList","click","addItemToTargetList(candidate_answer_interviewer,\"interviewer\")");
-onEvent("survey/answerPerson/answerIntervieweeSelectionList","click","addItemToTargetList(candidate_answer_interviewee,\"interviewee\")");
+onEvent("survey/answerPerson/answerInterviewerSelectionList","click","addItemToTargetList(candidate_answer_interviewer,\"interviewer\",null)");
+onEvent("survey/answerPerson/answerIntervieweeSelectionList","click","addInterviewee()");
 onEvent("survey/answerPerson/answerInterviewerList","click","deleteItemFromTargetList(selected_answer_interviewer,\"interviewer\")");
 onEvent("survey/answerPerson/answerIntervieweeList","click","deleteItemFromTargetList(selected_answer_interviewee,\"interviewee\")");
 onEvent("survey/answerFile/Finish_New_Answer","click","saveNewAnswer()");
@@ -982,8 +990,15 @@ personTypes.add(new NameValuePair("Interviewer", "Interviewer"));
 personTypes.add(new NameValuePair("Interviewee", "Interviewee"));
 
 
-addItemToTargetList(ArrayList sourceList, String type_flag){	
-	itemId=getListItemValue();	
+addItemToTargetList(ArrayList sourceList, String type_flag, String intervieweeID){	
+	if(isNull(intervieweeID))
+	{
+		itemId=getListItemValue();	
+	}
+	else
+	{
+		itemId=intervieweeID;
+	}
 	int idx_item=-1;
 		
 	if(isNull(itemId)){
@@ -1096,6 +1111,67 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag){
 		
 	}
 }
+addInterviewee(){
+	toAddIntervieweeID=null;
+	toAddIntervieweeID=getListItemValue();
+	if(isNull(toAddIntervieweeID)){
+		showWarning("Invalid person","Invalid person, please choose another person");
+		return;
+	}
+	if(checkPersonAns(toAddIntervieweeID)){
+		addItemToTargetList(candidate_answer_interviewee,"interviewee",toAddIntervieweeID);
+	}
+	else{
+		showAlert("alert", "This person has already answered this question \n"+"Do you still want to add this person?", "confirmAddInterviewee()", "stayInCurrentPage()");
+	}
+}
+confirmAddInterviewee(){
+	addItemToTargetList(candidate_answer_interviewee,"interviewee",toAddIntervieweeID);
+}
+stayInCurrentPage()
+{
+	return;
+}
+checkPersonAns(String personID){
+	ansListPerson=new ArrayList();
+	loadIntervieweeAnsQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+			"(select RelationshipID from AEntReln where AEntReln.uuid="+personID+" "+
+ 			"AND RelationshipID in "+
+			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+ 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)))";
+	//showWarning("loadIntervieweeAnsQuery","loadIntervieweeAnsQuery");
+	fetchAll(loadIntervieweeAnsQuery,
+			new FetchCallback() {
+		        onFetch(result) {
+		        	//showWarning("fetchAll","fetchAll");
+					if (!isNull(result)) {
+						ansListPerson.clear();
+						ansListPerson.addAll(result);
+						//showWarning("ansListPerson","ansListPerson");
+						Hashtable answerOverlap=listChange(ansListPerson,ansListForQues);
+						//showWarning("answerOverlap","answerOverlap");
+						if(!answerOverlap.containsKey("EQUAL")){
+							return false;
+						}
+						else{
+							return true;
+							}
+					}
+					
+		        }
+
+		        onError(message) {
+		        	Log.e("error",message);
+		            showToast(message);
+		            return false;
+		        }
+		    });
+	return false;
+}
 //Do not allow user create answer without create session?
 saveNewAnswer(){
 	if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
@@ -1207,9 +1283,13 @@ saveNewAnswer(){
 					saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
 				}
 				
-				files_origin.clear();
-				files_origin.addAll(files_in_current_ques);
+				//files_origin.clear();
+				//files_origin.addAll(files_in_current_ques);
 				showToast("file list changed");
+				cancelTabGroup("survey", true);
+				//cancelTabGroup("answerToQuestion", true);
+				//showTabGroup("questionnaireInfo");
+				showTab("sessionForAnswer/sssAnsList");
 			}
 			else{
 				if(!fileListChange.containsKey("EQUAL")){
@@ -1221,8 +1301,8 @@ saveNewAnswer(){
 					for(file : files_in_current_ques){
 						saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
 					}
-					files_origin.clear();
-					files_origin.addAll(files_in_current_ques);
+					//files_origin.clear();
+					//files_origin.addAll(files_in_current_ques);
 					showToast("file list changed");
 				}
 				if(!interviewerChange.containsKey("EQUAL")){
@@ -1243,11 +1323,15 @@ saveNewAnswer(){
 						saveEntitiesToRel("Answer and Interviewee",current_answer_id,interviewee.get(0));		
 					}
 				}
-				origin_selected_interviewer.clear();
-				origin_selected_interviewer.addAll(selected_answer_interviewer);
-				origin_selected_interviewee.clear();
-				origin_selected_interviewee.addAll(selected_answer_interviewee);			
+				//origin_selected_interviewer.clear();
+				//origin_selected_interviewer.addAll(selected_answer_interviewer);
+				//origin_selected_interviewee.clear();
+				//origin_selected_interviewee.addAll(selected_answer_interviewee);			
 				showToast("Interviewee and interviewer lists changed");
+				cancelTabGroup("survey", true);
+				//cancelTabGroup("answerToQuestion", true);
+				//showTabGroup("questionnaireInfo");
+				showTab("sessionForAnswer/sssAnsList");
 			}
 		}
 		else{//basic info is changed
@@ -1273,13 +1357,17 @@ saveNewAnswer(){
 						for(file : files_in_current_ques){
 							saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
 						}
-						answerInfoOriginal.clear();
-						answerInfoOriginal.addAll(answerInfoNew);
-						origin_selected_interviewer.clear();
-						origin_selected_interviewer.addAll(selected_answer_interviewer);
-						origin_selected_interviewee.clear();
-						origin_selected_interviewee.addAll(selected_answer_interviewee);
+						//answerInfoOriginal.clear();
+						//answerInfoOriginal.addAll(answerInfoNew);
+						//origin_selected_interviewer.clear();
+						//origin_selected_interviewer.addAll(selected_answer_interviewer);
+						//origin_selected_interviewee.clear();
+						//origin_selected_interviewee.addAll(selected_answer_interviewee);
 						showToast("Answer Info Changed");
+						cancelTabGroup("survey", true);
+						//cancelTabGroup("answerToQuestion", true);
+						//showTabGroup("questionnaireInfo");
+						showTab("sessionForAnswer/sssAnsList");
 				}
 				onError(message) {
 					showWarning("error",message);
@@ -1974,7 +2062,7 @@ onEvent("sessionGroup/sessionInfo/New_Session","click","newSession()");
 onEvent("sessionGroup/sessionInfo/sessionList","click","loadSessionInfo(\"session\")");
 onEvent("session/sessionFiles/Finish_New_Session","click","saveSession(\"session\")");
 onEvent("session/sessionFiles/sessionFileList","click","deleteItemFromTargetList(selected_files_session,\"sessionFile\")");
-onEvent("session/sessionFiles/sessionFileSelectionList","click","addItemToTargetList(candidate_files_session,\"sessionFile\")");
+onEvent("session/sessionFiles/sessionFileSelectionList","click","addItemToTargetList(candidate_files_session,\"sessionFile\",null)");
 
 session_id=null;
 selected_files_session=new ArrayList();
@@ -2467,7 +2555,7 @@ onEvent("fieldTripGroup/fieldTripInfo","show","loadFieldTripList()");
 onEvent("fieldTripGroup/fieldTripInfo/fieldTripList","click","loadFieldTripInfo()");
 onEvent("fieldTripGroup/fieldTripInfo/New_FieldTrip","click","startNewFieldTrip()");
 onEvent("fieldTrip/fieldTripSession/Finish_New_FieldTrip","click","saveFieldTrip()");
-onEvent("fieldTrip/fieldTripSession/fieldTripFileSelectionList","click","addItemToTargetList(candidate_session_fieldTrip,\"fieldTripSession\")");
+onEvent("fieldTrip/fieldTripSession/fieldTripFileSelectionList","click","addItemToTargetList(candidate_session_fieldTrip,\"fieldTripSession\",null)");
 onEvent("fieldTrip/fieldTripSession/fieldTripFileList","click","deleteItemFromTargetList(selected_session_fieldTrip,\"fieldTripSession\")");
 fieldTrip_id=null;
 selected_session_fieldTrip=new ArrayList();
