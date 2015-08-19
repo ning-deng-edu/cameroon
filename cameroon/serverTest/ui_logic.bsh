@@ -175,7 +175,7 @@ userSearch(){
 /***Questionnaire***/
 
 onEvent("control/questionnaire_control/New_Questionnaire","click","newQuestionnaire()");
-onEvent("control/questionnaire_control/New_Questionnaire","show","loadQuestionnaire()");
+onEvent("control/questionnaire_control","show","loadQuestionnaire()");
 onEvent("control/questionnaire_control/questionnaireList","click","loadQuestionnaireInfo()");
 onEvent("questionnaire/questionnaire_info/Start_Question_Selection","click","startQuestionSelection()");
 onEvent("questionnaire_question/questionnaire_question_info","show","initializeQuestionSelect()");
@@ -194,6 +194,7 @@ questionSelected=new ArrayList();//questions selected in questionnaire
 questionOriginal=new ArrayList();//when changing questionnaire, this is for showing whether or not the questions in questionnaire are changed
 questionnaireInfoOriginal=new ArrayList();//Comparing whether or not the questionnaire basic info is changed
 questionnaireInfoNew=new ArrayList();//Comparing whether or not the questionnaire basic info is changed
+quesListRelnOrigin=new ArrayList();//Storing the existing reln between questions and questionnaire, used for deletion
 //flag_return_questionnaire=false;
 //starting point of creating new questionnaire 
 newQuestionnaire(){	
@@ -204,6 +205,7 @@ newQuestionnaire(){
     questionOriginal.clear();
     questionnaireInfoOriginal.clear();
     questionnaireInfoNew.clear();
+    quesListRelnOrigin.clear();
 	finished_questionnaire_id=null;
 	setFieldValue("questionnaire/questionnaire_info/questionnaireID","Quesnir-"+username+"-"+getCurrentTime());
 	//flag_return_questionnaire=false;
@@ -346,8 +348,31 @@ initializeQuestionSelect(){
 				showWarning("Message","Something went wrong! please contact the Admin!");
 				return;
 			}
-		
-		
+		quesnir_ques_reln_query="select RelationshipID from AentReln where AentReln.uuid="+current_questionnaire_id+" "+
+				"and RelationshipID in "+
+				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+					"(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and Question') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL)";
+		fetchAll(quesnir_ques_reln_query, new FetchCallback() {
+	        onFetch(result) {
+	        	quesListRelnOrigin.clear();
+	        	quesListRelnOrigin.addAll(result);
+	        }
+
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+		questionnaire_question_query="select uuid,measure from latestNonDeletedAentValue "+ 
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
+				"and uuid in "+
+	 			"(select uuid from AentReln where RelationshipID in "+
+				"(select RelationshipID from AEntReln where AEntReln.uuid="+current_questionnaire_id+" "+
+	 			"AND RelationshipID in "+
+				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+	 			"(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and Question') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL))) group by uuid";
+		/*
 		questionnaire_question_query="SELECT uuid, measure "+
 		"from latestNonDeletedAentValue "+
 		"where latestNonDeletedAentValue.AttributeID in "+
@@ -360,7 +385,7 @@ initializeQuestionSelect(){
 		"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_questionnaire_id+") tm "+
 		"on aer.AentRelnTimestamp=tm.maxtime group by relationshipID)) "+
 		"group by uuid;";
-		
+		*/
 			fetchAll(questionnaire_question_query,
 				new FetchCallback() {
 			//showWarning("fetched corresponding questions",current_questionnaire_id);
@@ -530,8 +555,11 @@ finishCreateQuestionnaire(){
 				saveEntitiesToRel("Questionnaire and Question",finished_questionnaire_id,question.get(0));
 			//showWarning("savedrel()",question.get(0).toString());
 			}
-			questionOriginal.addAll(questionSelected);
+			//questionOriginal.addAll(questionSelected);
 			showToast("New record created");
+			cancelTabGroup("questionnaire_question",true);
+			cancelTabGroup("questionnaire",true);
+			showTab("control/questionnaire_control");
 			//finished_questionnaire_id=null;
 			}
 			else{
@@ -586,14 +614,21 @@ finishChangeQuestionnaire(){
 			}
 			else{				
 				//showWarning("basic info not changed (else)","not changed basic info");
+				for (questionDel : quesListRelnOrigin){
+					//showWarning("basic info not changed",question.get(0).toString());
+					deleteRel(questionDel.get(0));
+					}
 				for (question : questionSelected){
 					//showWarning("basic info not changed",question.get(0).toString());
 					saveEntitiesToRel("Questionnaire and Question",finished_questionnaire_id,question.get(0));
 					}
 				//reset the used arraylists
-				questionOriginal.clear();
-				questionOriginal.addAll(questionSelected);
+				//questionOriginal.clear();
+				//questionOriginal.addAll(questionSelected);
 				showToast("Questions in this questionnaire are changed");
+				cancelTabGroup("questionnaire_question",true);
+				cancelTabGroup("questionnaire",true);
+				showTab("control/questionnaire_control");
 				//showWarning("Attention!","Questions in quesitonnaire are not changeable, please create a new questionnaire!");
 				}
 		}
@@ -605,16 +640,23 @@ finishChangeQuestionnaire(){
 				//showWarning("onSave()","started");
 				//finished_questionnaire_id = uuid;
 				//showWarning("finished_questionnaire_id()",finished_questionnaire_id);
+				for (questionDel : quesListRelnOrigin){
+					//showWarning("basic info not changed",question.get(0).toString());
+					deleteRel(questionDel.get(0));
+					}
 				for (question : questionSelected){
 					//showWarning("basic info changed (else)",question.get(0).toString());
 					saveEntitiesToRel("Questionnaire and Question",finished_questionnaire_id,question.get(0));
 				}
 				//reset the used arraylists
-				questionOriginal.clear();
-				questionOriginal.add(questionSelected);
-				questionnaireInfoOriginal.clear();
-				questionnaireInfoOriginal.addAll(questionnaireInfoNew);
+				//questionOriginal.clear();
+				//questionOriginal.add(questionSelected);
+				//questionnaireInfoOriginal.clear();
+				//questionnaireInfoOriginal.addAll(questionnaireInfoNew);
 				showToast("Questionnaire data is changed");
+				ancelTabGroup("questionnaire_question",true);
+				cancelTabGroup("questionnaire",true);
+				showTab("control/questionnaire_control");
 			}
 			onError(message) {
 				showWarning("error",message);
