@@ -211,6 +211,8 @@ sss_answer_list=new ArrayList();
 sssOriginInfo=new ArrayList();
 sssNewInfo=new ArrayList();
 original_sss_answer_list=new ArrayList();
+sssAnsOrigin=new ArrayList();
+
 /***Starting from creating a session***/
 newSessionForAnswer(){
 	sss_id=null;
@@ -218,6 +220,7 @@ newSessionForAnswer(){
 	sssOriginInfo.clear();
 	sssNewInfo.clear();	
 	original_sss_answer_list.clear();
+	sssAnsOrigin.clear();
 	
 	newTabGroup("sessionForAnswer");
 	String currentTime=getCurrentTime();
@@ -2001,13 +2004,14 @@ loadSessionInfo(String typeFlag){
         }
     });
 	break;
-	
+	//TODO:CHANGE THE QUERY FOR ANSWER AND SESSION RELN
 	case "answer":
 		sss_id=getListItemValue();
 		if(isNull(sss_id)){
 			showWarning("Invalid session","No session is selected or session is not available");
 			return;
 		}
+		/*
 		loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
 				"and uuid in "+
@@ -2022,6 +2026,31 @@ loadSessionInfo(String typeFlag){
 	 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
 	 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t2 "+
 	 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
+		*/
+		loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+				"and uuid in "+
+	 			"(select uuid from AentReln where RelationshipID in "+
+				"(select RelationshipID from AEntReln where AEntReln.uuid="+sss_id+" "+
+	 			"AND RelationshipID in "+
+				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL)))";
+	 	
+		loadAnsSssRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+sss_id+" "+
+	 					"and RelationshipID in "+
+	 					"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+	 					"and latestNonDeletedRelationship.Deleted IS NULL)";
+		fetchAll(loadAnsSssRelnQuery, new FetchCallback() {
+	        onFetch(result) {
+	        	sssAnsOrigin.clear();
+	        	sssAnsOrigin.addAll(result);
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+		
 		showTabGroup("sessionForAnswer", sss_id, new FetchCallback() {
 	        onFetch(result) {
 	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
@@ -2154,7 +2183,7 @@ saveSession(String typeflag){
 		}
 	}
 	break;
-	
+	//TODO: ADDING DELETEREL() FOR DELETING RELNS
 	case "answer":
 		
 		if(isNull(sss_id)){//create new session
@@ -2198,32 +2227,38 @@ saveSession(String typeflag){
 		}
 		else{//change session info
 			String endTimeAuto=getCurrentTime();
-			setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
 			sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
 			sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
 			sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
-			sssNewInfo.add(endTimeAuto);
+			//sssNewInfo.add(endTimeAuto);
+			sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));
+			//showWarning("sssNewInfo","sssNewInfo added");
 			Hashtable sssInfoChange=listChange(sssNewInfo,sssOriginInfo);
+			//showWarning("sssInfoChange","sssInfoChange added");
 			Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
+			//showWarning("sssAnsChange","sssAnsChange added");
 			if(sssInfoChange.containsKey("EQUAL")){
+				//showWarning("sssInfoChange","EQUAL");
 				if(sssAnsChange.containsKey("EQUAL")){
 					showWarning("No change","No data changed");
 					return;
 				}
-				else{
-					//showWarning("yes change","beginingchange file");
-					 for(answer:sss_answer_list){
-			    		  saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
-			    	  }
-					showToast("Answer in session changed");
-				}
+				
 			}
-			else{
+
+				setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
 				String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
-				String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+				String endTimeStamp=endTimeAuto;
 				if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
-				saveTabGroup("session", sss_id, null, null, new SaveCallback() {
+					//showWarning("timeValidation","pass");
+				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 				    onSave(uuid, newRecord) {
+				    	showWarning("saveTabGroup","sessionForAnswer");
+				    	for(ansDelete:sssAnsOrigin){
+							 deleteRel(ansDelete.get(0));
+							 //showWarning("deleteRel",ansDelete.get(0));
+				    	  }
+				    	
 				    	 for(answer:sss_answer_list){
 				    		  saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
 				    	  }
@@ -2243,7 +2278,7 @@ saveSession(String typeflag){
 					return;
 				}
 			}
-		}
+		
 		break;
 	}
 }
