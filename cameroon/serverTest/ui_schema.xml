@@ -145,14 +145,20 @@
                                       
                   </questionInfo>
                 </questionBank>
-                
+             
                 <person>
+                    <personInfoHidden>
+                        <personDOB/>
+                    </personInfoHidden>
+                    
                   <personInfo>
                     <personID/>
                     <personName/>
                     <personOtherNames/>
+                    <personDOBPicker/>
                     <personPhoto/>
                     <Take_Photo/>
+                    <Take_Intro_Quesnir/>
                     <Finish_New_Person/>
                   </personInfo>
                 </person>
@@ -168,6 +174,7 @@
                 
         </faims>
       </instance>
+       <bind nodeset="/Linguistics_Admin/person/personInfo/personDOBPicker" type="date"/>
     </model>
   </h:head>
   <h:body>
@@ -535,9 +542,15 @@
         </group>
     </group>
 
-
     <group ref="person" faims_archent_type="Person">
         <label>Person</label>
+        <group ref="personInfoHidden" faims_hidden="true">
+            <label></label>
+            <input ref="personDOB" faims_attribute_name="PersonDOB" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+              <label>{Person DOB}</label>
+            </input>
+        </group>
+        
         <group ref="personInfo">
           <label>{Person Information}</label>
            <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" >
@@ -549,7 +562,10 @@
             <input ref="personOtherNames" faims_attribute_name="PersonOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
               <label>{Person Other Names}</label>
             </input>
-
+			<input ref="personDOBPicker" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+              <label>{Person DOB}</label>
+            </input>
+           
             <select type="camera" faims_sync="true" ref="personPhoto" faims_attribute_name="PersonPhoto" faims_attribute_type="measure" faims_certainty="true" faims_annotation="true" faims_read_only="false">
             <label>{Photos}</label>
               <item>
@@ -560,6 +576,9 @@
             
             <trigger ref="Take_Photo" faims_style_class="faims-blue">
                 <label>Take Photo</label>
+            </trigger>
+            <trigger ref="Take_Intro_Quesnir" faims_style_class="faims-blue">
+                <label>Intro Questionnaire</label>
             </trigger>
             <trigger ref="Finish_New_Person" faims_style_class="faims-blue">
                 <label>Save Person</label>
