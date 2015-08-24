@@ -1924,6 +1924,26 @@ person_id=getListItemValue();
     });
 }
 
+timeValidation(String startDateTime){	
+	String hyphenDateRegex="^\\d{4}[-]\\d{2}[-]\\d{2}$";
+	Pattern hyphenDatePattern=Pattern.compile(hyphenDateRegex);
+	Matcher hyphenDateMatcher=hyphenDatePattern.matcher(startDateTime);
+	if (hyphenDateMatcher.find()){		
+			DateFormat df=new SimpleDateFormat("yyyy-MM-dd");
+			df.setLenient(false);
+			Date sdt=null;
+			try{
+				sdt=df.parse(startDateTime);	
+			}
+			catch(Exception ex){
+				//Log.e("error", ex.getMessage().toString());
+				//showWarning("ex","ex");
+				return false;
+			}
+		return true;
+	}
+return false;
+}
 saveNewPerson(){
 
 	if(isNull(getFieldValue("person/personInfo/personName"))){
@@ -1933,23 +1953,32 @@ saveNewPerson(){
 	if(isNull(getFieldValue("person/personInfo/personID"))){
 		setFieldValue("person/personInfo/personID", getFieldValue("person/personInfo/personName")+getCurrentTime());
 	}
-	saveTabGroup("person", person_id, null, null, new SaveCallback() {
-    onSave(uuid, newRecord) {
-      person_id = uuid;
-      if (newRecord) {
-		newPerson();
-		//person_id=null;
-        showToast("New record created");
-      }
-	  else{
-		showToast("Record changed");	
-	  }
-	  
-    }
-    onError(message) {
-        showWarning("error",message);
-    }  
-  });
+	if(timeValidation(personDOB)){
+		saveTabGroup("person", person_id, null, null, new SaveCallback() {
+	    onSave(uuid, newRecord) {
+	      person_id = uuid;
+	      if (newRecord) {
+			//newPerson();
+			//person_id=null;
+			
+	        showToast("New record created");
+	        cancelTabGroup("person",true);
+	        showTab("control/user_control");
+	      }
+		  else{
+			showToast("Record changed");	
+		  }
+		  
+	    }
+	    onError(message) {
+	        showWarning("error",message);
+	    }  
+	  });
+		}
+		else{
+			showWarning("Invalid DOB","1.Datetime format should be yyyy-MM-dd \n"+"2.The value for date should be valid");
+						return;
+		}
 }
 
 

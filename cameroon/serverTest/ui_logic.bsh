@@ -1,5 +1,12 @@
 import java.util.concurrent.Callable;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import android.util.Log;
+import java.io.File;
 /*** 'Editable' - you can edit the code below based on the needs ***/
 User user; // don't touch
 String userid;
@@ -857,8 +864,10 @@ saveNewQuestion(){
 		saveEntitiesToRel("Question and Language",question_id,current_selected_language_id);
 		//question_id=null;	
         showToast("New record created");
-		newQuestion();
-		initialQuestionCreation();
+        cancelTabGroup("questionBank",true);
+        showTab("control/question_control");
+		//newQuestion();
+		//initialQuestionCreation();
       }
 	  else{
 		saveEntitiesToRel("Question and Language",question_id,current_selected_language_id);
@@ -1110,6 +1119,28 @@ newPerson(){
 	newTabGroup("person");
 	onEvent("person", "show", "showTab(\"person/personInfo\");");  
 }
+
+timeValidation(String startDateTime){	
+		String hyphenDateRegex="^\\d{4}[-]\\d{2}[-]\\d{2}$";
+		Pattern hyphenDatePattern=Pattern.compile(hyphenDateRegex);
+		Matcher hyphenDateMatcher=hyphenDatePattern.matcher(startDateTime);
+		if (hyphenDateMatcher.find()){		
+				DateFormat df=new SimpleDateFormat("yyyy-MM-dd");
+				df.setLenient(false);
+				Date sdt=null;
+				try{
+					sdt=df.parse(startDateTime);	
+				}
+				catch(Exception ex){
+					//Log.e("error", ex.getMessage().toString());
+					//showWarning("ex","ex");
+					return false;
+				}
+			return true;
+		}
+	return false;
+}
+
 saveNewPerson(){
 
 	if(isNull(getFieldValue("person/personInfo/personName"))){
@@ -1119,13 +1150,18 @@ saveNewPerson(){
 	if(isNull(getFieldValue("person/personInfo/personID"))){
 		setFieldValue("person/personInfo/personID", getFieldValue("person/personInfo/personName")+getCurrentTime());
 	}
+	String personDOB=getFieldValue("person/personInfo/personDOB");
+	if(timeValidation(personDOB)){
 	saveTabGroup("person", person_id, null, null, new SaveCallback() {
     onSave(uuid, newRecord) {
       person_id = uuid;
       if (newRecord) {
-		newPerson();
+		//newPerson();
 		//person_id=null;
+		
         showToast("New record created");
+        cancelTabGroup("person",true);
+        showTab("control/user_control");
       }
 	  else{
 		showToast("Record changed");	
@@ -1136,6 +1172,11 @@ saveNewPerson(){
         showWarning("error",message);
     }  
   });
+	}
+	else{
+		showWarning("Invalid DOB","1.Datetime format should be yyyy-MM-dd \n"+"2.The value for date should be valid");
+					return;
+	}
 }
 
 loadPerson(){
@@ -1161,9 +1202,11 @@ person_id=getListItemValue();
 		showToast("No Person selected");
 		return;
 	}
+
 	showTabGroup("person", person_id, new FetchCallback() {
         onFetch(result) {
             person=result;
+        
             showToast("Loaded person"+person.getId());            
         }
         onError(message) {
@@ -1198,8 +1241,10 @@ saveNewLanguage(){
     onSave(uuid, newRecord) {
       language_id = uuid;
       if (newRecord) {
-		newLanguage();
+    	 
         showToast("New record created");
+        cancelTabGroup("language",true);
+        showTab("control/language_control");
       }
 	  else{
 		//language_id=null;
@@ -1338,3 +1383,5 @@ showEntity(){
 	}
 	
 }
+
+

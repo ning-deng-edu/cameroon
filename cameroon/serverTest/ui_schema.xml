@@ -147,15 +147,13 @@
                 </questionBank>
              
                 <person>
-                    <personInfoHidden>
-                        <personDOB/>
-                    </personInfoHidden>
+                    
                     
                   <personInfo>
                     <personID/>
                     <personName/>
                     <personOtherNames/>
-                    <personDOBPicker/>
+                    <personDOB/>
                     <personPhoto/>
                     <Take_Photo/>
                     <Take_Intro_Quesnir/>
@@ -174,7 +172,7 @@
                 
         </faims>
       </instance>
-       <bind nodeset="/Linguistics_Admin/person/personInfo/personDOBPicker" type="date"/>
+
     </model>
   </h:head>
   <h:body>
@@ -544,12 +542,7 @@
 
     <group ref="person" faims_archent_type="Person">
         <label>Person</label>
-        <group ref="personInfoHidden" faims_hidden="true">
-            <label></label>
-            <input ref="personDOB" faims_attribute_name="PersonDOB" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-              <label>{Person DOB}</label>
-            </input>
-        </group>
+
         
         <group ref="personInfo">
           <label>{Person Information}</label>
@@ -562,7 +555,7 @@
             <input ref="personOtherNames" faims_attribute_name="PersonOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
               <label>{Person Other Names}</label>
             </input>
-			<input ref="personDOBPicker" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+			<input ref="personDOB" faims_attribute_name="PersonDOB" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
               <label>{Person DOB}</label>
             </input>
            
