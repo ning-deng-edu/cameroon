@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import android.util.Log;
 import java.io.File;
+//import java.lang.*;
 /*** 'Editable' - you can edit the code below based on the needs ***/
 User user; // don't touch
 String userid;
@@ -21,6 +22,11 @@ loadAllPersonQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 	"WHERE latestNonDeletedAentValue.AttributeID "+
 	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonName') "+
 	"GROUP BY uuid;";
+
+loadAllPersonIDQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+		"WHERE latestNonDeletedAentValue.AttributeID "+
+		"IN (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonID') "+
+		"GROUP BY uuid;";
 
 loadAllLanguageQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
@@ -761,7 +767,7 @@ startNewAnswer(){
 	
 	files_in_current_ques.clear();
 	files_origin.clear();
-	ansListForQues.clear();
+	//ansListForQues.clear();
 	
 	answer_id=null;
 	current_answer_file_id=null;
@@ -896,7 +902,9 @@ loadAnswerListForQuesion(){
 		        						answerForQuestionTemp.addAll(result);
 		        						answerForSessionTemp.retainAll(answerForQuestionTemp);
 		        						ansListForQues.clear();
+		        						//showWarning("ansListForQues","resultadded");
 		        						ansListForQues.addAll(result);//Answer list for a question in a questionnaire stored
+		        						//showWarning("ansListForQues","resultadded");
 		        						populateList("answerToQuestion/answerInfo/answerList", answerForSessionTemp);	
 		        					}
 		        					
@@ -928,6 +936,8 @@ loadAnswerListForQuesion(){
 		        onFetch(result) {
 					//if (!isNull(result)) {
 						populateList("answerToQuestion/answerInfo/answerList", result);	
+						ansListForQues.clear();
+						ansListForQues.addAll(result);
 					//}
 					
 		        }
@@ -1111,6 +1121,7 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag){
 		
 	}
 }
+personCheckFlag="FAL";
 addInterviewee(){
 	toAddIntervieweeID=null;
 	toAddIntervieweeID=getListItemValue();
@@ -1118,21 +1129,29 @@ addInterviewee(){
 		showWarning("Invalid person","Invalid person, please choose another person");
 		return;
 	}
+	checkPersonAns(toAddIntervieweeID);
+	/*
 	if(checkPersonAns(toAddIntervieweeID)){
+	//if(personCheckFlag.equals("TRU")){
 		addItemToTargetList(candidate_answer_interviewee,"interviewee",toAddIntervieweeID);
+		//personCheckFlag="FAL";
 	}
 	else{
 		showAlert("alert", "This person has already answered this question \n"+"Do you still want to add this person?", "confirmAddInterviewee()", "stayInCurrentPage()");
 	}
+	*/
 }
 confirmAddInterviewee(){
 	addItemToTargetList(candidate_answer_interviewee,"interviewee",toAddIntervieweeID);
+	//personCheckFlag="FAL";
 }
 stayInCurrentPage()
 {
 	return;
 }
+
 checkPersonAns(String personID){
+	
 	ansListPerson=new ArrayList();
 	loadIntervieweeAnsQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
@@ -1143,34 +1162,46 @@ checkPersonAns(String personID){
 			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
  			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
 			"and latestNonDeletedRelationship.Deleted IS NULL)))";
-	//showWarning("loadIntervieweeAnsQuery","loadIntervieweeAnsQuery");
 	fetchAll(loadIntervieweeAnsQuery,
 			new FetchCallback() {
 		        onFetch(result) {
 		        	//showWarning("fetchAll","fetchAll");
-					if (!isNull(result)) {
+					//if (!isNull(result)) {
 						ansListPerson.clear();
 						ansListPerson.addAll(result);
 						//showWarning("ansListPerson","ansListPerson");
-						Hashtable answerOverlap=listChange(ansListPerson,ansListForQues);
-						//showWarning("answerOverlap","answerOverlap");
-						if(!answerOverlap.containsKey("EQUAL")){
-							return false;
+						ansListPerson.retainAll(ansListForQues);
+						if(isNull(ansListPerson)){
+							//showWarning("not answered","not answered");
+							addItemToTargetList(candidate_answer_interviewee,"interviewee",toAddIntervieweeID);
 						}
-						else{
-							return true;
-							}
-					}
+						else
+						{
+							//if(isNull(ansListForQues)){
+								//showWarning("ques","null");
+								//return true;//No answers for this question
+							//}
+							//else{
+							//showWarning("answered","answered");
+							showAlert("alert", "This person has already answered this question \n"+"Do you still want to add this person?", "confirmAddInterviewee()", "stayInCurrentPage()");
+							//}
+						}
+					//}
+					//else//This person has never answered a question
+					//{
+						//return true;
+					//}
 					
 		        }
 
 		        onError(message) {
 		        	Log.e("error",message);
 		            showToast(message);
-		            return false;
+		           //return false;
 		        }
 		    });
-	return false;
+	 //Thread.sleep(2000);
+	 return false;
 }
 //Do not allow user create answer without create session?
 saveNewAnswer(){
@@ -1892,11 +1923,11 @@ newPerson(){
 
 loadPerson(){
 	person_id=null;
-	fetchAll("SELECT uuid, group_concat(coalesce(measure, ''),' - ') as response " +
+	fetchAll(/*"SELECT uuid, group_concat(coalesce(measure, ''),' - ') as response " +
     "FROM (select * from latestNonDeletedArchentIdentifiers) " +
     "WHERE aenttypename = 'Person' " +
     "GROUP BY uuid " +
-    "order by response;", new FetchCallback() {
+    "order by response;"*/loadAllPersonIDQuery, new FetchCallback() {
         onFetch(result) {
             populateList("control/user_control/userList", result);
         }
@@ -1951,7 +1982,9 @@ saveNewPerson(){
         return;
 	}
 	if(isNull(getFieldValue("person/personInfo/personID"))){
-		setFieldValue("person/personInfo/personID", getFieldValue("person/personInfo/personName")+getCurrentTime());
+		String personLabel=getFieldValue("person/personInfo/personName")+"-"+getFieldValue("person/personInfo/personDOB");
+		setFieldValue("person/personInfo/personID", personLabel);
+		//setFieldValue("person/personInfo/personID", getFieldValue("person/personInfo/personName")+getCurrentTime());
 	}
 	if(timeValidation(personDOB)){
 		saveTabGroup("person", person_id, null, null, new SaveCallback() {
@@ -2493,7 +2526,7 @@ saveSession(String typeflag){
 					//showWarning("timeValidation","pass");
 				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 				    onSave(uuid, newRecord) {
-				    	showWarning("saveTabGroup","sessionForAnswer");
+				    	//showWarning("saveTabGroup","sessionForAnswer");
 				    	for(ansDelete:sssAnsOrigin){
 							 deleteRel(ansDelete.get(0));
 							 //showWarning("deleteRel",ansDelete.get(0));
