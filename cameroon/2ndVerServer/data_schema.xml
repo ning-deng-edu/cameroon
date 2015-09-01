@@ -6,7 +6,7 @@
         <description> Implements a 1:N relationship between QuestionBank and Question</description>
     </RelationshipElement>
     
-    <RelationshipElement name="Questionnare and Question" type="bidirectional">
+    <RelationshipElement name="Questionnaire and Question" type="bidirectional">
         <description>Implements a 1:N relationship between Questionnaire and Question</description>
     </RelationshipElement>
     
@@ -26,10 +26,22 @@
         <description>Implements a N:N relationship between Answer and Person</description>
     </RelationshipElement>
     
+    <RelationshipElement name="Answer and Interviewer" type="bidirectional">		
+        <description>Implements a N:N relationship between Answer and Interviewer</description>		
+    </RelationshipElement>		
+    		
+    <RelationshipElement name="Answer and Interviewee" type="bidirectional">		
+        <description>Implements a N:N relationship between Answer and Interviewee</description>		
+    </RelationshipElement>
+    
     <RelationshipElement name="Answer and Session" type="bidirectional">
         <description>Implements a N:1 relationship between Answer and Session</description>
     </RelationshipElement>
     
+    <RelationshipElement name="File and FieldTrip" type="bidirectional">		
+        <description>Implements a N:N relationship between File and FieldTrip</description>
+     </RelationshipElement>   
+     
     <RelationshipElement name="Person and Language" type="bidirectional">
         <description>Implements a N:N relationship between Person and Language</description>
     </RelationshipElement>
@@ -48,7 +60,7 @@
     
     
     
-    
+    <!--
     <ArchaeologicalElement name="Question">
         <description> Entity Question, has only two foreign keys, reference to Questionnaire ID and QuestionID respectively</description>
         <property name="Questionnaire_ID" isIdentifier="true" type="freetext">
@@ -58,6 +70,8 @@
             <description>Second foreign key references to QuestionID, now user can uniquely locate a specific question in a questionnaire</description>
         </property>
     </ArchaeologicalElement>
+    -->
+    
     
     <ArchaeologicalElement name="Questionnaire">
         <description> Entity Questionnaire, basically this entity stores the metadata of a Questionnaire, the questions in the questionnaire is stored in QuestionBank entity </description>
@@ -96,13 +110,13 @@
     
     <ArchaeologicalElement name="AnswerToQuestionnaire">
         <description>Entity AnswerToQuestionnaire, represent the metadata and data of the answers collected for a questionnaire</description>
-        <property name="QuestionnaireID" isIdentifier="true" type="freetext"></property>
-        <property name="QuestionID" isIdentifier="true" type="freetext"></property>
-        <property name="AnswerChoice" type="freetext"></property>
+        <property name="AnswerQuestionnaireID" isIdentifier="true" type="freetext"></property>		        <property name="AnsQuestionnaireID" isIdentifier="true" type="freetext"></property>
+        <property name="AnswerQuestionID" isIdentifier="true" type="freetext"></property>
+        <property name="AnswerLabel" isIdentifier="true" type="freetext"></property>
         <property name="AnswerText" type="freetext"></property>
         <property name="AnswerFile" type="freetext"></property>
-        <property name="InterviewerID" type="freetext"></property>
-        <property name="IntervieweeID" type="freetext"></property>
+         <property name="AnswerInterviewerID" type="freetext"></property>
+        <property name="AnswerIntervieweeID" type="freetext"></property>
         <property name="StartTimeStamp" type="freetext"></property>
         <property name="EndTimeStamp" type="freetext"></property>
     </ArchaeologicalElement>
@@ -112,6 +126,7 @@
         <property name="PersonID" isIdentifier="true" type="freetext"></property>
         <property name="PersonName" type="freetext"></property>
         <property name="PersonOtherNames" type="freetext"></property>
+        <property name="PersonDOB" type="measure" isIdentifier="true"></property>
         <property name="PersonPhoto" type="file" file="true" thumbnail="true"></property>
     </ArchaeologicalElement>
     
@@ -119,7 +134,7 @@
         <description>Entity Session, is a logical collection of files</description>
         <property name="SessionID" isIdentifier="true" type="String"></property>
         <property name="SessionName" type="freetext"></property>
-        <property name="SessionFile" type="freetext"></property>
+        <property name="SessionAnswer" type="freetext"></property>
         <property name="SessionStartTimestamp" type="freetext"></property>
         <property name="SessionEndTimestamp" type="freetext"></property>
         <property name="SessionLocation" type="freetext"></property>
@@ -128,7 +143,7 @@
     
     <ArchaeologicalElement name="File">
         <description>Entity File, is the relationship stores files and metadata o files</description>
-        <property name="FileID" isIdentifier="true" type="String"></property>
+        <property name="FileID" isIdentifier="true" type="freetext"></property>
         <property name="FileName" type="freetext"></property>
         <property name="FileType" type="freetext"></property>
         <property name="FilePath" type="freetext"></property>
@@ -138,11 +153,11 @@
     
     <ArchaeologicalElement name="Bookmark">
         <description>Entity Bookmark, for recording the significant timestamps in a session</description>
-        <property name="SessionID" isIdentifier="true" type="freetext"></property>
-        <property name="Timestamp" isIdentifier="true" type="freetext"></property>
+       	<property name="BmSessionID" isIdentifier="true" type="freetext"></property>
+        <property name="BmTimestamp" isIdentifier="true" type="freetext"></property>
         <property name="BookmarkName" type="freetext"></property>
-        <property name="QuestionnaireID" type="freetext"></property>
-        <property name="QuestionID" type="freetext"></property>
+        <property name="BkQuestionnaireID" type="freetext"></property>
+        <property name="BkQuestionID" type="freetext"></property>
     </ArchaeologicalElement>
     
     <ArchaeologicalElement name="FieldTrip">
@@ -151,7 +166,7 @@
         <property name="FieldTripName" type="freetext"></property>
         <property name="FieldTripStartTime" type="freetext"></property>
         <property name="FieldTripEndTime" type="freetext"></property>
-        <property name="Sessions" type="freetext"></property>
+        <property name="FieldTripSessions" type="freetext"></property>
         <property name="FieldTripDescription" type="freetext"></property>
     </ArchaeologicalElement>
 </dataSchema>

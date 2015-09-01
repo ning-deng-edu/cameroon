@@ -362,7 +362,7 @@
             <label>{Questionnaire Description}</label>
           </input>
           
-           <input ref="questionnaireType" faims_attribute_name="QuestionnaireType" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="false" faims_style_class="required">
+           <input ref="questionnaireType" faims_attribute_name="QuestionnaireType" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true" faims_style_class="required">
             <label>{Questionnaire Type}</label>
           </input>
           

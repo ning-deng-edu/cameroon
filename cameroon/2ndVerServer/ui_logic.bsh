@@ -129,9 +129,13 @@ addActionBarItem("sync", new ToggleActionButtonCallback() {
 });
 /***Save relationships among entities***/
 saveEntitiesToRel(String type, String entity1, String entity2) {
+	//If this function doesn't work, generally it's because that no corresponding relationship table could be found in the data schema
+	//So we need to recheck if the relationship table name are the consistency
+	//showWarning("entity2",entity2);
     if (isNull(entity1) || isNull(entity2)) return;
     saveRel(null, type, null, null, new SaveCallback() {
         onSave(rel_id, newRecord) {
+        	//showWarning("rel_id",rel_id);
             addReln(entity1, rel_id, null);
             addReln(entity2, rel_id, null);
         }
@@ -224,6 +228,7 @@ newQuestionnaire(){
     quesListRelnOrigin.clear();
 	finished_questionnaire_id=null;
 	setFieldValue("questionnaire/questionnaire_info/questionnaireID","Quesnir-"+username+"-"+getCurrentTime());
+	setFieldValue("questionnaire/questionnaire_info/questionnaireType","Regular");
 	populateDropDown("questionnaire/questionnaire_info/questionnaireTypeSelection",questionirType);
 	//flag_return_questionnaire=false;
 }
@@ -534,8 +539,9 @@ finishCreateQuestionnaire(){
 			finished_questionnaire_id = uuid;
 	  //showWarning("finished_questionnaire_id()",finished_questionnaire_id);
 			if (newRecord) {
+				//showWarning("questionnaire()",finished_questionnaire_id);
 				for (question : questionSelected){
-			 //showWarning("insertrelation()",question.get(0).toString());
+					//showWarning("question()",question.get(0).toString());
 				saveEntitiesToRel("Questionnaire and Question",finished_questionnaire_id,question.get(0));
 			//showWarning("savedrel()",question.get(0).toString());
 			}
@@ -586,7 +592,8 @@ finishChangeQuestionnaire(){
 				showWarning("Questionnaire Modification","No data is changed");
 				return;
 			}
-			else{				
+			else{			
+				//showWarning("questionnaire()",finished_questionnaire_id);
 				//showWarning("basic info not changed (else)","not changed basic info");
 				for (questionDel : quesListRelnOrigin){
 					//showWarning("basic info not changed",question.get(0).toString());
@@ -594,6 +601,7 @@ finishChangeQuestionnaire(){
 					}
 				for (question : questionSelected){
 					//showWarning("basic info not changed",question.get(0).toString());
+					//showWarning("question()",question.get(0));
 					saveEntitiesToRel("Questionnaire and Question",finished_questionnaire_id,question.get(0));
 					}
 				showToast("Questions in this questionnaire are changed");
@@ -616,7 +624,7 @@ finishChangeQuestionnaire(){
 					saveEntitiesToRel("Questionnaire and Question",finished_questionnaire_id,question.get(0));
 				}
 				showToast("Questionnaire data is changed");
-				ancelTabGroup("questionnaire_question",true);
+				cancelTabGroup("questionnaire_question",true);
 				cancelTabGroup("questionnaire",true);
 				showTab("control/questionnaire_control");
 			}
