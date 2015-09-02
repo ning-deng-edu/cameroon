@@ -561,7 +561,7 @@
         
         <group ref="personInfo">
           <label>{Person Information}</label>
-           <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false">
+           <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
               <label>{Person ID}</label>
             </input>
             <input ref="personName" faims_attribute_name="PersonName" faims_attribute_type="measure" faims_certainty="false" faims_style_class="required">

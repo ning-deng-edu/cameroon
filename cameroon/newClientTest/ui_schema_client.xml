@@ -125,6 +125,7 @@
                     <surveyQuestionnaire>
                         <surveyQuestionnaireID/>
                         <surveyQuestionnaireName/>
+                        <surveyQuestionnaireType/>
                         <surveyQuestionnaireDescription/>
                         <surveyQuestionInQuestionnaire/>
                     </surveyQuestionnaire>
@@ -166,8 +167,10 @@
                     <sssAnsBasicInfo>
                     	<sssID/>
                     	<sssName/>
+                    	<sssLocation/>
                     	<sssStartTimetamp/>
                     	<sssEndTimestamp/>
+                    	<sssDescription/>
                     </sssAnsBasicInfo>
                     
                     <sssAnsList>
@@ -235,8 +238,10 @@
                     <sessionBasicInfo>
                     	<sessionID/>
                     	<sessionName/>
+                    	<sessionLocation/>
                     	<sessionStartTimetamp/>
                     	<sessionEndTimestamp/>
+                    	<sessionDescription/>
                     </sessionBasicInfo>
                     
                     <sessionFiles>
@@ -672,6 +677,9 @@
             	<label>Current questionnaire name</label>
             </input>
             
+            <input ref="surveyQuestionnaireType" faims_attribute_name="QuestionnaireType" faims_attribute_type="measure" faims_read_only="true" faims_certainty="false" faims_annotation="false">
+            	<label>Current questionnaire Type</label>
+            </input>
              <input ref="surveyQuestionnaireDescription" faims_attribute_name="QuestionnaireDescription" faims_attribute_type="measure" faims_read_only="true" faims_certainty="false" faims_annotation="false">
             	<label>Current questionnaire description</label>
             </input>
@@ -792,11 +800,18 @@
          <input ref="sssName" faims_attribute_name="SessionName" faims_attribute_type="measure" faims_certainty="false">
             <label>Session name</label>
         </input>
+   
+          <input ref="sssLocation" faims_attribute_name="SessionLocation" faims_attribute_type="measure" faims_certainty="false">
+            <label>Session Location</label>
+        </input>
         <input ref="sssStartTimetamp" faims_attribute_name="SessionStartTimestamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
           <label>Start timestamp</label>
         </input>
         <input ref="sssEndTimestamp" faims_attribute_name="SessionEndTimestamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
           <label>End timestamp</label>
+        </input>  
+        <input ref="sssDescription" faims_attribute_name="SessionDescription" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+          <label>Session description</label>
         </input>             
         </group>
         
@@ -986,12 +1001,18 @@
          <input ref="sessionName" faims_attribute_name="SessionName" faims_attribute_type="measure" faims_certainty="false">
             <label>Session name</label>
         </input>
+          <input ref="sessionLocation" faims_attribute_name="SessionLocation" faims_attribute_type="measure" faims_certainty="false">
+            <label>Session location</label>
+        </input>
         <input ref="sessionStartTimetamp" faims_attribute_name="SessionStartTimestamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
           <label>Start timestamp</label>
         </input>
         <input ref="sessionEndTimestamp" faims_attribute_name="SessionEndTimestamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
           <label>End timestamp</label>
         </input>             
+         <input ref="sessionDescription" faims_attribute_name="SessionDescription" faims_attribute_type="measure" faims_certainty="false">
+            <label>Session Description</label>
+        </input>
         </group>
         
         
