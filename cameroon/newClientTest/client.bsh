@@ -86,7 +86,62 @@ addActionBarItem("sync", new ToggleActionButtonCallback() {
         showToast("Sync enabled.");
     }
 });
+addActionBarItem("internal_gps", new ToggleActionButtonCallback() {
+    actionOnLabel() {
+        "{Internal_GPS_Enabled}";
+    }
+    actionOn() {
+        stopGPS();
+        showToast("{GPS_Disabled}");
+        updateGPSStatus();
+    }
+    isActionOff() {
+        isInternalGPSOn();
+    }
+    actionOffLabel() {
+        "{Internal_GPS_Disabled}";
+    }
+    actionOff() {
+        if(isExternalGPSOn()) {
+            stopGPS();
+        }
+        startInternalGPS();
+        showToast("{GPS_Enabled}");
+        updateGPSStatus();
+    }
+});
 
+addActionBarItem("external_gps", new ToggleActionButtonCallback() {
+    actionOnLabel() {
+        "{External_GPS_Enabled}";
+    }
+    actionOn() {
+        stopGPS();
+        showToast("{GPS_Disabled}");
+        updateGPSStatus();
+
+    }
+    isActionOff() {
+        isExternalGPSOn();
+    }
+    actionOffLabel() {
+        "{External_GPS_Disabled}";
+    }
+    actionOff() {
+        if(isInternalGPSOn()) {
+            stopGPS();
+        }
+        startExternalGPS();
+        if(isBluetoothConnected()) {
+            showToast("{GPS_Enabled}");
+        } else {
+            showToast("{Please_Enable_Bluetooth}");
+            this.isActionOff();
+        }
+        updateGPSStatus();
+    }
+});
+startInternalGPS();
 onSyncEvent("onSyncStart()", "onSyncSuccess()", "onSyncFailure()");
 
 
@@ -229,7 +284,7 @@ newSessionForAnswer(){
 	sssNewInfo.clear();	
 	original_sss_answer_list.clear();
 	sssAnsOrigin.clear();
-	
+	String currentPosition=takePoint();
 	newTabGroup("sessionForAnswer");
 	String currentTime=getCurrentTime();
     currentDateTimeArray=getCurrentTime().toString().split("\\s+");
@@ -237,6 +292,7 @@ newSessionForAnswer(){
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp",currentTime);           
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",currentDate+" 23:59:59");
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID","sss-"+username+"-"+currentTime);
+    setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation",currentPosition);
     populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
 }
 
@@ -1121,7 +1177,7 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag){
 		
 	}
 }
-personCheckFlag="FAL";
+
 addInterviewee(){
 	toAddIntervieweeID=null;
 	toAddIntervieweeID=getListItemValue();
@@ -1318,7 +1374,7 @@ saveNewAnswer(){
 				//files_origin.addAll(files_in_current_ques);
 				showToast("file list changed");
 				cancelTabGroup("survey", true);
-				//cancelTabGroup("answerToQuestion", true);
+				cancelTabGroup("answerToQuestion", true);
 				//showTabGroup("questionnaireInfo");
 				showTab("sessionForAnswer/sssAnsList");
 			}
@@ -1360,7 +1416,7 @@ saveNewAnswer(){
 				//origin_selected_interviewee.addAll(selected_answer_interviewee);			
 				showToast("Interviewee and interviewer lists changed");
 				cancelTabGroup("survey", true);
-				//cancelTabGroup("answerToQuestion", true);
+				cancelTabGroup("answerToQuestion", true);
 				//showTabGroup("questionnaireInfo");
 				showTab("sessionForAnswer/sssAnsList");
 			}
@@ -1396,7 +1452,7 @@ saveNewAnswer(){
 						//origin_selected_interviewee.addAll(selected_answer_interviewee);
 						showToast("Answer Info Changed");
 						cancelTabGroup("survey", true);
-						//cancelTabGroup("answerToQuestion", true);
+						cancelTabGroup("answerToQuestion", true);
 						//showTabGroup("questionnaireInfo");
 						showTab("sessionForAnswer/sssAnsList");
 				}
@@ -2133,6 +2189,26 @@ original_files_session=new ArrayList();
 sessionInfoOrigin=new ArrayList();
 sessionInfoNew=new ArrayList();
 sessionAnswerRelnOrigin=new ArrayList();
+/***session position***/
+takePoint() {
+
+    Object position = getGPSPosition();
+
+    if (position == null) {
+        showWarning("Warning","{GPS_Not_Initialised}");
+        return;
+    }
+    //Object projPosition = getGPSPositionProjected();
+    Double latitude = position.getLatitude();
+
+    Double longitude = position.getLongitude();
+
+    //String northing = projPosition.getLatitude();
+    //String easting = projPosition.getLongitude();
+    String currentPosition="lat:"+latitude.toString()+"long:"+longitude.toString();
+    //showWarning("currentPosition",currentPosition);
+    return currentPosition;
+}
 
 showSession(){
 	showTabGroup("sessionGroup");
@@ -2167,7 +2243,9 @@ newSession(){
 	sessionInfoNew.clear();
 	sessionAnswerRelnOrigin.clear();
 	currentDateTimeArray=new ArrayList();
-	
+	 //showWarning("clear","clear done");
+	String current_position=takePoint();
+	//showWarning("current_position",current_position);
 	newTabGroup("session");
 	fetchAll(loadAllAnswerQuery, new FetchCallback() {
         onFetch(result) {
@@ -2180,6 +2258,7 @@ newSession(){
             setFieldValue("session/sessionBasicInfo/sessionStartTimetamp",currentDate+" 00:00:00");           
             setFieldValue("session/sessionBasicInfo/sessionEndTimestamp",currentDate+" 23:59:59");
             setFieldValue("session/sessionBasicInfo/sessionID","sss-"+username+"-"+currentTime);
+            setFieldValue("session/sessionBasicInfo/sessionLocation",current_position);
         }
 
         onError(message) {
@@ -3266,5 +3345,5 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 		}
 	}
   }
-	
+
 //}
