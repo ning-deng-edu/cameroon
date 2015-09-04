@@ -277,6 +277,8 @@ original_sss_answer_list=new ArrayList();
 sssAnsOrigin=new ArrayList();
 
 /***Starting from creating a session***/
+
+
 newSessionForAnswer(){
 	sss_id=null;
 	sss_answer_list.clear();
@@ -284,15 +286,15 @@ newSessionForAnswer(){
 	sssNewInfo.clear();	
 	original_sss_answer_list.clear();
 	sssAnsOrigin.clear();
-	String currentPosition=takePoint();
+	ArrayList currentPosition=takePoint();
 	newTabGroup("sessionForAnswer");
 	String currentTime=getCurrentTime();
     currentDateTimeArray=getCurrentTime().toString().split("\\s+");
     String currentDate=currentDateTimeArray[0];
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp",currentTime);           
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",currentDate+" 23:59:59");
-    setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID","sss-"+username+"-"+currentTime);
-    setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation",currentPosition);
+    setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",username+"-("+currentPosition.get(1)+")-("+currentPosition.get(2)+")-("+currentDate+")");
+    setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation",currentPosition.get(0));
     populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
 }
 
@@ -2200,12 +2202,20 @@ takePoint() {
     }
     //Object projPosition = getGPSPositionProjected();
     Double latitude = position.getLatitude();
-
     Double longitude = position.getLongitude();
 
     //String northing = projPosition.getLatitude();
     //String easting = projPosition.getLongitude();
-    String currentPosition="lat:"+latitude.toString()+"long:"+longitude.toString();
+    ArrayList currentPosition=new ArrayList();
+    String latitudeString=latitude.toString();
+    String longitudeString=longitude.toString();
+    String currentPositionLong="lat:"+latitudeString+"long:"+longitudeString;
+    String latitudeShort=latitudeString.substring(0,6);
+    String longitudeShort=longitudeString.substring(0,6);
+    
+    currentPosition.add(currentPositionLong);
+    currentPosition.add(latitudeShort);
+    currentPosition.add(longitudeShort);
     //showWarning("currentPosition",currentPosition);
     return currentPosition;
 }
@@ -2244,7 +2254,8 @@ newSession(){
 	sessionAnswerRelnOrigin.clear();
 	currentDateTimeArray=new ArrayList();
 	 //showWarning("clear","clear done");
-	String current_position=takePoint();
+	ArrayList current_position=takePoint();
+	
 	//showWarning("current_position",current_position);
 	newTabGroup("session");
 	fetchAll(loadAllAnswerQuery, new FetchCallback() {
@@ -2257,8 +2268,8 @@ newSession(){
             populateList("session/sessionFiles/sessionFileList", selected_files_session);
             setFieldValue("session/sessionBasicInfo/sessionStartTimetamp",currentDate+" 00:00:00");           
             setFieldValue("session/sessionBasicInfo/sessionEndTimestamp",currentDate+" 23:59:59");
-            setFieldValue("session/sessionBasicInfo/sessionID","sss-"+username+"-"+currentTime);
-            setFieldValue("session/sessionBasicInfo/sessionLocation",current_position);
+            setFieldValue("session/sessionBasicInfo/sessionID",username+"-("+current_position.get(1)+")-("+current_position.get(2)+")-("+currentDate+")");
+            setFieldValue("session/sessionBasicInfo/sessionLocation",current_position.get(0));
         }
 
         onError(message) {
