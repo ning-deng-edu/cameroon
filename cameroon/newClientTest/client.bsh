@@ -259,12 +259,14 @@ current_quesnir_id=null;
 current_question_id=null;
 current_quesnir_name=null;
 current_question_content=null;
+current_question_label=null;//label for generating answerID
 current_answer_file_id=null;
 current_answer_id=null;
 toAddIntervieweeID=null;
 
 questionnaire_list=new ArrayList();
 ques_in_current_quesnir=new ArrayList();
+queslabel_current_quesnir=new ArrayList();
 survey_list=new ArrayList();
 //all_quesnir_list=new ArrayList();
 answer_quesnir_list=new ArrayList();
@@ -275,12 +277,15 @@ sssOriginInfo=new ArrayList();
 sssNewInfo=new ArrayList();
 original_sss_answer_list=new ArrayList();
 sssAnsOrigin=new ArrayList();
+String sssLabel=null;//This is used for sssID interviewee changing
+sssAnswerInterviewee=new ArrayList();//This is for generating sss label
 
 /***Starting from creating a session***/
 
 
 newSessionForAnswer(){
 	sss_id=null;
+	sssLabel=null;
 	sss_answer_list.clear();
 	sssOriginInfo.clear();
 	sssNewInfo.clear();	
@@ -289,13 +294,14 @@ newSessionForAnswer(){
 	ArrayList currentPosition=takePoint();
 	newTabGroup("sessionForAnswer");
 	String currentTime=getCurrentTime();
-    currentDateTimeArray=getCurrentTime().toString().split("\\s+");
+    currentDateTimeArray=currentTime.toString().split("\\s+");
     String currentDate=currentDateTimeArray[0];
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp",currentTime);           
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",currentDate+" 23:59:59");
-    setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",username+"-("+currentPosition.get(1)+")-("+currentPosition.get(2)+")-("+currentDate+")");
+    sssLabel="-("+currentPosition.get(1)+")-("+currentPosition.get(2)+")-("+currentDate+")";
+    setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",username+sssLabel);
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation",currentPosition.get(0));
-    populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+    populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);    
 }
 
 showQuestionnaireList(){
@@ -306,11 +312,13 @@ showQuestionnaireList(){
 	current_question_content=null;
 	current_answer_file_id=null;
 	current_answer_id=null;
+	current_question_label=null;
 	
 	ques_in_current_quesnir.clear();
 	answer_quesnir_list.clear();
 	survey_list.clear();
 	questionnaire_list.clear();
+	queslabel_current_quesnir.clear();
 	
 	newTabGroup("questionnaireListAll");
 	onEvent("questionnaireListAll","show","loadAllQuesnir()");
@@ -482,6 +490,7 @@ loadQuesnirInfo(){
 		return;
 	}
 	else{
+		/*
 		questionnaire_question_query="SELECT uuid, measure "+
 		"from latestNonDeletedAentValue "+
 		"where latestNonDeletedAentValue.AttributeID = "+
@@ -494,13 +503,37 @@ loadQuesnirInfo(){
 		"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_quesnir_id+") tm "+
 		"on aer.AentRelnTimestamp=tm.maxtime group by relationshipID)) "+
 		"group by uuid;";
-		ques_in_current_quesnir.clear();
-		fetchAll(questionnaire_question_query,
+		*/
+		questionnaire_question_query="select uuid,measure from latestNonDeletedAentValue "+ 
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
+				"and uuid in "+
+	 			"(select uuid from AentReln where RelationshipID in "+
+				"(select RelationshipID from AEntReln where AEntReln.uuid="+current_quesnir_id+" "+
+	 			"AND RelationshipID in "+
+				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+	 			"(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and Question') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL))) group by uuid";
+		
+		queslabel_quesnir_query="select uuid,measure from latestNonDeletedAentValue "+ 
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
+				"and uuid in "+
+	 			"(select uuid from AentReln where RelationshipID in "+
+				"(select RelationshipID from AEntReln where AEntReln.uuid="+current_quesnir_id+" "+
+	 			"AND RelationshipID in "+
+				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+	 			"(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and Question') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL))) group by uuid";
+		
+		
+		//ques_in_current_quesnir.clear();
+		//queslabel_current_quesnir.clear();
+		
+		fetchAll(queslabel_quesnir_query,
 				new FetchCallback() {
 					onFetch(result) {
 						if (!isNull(result)) {	
-							ques_in_current_quesnir.clear();	
-						ques_in_current_quesnir.addAll(result);
+							queslabel_current_quesnir.clear();	
+							queslabel_current_quesnir.addAll(result);
 						}
 						else{
 							showWarning("No question in this questionnaire","This questionnaire is not ready yet");
@@ -512,10 +545,45 @@ loadQuesnirInfo(){
 					showToast(message);
 				}
 				});
-				
+		/*
+		fetchAll(questionnaire_question_query,
+				new FetchCallback() {
+					onFetch(result) {
+						if (!isNull(result)) {	
+							ques_in_current_quesnir.clear();	
+						    ques_in_current_quesnir.addAll(result);
+						}
+						else{
+							showWarning("No question in this questionnaire","This questionnaire is not ready yet");
+							return;
+						}
+					}
+			       
+				onError(message) {
+					showToast(message);
+				}
+				});
+		*/		
 		showTabGroup("questionnaireInfo", current_quesnir_id, new FetchCallback() {
         	onFetch(result) {	
-        		populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
+        		fetchAll(questionnaire_question_query,
+        				new FetchCallback() {
+        					onFetch(result) {
+        						if (!isNull(result)) {	
+        							ques_in_current_quesnir.clear();	
+        						    ques_in_current_quesnir.addAll(result);
+        						    populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
+        						}
+        						else{
+        							showWarning("No question in this questionnaire","This questionnaire is not ready yet");
+        							return;
+        						}
+        					}
+        			       
+        				onError(message) {
+        					showToast(message);
+        				}
+        				});
         		current_quesnir_name=getFieldValue("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireName");
             	showToast("Loaded questionnaire"+result.getId());   	
         	}
@@ -807,6 +875,9 @@ categoryTypes.add(new NameValuePair("{Video}", "Video"));
 categoryTypes.add(new NameValuePair("{Photo}", "Photo"));
 categoryTypes.add(new NameValuePair("{Other}", "Other"));
 
+ansLabelFstPart=null;//QuestionID+"Answer"+username
+ansLabelSndPart=null;//Date of interview
+
 startNewAnswer(){
 	//current_question_id=getListItemValue();
 	String current_start_time=getCurrentTime();
@@ -832,15 +903,23 @@ startNewAnswer(){
 	current_answer_id=null;
 	answerFile=true;
 	toAddIntervieweeID=null;
+	ansLabelFstPart=null;
+	ansLabelSndPart=null;
 	
-	
+	//String currentTime=getCurrentTime();
+    currentDateTimeArray=current_start_time.toString().split("\\s+");
+    String currentDate=currentDateTimeArray[0];
+    
+    ansLabelFstPart=current_question_label+"-"+"Answer-";
+    ansLabelSndPart="-("+currentDate+")";
+    
 	newTabGroup("survey");
 	setFieldValue("survey/answerHidden/answerQuestionnaireID", current_quesnir_id);
 	setFieldValue("survey/answerHidden/answerQuestionID", current_question_id);
 	setFieldValue("survey/answerHidden/answerChoice", "N/A");
 	setFieldValue("survey/answerBasic/answerStartTimestamp", current_start_time);
 	setFieldValue("survey/answerBasic/answerEndTimestamp", "placeholder");
-	setFieldValue("survey/answerBasic/answerLabel", "Ans-"+username+"-"+current_start_time);
+	setFieldValue("survey/answerBasic/answerLabel", ansLabelFstPart+username+ansLabelSndPart);
 	populateList("survey/answerFile/answerFileList",files_in_current_ques);
 	populateDropDown("survey/answerFile/file_Category",categoryTypes);
 	populateDropDown("survey/answerPerson/personType",personTypes);
@@ -1020,6 +1099,14 @@ loadAnswerFromQuesInQuesnir(){
 		if(ques.get(0).equals(current_question_id))
 		{
 			current_question_content=ques.get(1);
+			break;
+		}
+	}
+	
+	for(quesLabel: queslabel_current_quesnir){
+		if(quesLabel.get(0).equals(current_question_id))
+		{
+			current_question_label=quesLabel.get(1);
 			break;
 		}
 	}
@@ -1505,6 +1592,7 @@ listChange(ArrayList targetList,ArrayList sourceList){
 
 newFile(String typeFlag){
 	String fileCategory=null;
+	String tempAnsID=null;
 	if(typeFlag.equals("answer")){
 		if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
 			showWarning("Warning","Please select interviewers and interviewees");
@@ -1523,28 +1611,38 @@ newFile(String typeFlag){
 		answerFile=false;
 		file_id=null;
 	}
+	int intervieweeSize=selected_answer_interviewee.size();
+	firstInterviewee=selected_answer_interviewee.get(0).get(1);
+	if (intervieweeSize==1){
+		tempAnsID=ansLabelFstPart+firstInterviewee+ansLabelSndPart;
+		setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
+	}
+	else{
+		tempAnsID=ansLabelFstPart+firstInterviewee+"EtAl"+ansLabelSndPart;
+		setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
+	}
 	switch (fileCategory){
 	case "Audio":		
 		newTabGroup("audioFile");
-		setFieldValue("audioFile/audioFileInfo/audioFileID","AudioFile-"+username+getCurrentTime());
+		setFieldValue("audioFile/audioFileInfo/audioFileID",tempAnsID+"AudioRecording");
 		setFieldValue("audioFile/audioFileInfo/audioFileCreator",username);
 		setFieldValue("audioFile/audioFileInfo/audioFileType","Audio");
 		break;
 	case "Video":
 		newTabGroup("videoFile");
-		setFieldValue("videoFile/videoFileInfo/videoFileID","VideoFile-"+username+getCurrentTime());
+		setFieldValue("videoFile/videoFileInfo/videoFileID",tempAnsID+"VideoRecording");
 		setFieldValue("videoFile/videoFileInfo/videoFileCreator",username);
 		setFieldValue("videoFile/videoFileInfo/videoFileType","Video");
 		break;
 	case "Photo":
 		newTabGroup("photoFile");
-		setFieldValue("photoFile/photoFileInfo/photoFileID","PhotoFile-"+username+getCurrentTime());
+		setFieldValue("photoFile/photoFileInfo/photoFileID",tempAnsID+"PhotoRecording");
 		setFieldValue("photoFile/photoFileInfo/photoFileCreator",username);
 		setFieldValue("photoFile/photoFileInfo/photoFileType","Photo");
 		break;
 	case "Other":
 		newTabGroup("sketchFile");
-		setFieldValue("sketchFile/sketchFileInfo/sketchFileID","SketchFile-"+username+getCurrentTime());
+		setFieldValue("sketchFile/sketchFileInfo/sketchFileID",tempAnsID+"Recording");
 		setFieldValue("sketchFile/sketchFileInfo/sketchFileCreator",username);
 		setFieldValue("sketchFile/sketchFileInfo/sketchFileType","Sketch");
 		break;
@@ -2262,7 +2360,7 @@ newSession(){
         onFetch(result) {
         	candidate_files_session.addAll(result);
         	String currentTime=getCurrentTime();
-            currentDateTimeArray=getCurrentTime().toString().split("\\s+");
+            currentDateTimeArray=currentTime.toString().split("\\s+");
             String currentDate=currentDateTimeArray[0];
             populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
             populateList("session/sessionFiles/sessionFileList", selected_files_session);
