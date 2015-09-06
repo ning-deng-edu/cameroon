@@ -877,6 +877,7 @@ categoryTypes.add(new NameValuePair("{Other}", "Other"));
 
 ansLabelFstPart=null;//QuestionID+"Answer"+username
 ansLabelSndPart=null;//Date of interview
+tempAnsLabel=null;//tempAnsLabel, for trigger of changing answer label
 
 startNewAnswer(){
 	//current_question_id=getListItemValue();
@@ -905,6 +906,7 @@ startNewAnswer(){
 	toAddIntervieweeID=null;
 	ansLabelFstPart=null;
 	ansLabelSndPart=null;
+	tempAnsLabel=null;
 	
 	//String currentTime=getCurrentTime();
     currentDateTimeArray=current_start_time.toString().split("\\s+");
@@ -919,7 +921,8 @@ startNewAnswer(){
 	setFieldValue("survey/answerHidden/answerChoice", "N/A");
 	setFieldValue("survey/answerBasic/answerStartTimestamp", current_start_time);
 	setFieldValue("survey/answerBasic/answerEndTimestamp", "placeholder");
-	setFieldValue("survey/answerBasic/answerLabel", ansLabelFstPart+username+ansLabelSndPart);
+	tempAnsLabel=ansLabelFstPart+username+ansLabelSndPart;
+	setFieldValue("survey/answerBasic/answerLabel", tempAnsLabel);
 	populateList("survey/answerFile/answerFileList",files_in_current_ques);
 	populateDropDown("survey/answerFile/file_Category",categoryTypes);
 	populateDropDown("survey/answerPerson/personType",personTypes);
@@ -1358,11 +1361,13 @@ saveNewAnswer(){
 		showWarning("Warning","No available interviwer or interviewee\n Please create person info");
 		return;
 	}
+	/*
 	String answerLabel=getFieldValue("survey/answerBasic/answerLabel");
 	if(isNull(answerLabel)){
 		showWarning("Warning","You must input valid answer label");
 		return;
 	}
+	*/
 	if(isNull(getFieldValue("survey/answerBasic/answerText"))){
 		if(isNull(files_in_current_ques)){
 			showWarning("Warning","Please input answer text or adding an answer file");
@@ -1374,58 +1379,57 @@ saveNewAnswer(){
 		}
 		
 	}
+	tempAnsID=null;
 	if(isNull(current_answer_id)){//create new answer
 	setFieldValue("survey/answerBasic/answerEndTimestamp",getCurrentTime());
+	
+	int intervieweeSize=selected_answer_interviewee.size();
+
+	firstInterviewee=selected_answer_interviewee.get(0).get(1);
+	
+	if (intervieweeSize==1){
+		tempAnsID=ansLabelFstPart+firstInterviewee+ansLabelSndPart;
+		//tempAnsLabel=tempAnsID;
+		setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
+	}
+	else{
+		tempAnsID=ansLabelFstPart+firstInterviewee+"EtAl"+ansLabelSndPart;
+		//tempAnsLabel=tempAnsID;
+		setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
+	}
+	/*
+	if(!tempAnsID.equals(tempAnsLabel)){
+		//TODO:TRIGGER HERE, CHANGING FILELABELS
+	}
+	*/
 	saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
 		onSave(uuid, newRecord) {
 			answer_id = uuid;
 			if (newRecord) {	
-				//saveThreeEntitiesToRel("Answer and Question",current_quesnir_id,current_question_id,answer_id);	
-				
 				for(interviewer : selected_answer_interviewer){
 					saveEntitiesToRel("Answer and Interviewer",answer_id,interviewer.get(0));
 				}
-				for(interviewee : selected_answer_interviewee){
-					saveEntitiesToRel("Answer and Interviewee",answer_id,interviewee.get(0));		
+				//for(interviewee : selected_answer_interviewee){
+					saveEntitiesToRel("Answer and Interviewee",answer_id,interviewee.get(0));	
 				}
+				//showWarning("interviewee","interviewee done");
 				for(file : files_in_current_ques){
 					saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
 				}
+				//showWarning("File","File done");
 				newAnswer=new ArrayList();
 				newAnswer.add(answer_id);
-				newAnswer.add(answerLabel);
+				newAnswer.add(tempAnsID);
 				sss_answer_list.add(newAnswer);
+				//showWarning("sss_answer_list","sss_answer_list");
 				populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+				//showWarning("sessionForAnswer","sessionForAnswer");
 				showToast("new answer created");
 				cancelTabGroup("survey", true);
 				cancelTabGroup("answerToQuestion", true);
 				showTabGroup("questionnaireInfo");
 				showTab("sessionForAnswer/sssAnsList");
 			}
-			/*
-			else{
-				for(interviewer : selected_answer_interviewer){
-					saveEntitiesToRel("Answer and Interviewer",answer_id,interviewer.get(0));
-				}
-				for(interviewee : selected_answer_interviewee){
-					saveEntitiesToRel("Answer and Interviewee",answer_id,interviewee.get(0));		
-				}
-				for(file : files_in_current_ques){
-					saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
-				}
-				newAnswer=new ArrayList();
-				newAnswer.add(answer_id);
-				newAnswer.add(answerLabel);
-				sss_answer_list.add(newAnswer);
-				populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-				showToast("new answer created");
-				cancelTabGroup("survey", true);
-				cancelTabGroup("answerToQuestion", true);
-				//cancelTabGroup("questionnaireInfo", true);
-				//cancelTabGroup("questionnaireListAll", true);
-				showTabGroup("questionnaireInfo");
-				showTab("sessionForAnswer/sssAnsList");
-			}*/
 			current_answer_id=answer_id;
 		}
 		onError(message) {
@@ -1434,6 +1438,20 @@ saveNewAnswer(){
 		});
 	}
 	else{
+		
+		int intervieweeSize=selected_answer_interviewee.size();
+		firstInterviewee=selected_answer_interviewee.get(0).get(1);
+		
+		if (intervieweeSize==1){
+			tempAnsID=ansLabelFstPart+firstInterviewee+ansLabelSndPart;
+			//tempAnsLabel=tempAnsID;
+			setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
+		}
+		else{
+			tempAnsID=ansLabelFstPart+firstInterviewee+"EtAl"+ansLabelSndPart;
+			//tempAnsLabel=tempAnsID;
+			setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
+		}
 		
 		answerInfoNew.add(getFieldValue("survey/answerBasic/answerLabel"));
 		answerInfoNew.add(getFieldValue("survey/answerBasic/answerText"));
@@ -1482,6 +1500,7 @@ saveNewAnswer(){
 					showToast("file list changed");
 				}
 				if(!interviewerChange.containsKey("EQUAL")){
+					
 					for(interviewerDelete:ansInterviewerOriginReln){
 						deleteRel(interviewerDelete.get(0));
 					}
@@ -1489,9 +1508,10 @@ saveNewAnswer(){
 					for(interviewer : selected_answer_interviewer){
 						saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
 					}
+					
 				}
 				if(!intervieweeChange.containsKey("EQUAL")){
-					
+				
 					for(intervieweeDelete:ansIntervieweeOriginReln){
 						deleteRel(intervieweeDelete.get(0));
 					}
@@ -1553,6 +1573,7 @@ saveNewAnswer(){
 		
 	}
 }
+
 //measure whether two arraylists are identical, if not, recording what kinds of operation have been done
 listChange(ArrayList targetList,ArrayList sourceList){
 	Hashtable listChanges=new Hashtable();
@@ -1615,10 +1636,12 @@ newFile(String typeFlag){
 	firstInterviewee=selected_answer_interviewee.get(0).get(1);
 	if (intervieweeSize==1){
 		tempAnsID=ansLabelFstPart+firstInterviewee+ansLabelSndPart;
+		tempAnsLabel=tempAnsID;
 		setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
 	}
 	else{
 		tempAnsID=ansLabelFstPart+firstInterviewee+"EtAl"+ansLabelSndPart;
+		tempAnsLabel=tempAnsID;
 		setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
 	}
 	switch (fileCategory){
@@ -2296,7 +2319,7 @@ takePoint() {
 
     if (position == null) {
         showWarning("Warning","{GPS_Not_Initialised}");
-        return;
+        return null;
     }
     //Object projPosition = getGPSPositionProjected();
     Double latitude = position.getLatitude();
@@ -2353,7 +2376,7 @@ newSession(){
 	currentDateTimeArray=new ArrayList();
 	 //showWarning("clear","clear done");
 	ArrayList current_position=takePoint();
-	
+
 	//showWarning("current_position",current_position);
 	newTabGroup("session");
 	fetchAll(loadAllAnswerQuery, new FetchCallback() {
@@ -2362,11 +2385,18 @@ newSession(){
         	String currentTime=getCurrentTime();
             currentDateTimeArray=currentTime.toString().split("\\s+");
             String currentDate=currentDateTimeArray[0];
+            String sssLabelTemp=null;
+            if(isNull(current_position)){
+            	sssLabelTemp=username+"-(uncertainPlace)-("+currentDate+")";
+        	}
+            else{
+            	sssLabelTemp=username+"-("+current_position.get(1)+")-("+current_position.get(2)+")-("+currentDate+")";
+            }
             populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
             populateList("session/sessionFiles/sessionFileList", selected_files_session);
             setFieldValue("session/sessionBasicInfo/sessionStartTimetamp",currentDate+" 00:00:00");           
             setFieldValue("session/sessionBasicInfo/sessionEndTimestamp",currentDate+" 23:59:59");
-            setFieldValue("session/sessionBasicInfo/sessionID",username+"-("+current_position.get(1)+")-("+current_position.get(2)+")-("+currentDate+")");
+            setFieldValue("session/sessionBasicInfo/sessionID",sssLabelTemp);
             setFieldValue("session/sessionBasicInfo/sessionLocation",current_position.get(0));
         }
 

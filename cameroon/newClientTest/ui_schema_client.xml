@@ -850,17 +850,14 @@
                 <label>Question id</label>
             </input>
             
-               <input ref="answerChoice" faims_attribute_name="AnswerChoice" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
+               <input ref="answerChoice" faims_certainty="false" faims_read_only="true">
                 <label>answerChoice</label>
             </input>
         </group>
         
         <group ref="answerBasic">
             <label>Answer Basic Info</label>
-            
-           
-            
-            <input ref="answerLabel" faims_attribute_name="AnswerLabel" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
+          <input ref="answerLabel" faims_attribute_name="AnswerLabel" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
           		<label>Answer label</label>
         	</input>
         	
