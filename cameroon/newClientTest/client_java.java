@@ -273,12 +273,15 @@ answer_quesnir_list=new ArrayList();
 /***variables for sessions when creating answer***/
 sss_id=null;
 sss_answer_list=new ArrayList();
+sss_intreviewer_list=new ArrayList();//for recording interviewer list when creating session
 sssOriginInfo=new ArrayList();
 sssNewInfo=new ArrayList();
 original_sss_answer_list=new ArrayList();
 sssAnsOrigin=new ArrayList();
 String sssLabel=null;//This is used for sssID interviewee changing
-sssAnswerInterviewee=new ArrayList();//This is for generating sss label
+sssAnswerInterviewerOrigin=new ArrayList();
+sssAnswerInterviewerNew=new ArrayList();//This is for generating sss label
+
 
 /***Starting from creating a session***/
 
@@ -2312,6 +2315,9 @@ original_files_session=new ArrayList();
 sessionInfoOrigin=new ArrayList();
 sessionInfoNew=new ArrayList();
 sessionAnswerRelnOrigin=new ArrayList();
+sessionInterviewerOrigin=new ArrayList();
+sessionInterviewerNew=new ArrayList();
+
 /***session position***/
 takePoint() {
 
@@ -2569,8 +2575,55 @@ loadSessionInfo(String typeFlag){
 	            showToast(message);
 	        }
 	    });
+		loadSessionInterviewer();
 		break;
 	}
+}
+
+loadSessionInterviewer(){
+	//For session for answer page, TODO: add session group page entry
+	tempAnsList=new ArrayList();
+	sssAnswerInterviewerOrigin.clear();
+	loadAnswerUuidForSessionQuery="select uuid from latestNonDeletedAentValue "+ 
+			"where uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+			"(select RelationshipID from AEntReln where AEntReln.uuid="+sss_id+" "+
+ 			"AND RelationshipID in "+
+			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+ 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)))";
+	
+	fetchAll(loadAnswerUuidForSessionQuery, new FetchCallback() {
+        onFetch(result) {
+        	tempAnsList.clear();
+        	tempAnsList.addAll(result);
+        	for (ans:tempAnsList){
+        		loadInterviewerForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+        				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+        				"and uuid in "+
+        	 			"(select uuid from AentReln where RelationshipID in "+
+        				"(select RelationshipID from AEntReln where AEntReln.uuid="+ans.get(0)+" "+
+        	 			"AND RelationshipID in "+
+        				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+        	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer') "+
+        				"and latestNonDeletedRelationship.Deleted IS NULL)))";
+        		fetchAll(loadInterviewerForAnswerQuery, new FetchCallback() {
+	                onFetch(result) {	                
+	                	sssAnswerInterviewerOrigin.addAll(result);
+	                }
+
+	                onError(message) {
+	                    showToast(message);
+	                }
+	            });
+        	}
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+	
 }
 
 saveSession(String typeflag){
