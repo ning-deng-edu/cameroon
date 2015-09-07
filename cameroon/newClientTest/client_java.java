@@ -273,7 +273,7 @@ answer_quesnir_list=new ArrayList();
 /***variables for sessions when creating answer***/
 sss_id=null;
 sss_answer_list=new ArrayList();
-sss_intreviewer_list=new ArrayList();//for recording interviewer list when creating session
+sss_interviewer_list=new ArrayList();//for recording interviewer list when creating session
 sssOriginInfo=new ArrayList();
 sssNewInfo=new ArrayList();
 original_sss_answer_list=new ArrayList();
@@ -294,6 +294,7 @@ newSessionForAnswer(){
 	sssNewInfo.clear();	
 	original_sss_answer_list.clear();
 	sssAnsOrigin.clear();
+	sss_interviewer_list.clear();
 	ArrayList currentPosition=takePoint();
 	newTabGroup("sessionForAnswer");
 	String currentTime=getCurrentTime();
@@ -1383,6 +1384,7 @@ saveNewAnswer(){
 		
 	}
 	tempAnsID=null;
+	tempInterviewerPrefix=null;
 	if(isNull(current_answer_id)){//create new answer
 	setFieldValue("survey/answerBasic/answerEndTimestamp",getCurrentTime());
 	
@@ -1399,6 +1401,18 @@ saveNewAnswer(){
 		tempAnsID=ansLabelFstPart+firstInterviewee+"EtAl"+ansLabelSndPart;
 		//tempAnsLabel=tempAnsID;
 		setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
+	}
+	
+	int interviewerSize=selected_answer_interviewer.size();
+
+	firstInterviewer=selected_answer_interviewer.get(0).get(1);
+	
+	if (interviewerSize==1){
+		tempInterviewerPrefix=firstInterviewer;
+		//tempAnsLabel=tempAnsID;
+	}
+	else{
+		tempInterviewerPrefix=firstInterviewer+"EtAl";
 	}
 	/*
 	if(!tempAnsID.equals(tempAnsLabel)){
@@ -1426,6 +1440,10 @@ saveNewAnswer(){
 				sss_answer_list.add(newAnswer);
 				//showWarning("sss_answer_list","sss_answer_list");
 				populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+				newInterviwer=new ArrayList();
+				newInterviwer.add(answer_id);
+				newInterviwer.add(tempInterviewerPrefix);
+				sss_interviewer_list.add(newInterviwer);//added Interviwer to sss_interviewer
 				//showWarning("sessionForAnswer","sessionForAnswer");
 				showToast("new answer created");
 				cancelTabGroup("survey", true);
@@ -2728,7 +2746,7 @@ saveSession(String typeflag){
 		}
 	}
 	break;
-	//TODO: ADDING DELETEREL() FOR DELETING RELNS
+
 	case "answer":
 		
 		if(isNull(sss_id)){//create new session
@@ -2741,6 +2759,16 @@ saveSession(String typeflag){
 				return;
 			}
 			else{
+				
+					interviwerPrefix=null;
+					if(!isNull(sss_interviewer_list)){
+						interviwerPrefix=sss_interviewer_list.get(0).get(1);
+					}
+					else{
+						interviwerPrefix=username;
+					}
+				setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",interviwerPrefix+sssLabel);
+				
 				String endTimeAuto=getCurrentTime();
 				setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
 				String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
@@ -2754,6 +2782,8 @@ saveSession(String typeflag){
 				    		  saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
 				    	  }
 				        showToast("New session contains answer(s) created");
+				        cancelTabGroup("sessionForAnswer",true);
+				        showTab("control/survey_control");
 				      }
 				    }
 				    onError(message) {
