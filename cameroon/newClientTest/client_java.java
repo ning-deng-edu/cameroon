@@ -3046,13 +3046,13 @@ saveFieldTrip(){
 	String endDate=dateParser(endDateToConvert);
 	
 	if(isNull(fieldTrip_id)){//create new session
-		if((isNull(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID"))) || 
-				(isNull(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripName"))))
+		if(isNull(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripName")))
 		{
 			showWarning("Incomplete Data","Please make sure that data is complete");
 			return;
 		}
 		else{
+			setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID",username+"-FieldTrip-("+startDate+")");
 			setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp",startDate);
 			setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp",endDate);
 			if(timeValidation(startDate,endDate,"fieldTripTime")){
@@ -3064,6 +3064,7 @@ saveFieldTrip(){
 			    		  saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
 			    	  }
 			        showToast("New fieldtrip record created");
+			        cancelTabGroup("fieldTrip",true);
 			      }
 			    }
 			    onError(message) {
@@ -3078,6 +3079,7 @@ saveFieldTrip(){
 		}
 	}
 	else{//change session info
+		setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID",username+"-FieldTrip-("+startDate+")");
 		fieldTripInfoNew.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID"));
 		fieldTripInfoNew.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripName"));
 		fieldTripInfoNew.add(startDate);
@@ -3095,6 +3097,7 @@ saveFieldTrip(){
 		    		  saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
 		    	  }
 				showToast("session in FieldTrip changed");
+				cancelTabGroup("fieldTrip",true);
 			}
 		}
 		else{
@@ -3107,6 +3110,7 @@ saveFieldTrip(){
 			    		  saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
 			    	  }
 			        showToast("fieldTrip data changed");
+			        cancelTabGroup("fieldTrip",true);
 
 			    }
 			    onError(message) {
