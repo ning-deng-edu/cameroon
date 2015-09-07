@@ -1409,7 +1409,7 @@ saveNewAnswer(){
 				for(interviewer : selected_answer_interviewer){
 					saveEntitiesToRel("Answer and Interviewer",answer_id,interviewer.get(0));
 				}
-				//for(interviewee : selected_answer_interviewee){
+				for(interviewee : selected_answer_interviewee){
 					saveEntitiesToRel("Answer and Interviewee",answer_id,interviewee.get(0));	
 				}
 				//showWarning("interviewee","interviewee done");
@@ -2440,7 +2440,8 @@ loadSessionInfo(String typeFlag){
 			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
  			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
 			"and latestNonDeletedRelationship.Deleted IS NULL)))";
- 	
+ 	//This query is for recording existing answer-session relationships
+	//which will later be used for delete reln when chaging the data
 	loadAnsSssRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+session_id+" "+
  					"and RelationshipID in "+
  					"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
