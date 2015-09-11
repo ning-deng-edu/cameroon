@@ -3010,9 +3010,11 @@ saveSession(String typeflag){
 		firstElement=it.next();
 		String itvPrefix=firstElement.get(1);
 		showWarning("itvPrefix",itvPrefix);
+		//progress to here
 		if (sssAnswerInterviewerTemp.size()>1){
 			itvPrefix=itvPrefix+"EtAl";
 		}
+
 		String [] oldLabelItv=sssLabelOld.split("-(");
 		
 		if(!(oldLabelItv[0].equals(itvPrefix))){
