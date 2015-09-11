@@ -281,6 +281,8 @@ sssAnsOrigin=new ArrayList();
 String sssLabel=null;//This is used for sssID interviewee changing
 sssAnswerInterviewerOrigin=new LinkedHashSet();
 sssAnswerInterviewerNew=new LinkedHashSet();//This is for generating sss label
+String sssLabelOld=null;
+
 
 
 /***Starting from creating a session***/
@@ -289,6 +291,7 @@ sssAnswerInterviewerNew=new LinkedHashSet();//This is for generating sss label
 newSessionForAnswer(){
 	sss_id=null;
 	sssLabel=null;
+	sssLabelOld=null;
 	sss_answer_list.clear();
 	sssOriginInfo.clear();
 	sssNewInfo.clear();	
@@ -1536,13 +1539,17 @@ saveNewAnswer(){
 					}
 				
 					for(interviewer : selected_answer_interviewer){
-						saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
+						interviwerNew=new ArrayList();
+						interviwerNew.add(current_answer_id);
+						interviwerNew.add(interviewer.get(1));
+						sssAnswerInterviewerNew.add(interviwerNew);
+						saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));	
 					}
 					//Here interviewer changes would affect sessionID
+					showWarning("saveSessionBegins","saveSessionBegins");
 					saveSession("interviwer");
 				}
 				if(!intervieweeChange.containsKey("EQUAL")){
-				
 					for(intervieweeDelete:ansIntervieweeOriginReln){
 						deleteRel(intervieweeDelete.get(0));
 					}
@@ -2579,7 +2586,8 @@ loadSessionInfo(String typeFlag){
 		
 		showTabGroup("sessionForAnswer", sss_id, new FetchCallback() {
 	        onFetch(result) {
-	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
+	        	sssLabelOld=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID");
+	        	sssOriginInfo.add(sssLabelOld);
 	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
 	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
 	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));  
@@ -2611,6 +2619,7 @@ loadSessionInfo(String typeFlag){
 loadSessionInterviewer(){
 	//For session for answer page, TODO: add session group page entry
 	tempAnsList=new ArrayList();
+	sssAnswerInterviewerNew.clear();
 	sssAnswerInterviewerOrigin.clear();
 	
 	loadAnswerUuidForSessionQuery="select uuid from latestNonDeletedAentValue "+ 
@@ -2648,6 +2657,7 @@ loadSessionInterviewer(){
     	                		newInterviewer.add(res.get(1));
     	                		sssAnswerInterviewerOrigin.add(newInterviewer);
     	                	}
+    	                	
     	                	//sssAnswerInterviewerOrigin.addAll(result);
     	                }
     	                
@@ -2962,7 +2972,66 @@ saveSession(String typeflag){
 		break;
 		
 	case "interviwer":
+		showWarning("interviwer","interviwer");
+		/*
+		if( isNull(sssAnswerInterviewerNew) || isNull(sssAnswerInterviewerOrigin))
+		{
+			showWarning("error","Error occurs");
+			return;
+		}
+		showWarning("forbegins","forbegins");
+		*/
+		for (itvNew : sssAnswerInterviewerNew){
+			String itvNewAnsID=itvNew.get(0);
+			showWarning("itvNewAnsID","itvNewAnsID");
+			for (itvOld : sssAnswerInterviewerOrigin){
+				if(itvOld.get(0).equals(itvNewAnsID))
+				{
+					sssAnswerInterviewerOrigin.remove(itvOld);
+					showWarning("removed","removed");
+				}
+			}
+		}
+		showWarning("sssAnswerInterviewerOrigin",sssAnswerInterviewerOrigin.size().toString());
+		showWarning("sssAnswerInterviewerNew",sssAnswerInterviewerNew.size().toString());
+		sssAnswerInterviewerTemp=new LinkedHashSet();
+		sssAnswerInterviewerTemp.clear();
+		sssAnswerInterviewerTemp.addAll(sssAnswerInterviewerOrigin);
+		sssAnswerInterviewerTemp.addAll(sssAnswerInterviewerNew);
+		showWarning("sssAnswerInterviewerTemp","sssAnswerInterviewerTemp");
+		if(isNull(sssAnswerInterviewerTemp)){
+			showWarning("error","Error occurred\n"+"Please contact the Admin");
+			return;
+		}
+		String itvPrefix=sssAnswerInterviewerTemp.get(0).get(1);
+		showWarning("itvPrefix",itvPrefix);
+		if (sssAnswerInterviewerTemp.size()>1){
+			itvPrefix=itvPrefix+"EtAl";
+		}
+		String [] oldLabelItv=sssLabelOld.split("-(");
 		
+		if(!(oldLabelItv[0].equals(itvPrefix))){
+			sssLabelOld.replace(oldLabelItv[0],itvPrefix);
+			setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",sssLabelOld);
+			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+			    onSave(uuid, newRecord) {
+			    	//showWarning("saveTabGroup","sessionForAnswer");
+			    	for(ansDelete:sssAnsOrigin){
+						 deleteRel(ansDelete.get(0));
+						 //showWarning("deleteRel",ansDelete.get(0));
+			    	  }
+			    	
+			    	 for(answer:sss_answer_list){
+			    		  saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
+			    	  }
+			        showToast("Session ID changed");
+
+			    }
+			    onError(message) {
+			        showWarning("error",message);
+			    }  
+			  });
+		}
 		break;
 	}
 }

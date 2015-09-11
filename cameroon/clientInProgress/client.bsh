@@ -281,6 +281,8 @@ sssAnsOrigin=new ArrayList();
 String sssLabel=null;//This is used for sssID interviewee changing
 sssAnswerInterviewerOrigin=new LinkedHashSet();
 sssAnswerInterviewerNew=new LinkedHashSet();//This is for generating sss label
+String sssLabelOld=null;
+
 
 
 /***Starting from creating a session***/
@@ -289,6 +291,7 @@ sssAnswerInterviewerNew=new LinkedHashSet();//This is for generating sss label
 newSessionForAnswer(){
 	sss_id=null;
 	sssLabel=null;
+	sssLabelOld=null;
 	sss_answer_list.clear();
 	sssOriginInfo.clear();
 	sssNewInfo.clear();	
@@ -1536,13 +1539,17 @@ saveNewAnswer(){
 					}
 				
 					for(interviewer : selected_answer_interviewer){
-						saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
+						interviwerNew=new ArrayList();
+						interviwerNew.add(current_answer_id);
+						interviwerNew.add(interviewer.get(1));
+						sssAnswerInterviewerNew.add(interviwerNew);
+						saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));	
 					}
 					//Here interviewer changes would affect sessionID
+					showWarning("saveSessionBegins","saveSessionBegins");
 					saveSession("interviwer");
 				}
 				if(!intervieweeChange.containsKey("EQUAL")){
-				
 					for(intervieweeDelete:ansIntervieweeOriginReln){
 						deleteRel(intervieweeDelete.get(0));
 					}
@@ -2579,7 +2586,8 @@ loadSessionInfo(String typeFlag){
 		
 		showTabGroup("sessionForAnswer", sss_id, new FetchCallback() {
 	        onFetch(result) {
-	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
+	        	sssLabelOld=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID");
+	        	sssOriginInfo.add(sssLabelOld);
 	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
 	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
 	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));  
@@ -2603,7 +2611,7 @@ loadSessionInfo(String typeFlag){
 	            showToast(message);
 	        }
 	    });
-		//loadSessionInterviewer();
+		loadSessionInterviewer();
 		break;
 	}
 }
@@ -2611,6 +2619,7 @@ loadSessionInfo(String typeFlag){
 loadSessionInterviewer(){
 	//For session for answer page, TODO: add session group page entry
 	tempAnsList=new ArrayList();
+	sssAnswerInterviewerNew.clear();
 	sssAnswerInterviewerOrigin.clear();
 	
 	loadAnswerUuidForSessionQuery="select uuid from latestNonDeletedAentValue "+ 
@@ -2628,44 +2637,117 @@ loadSessionInterviewer(){
         	tempAnsList.clear();
         	tempAnsList.addAll(result);
         	//showWarning("tempAnsList",tempAnsList.size().toString());
-        	for (ans:tempAnsList){
-        		loadInterviewerForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
-        				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
-        				"and uuid in "+
-        	 			"(select uuid from AentReln where RelationshipID in "+
-        				"(select RelationshipID from AEntReln where AEntReln.uuid="+ans.get(0)+" "+
-        	 			"AND RelationshipID in "+
-        				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
-        	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer') "+
-        				"and latestNonDeletedRelationship.Deleted IS NULL)))";
-        		tempInt=fetchAll(loadInterviewerForAnswerQuery);
-        		//sssAnswerInterviewerOrigin.addAll(tempInt);
-        		
-        		fetchAll(loadInterviewerForAnswerQuery, new FetchCallback() {
-	                onFetch(result) {	                
-	                	sssAnswerInterviewerOrigin.addAll(result);
-	                	if (sssAnswerInterviewerOrigin.size()>1)
-	                	{
-	                		break;
-	                	}
-	                	//showWarning("loadSessionInterviewer",sssAnswerInterviewerOrigin.size().toString());
-	                	//tempInterviwerList.addAll(result);
-	                }
+        	if(!isNull(tempAnsList)){
+        		for (ans:tempAnsList){
+        			String tempAnsID=ans.get(0);
+        			loadInterviewerForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+            				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+            				"and uuid in "+
+            	 			"(select uuid from AentReln where RelationshipID in "+
+            				"(select RelationshipID from AEntReln where AEntReln.uuid="+tempAnsID+" "+
+            	 			"AND RelationshipID in "+
+            				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+            	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer') "+
+            				"and latestNonDeletedRelationship.Deleted IS NULL)))";
+        			fetchAll(loadInterviewerForAnswerQuery, new FetchCallback() {
+    	                onFetch(result) {
+    	                	for(res:result){
+    	                		newInterviewer=new ArrayList();
+    	                		newInterviewer.add(tempAnsID);
+    	                		newInterviewer.add(res.get(1));
+    	                		sssAnswerInterviewerOrigin.add(newInterviewer);
+    	                	}
+    	                	
+    	                	//sssAnswerInterviewerOrigin.addAll(result);
+    	                }
+    	                
 
-	                onError(message) {
-	                    showToast(message);
-	                }
-	            });
+    	                onError(message) {
+    	                    showToast(message);
+    	                	}
+            			});
+        		}
         	}
-        	showWarning("loadSessionInterviewer",sssAnswerInterviewerOrigin.size().toString());
+        	
         }
 
         onError(message) {
             showToast(message);
         }
     });
-	
 }
+        		/*
+        		firstAns=tempAnsList.get(0).get(0);
+        		firstInterviewerForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+        				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+        				"and uuid in "+
+        	 			"(select uuid from AentReln where RelationshipID in "+
+        				"(select RelationshipID from AEntReln where AEntReln.uuid="+firstAns+" "+
+        	 			"AND RelationshipID in "+
+        				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+        	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer') "+
+        				"and latestNonDeletedRelationship.Deleted IS NULL)))";
+        		fetchAll(firstInterviewerForAnswerQuery, new FetchCallback() {
+	                onFetch(result) {	                
+	                	sssAnswerInterviewerOrigin.addAll(result);
+	                	if(sssAnswerInterviewerOrigin.size()>1){
+	                		prefix=sssAnswerInterviewerOrigin.get(0).get(1)+"EtAl";
+	                		showWarning(">2interviewer",prefix);
+	                	}
+	                	else{
+	                		if(tempAnsList.size()>=2){
+	                			prefix=sssAnswerInterviewerOrigin.get(0).get(1);
+	                		//sssAnswerInterviewerOrigin.clear();
+	                		Boolean mul=false;
+	                		for (ans:tempAnsList){
+	                			if(!nmul){
+	                    		loadInterviewerForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+	                    				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+	                    				"and uuid in "+
+	                    	 			"(select uuid from AentReln where RelationshipID in "+
+	                    				"(select RelationshipID from AEntReln where AEntReln.uuid="+ans.get(0)+" "+
+	                    	 			"AND RelationshipID in "+
+	                    				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+	                    	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer') "+
+	                    				"and latestNonDeletedRelationship.Deleted IS NULL)))";
+	                    		tempInt=fetchAll(loadInterviewerForAnswerQuery);
+	                    		//sssAnswerInterviewerOrigin.addAll(tempInt);	
+	                    		fetchAll(loadInterviewerForAnswerQuery, new FetchCallback() {
+	            	                onFetch(result) {	                
+	            	                	sssAnswerInterviewerOrigin.addAll(result);
+	            	                	if(sssAnswerInterviewerOrigin.size()>1){
+	            	                		prefix=prefix+"EtAl";
+	            	                		mul=true;
+		            	                }
+	            	                	//showWarning("loadSessionInterviewer",sssAnswerInterviewerOrigin.size().toString());
+	            	                	//tempInterviwerList.addAll(result);
+	            	                }
+	            	                
+
+	            	                onError(message) {
+	            	                    showToast(message);
+	            	                	}
+	                    			});
+	                    		}
+	                		}
+	                		}
+	                		else
+	                		{
+	                			prefix=sssAnswerInterviewerOrigin.get(0).get(1);
+	                			showWarning("1interviewer1ans",prefix);
+	                		}
+	                		
+	                	}
+	                }
+
+	                onError(message) {
+	                    showToast(message);
+	                }
+	            });
+        	}*/
+        	
+	
+//}
 
 saveSession(String typeflag){
 	switch(typeflag){
@@ -2890,55 +2972,66 @@ saveSession(String typeflag){
 		break;
 		
 	case "interviwer":
-		tempAnsList=new ArrayList();
-		sssAnswerInterviewerOrigin.clear();
+		showWarning("interviwer","interviwer");
+		/*
+		if( isNull(sssAnswerInterviewerNew) || isNull(sssAnswerInterviewerOrigin))
+		{
+			showWarning("error","Error occurs");
+			return;
+		}
+		showWarning("forbegins","forbegins");
+		*/
+		for (itvNew : sssAnswerInterviewerNew){
+			String itvNewAnsID=itvNew.get(0);
+			showWarning("itvNewAnsID","itvNewAnsID");
+			for (itvOld : sssAnswerInterviewerOrigin){
+				if(itvOld.get(0).equals(itvNewAnsID))
+				{
+					sssAnswerInterviewerOrigin.remove(itvOld);
+					showWarning("removed","removed");
+				}
+			}
+		}
+		showWarning("sssAnswerInterviewerOrigin",sssAnswerInterviewerOrigin.size().toString());
+		showWarning("sssAnswerInterviewerNew",sssAnswerInterviewerNew.size().toString());
+		sssAnswerInterviewerTemp=new LinkedHashSet();
+		sssAnswerInterviewerTemp.clear();
+		sssAnswerInterviewerTemp.addAll(sssAnswerInterviewerOrigin);
+		sssAnswerInterviewerTemp.addAll(sssAnswerInterviewerNew);
+		showWarning("sssAnswerInterviewerTemp","sssAnswerInterviewerTemp");
+		if(isNull(sssAnswerInterviewerTemp)){
+			showWarning("error","Error occurred\n"+"Please contact the Admin");
+			return;
+		}
+		String itvPrefix=sssAnswerInterviewerTemp.get(0).get(1);
+		showWarning("itvPrefix",itvPrefix);
+		if (sssAnswerInterviewerTemp.size()>1){
+			itvPrefix=itvPrefix+"EtAl";
+		}
+		String [] oldLabelItv=sssLabelOld.split("-(");
 		
-		loadAnswerUuidForSessionQuery="select uuid from latestNonDeletedAentValue "+ 
-				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
-				"and uuid in "+
-	 			"(select uuid from AentReln where RelationshipID in "+
-				"(select RelationshipID from AEntReln where AEntReln.uuid="+sss_id+" "+
-	 			"AND RelationshipID in "+
-				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
-	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
-				"and latestNonDeletedRelationship.Deleted IS NULL)))";
-		
-		fetchAll(loadAnswerUuidForSessionQuery, new FetchCallback() {
-	        onFetch(result) {
-	        	tempAnsList.clear();
-	        	tempAnsList.addAll(result);
-	        	//showWarning("tempAnsList",tempAnsList.size().toString());
-	        	for (ans:tempAnsList){
-	        		loadInterviewerForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
-	        				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
-	        				"and uuid in "+
-	        	 			"(select uuid from AentReln where RelationshipID in "+
-	        				"(select RelationshipID from AEntReln where AEntReln.uuid="+ans.get(0)+" "+
-	        	 			"AND RelationshipID in "+
-	        				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
-	        	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer') "+
-	        				"and latestNonDeletedRelationship.Deleted IS NULL)))";
-	        		sssAnswerInterviewerOrigin.addAll(fetchAll(loadInterviewerForAnswerQuery));
-	        		/*
-	        		fetchAll(loadInterviewerForAnswerQuery, new FetchCallback() {
-		                onFetch(result) {	                
-		                	sssAnswerInterviewerOrigin.addAll(result);
-		                	//showWarning("loadSessionInterviewer",sssAnswerInterviewerOrigin.size().toString());
-		                	//tempInterviwerList.addAll(result);
-		                }
+		if(!(oldLabelItv[0].equals(itvPrefix))){
+			sssLabelOld.replace(oldLabelItv[0],itvPrefix);
+			setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",sssLabelOld);
+			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+			    onSave(uuid, newRecord) {
+			    	//showWarning("saveTabGroup","sessionForAnswer");
+			    	for(ansDelete:sssAnsOrigin){
+						 deleteRel(ansDelete.get(0));
+						 //showWarning("deleteRel",ansDelete.get(0));
+			    	  }
+			    	
+			    	 for(answer:sss_answer_list){
+			    		  saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
+			    	  }
+			        showToast("Session ID changed");
 
-		                onError(message) {
-		                    showToast(message);
-		                }
-		            });*/
-	        	}
-	        	//showWarning("loadSessionInterviewer",sssAnswerInterviewerOrigin.size().toString());
-	        }
-
-	        onError(message) {
-	            showToast(message);
-	        }
-	    });
+			    }
+			    onError(message) {
+			        showWarning("error",message);
+			    }  
+			  });
+		}
 		break;
 	}
 }
