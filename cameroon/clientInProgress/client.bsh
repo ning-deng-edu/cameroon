@@ -2972,7 +2972,7 @@ saveSession(String typeflag){
 		break;
 		
 	case "interviwer":
-		showWarning("interviwer","interviwer");
+		//showWarning("interviwer","interviwer");
 		if( sssAnswerInterviewerNew.isEmpty() || sssAnswerInterviewerOrigin.isEmpty())
 		{
 			showWarning("error","Error occurs");
@@ -2984,7 +2984,7 @@ saveSession(String typeflag){
 	tempRmvItvOrigin.clear();
 		for (itvNew : sssAnswerInterviewerNew){
 			String itvNewAnsID=itvNew.get(0);
-			showWarning("itvNewAnsID",itvNewAnsID);
+			//showWarning("itvNewAnsID",itvNewAnsID);
 			for (itvOld : sssAnswerInterviewerOrigin){
 				if(itvOld.get(0).equals(itvNewAnsID))
 				{
@@ -2993,14 +2993,14 @@ saveSession(String typeflag){
 			}
 		}
 		sssAnswerInterviewerOrigin.removeAll(tempRmvItvOrigin);
-		showWarning("REMOVED",sssAnswerInterviewerOrigin.size().toString());
+		//showWarning("REMOVED",sssAnswerInterviewerOrigin.size().toString());
 		//showWarning("sssAnswerInterviewerOrigin",sssAnswerInterviewerOrigin.size().toString());
-		showWarning("sssAnswerInterviewerNew",sssAnswerInterviewerNew.size().toString());
+		//showWarning("sssAnswerInterviewerNew",sssAnswerInterviewerNew.size().toString());
 		sssAnswerInterviewerTemp=new LinkedHashSet();
 		sssAnswerInterviewerTemp.clear();
 		sssAnswerInterviewerTemp.addAll(sssAnswerInterviewerOrigin);
 		sssAnswerInterviewerTemp.addAll(sssAnswerInterviewerNew);
-		showWarning("sssAnswerInterviewerTemp","sssAnswerInterviewerTemp");
+		//showWarning("sssAnswerInterviewerTemp","sssAnswerInterviewerTemp");
 		if(sssAnswerInterviewerTemp.isEmpty()){
 			showWarning("error","Error occurred\n"+"Please contact the Admin");
 			return;
@@ -3010,27 +3010,30 @@ saveSession(String typeflag){
 		firstElement=it.next();
 		String itvPrefix=firstElement.get(1);
 		showWarning("itvPrefix",itvPrefix);
+		//progress to here
 		if (sssAnswerInterviewerTemp.size()>1){
 			itvPrefix=itvPrefix+"EtAl";
 		}
-		String [] oldLabelItv=sssLabelOld.split("-(");
-		
+		showWarning("sssAnswerInterviewerTempsize",itvPrefix);
+		//showWarning("sssLabelOld",sssLabelOld);
+		String [] oldLabelItv=sssLabelOld.split("\\s*[-][(]\\s*");
+		showWarning("oldLabelItv",oldLabelItv[0]);
 		if(!(oldLabelItv[0].equals(itvPrefix))){
 			sssLabelOld.replace(oldLabelItv[0],itvPrefix);
+			showWarning("newsssLabelOld",sssLabelOld);
 			setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",sssLabelOld);
+			showWarning("newsssLabelOldsetted","newsssLabelOldsetted");
 			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
-			    	//showWarning("saveTabGroup","sessionForAnswer");
+			    	showWarning("saveTabGroup","savedone");
 			    	for(ansDelete:sssAnsOrigin){
 						 deleteRel(ansDelete.get(0));
 						 //showWarning("deleteRel",ansDelete.get(0));
 			    	  }
-			    	
 			    	 for(answer:sss_answer_list){
 			    		  saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
 			    	  }
 			        showToast("Session ID changed");
-
 			    }
 			    onError(message) {
 			        showWarning("error",message);
