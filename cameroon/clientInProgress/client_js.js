@@ -1468,8 +1468,8 @@ saveNewAnswer(){
 		}  
 		});
 	}
-	else{
-		
+	else{//this is changing answerInfo
+		/* Below code should be used for answerID changing and answerFile answer Changing, which should happens when interviwee changes
 		int intervieweeSize=selected_answer_interviewee.size();
 		firstInterviewee=selected_answer_interviewee.get(0).get(1);
 		
@@ -1483,7 +1483,7 @@ saveNewAnswer(){
 			//tempAnsLabel=tempAnsID;
 			setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
 		}
-		
+		*/
 		answerInfoNew.add(getFieldValue("survey/answerBasic/answerLabel"));
 		answerInfoNew.add(getFieldValue("survey/answerBasic/answerText"));
 		
@@ -1545,8 +1545,7 @@ saveNewAnswer(){
 						sssAnswerInterviewerNew.add(interviwerNew);
 						saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));	
 					}
-					//Here interviewer changes would affect sessionID
-					showWarning("saveSessionBegins","saveSessionBegins");
+					showToast("Interviewer lists changed");
 					saveSession("interviwer");
 				}
 				if(!intervieweeChange.containsKey("EQUAL")){
@@ -1556,16 +1555,17 @@ saveNewAnswer(){
 					for(interviewee : selected_answer_interviewee){
 						saveEntitiesToRel("Answer and Interviewee",current_answer_id,interviewee.get(0));		
 					}
+					showToast("Interviewee lists changed");
 				}
 				//origin_selected_interviewer.clear();
 				//origin_selected_interviewer.addAll(selected_answer_interviewer);
 				//origin_selected_interviewee.clear();
 				//origin_selected_interviewee.addAll(selected_answer_interviewee);			
-				showToast("Interviewee and interviewer lists changed");
+				//showToast("Interviewee and interviewer lists changed");
 				cancelTabGroup("survey", true);
 				cancelTabGroup("answerToQuestion", true);
 				//showTabGroup("questionnaireInfo");
-				showTab("sessionForAnswer/sssAnsList");
+				//showTab("sessionForAnswer/sssAnsList");
 			}
 		}
 		else{//basic info is changed
@@ -2975,11 +2975,11 @@ saveSession(String typeflag){
 		//showWarning("interviwer","interviwer");
 		if( sssAnswerInterviewerNew.isEmpty() || sssAnswerInterviewerOrigin.isEmpty())
 		{
-			showWarning("error","Error occurs");
+			showWarning("error","Error occurred \n"+"Please contact the Admin");
 			return;
 		}
-	showWarning("sssAnswerInterviewerOrigin",sssAnswerInterviewerOrigin.size().toString());
-	showWarning("sssAnswerInterviewerNew",sssAnswerInterviewerNew.size().toString());
+	//showWarning("sssAnswerInterviewerOrigin",sssAnswerInterviewerOrigin.size().toString());
+	//showWarning("sssAnswerInterviewerNew",sssAnswerInterviewerNew.size().toString());
 	tempRmvItvOrigin=new LinkedHashSet();
 	tempRmvItvOrigin.clear();
 		for (itvNew : sssAnswerInterviewerNew){
@@ -3002,33 +3002,30 @@ saveSession(String typeflag){
 		sssAnswerInterviewerTemp.addAll(sssAnswerInterviewerNew);
 		//showWarning("sssAnswerInterviewerTemp","sssAnswerInterviewerTemp");
 		if(sssAnswerInterviewerTemp.isEmpty()){
-			showWarning("error","Error occurred\n"+"Please contact the Admin");
+			showWarning("error","Error occurred \n"+"Please contact the Admin");
 			return;
 		}
 		firstElement=new ArrayList();
 		Iterator it = sssAnswerInterviewerTemp.iterator();
 		firstElement=it.next();
 		String itvPrefix=firstElement.get(1);
-		showWarning("itvPrefix",itvPrefix);
-		//progress to here
+		//showWarning("itvPrefix",itvPrefix);
 		if (sssAnswerInterviewerTemp.size()>1){
 			itvPrefix=itvPrefix+"EtAl";
 		}
-		showWarning("sssAnswerInterviewerTempsize",itvPrefix);
-		//showWarning("sssLabelOld",sssLabelOld);
+		//showWarning("sssAnswerInterviewerTempsize",itvPrefix);
 		String [] oldLabelItv=sssLabelOld.split("\\s*[-][(]\\s*");
-		showWarning("oldLabelItv",oldLabelItv[0]);
+		//showWarning("oldLabelItv",oldLabelItv[0]);
 		if(!(oldLabelItv[0].equals(itvPrefix))){
-			sssLabelOld.replace(oldLabelItv[0],itvPrefix);
-			showWarning("newsssLabelOld",sssLabelOld);
+			sssLabelOld=sssLabelOld.replace(oldLabelItv[0],itvPrefix);
+			//showWarning("newsssLabelOld",sssLabelOld);
 			setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",sssLabelOld);
-			showWarning("newsssLabelOldsetted","newsssLabelOldsetted");
+			//showWarning("newsssLabelOldsetted",sss_id);
 			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
-			    	showWarning("saveTabGroup","savedone");
+			    	
 			    	for(ansDelete:sssAnsOrigin){
 						 deleteRel(ansDelete.get(0));
-						 //showWarning("deleteRel",ansDelete.get(0));
 			    	  }
 			    	 for(answer:sss_answer_list){
 			    		  saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
