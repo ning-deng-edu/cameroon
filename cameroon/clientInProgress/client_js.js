@@ -2998,17 +2998,28 @@ saveSession(String typeflag){
 		//showWarning("sssAnswerInterviewerNew",sssAnswerInterviewerNew.size().toString());
 		sssAnswerInterviewerTemp=new LinkedHashSet();
 		sssAnswerInterviewerTemp.clear();
-		sssAnswerInterviewerTemp.addAll(sssAnswerInterviewerOrigin);
-		sssAnswerInterviewerTemp.addAll(sssAnswerInterviewerNew);
+		Iterator oldItv=sssAnswerInterviewerOrigin.iterator();
+		Iterator newItv=sssAnswerInterviewerNew.iterator();
+		while(oldItv.hasNext()){
+			String oldItvName=oldItv.next().get(1);
+			sssAnswerInterviewerTemp.add(oldItvName);
+		}
+		while(newItv.hasNext()){
+			String newItvName=newItv.next().get(1);
+			sssAnswerInterviewerTemp.add(newItvName);
+		}
+		//sssAnswerInterviewerTemp.addAll(sssAnswerInterviewerOrigin);
+		//sssAnswerInterviewerTemp.addAll(sssAnswerInterviewerNew);
 		//showWarning("sssAnswerInterviewerTemp","sssAnswerInterviewerTemp");
 		if(sssAnswerInterviewerTemp.isEmpty()){
 			showWarning("error","Error occurred \n"+"Please contact the Admin");
 			return;
 		}
-		firstElement=new ArrayList();
+		//firstElement=new ArrayList();
+		String firstName=null;
 		Iterator it = sssAnswerInterviewerTemp.iterator();
-		firstElement=it.next();
-		String itvPrefix=firstElement.get(1);
+		firstName=it.next();
+		String itvPrefix=firstName;
 		//showWarning("itvPrefix",itvPrefix);
 		if (sssAnswerInterviewerTemp.size()>1){
 			itvPrefix=itvPrefix+"EtAl";
