@@ -1577,6 +1577,10 @@ saveNewAnswer(){
 							deleteRel(interviewerDelete.get(0));
 						}
 						for(interviewer : selected_answer_interviewer){
+							interviwerNew=new ArrayList();
+							interviwerNew.add(current_answer_id);
+							interviwerNew.add(interviewer.get(1));
+							sssAnswerInterviewerNew.add(interviwerNew);
 							saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
 						}
 						for(intervieweeDelete:ansIntervieweeOriginReln){
@@ -1597,6 +1601,7 @@ saveNewAnswer(){
 						//origin_selected_interviewer.addAll(selected_answer_interviewer);
 						//origin_selected_interviewee.clear();
 						//origin_selected_interviewee.addAll(selected_answer_interviewee);
+						saveSession("interviwer");
 						showToast("Answer Info Changed");
 						cancelTabGroup("survey", true);
 						cancelTabGroup("answerToQuestion", true);
