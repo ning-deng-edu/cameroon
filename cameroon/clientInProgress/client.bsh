@@ -1388,6 +1388,7 @@ saveNewAnswer(){
 	}
 	tempAnsID=null;
 	tempInterviewerPrefix=null;
+	Boolean fileIdChange=false;
 	if(isNull(current_answer_id)){//create new answer
 	setFieldValue("survey/answerBasic/answerEndTimestamp",getCurrentTime());
 	
@@ -1405,9 +1406,9 @@ saveNewAnswer(){
 		//tempAnsLabel=tempAnsID;
 		setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
 	}
-	
-	int interviewerSize=selected_answer_interviewer.size();
 
+
+	int interviewerSize=selected_answer_interviewer.size();
 	firstInterviewer=selected_answer_interviewer.get(0).get(1);
 	
 	if (interviewerSize==1){
@@ -1417,11 +1418,12 @@ saveNewAnswer(){
 	else{
 		tempInterviewerPrefix=firstInterviewer+"EtAl";
 	}
-	/*
+	
 	if(!tempAnsID.equals(tempAnsLabel)){
-		//TODO:TRIGGER HERE, CHANGING FILELABELS
+		//TRIGGER HERE, CHANGING FILELABELS
+		fileIdChange=true;
 	}
-	*/
+	
 	saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
 		onSave(uuid, newRecord) {
 			answer_id = uuid;
@@ -1433,9 +1435,17 @@ saveNewAnswer(){
 					saveEntitiesToRel("Answer and Interviewee",answer_id,interviewee.get(0));	
 				}
 				//showWarning("interviewee","interviewee done");
+				/*if(fileIdChange){
+					//TODO:trigger filelabel change here
+					attributes=createAtrributeList();
+					
+
+				}*/
+				//else{
 				for(file : files_in_current_ques){
 					saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
 				}
+				//}
 				//showWarning("File","File done");
 				newAnswer=new ArrayList();
 				newAnswer.add(answer_id);
@@ -2869,11 +2879,17 @@ saveSession(String typeflag){
 			}
 			else{
 					interviwerPrefix=null;
+					//showWarning("interviwerPrefix","interviwerPrefix=null;");
 					if(!isNull(sss_interviewer_list)){
+						//showWarning("!isNull(sss_interviewer_list)",sss_interviewer_list.size().toString());
 						interviwerPrefix=sss_interviewer_list.get(0).get(1);
+						//showWarning("interviwerPrefix",interviwerPrefix);
 						if(!interviwerPrefix.contains("EtAl")){//check if all interviwers in this session is the same person
+							//showWarning("!EtAl","!EtAl");
 							for (inv: sss_interviewer_list){
-								String temp=inv.get(0).get(1);
+								//showWarning("for","for");
+								String temp=inv.get(1);
+								//showWarning("temp",temp);
 								if(!(temp.equals(interviwerPrefix))){
 									interviwerPrefix=interviwerPrefix+"EtAl";
 									break;
