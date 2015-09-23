@@ -885,6 +885,7 @@ categoryTypes.add(new NameValuePair("{Other}", "Other"));
 ansLabelFstPart=null;//QuestionID+"Answer"+username
 ansLabelSndPart=null;//Date of interview
 tempAnsLabel=null;//tempAnsLabel, for trigger of changing answer label
+file_and_fileType=new ArrayList();//Keep track of file types, used for changing file labels
 
 startNewAnswer(){
 	//current_question_id=getListItemValue();
@@ -903,6 +904,7 @@ startNewAnswer(){
 	answerInfoNew.clear();
 	
 	files_in_current_ques.clear();
+	file_and_fileType.clear();
 	files_origin.clear();
 	//ansListForQues.clear();
 	
@@ -1435,12 +1437,27 @@ saveNewAnswer(){
 					saveEntitiesToRel("Answer and Interviewee",answer_id,interviewee.get(0));	
 				}
 				//showWarning("interviewee","interviewee done");
-				/*if(fileIdChange){
+				if(fileIdChange){
 					//TODO:trigger filelabel change here
-					attributes=createAtrributeList();
-					
+					for(file : files_in_current_ques){
+						entityId = file.get(0);
+						String fileSuffix=null;
+						for(currentFileType:file_and_fileType){
+							if (currentFileType.get(0).equals(entityId)) {
+								fileSuffix=currentFileType.get(1);
+								break;
+							}
+						}					
+						attributes = createAttributeList();
+    					attributes.add(createEntityAttribute("FileID", null, null, tempAnsID+"-"+fileSuffix, null));
+						 saveArchEnt(entityId, "File", null, attributes, new SaveCallback() {
+            				onSave(uuid,newRecord) {
+            					//showWarning(entityId,tempAnsID+"-"+fileSuffix);
+            				}  
+        				});    
+					}				
 
-				}*/
+				}
 				//else{
 				for(file : files_in_current_ques){
 					saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
@@ -1700,25 +1717,25 @@ newFile(String typeFlag){
 	switch (fileCategory){
 	case "Audio":		
 		newTabGroup("audioFile");
-		setFieldValue("audioFile/audioFileInfo/audioFileID",tempAnsID+"AudioRecording");
+		setFieldValue("audioFile/audioFileInfo/audioFileID",tempAnsID+"-Audio");
 		setFieldValue("audioFile/audioFileInfo/audioFileCreator",username);
 		setFieldValue("audioFile/audioFileInfo/audioFileType","Audio");
 		break;
 	case "Video":
 		newTabGroup("videoFile");
-		setFieldValue("videoFile/videoFileInfo/videoFileID",tempAnsID+"VideoRecording");
+		setFieldValue("videoFile/videoFileInfo/videoFileID",tempAnsID+"-Video");
 		setFieldValue("videoFile/videoFileInfo/videoFileCreator",username);
 		setFieldValue("videoFile/videoFileInfo/videoFileType","Video");
 		break;
 	case "Photo":
 		newTabGroup("photoFile");
-		setFieldValue("photoFile/photoFileInfo/photoFileID",tempAnsID+"PhotoRecording");
+		setFieldValue("photoFile/photoFileInfo/photoFileID",tempAnsID+"-Photo");
 		setFieldValue("photoFile/photoFileInfo/photoFileCreator",username);
 		setFieldValue("photoFile/photoFileInfo/photoFileType","Photo");
 		break;
 	case "Other":
 		newTabGroup("sketchFile");
-		setFieldValue("sketchFile/sketchFileInfo/sketchFileID",tempAnsID+"Recording");
+		setFieldValue("sketchFile/sketchFileInfo/sketchFileID",tempAnsID+"-Recording");
 		setFieldValue("sketchFile/sketchFileInfo/sketchFileCreator",username);
 		setFieldValue("sketchFile/sketchFileInfo/sketchFileType","Sketch");
 		break;
@@ -1756,6 +1773,13 @@ deleteFileRelation(){
 		{
 			files_in_current_ques.remove(deleteFile);
 			populateList("survey/answerFile/answerFileList",files_in_current_ques);
+			break;
+		}
+	}
+	for(fileToDelete:file_and_fileType){
+		if(fileToDelete.get(0).equals(delete_file_id))
+		{
+			file_and_fileType.remove(deleteFile);
 			break;
 		}
 	}
@@ -1950,9 +1974,9 @@ searchPersonForAnswer(){
 }
 
 onEvent("audioFile/audioFileInfo/Take_Audio_File","click","attachAudioToField(\"audioFile/audioFileInfo/audioFileContent\")");
-onEvent("audioFile/audioFileInfo/Save_New_Audio","click","saveFileFromAnswer(\"audioFile/audioFileInfo/audioFileName\",\"audioFile/audioFileInfo/audioFileContent\",\"audioFile\")");
+onEvent("audioFile/audioFileInfo/Save_New_Audio","click","saveFileFromAnswer(\"audioFile/audioFileInfo/audioFileName\",\"audioFile/audioFileInfo/audioFileContent\",\"audioFile\",\"Audio\")");
 
-saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef){
+saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, String fileType){
 	if(isNull(getFieldValue(ref))){
 		showWarning("Warning","File name can not be null");
 		return;
@@ -1980,6 +2004,11 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef){
 					}
 					//showWarning("add file",files_in_current_ques.size().toString());
 					populateList("survey/answerFile/answerFileList",files_in_current_ques);
+					//Adding new file and file type for changing fileID
+					newFileType=new ArrayList();
+					newFileType.add(current_answer_file_id);
+					newFileType.add(fileType);
+					file_and_fileType.add(newFileType);
 					//saveEntitiesToRel("Answer and File",answer_id,current_answer_file_id);			
 					showToast("New file record for answer created");
 					cancelTabGroup(tabGroupRef, true);
@@ -2056,7 +2085,7 @@ setAudioToField(String ref) {
 }
 
 onEvent("videoFile/videoFileInfo/Take_Video_File","click","attachVideoToField(\"videoFile/videoFileInfo/videoFileContent\")");
-onEvent("videoFile/videoFileInfo/Save_New_Video","click","saveFileFromAnswer(\"videoFile/videoFileInfo/videoFileName\",\"videoFile/videoFileInfo/videoFileContent\",\"videoFile\")");
+onEvent("videoFile/videoFileInfo/Save_New_Video","click","saveFileFromAnswer(\"videoFile/videoFileInfo/videoFileName\",\"videoFile/videoFileInfo/videoFileContent\",\"videoFile\",\"Video\")");
 
 attachVideoToField(String ref) {
 	if(!isNull(getFieldValue(ref))){
@@ -2083,7 +2112,7 @@ setVideoToField(String ref) {
 }
 
 onEvent("photoFile/photoFileInfo/Take_Photo_File","click","attachPictureToField(\"photoFile/photoFileInfo/photoFileContent\")");
-onEvent("photoFile/photoFileInfo/Save_New_Photo","click","saveFileFromAnswer(\"photoFile/photoFileInfo/photoFileName\",\"photoFile/photoFileInfo/photoFileContent\",\"photoFile\")");
+onEvent("photoFile/photoFileInfo/Save_New_Photo","click","saveFileFromAnswer(\"photoFile/photoFileInfo/photoFileName\",\"photoFile/photoFileInfo/photoFileContent\",\"photoFile\",\"Photo\")");
 
 attachPictureToField(String ref) {
 	if(!isNull(getFieldValue(ref))){
@@ -2111,7 +2140,7 @@ setPictureToField(String ref) {
 }
 
 onEvent("sketchFile/sketchFileInfo/Take_Sketch_File","click","attachFileToField(\"sketchFile/sketchFileInfo/sketchFileContent\")");
-onEvent("sketchFile/sketchFileInfo/Save_New_Sketch","click","saveFileFromAnswer(\"sketchFile/sketchFileInfo/sketchFileName\",\"sketchFile/sketchFileInfo/sketchFileContent\",\"sketchFile\")");
+onEvent("sketchFile/sketchFileInfo/Save_New_Sketch","click","saveFileFromAnswer(\"sketchFile/sketchFileInfo/sketchFileName\",\"sketchFile/sketchFileInfo/sketchFileContent\",\"sketchFile\",\"Recording\")");
 attachFileToField(String ref) {
 	if(!isNull(getFieldValue(ref))){
 		showWarning("File exists","File exists, please Create New File");
