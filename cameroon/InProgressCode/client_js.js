@@ -1530,7 +1530,6 @@ saveNewAnswer(){
 //5.both interviewee and interviwer lists are change, we need to firstly update answerID and fileIDs, saving "survey", then change sessionID
 
 saveChangedAnswer(){
-
 		answerInfoNew.add(getFieldValue("survey/answerBasic/answerLabel"));
 		answerInfoNew.add(getFieldValue("survey/answerBasic/answerText"));
 		
@@ -1538,14 +1537,16 @@ saveChangedAnswer(){
 		Hashtable intervieweeChange=listChange(selected_answer_interviewee,origin_selected_interviewee);
 		Hashtable fileListChange=listChange(files_in_current_ques,files_origin);
 		Hashtable answerBasicInfoChange=listChange(answerInfoNew,answerInfoOriginal);
-		//case 1: Nothing changed, inform the user nothing have changed
+
+		//case 1: Nothing changed, inform the user nothing have changed, case 1 pass
 		if((interviewerChange.containsKey("EQUAL"))&&(intervieweeChange.containsKey("EQUAL"))&&(fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
 				showWarning("Answer Modification","No data is changed");
 				return;
 			}
 
-		//case 2: only file list changed, we just need to update file list info
+		//case 2: only file list changed, we just need to update file list info, case 2 pass
 		else if((!fileListChange.containsKey("EQUAL"))&&(interviewerChange.containsKey("EQUAL"))&&(intervieweeChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
+			showWarning("CASE2:","CASE2");
 			for(fileDelete:ansFileOriginReln){
 					deleteRel(fileDelete.get(0));
 				}
@@ -1562,8 +1563,9 @@ saveChangedAnswer(){
 				//showTabGroup("questionnaireInfo");
 				showTab("sessionForAnswer/sssAnsList");
 		}
-		//3.case3: only interviewer list changed (or with filelist changes), we need to update interviewer list in answer, and change sessionID in session
+		//3.case3 pass: only interviewer list changed (or with filelist changes), we need to update interviewer list in answer, and change sessionID in session
 		else if((!interviewerChange.containsKey("EQUAL"))&&(intervieweeChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
+			showWarning("CASE3:","CASE3");
 			if(!fileListChange.containsKey("EQUAL")){
 				for(fileDelete:ansFileOriginReln){
 					deleteRel(fileDelete.get(0));
@@ -1572,7 +1574,7 @@ saveChangedAnswer(){
 				for(file : files_in_current_ques){
 					saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
 				}
-				showToast("file list changed");
+				showToast("interviewerChange list changed");
 			}
 			for(interviewerDelete:ansInterviewerOriginReln){
 						deleteRel(interviewerDelete.get(0));
@@ -1592,11 +1594,13 @@ saveChangedAnswer(){
 
 		}
 		//4.only interviewee list changed, we need to update answerID as well as file ids, save"survey"
+		//problem: wrong replacing field, using underscore"_"
 		else if((!intervieweeChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
+			showWarning("CASE4:","CASE4");
 			String newAnsLabel=null;
 				String currentAnsLabel=getFieldValue("survey/answerBasic/answerLabel");
 				String[] currentAnsLabelSplit=currentAnsLabel.split("-");
-				String currentAnsLabelInve=currentAnsLabelSplit[currentAnsLabelSplit.length-2];//get the current interviewee included in label
+				String currentAnsLabelInve=currentAnsLabelSplit[currentAnsLabelSplit.length-4];//get the current interviewee included in label
 				showWarning("currentAnsLabelInve",currentAnsLabelInve);
 				Boolean ansLabelChange=false;
 				tempAnsLabelInve=null;
@@ -1613,7 +1617,7 @@ saveChangedAnswer(){
 						showWarning("tempAnsLabelInveEtAl",tempAnsLabelInve);
 					}
 				if (!tempAnsLabelInve.equals(currentAnsLabelInve)) {
-					currentAnsLabelSplit[currentAnsLabelSplit.length-2]=tempAnsLabelInve;
+					currentAnsLabelSplit[currentAnsLabelSplit.length-4]=tempAnsLabelInve;
 					StringBuilder sb=new StringBuilder();
 					for (field : currentAnsLabelSplit){
 						if (sb.length()>0){sb.append("-");}
@@ -1625,6 +1629,7 @@ saveChangedAnswer(){
 					ansLabelChange=true;
 					}
 					if (ansLabelChange) {
+						showWarning("ansLabelChange:","ansLabelChange");
 						saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
 						onSave(uuid, newRecord) {
 							answer_id = uuid;	//not sure how it's working
@@ -1690,6 +1695,7 @@ saveChangedAnswer(){
 
 			else
 			{
+				showWarning("!ansLabelChange","!ansLabelChange");
 						for(intervieweeDelete:ansIntervieweeOriginReln){
 							deleteRel(intervieweeDelete.get(0));
 						}
@@ -1727,8 +1733,9 @@ saveChangedAnswer(){
 						showTab("sessionForAnswer/sssAnsList");
 			}
 		}
-
+		//5. only basic info changed without interviewee changes
 		else if((!answerBasicInfoChange.containsKey("EQUAL")) &&  (intervieweeChange.containsKey("EQUAL"))){
+			showWarning("CASE5","CASE5");
 			saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
 					onSave(uuid, newRecord) {
 						answer_id = uuid;	//not sure how it's working
@@ -1748,7 +1755,7 @@ saveChangedAnswer(){
 						if(!fileListChange.containsKey("EQUAL")){
 							for(fileDelete:ansFileOriginReln){
 								deleteRel(fileDelete.get(0));
-							}							}
+							}							
 							for(file : files_in_current_ques){
 								saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
 							}
@@ -1766,198 +1773,107 @@ saveChangedAnswer(){
 				});
 
 		}
-		if(!intervieweeChange.containsKey("EQUAL")){
-			Boolean ansIDchange=false;
-			String currentAnsLabel=getFieldValue("survey/answerBasic/answerLabel");
-			String[] currentAnsLabelSplit=currentAnsLabel.split("-");
-			String currentAnsLabelInve=currentAnsLabelSplit[currentAnsLabelSplit.length-2];//get the current interviewee included in label
-			showWarning("currentAnsLabelInve",currentAnsLabelInve);
-			tempAnsLabelInve=null;
-			int intervieweeSize=selected_answer_interviewee.size();
-			firstInterviewee=selected_answer_interviewee.get(0).get(1);
-			showWarning("firstInterviewee",firstInterviewee);
-		
-			if (intervieweeSize==1){					
-				tempAnsLabelInve=firstInterviewee;
-				showWarning("tempAnsLabelInve",tempAnsLabelInve);
-						//setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
-				}
-			else{
-				tempAnsLabelInve=firstInterviewee+"EtAl";
-				showWarning("tempAnsLabelInveEtAl",tempAnsLabelInve);
-						//setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
-				}
-			if (!tempAnsLabelInve.equals(currentAnsLabelInve)){
-				currentAnsLabelSplit[currentAnsLabelSplit.length-2]=tempAnsLabelInve;
-				StringBuilder sb=new StringBuilder();
-				for (field : currentAnsLabelSplit){
-					if (sb.length()>0){sb.append("-");}
-					sb.append(field);
-				}
-				String newAnsLabel=sb.toString();
-				showWarning("newAnsLabel",newAnsLabel);
-				setFieldValue("survey/answerBasic/answerLabel",newAnsLabel);
-				ansIDchange=true;
-				}
-
-			if(ansIDchange){//we need to saveTabGroup
-				saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
-					onSave(uuid, newRecord) {
-						answer_id = uuid;	//not sure how it's working
-						for(interviewerDelete:ansInterviewerOriginReln){
-							deleteRel(interviewerDelete.get(0));
-						}
-						for(interviewer : selected_answer_interviewer){
-							interviwerNew=new ArrayList();
-							interviwerNew.add(current_answer_id);
-							interviwerNew.add(interviewer.get(1));
-							sssAnswerInterviewerNew.add(interviwerNew);
-							saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
-						}
-						for(intervieweeDelete:ansIntervieweeOriginReln){
-							deleteRel(intervieweeDelete.get(0));
-						}
-						for(interviewee : selected_answer_interviewee){
-							saveEntitiesToRel("Answer and Interviewee",current_answer_id,interviewee.get(0));		
-						}
-						for(fileDelete:ansFileOriginReln){
-							deleteRel(fileDelete.get(0));
-						}							}
-						for(file : files_in_current_ques){
-							saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
-						}
-						saveSession("interviwer");
-						showToast("Answer Info Changed");
-						cancelTabGroup("survey", true);
-						cancelTabGroup("answerToQuestion", true);
-						//showTabGroup("questionnaireInfo");
-						showTab("sessionForAnswer/sssAnsList");
-				}
-				onError(message) {
-					showWarning("error",message);
-				}  
-				});
-
-					}
-		}
-
-		else if(answerBasicInfoChange.containsKey("EQUAL")){//no basic info is changed in the answer basic info
-			//answerID is not changed, fileID doesn't need to be changed
-			//But need to check interviewer list to see if session ID has to be changed
-			if((interviewerChange.containsKey("EQUAL"))&&(intervieweeChange.containsKey("EQUAL"))&&(fileListChange.containsKey("EQUAL"))){
-				showWarning("Answer Modification","No data is changed");
-				return;
-			}
-			else if((interviewerChange.containsKey("EQUAL"))&&(intervieweeChange.containsKey("EQUAL"))&&(!fileListChange.containsKey("EQUAL"))){
-				
-				for(fileDelete:ansFileOriginReln){
-					deleteRel(fileDelete.get(0));
-				}
-				
-				for(file : files_in_current_ques){
-					saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
-				}
-				
-				//files_origin.clear();
-				//files_origin.addAll(files_in_current_ques);
-				showToast("file list changed");
-				cancelTabGroup("survey", true);
-				cancelTabGroup("answerToQuestion", true);
-				//showTabGroup("questionnaireInfo");
-				showTab("sessionForAnswer/sssAnsList");
-			}
-			else{
-				if(!fileListChange.containsKey("EQUAL")){
-					
-					for(fileDelete:ansFileOriginReln){
-						deleteRel(fileDelete.get(0));
-					}
-					
-					for(file : files_in_current_ques){
-						saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
-					}
-					//files_origin.clear();
-					//files_origin.addAll(files_in_current_ques);
-					showToast("file list changed");
-				}
-				if(!interviewerChange.containsKey("EQUAL")){
-					
-					for(interviewerDelete:ansInterviewerOriginReln){
-						deleteRel(interviewerDelete.get(0));
-					}
-				
-					for(interviewer : selected_answer_interviewer){
-						interviwerNew=new ArrayList();
-						interviwerNew.add(current_answer_id);
-						interviwerNew.add(interviewer.get(1));
-						sssAnswerInterviewerNew.add(interviwerNew);
-						saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));	
-					}
-					showToast("Interviewer lists changed");
-					saveSession("interviwer");
-				}
-				/*
-				if(!intervieweeChange.containsKey("EQUAL")){
-					for(intervieweeDelete:ansIntervieweeOriginReln){
-						deleteRel(intervieweeDelete.get(0));
-					}
-					for(interviewee : selected_answer_interviewee){
-						saveEntitiesToRel("Answer and Interviewee",current_answer_id,interviewee.get(0));		
-					}
-					showToast("Interviewee lists changed");
-				}
-				*/
-				//origin_selected_interviewer.clear();
-				//origin_selected_interviewer.addAll(selected_answer_interviewer);
-				//origin_selected_interviewee.clear();
-				//origin_selected_interviewee.addAll(selected_answer_interviewee);			
-				//showToast("Interviewee and interviewer lists changed");
-				cancelTabGroup("survey", true);
-				cancelTabGroup("answerToQuestion", true);
-				//showTabGroup("questionnaireInfo");
-				//showTab("sessionForAnswer/sssAnsList");
-			}
-		}
-		
+		//6. answer basic info changed and interviewee list also changed
 		else{
-			saveChangedAnswer();
-		}
-saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
-				onSave(uuid, newRecord) {
-					answer_id = uuid;	//not sure how it's working
-						for(interviewerDelete:ansInterviewerOriginReln){
-							deleteRel(interviewerDelete.get(0));
+			showWarning("case6","case6");
+				String newAnsLabel=null;
+				String currentAnsLabel=getFieldValue("survey/answerBasic/answerLabel");
+				String[] currentAnsLabelSplit=currentAnsLabel.split("-");
+				String currentAnsLabelInve=currentAnsLabelSplit[currentAnsLabelSplit.length-4];//get the current interviewee included in label
+				showWarning("currentAnsLabelInve",currentAnsLabelInve);
+				Boolean ansLabelChange=false;
+				tempAnsLabelInve=null;
+					int intervieweeSize=selected_answer_interviewee.size();
+					firstInterviewee=selected_answer_interviewee.get(0).get(1);
+					showWarning("firstInterviewee",firstInterviewee);
+		
+					if (intervieweeSize==1){
+						tempAnsLabelInve=firstInterviewee;
+						showWarning("tempAnsLabelInve",tempAnsLabelInve);
 						}
-						for(interviewer : selected_answer_interviewer){
-							interviwerNew=new ArrayList();
-							interviwerNew.add(current_answer_id);
-							interviwerNew.add(interviewer.get(1));
-							sssAnswerInterviewerNew.add(interviwerNew);
-							saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
-						}
-						for(intervieweeDelete:ansIntervieweeOriginReln){
-							deleteRel(intervieweeDelete.get(0));
-						}
-						for(interviewee : selected_answer_interviewee){
-							saveEntitiesToRel("Answer and Interviewee",current_answer_id,interviewee.get(0));		
-						}
-						for(fileDelete:ansFileOriginReln){
-							deleteRel(fileDelete.get(0));
-						}
-						for(file : files_in_current_ques){
-							saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
-						}
-						saveSession("interviwer");
-						showToast("Answer Info Changed");
-						cancelTabGroup("survey", true);
-						cancelTabGroup("answerToQuestion", true);
+					else{
+						tempAnsLabelInve=firstInterviewee+"EtAl";
+						showWarning("tempAnsLabelInveEtAl",tempAnsLabelInve);
+					}
+				if (!tempAnsLabelInve.equals(currentAnsLabelInve)) {
+					currentAnsLabelSplit[currentAnsLabelSplit.length-4]=tempAnsLabelInve;
+					StringBuilder sb=new StringBuilder();
+					for (field : currentAnsLabelSplit){
+						if (sb.length()>0){sb.append("-");}
+						sb.append(field);
+					}
+					newAnsLabel=sb.toString();
+					showWarning("newAnsLabel",newAnsLabel);
+					setFieldValue("survey/answerBasic/answerLabel",newAnsLabel);
+					ansLabelChange=true;
+					}
+					
+						saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
+						onSave(uuid, newRecord) {
+							answer_id = uuid;	//not sure how it's working
+							for(intervieweeDelete:ansIntervieweeOriginReln){
+								deleteRel(intervieweeDelete.get(0));
+							}
+							for(interviewee : selected_answer_interviewee){
+								saveEntitiesToRel("Answer and Interviewee",current_answer_id,interviewee.get(0));		
+							}
+							//TODO:still needs to change file ids
+							if(ansLabelChange){
+							for(file : files_in_current_ques){
+								entityId = file.get(0);
+								String fileSuffix=null;
+								for(currentFileType:file_and_fileType){
+									if (currentFileType.get(0).equals(entityId)) {
+									fileSuffix=currentFileType.get(1);
+									break;
+								}
+							}					
+								attributes = createAttributeList();
+    							attributes.add(createEntityAttribute("FileID", null, null, newAnsLabel+"-"+fileSuffix, null));
+							 	saveArchEnt(entityId, "File", null, attributes, new SaveCallback() {
+            						onSave(uuid,newRecord) {
+            					//showWarning(entityId,tempAnsID+"-"+fileSuffix);
+            						}  
+        							});    
+								}		
+							}
+
+							if(!fileListChange.containsKey("EQUAL")){
+								for(fileDelete:ansFileOriginReln){
+									deleteRel(fileDelete.get(0));
+								}
+								for(file : files_in_current_ques){
+									saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
+								}
+							}
+							
+
+							if (!interviewerChange.containsKey("EQUAL")) {
+								for(interviewerDelete:ansInterviewerOriginReln){
+									deleteRel(interviewerDelete.get(0));
+								}
+								for(interviewer : selected_answer_interviewer){
+									interviwerNew=new ArrayList();
+									interviwerNew.add(current_answer_id);
+									interviwerNew.add(interviewer.get(1));
+									sssAnswerInterviewerNew.add(interviwerNew);
+									saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
+								}
+								saveSession("interviwer");
+							}	
+							showToast("Answer Info Changed");
+							cancelTabGroup("survey", true);
+							cancelTabGroup("answerToQuestion", true);
 						//showTabGroup("questionnaireInfo");
-						showTab("sessionForAnswer/sssAnsList");
-				}
-				onError(message) {
-					showWarning("error",message);
-				}  
-				});
+							showTab("sessionForAnswer/sssAnsList");
+					}
+					onError(message) {
+						showWarning("error",message);
+					}  
+					});
+
+		}
+
 }
 //measure whether two arraylists are identical, if not, recording what kinds of operation have been done
 listChange(ArrayList targetList,ArrayList sourceList){
@@ -2017,18 +1933,25 @@ newFile(String typeFlag){
 		answerFile=false;
 		file_id=null;
 	}
-	int intervieweeSize=selected_answer_interviewee.size();
-	firstInterviewee=selected_answer_interviewee.get(0).get(1);
-	if (intervieweeSize==1){
-		tempAnsID=ansLabelFstPart+firstInterviewee+ansLabelSndPart;
-		tempAnsLabel=tempAnsID;
-		setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
-	}
+	if(isNull(current_answer_id)){
+		int intervieweeSize=selected_answer_interviewee.size();
+		firstInterviewee=selected_answer_interviewee.get(0).get(1);
+		if (intervieweeSize==1){
+			tempAnsID=ansLabelFstPart+firstInterviewee+ansLabelSndPart;
+			tempAnsLabel=tempAnsID;
+			setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
+		}
 	else{
-		tempAnsID=ansLabelFstPart+firstInterviewee+"EtAl"+ansLabelSndPart;
-		tempAnsLabel=tempAnsID;
-		setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
+			tempAnsID=ansLabelFstPart+firstInterviewee+"EtAl"+ansLabelSndPart;
+			tempAnsLabel=tempAnsID;
+			setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
+		}
 	}
+	else
+	{
+		tempAnsID=getFieldValue("survey/answerBasic/answerLabel");
+	}
+
 	switch (fileCategory){
 	case "Audio":		
 		newTabGroup("audioFile");
