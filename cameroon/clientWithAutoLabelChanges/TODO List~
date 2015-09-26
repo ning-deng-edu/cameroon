@@ -1,0 +1,8 @@
+1.Ask if session creation entrance in file group should be kept
+2.Ask if file creation entrance in file tabgroup should be kept
+3.Function of converting person name into CamCase
+4.Changing delimiter to "_", change all functions that are relying on the delimiter
+5.Ask if all the Label fields should be readOnly
+6.Adding annotation function based on the list
+7.Adding busy dialogue
+8. 
