@@ -614,6 +614,7 @@ loadAnswerInfo(){
 
 	current_answer_id=null;
 	current_answer_id=getListItemValue();
+
 	if(isNull(current_answer_id)){
 		showWarning("Error","Can't find this answer, please contact the admin");
 		return;
@@ -827,7 +828,7 @@ loadAnswerInfo(){
 	
 	showTabGroup("survey", current_answer_id, new FetchCallback() {
         onFetch(result) {
-            //person=result;
+			answerInfoOriginal.clear();
         	populateList("survey/answerFile/answerFileList", files_in_current_ques);
         	populateList("survey/answerPerson/answerInterviewerList", selected_answer_interviewer);
         	populateList("survey/answerPerson/answerIntervieweeList", selected_answer_interviewee);
@@ -1528,8 +1529,9 @@ saveNewAnswer(){
 //3.only interviewer list changed, we need to update interviewer list in answer, and change sessionID in session
 //4.only interviewee list changed, we need to update answerID as well as file ids, save"survey"
 //5.both interviewee and interviwer lists are change, we need to firstly update answerID and fileIDs, saving "survey", then change sessionID
-
+//In below code, the app confuses case 1 and case 5, case 4 and case 6
 saveChangedAnswer(){
+		answerInfoNew.clear();
 		answerInfoNew.add(getFieldValue("survey/answerBasic/answerLabel"));
 		answerInfoNew.add(getFieldValue("survey/answerBasic/answerText"));
 		
