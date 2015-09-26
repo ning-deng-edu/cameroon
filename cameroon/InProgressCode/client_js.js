@@ -1548,7 +1548,7 @@ saveChangedAnswer(){
 
 		//case 2: only file list changed, we just need to update file list info, case 2 pass
 		else if((!fileListChange.containsKey("EQUAL"))&&(interviewerChange.containsKey("EQUAL"))&&(intervieweeChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
-			showWarning("CASE2:","CASE2");
+			//showWarning("CASE2:","CASE2");
 			for(fileDelete:ansFileOriginReln){
 					deleteRel(fileDelete.get(0));
 				}
@@ -1567,7 +1567,7 @@ saveChangedAnswer(){
 		}
 		//3.case3 pass: only interviewer list changed (or with filelist changes), we need to update interviewer list in answer, and change sessionID in session
 		else if((!interviewerChange.containsKey("EQUAL"))&&(intervieweeChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
-			showWarning("CASE3:","CASE3");
+			//showWarning("CASE3:","CASE3");
 			if(!fileListChange.containsKey("EQUAL")){
 				for(fileDelete:ansFileOriginReln){
 					deleteRel(fileDelete.get(0));
@@ -1595,28 +1595,28 @@ saveChangedAnswer(){
 					cancelTabGroup("answerToQuestion", true);
 
 		}
-		//4.only interviewee list changed, we need to update answerID as well as file ids, save"survey"
+		//4.only interviewee list changed, we need to update answerID as well as file ids, save"survey" pass
 		//problem: wrong replacing field, using underscore"_"
 		else if((!intervieweeChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
-			showWarning("CASE4:","CASE4");
+			//showWarning("CASE4:","CASE4");
 			String newAnsLabel=null;
 				String currentAnsLabel=getFieldValue("survey/answerBasic/answerLabel");
 				String[] currentAnsLabelSplit=currentAnsLabel.split("-");
 				String currentAnsLabelInve=currentAnsLabelSplit[currentAnsLabelSplit.length-4];//get the current interviewee included in label
-				showWarning("currentAnsLabelInve",currentAnsLabelInve);
+				//showWarning("currentAnsLabelInve",currentAnsLabelInve);
 				Boolean ansLabelChange=false;
 				tempAnsLabelInve=null;
 					int intervieweeSize=selected_answer_interviewee.size();
 					firstInterviewee=selected_answer_interviewee.get(0).get(1);
-					showWarning("firstInterviewee",firstInterviewee);
+					//showWarning("firstInterviewee",firstInterviewee);
 		
 					if (intervieweeSize==1){
 						tempAnsLabelInve=firstInterviewee;
-						showWarning("tempAnsLabelInve",tempAnsLabelInve);
+						//showWarning("tempAnsLabelInve",tempAnsLabelInve);
 						}
 					else{
 						tempAnsLabelInve=firstInterviewee+"EtAl";
-						showWarning("tempAnsLabelInveEtAl",tempAnsLabelInve);
+						//showWarning("tempAnsLabelInveEtAl",tempAnsLabelInve);
 					}
 				if (!tempAnsLabelInve.equals(currentAnsLabelInve)) {
 					currentAnsLabelSplit[currentAnsLabelSplit.length-4]=tempAnsLabelInve;
@@ -1626,12 +1626,12 @@ saveChangedAnswer(){
 						sb.append(field);
 					}
 					newAnsLabel=sb.toString();
-					showWarning("newAnsLabel",newAnsLabel);
+					//showWarning("newAnsLabel",newAnsLabel);
 					setFieldValue("survey/answerBasic/answerLabel",newAnsLabel);
 					ansLabelChange=true;
 					}
 					if (ansLabelChange) {
-						showWarning("ansLabelChange:","ansLabelChange");
+						//showWarning("ansLabelChange:","ansLabelChange");
 						saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
 						onSave(uuid, newRecord) {
 							answer_id = uuid;	//not sure how it's working
@@ -1641,8 +1641,7 @@ saveChangedAnswer(){
 							for(interviewee : selected_answer_interviewee){
 								saveEntitiesToRel("Answer and Interviewee",current_answer_id,interviewee.get(0));		
 							}
-							//TODO:still needs to change file ids
-
+							
 							for(file : files_in_current_ques){
 								entityId = file.get(0);
 								String fileSuffix=null;
@@ -1697,7 +1696,7 @@ saveChangedAnswer(){
 
 			else
 			{
-				showWarning("!ansLabelChange","!ansLabelChange");
+				//showWarning("!ansLabelChange","!ansLabelChange");
 						for(intervieweeDelete:ansIntervieweeOriginReln){
 							deleteRel(intervieweeDelete.get(0));
 						}
@@ -1737,7 +1736,7 @@ saveChangedAnswer(){
 		}
 		//5. only basic info changed without interviewee changes
 		else if((!answerBasicInfoChange.containsKey("EQUAL")) &&  (intervieweeChange.containsKey("EQUAL"))){
-			showWarning("CASE5","CASE5");
+			//showWarning("CASE5","CASE5");
 			saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
 					onSave(uuid, newRecord) {
 						answer_id = uuid;	//not sure how it's working
@@ -1777,25 +1776,25 @@ saveChangedAnswer(){
 		}
 		//6. answer basic info changed and interviewee list also changed
 		else{
-			showWarning("case6","case6");
+			//showWarning("case6","case6");
 				String newAnsLabel=null;
 				String currentAnsLabel=getFieldValue("survey/answerBasic/answerLabel");
 				String[] currentAnsLabelSplit=currentAnsLabel.split("-");
 				String currentAnsLabelInve=currentAnsLabelSplit[currentAnsLabelSplit.length-4];//get the current interviewee included in label
-				showWarning("currentAnsLabelInve",currentAnsLabelInve);
+				//showWarning("currentAnsLabelInve",currentAnsLabelInve);
 				Boolean ansLabelChange=false;
 				tempAnsLabelInve=null;
 					int intervieweeSize=selected_answer_interviewee.size();
 					firstInterviewee=selected_answer_interviewee.get(0).get(1);
-					showWarning("firstInterviewee",firstInterviewee);
+					//showWarning("firstInterviewee",firstInterviewee);
 		
 					if (intervieweeSize==1){
 						tempAnsLabelInve=firstInterviewee;
-						showWarning("tempAnsLabelInve",tempAnsLabelInve);
+						//showWarning("tempAnsLabelInve",tempAnsLabelInve);
 						}
 					else{
 						tempAnsLabelInve=firstInterviewee+"EtAl";
-						showWarning("tempAnsLabelInveEtAl",tempAnsLabelInve);
+						//showWarning("tempAnsLabelInveEtAl",tempAnsLabelInve);
 					}
 				if (!tempAnsLabelInve.equals(currentAnsLabelInve)) {
 					currentAnsLabelSplit[currentAnsLabelSplit.length-4]=tempAnsLabelInve;
@@ -1805,7 +1804,7 @@ saveChangedAnswer(){
 						sb.append(field);
 					}
 					newAnsLabel=sb.toString();
-					showWarning("newAnsLabel",newAnsLabel);
+					//showWarning("newAnsLabel",newAnsLabel);
 					setFieldValue("survey/answerBasic/answerLabel",newAnsLabel);
 					ansLabelChange=true;
 					}
