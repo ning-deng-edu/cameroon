@@ -1453,9 +1453,21 @@ saveNewAnswer(){
 	saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
 		onSave(uuid, newRecord) {
 			answer_id = uuid;
-			if (newRecord) {	
-				for(interviewer : selected_answer_interviewer){
-					saveEntitiesToRel("Answer and Interviewer",answer_id,interviewer.get(0));
+			if (newRecord) {
+				if(!isNull(sss_id)){
+					//showWarning("!isNull(sss_id)","!isNull(sss_id)");
+					for(interviewer : selected_answer_interviewer){
+						saveEntitiesToRel("Answer and Interviewer",answer_id,interviewer.get(0));
+						interviwerNew=new ArrayList();
+						interviwerNew.add(answer_id);
+						interviwerNew.add(interviewer.get(1));
+						sssAnswerInterviewerNew.add(interviwerNew);
+					}
+				}
+				else{
+					for(interviewer : selected_answer_interviewer){
+						saveEntitiesToRel("Answer and Interviewer",answer_id,interviewer.get(0));
+					}
 				}
 				for(interviewee : selected_answer_interviewee){
 					saveEntitiesToRel("Answer and Interviewee",answer_id,interviewee.get(0));	
@@ -1492,8 +1504,6 @@ saveNewAnswer(){
 				newAnswer.add(answer_id);
 				newAnswer.add(tempAnsID);
 				sss_answer_list.add(newAnswer);
-				//showWarning("sss_answer_list","sss_answer_list");
-				populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
 				newInterviwer=new ArrayList();
 				newInterviwer.add(answer_id);
 				newInterviwer.add(tempInterviewerPrefix);
@@ -1503,14 +1513,21 @@ saveNewAnswer(){
 				}
 				*/
 				sss_interviewer_list.add(newInterviwer);//added Interviwer to sss_interviewer
+				//showWarning("sss_answer_list","sss_answer_list");
+				populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+				if(!isNull(sss_id)){//new answer for an existing session
+					//showWarning("!isNull(sss_id)saveSession","!isNull(sss_id)saveSession");
+					saveSession("interviwer");
+				}
+				
 				//what if adding new answer to a session?
 				//Don't need to care about it because this answer would not be the first answer?
 				//showWarning("sessionForAnswer","sessionForAnswer");
 				showToast("new answer created");
 				cancelTabGroup("survey", true);
 				cancelTabGroup("answerToQuestion", true);
-				showTabGroup("questionnaireInfo");
-				showTab("sessionForAnswer/sssAnsList");
+				//showTabGroup("questionnaireInfo");
+				//showTab("sessionForAnswer/sssAnsList");
 			}
 			current_answer_id=answer_id;
 		}
@@ -1529,7 +1546,7 @@ saveNewAnswer(){
 //3.only interviewer list changed, we need to update interviewer list in answer, and change sessionID in session
 //4.only interviewee list changed, we need to update answerID as well as file ids, save"survey"
 //5.both interviewee and interviwer lists are change, we need to firstly update answerID and fileIDs, saving "survey", then change sessionID
-//In below code, the app confuses case 1 and case 5, case 4 and case 6
+
 saveChangedAnswer(){
 		answerInfoNew.clear();
 		answerInfoNew.add(getFieldValue("survey/answerBasic/answerLabel"));
@@ -1561,9 +1578,9 @@ saveChangedAnswer(){
 				//files_origin.addAll(files_in_current_ques);
 				showToast("file list changed");
 				cancelTabGroup("survey", true);
-				cancelTabGroup("answerToQuestion", true);
+				//cancelTabGroup("answerToQuestion", true);
 				//showTabGroup("questionnaireInfo");
-				showTab("sessionForAnswer/sssAnsList");
+				//showTab("sessionForAnswer/sssAnsList");
 		}
 		//3.case3 pass: only interviewer list changed (or with filelist changes), we need to update interviewer list in answer, and change sessionID in session
 		else if((!interviewerChange.containsKey("EQUAL"))&&(intervieweeChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
@@ -1592,7 +1609,7 @@ saveChangedAnswer(){
 					showToast("Interviewer lists changed");
 					saveSession("interviwer");
 					cancelTabGroup("survey", true);
-					cancelTabGroup("answerToQuestion", true);
+					//cancelTabGroup("answerToQuestion", true);
 
 		}
 		//4.only interviewee list changed, we need to update answerID as well as file ids, save"survey" pass
@@ -1684,9 +1701,9 @@ saveChangedAnswer(){
 							}	
 							showToast("Answer Info Changed");
 							cancelTabGroup("survey", true);
-							cancelTabGroup("answerToQuestion", true);
+							//cancelTabGroup("answerToQuestion", true);
 						//showTabGroup("questionnaireInfo");
-							showTab("sessionForAnswer/sssAnsList");
+							//showTab("sessionForAnswer/sssAnsList");
 					}
 					onError(message) {
 						showWarning("error",message);
@@ -1729,9 +1746,9 @@ saveChangedAnswer(){
 						
 						showToast("Answer Info Changed");
 						cancelTabGroup("survey", true);
-						cancelTabGroup("answerToQuestion", true);
+						//cancelTabGroup("answerToQuestion", true);
 						//showTabGroup("questionnaireInfo");
-						showTab("sessionForAnswer/sssAnsList");
+						//showTab("sessionForAnswer/sssAnsList");
 			}
 		}
 		//5. only basic info changed without interviewee changes
@@ -1764,9 +1781,9 @@ saveChangedAnswer(){
 						
 						showToast("Answer Info Changed");
 						cancelTabGroup("survey", true);
-						cancelTabGroup("answerToQuestion", true);
+						//cancelTabGroup("answerToQuestion", true);
 						//showTabGroup("questionnaireInfo");
-						showTab("sessionForAnswer/sssAnsList");
+						//showTab("sessionForAnswer/sssAnsList");
 				}
 				onError(message) {
 					showWarning("error",message);
@@ -1866,7 +1883,7 @@ saveChangedAnswer(){
 							cancelTabGroup("survey", true);
 							cancelTabGroup("answerToQuestion", true);
 						//showTabGroup("questionnaireInfo");
-							showTab("sessionForAnswer/sssAnsList");
+							//showTab("sessionForAnswer/sssAnsList");
 					}
 					onError(message) {
 						showWarning("error",message);
@@ -3323,13 +3340,14 @@ saveSession(String typeflag){
 			//showWarning("newsssLabelOldsetted",sss_id);
 			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
-			    	
+			    	//showWarning("SAVESESSIONFORANSWER","SAVESESSIONFORANSWER");
 			    	for(ansDelete:sssAnsOrigin){
 						 deleteRel(ansDelete.get(0));
 			    	  }
 			    	 for(answer:sss_answer_list){
 			    		  saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
 			    	  }
+
 			        showToast("Session ID changed");
 			    }
 			    onError(message) {
@@ -3340,6 +3358,7 @@ saveSession(String typeflag){
 		break;
 	}
 }
+
 timeValidation(String startDateTime, String endDateTime, String flag){
 	switch(flag){
 	case ("sessionTime"):
