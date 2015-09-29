@@ -282,6 +282,7 @@ String sssLabel=null;//This is used for sssID interviewee changing
 sssAnswerInterviewerOrigin=new LinkedHashSet();
 sssAnswerInterviewerNew=new LinkedHashSet();//This is for generating sss label
 String sssLabelOld=null;
+sessionAnswerInterviewer=new LinkedHashSet();
 
 
 
@@ -1226,8 +1227,10 @@ addItemToTargetList(ArrayList sourceList, String type_flag, String intervieweeID
 			case "sessionFile":
 				selected_files_session.add(sourceList.get(idx_item));
 				candidate_files_session.remove(idx_item);
+				loadSessionInterviewer("session");
 				populateList("session/sessionFiles/sessionFileList", selected_files_session);
 				populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
+				
 				break;
 			
 			case "fieldTripSession":
@@ -1284,6 +1287,7 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag){
 			case "sessionFile":
 				candidate_files_session.add(targetList.get(idx_delete));
 				selected_files_session.remove(idx_delete);
+				loadSessionInterviewer("session");
 				populateList("session/sessionFiles/sessionFileList", selected_files_session);
 				populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
 				break;
@@ -2652,6 +2656,7 @@ sessionInfoNew=new ArrayList();
 sessionAnswerRelnOrigin=new ArrayList();
 sessionInterviewerOrigin=new ArrayList();
 sessionInterviewerNew=new ArrayList();
+sessionLabel=null;
 
 /***session position***/
 takePoint() {
@@ -2708,6 +2713,7 @@ loadSessionList(String typeflag){
 
 newSession(){
 	session_id=null;
+	sessionLabel=null;
 	selected_files_session.clear();
 	candidate_files_session.clear();
 	original_files_session.clear();
@@ -2729,9 +2735,11 @@ newSession(){
             String sssLabelTemp=null;
             if(isNull(current_position)){
             	sssLabelTemp=username+"-(uncertainPlace)-("+currentDate+")";
+            	sessionLabel="-(uncertainPlace)-("+currentDate+")";
         	}
             else{
             	sssLabelTemp=username+"-("+current_position.get(1)+")-("+current_position.get(2)+")-("+currentDate+")";
+            	sessionLabel="-("+current_position.get(1)+")-("+current_position.get(2)+")-("+currentDate+")";
             }
             populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
             populateList("session/sessionFiles/sessionFileList", selected_files_session);
@@ -2911,13 +2919,15 @@ loadSessionInfo(String typeFlag){
 	            showToast(message);
 	        }
 	    });
-		loadSessionInterviewer();
+		loadSessionInterviewer("answer");
 		break;
 	}
 }
 
-loadSessionInterviewer(){
+loadSessionInterviewer(String typeflag){
 	//For session for answer page, TODO: add session group page entry
+	switch(typeflag){
+	case "answer":
 	tempAnsList=new ArrayList();
 	sssAnswerInterviewerNew.clear();
 	sssAnswerInterviewerOrigin.clear();
@@ -2975,6 +2985,44 @@ loadSessionInterviewer(){
             showToast(message);
         }
     });
+	break;
+	case "session":
+			if(isNull(selected_files_session)){
+				showWarning("invalid data","No answer selected");
+				return;
+			}	
+			sessionAnswerInterviewer.clear();
+			for (ans : selected_files_session){
+				String tempAnsID=ans.get(0);
+				//showWarning("loadSessionInterviewer tempAnsID",tempAnsID);
+				loadInterviewerForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+            				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+            				"and uuid in "+
+            	 			"(select uuid from AentReln where RelationshipID in "+
+            				"(select RelationshipID from AEntReln where AEntReln.uuid="+tempAnsID+" "+
+            	 			"AND RelationshipID in "+
+            				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+            	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer') "+
+            				"and latestNonDeletedRelationship.Deleted IS NULL)))";
+				fetchAll(loadInterviewerForAnswerQuery, new FetchCallback() {
+    	                onFetch(result) {
+    	                	for(res:result){
+    	                		//newInterviewer=new ArrayList();
+    	                		//newInterviewer.add(tempAnsID);
+    	                		//newInterviewer.add(res.get(1));
+    	                		sessionAnswerInterviewer.add(res.get(1));
+
+    	                	}
+    	                	//showWarning("sessionAnswerInterviewer",sessionAnswerInterviewer.size().toString());
+    	                }
+    	                onError(message) {
+    	                    showToast(message);
+    	                	}
+            			});
+			}
+	break;
+
+	}
 }
         		/*
         		firstAns=tempAnsList.get(0).get(0);
@@ -3023,7 +3071,6 @@ loadSessionInterviewer(){
 	            	                	//tempInterviwerList.addAll(result);
 	            	                }
 	            	                
-
 	            	                onError(message) {
 	            	                    showToast(message);
 	            	                	}
@@ -3039,7 +3086,6 @@ loadSessionInterviewer(){
 	                		
 	                	}
 	                }
-
 	                onError(message) {
 	                    showToast(message);
 	                }
@@ -3053,7 +3099,7 @@ saveSession(String typeflag){
 	switch(typeflag){
 	case "session":
 	if(isNull(session_id)){//create new session
-		if((isNull(getFieldValue("session/sessionBasicInfo/sessionID"))) || 
+		if((isNull(selected_files_session)) || 
 				(isNull(getFieldValue("session/sessionBasicInfo/sessionName"))) || 
 				(isNull(getFieldValue("session/sessionBasicInfo/sessionStartTimetamp"))) || 
 				(isNull(getFieldValue("session/sessionBasicInfo/sessionEndTimestamp"))))
@@ -3062,9 +3108,32 @@ saveSession(String typeflag){
 			return;
 		}
 		else{
+			//showWarning("loadSessionInterviewer","loadSessionInterviewer begins");
+			//loadSessionInterviewer("session");
+			//showWarning("loadSessionInterviewer",sessionAnswerInterviewer.size().toString());
 			String startTimeStamp=getFieldValue("session/sessionBasicInfo/sessionStartTimetamp");
 			String endTimeStamp=getFieldValue("session/sessionBasicInfo/sessionEndTimestamp");
 			if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+			String itverPrefix=null;
+			if(!sessionAnswerInterviewer.isEmpty()){
+				//showWarning("itverPrefix","itverPrefix generating");
+						//showWarning("!isNull(sss_interviewer_list)",sss_interviewer_list.size().toString());
+						Iterator itItv=sessionAnswerInterviewer.iterator();
+						firstItver=itItv.next();
+						//itverPrefix=sessionAnswerInterviewer.get(0);
+						itverPrefix=firstItver;
+						//showWarning("itverPrefix",itverPrefix);
+						if (sessionAnswerInterviewer.size()>1) {
+							itverPrefix=itverPrefix+"EtAl";
+						}	
+			}
+			else{
+					itverPrefix=username;
+				}
+			//showWarning("itverPrefix",itverPrefix+sessionLabel);
+			setFieldValue("session/sessionBasicInfo/sessionID",itverPrefix+sessionLabel);
+			//showWarning("setFieldValue","setFieldValue");
+
 			saveTabGroup("session", session_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
 			    	session_id = uuid;
@@ -3105,23 +3174,118 @@ saveSession(String typeflag){
 			}
 			else{
 				//showWarning("yes change","beginingchange file");
-				
-				for(ansDelete:sessionAnswerRelnOrigin){
+				String currentSessionLabel=getFieldValue("session/sessionBasicInfo/sessionID");
+				//showWarning("currentSessionLabel",currentSessionLabel);				    	
+				String [] cuSsLabelSplit=currentSessionLabel.split("\\s*[-][(]\\s*");
+				//showWarning("cuSsLabelSplit",cuSsLabelSplit[0]);	
+				String itverPrefix=null;
+				if(!sessionAnswerInterviewer.isEmpty()){
+				showWarning("itverPrefix","itverPrefix generating");
+						//showWarning("!isNull(sss_interviewer_list)",sss_interviewer_list.size().toString());
+						Iterator itItv=sessionAnswerInterviewer.iterator();
+						firstItver=itItv.next();
+						itverPrefix=firstItver;
+						//showWarning("itverPrefix",itverPrefix);
+						if (sessionAnswerInterviewer.size()>1) {
+							itverPrefix=itverPrefix+"EtAl";
+						}	
+				}
+				else{
+					itverPrefix=username;
+				}
+				if(!itverPrefix.equals(cuSsLabelSplit[0])){
+					//showWarning("!itverPrefix.equals(cuSsLabelSplit[0])","!itverPrefix.equals(cuSsLabelSplit[0])");
+						cuSsLabelSplit[0]=itverPrefix;
+						//showWarning("cuSsLabelSplit[0]",cuSsLabelSplit[0]);
+						StringBuilder sb=new StringBuilder();
+						for (field : cuSsLabelSplit){
+							if (sb.length()>0)
+								{sb.append("-(");}
+							sb.append(field);
+						}
+				newAnsLabel=sb.toString();
+				//showWarning("newAnsLabel",newAnsLabel);
+				setFieldValue("session/sessionBasicInfo/sessionID",newAnsLabel);
+						saveTabGroup("session", session_id, null, null, new SaveCallback() {
+			    		onSave(uuid, newRecord) {
+			    	
+			    			for(ansDelete:sessionAnswerRelnOrigin){
+						 		deleteRel(ansDelete.get(0));
+			    	  		}
+			    	
+			    			for(sessionFile:selected_files_session){
+			    		  		saveEntitiesToRel("Answer and Session",session_id,sessionFile.get(0));
+			    	  		}
+			        		showToast("session data changed");
+			        		cancelTabGroup("session", true);
+			    		}
+			   		 onError(message) {
+			        		showWarning("error",message);
+			    		}  
+			 			 });
+					}	
+
+					else{
+						for(ansDelete:sessionAnswerRelnOrigin){
 					//showWarning("relnid",ansDelete.get(0));
-					 deleteRel(ansDelete.get(0));
-		    	  }
+					 	deleteRel(ansDelete.get(0));
+		    	  	}
 				
-				for(sessionFile:selected_files_session){
-		    		  saveEntitiesToRel("Answer and Session",session_id,sessionFile.get(0));
-		    	  }
-				showToast("file in session changed");
+					for(sessionFile:selected_files_session){
+		    		  	saveEntitiesToRel("Answer and Session",session_id,sessionFile.get(0));
+		    	  	}
+					showToast("file in session changed");
+			}
 				//cancelTabGroup("session", true);
 			}
 		}
 		else{
+			Boolean ansChange=false;
+			if(!sessionFileChange.containsKey("EQUAL")){
+				//loadSessionInterviewer("session");
+				ansChange=true;
+			}
+			//showWarning("ansChange",ansChange.toString());
 			String startTimeStamp=getFieldValue("session/sessionBasicInfo/sessionStartTimetamp");
 			String endTimeStamp=getFieldValue("session/sessionBasicInfo/sessionEndTimestamp");
 			if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+			if(ansChange){
+				String currentSessionLabel=getFieldValue("session/sessionBasicInfo/sessionID");
+				//showWarning("currentSessionLabel",currentSessionLabel);		
+		    		String [] cuSsLabelSplit=currentSessionLabel.split("\\s*[-][(]\\s*");
+		    		//showWarning("cuSsLabelSplit",cuSsLabelSplit[0]);	
+		    		itverPrefix=null;
+		    		if(!sessionAnswerInterviewer.isEmpty()){
+						//showWarning("!isNull(sss_interviewer_list)",sss_interviewer_list.size().toString());
+						Iterator itItv=sessionAnswerInterviewer.iterator();
+						firstItver=itItv.next();
+
+						//itverPrefix=sessionAnswerInterviewer.get(0);
+						itverPrefix=firstItver;
+						//showWarning("itverPrefix",itverPrefix);
+						//showWarning("interviwerPrefix",interviwerPrefix);
+						if (sessionAnswerInterviewer.size()>1) {
+							itverPrefix=itverPrefix+"EtAl";
+						}
+					}
+					else{
+						itverPrefix=username;
+					}
+					if(!itverPrefix.equals(cuSsLabelSplit[0])){
+					//showWarning("!itverPrefix.equals(cuSsLabelSplit[0])","!itverPrefix.equals(cuSsLabelSplit[0])");
+						cuSsLabelSplit[0]=itverPrefix;
+						//showWarning("cuSsLabelSplit[0]",cuSsLabelSplit[0]);
+						StringBuilder sb=new StringBuilder();
+						for (field : cuSsLabelSplit){
+							if (sb.length()>0)
+								{sb.append("-(");}
+							sb.append(field);
+						}
+						newAnsLabel=sb.toString();
+						//showWarning("newAnsLabel",newAnsLabel);
+						setFieldValue("session/sessionBasicInfo/sessionID",newAnsLabel);
+				}
+			}				
 			saveTabGroup("session", session_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
 			    	
@@ -3140,7 +3304,7 @@ saveSession(String typeflag){
 			        showWarning("error",message);
 			    }  
 			  });
-		}
+			}
 			else{
 				showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
 						+"2.Datetime input should be valid \n"+
@@ -3221,7 +3385,7 @@ saveSession(String typeflag){
 		else{//change session info
 			//loadSessionInterviewer();
 			String endTimeAuto=getCurrentTime();
-			loadSessionInterviewer();
+			//loadSessionInterviewer("answer");
 			//showWarning("size",sssAnswerInterviewerOrigin.size().toString());
 			sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
 			sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
@@ -4074,5 +4238,3 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 		}
 	}
   }
-
-//}

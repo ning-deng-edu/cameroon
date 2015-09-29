@@ -1330,9 +1330,9 @@
       </group>
     </group>
     
-      <group ref="sessionGroup">   
+      <group ref="sessionGroup" faims_scrollable="false">   
            <label>Session</label> 
-      <group ref="sessionInfo">
+      <group ref="sessionInfo" faims_scrollable="false">
             <label>Session</label>
              <trigger ref="New_Session" faims_style_class="faims-blue">
                 <label>New Session</label>
