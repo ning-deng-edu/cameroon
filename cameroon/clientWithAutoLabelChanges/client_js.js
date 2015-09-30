@@ -1704,7 +1704,9 @@ saveChangedAnswer(){
 								saveSession("interviwer");
 							}	
 							showToast("Answer Info Changed");
+
 							cancelTabGroup("survey", true);
+							loadSessionInfo("answerLabel");
 							//cancelTabGroup("answerToQuestion", true);
 						//showTabGroup("questionnaireInfo");
 							//showTab("sessionForAnswer/sssAnsList");
@@ -1857,8 +1859,10 @@ saveChangedAnswer(){
             					//showWarning(entityId,tempAnsID+"-"+fileSuffix);
             						}  
         							});    
-								}		
+								}	
+								loadSessionInfo("answerLabel");	
 							}
+
 
 							if(!fileListChange.containsKey("EQUAL")){
 								for(fileDelete:ansFileOriginReln){
@@ -2920,6 +2924,47 @@ loadSessionInfo(String typeFlag){
 	        }
 	    });
 		loadSessionInterviewer("answer");
+		break;
+
+		case "answerLabel":
+		loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+				"and uuid in "+
+	 			"(select uuid from AentReln where RelationshipID in "+
+				"(select RelationshipID from AEntReln where AEntReln.uuid="+sss_id+" "+
+	 			"AND RelationshipID in "+
+				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL)))";
+	 	
+		loadAnsSssRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+sss_id+" "+
+	 					"and RelationshipID in "+
+	 					"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+	 					"and latestNonDeletedRelationship.Deleted IS NULL)";
+		fetchAll(loadAnsSssRelnQuery, new FetchCallback() {
+	        onFetch(result) {
+	        	sssAnsOrigin.clear();
+	        	sssAnsOrigin.addAll(result);
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+
+	    fetchAll(loadAnswerForSessionQuery, new FetchCallback() {
+	                onFetch(result) {
+	                	original_sss_answer_list.clear();
+	                	original_sss_answer_list.addAll(result);
+	                	sss_answer_list.clear();
+	                	sss_answer_list.addAll(result);
+	                	populateList("sessionForAnswer/sssAnsList/sssAnswerList",original_sss_answer_list);
+	                }
+
+	                onError(message) {
+	                    showToast(message);
+	                }
+	            });
+	    loadSessionInterviewer("answer");
 		break;
 	}
 }
