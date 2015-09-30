@@ -1610,8 +1610,8 @@ saveChangedAnswer(){
 						sssAnswerInterviewerNew.add(interviwerNew);
 						saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));	
 					}
-					showToast("Interviewer lists changed");
 					saveSession("interviwer");
+					showToast("Interviewer lists changed");
 					cancelTabGroup("survey", true);
 					//cancelTabGroup("answerToQuestion", true);
 
@@ -3180,7 +3180,7 @@ saveSession(String typeflag){
 				//showWarning("cuSsLabelSplit",cuSsLabelSplit[0]);	
 				String itverPrefix=null;
 				if(!sessionAnswerInterviewer.isEmpty()){
-				showWarning("itverPrefix","itverPrefix generating");
+				//showWarning("itverPrefix","itverPrefix generating");
 						//showWarning("!isNull(sss_interviewer_list)",sss_interviewer_list.size().toString());
 						Iterator itItv=sessionAnswerInterviewer.iterator();
 						firstItver=itItv.next();
@@ -3478,14 +3478,12 @@ saveSession(String typeflag){
 			String newItvName=newItv.next().get(1);
 			sssAnswerInterviewerTemp.add(newItvName);
 		}
-		//sssAnswerInterviewerTemp.addAll(sssAnswerInterviewerOrigin);
-		//sssAnswerInterviewerTemp.addAll(sssAnswerInterviewerNew);
+
 		//showWarning("sssAnswerInterviewerTemp","sssAnswerInterviewerTemp");
 		if(sssAnswerInterviewerTemp.isEmpty()){
 			showWarning("error","Error occurred \n"+"Please contact the Admin");
 			return;
 		}
-		//firstElement=new ArrayList();
 		String firstName=null;
 		Iterator it = sssAnswerInterviewerTemp.iterator();
 		firstName=it.next();
@@ -3519,6 +3517,7 @@ saveSession(String typeflag){
 			    }  
 			  });
 		}
+		loadSessionInterviewer("answer");
 		break;
 	}
 }

@@ -454,12 +454,12 @@
       </group>
     </group>
     
-    <group ref="control">
+    <group ref="control" faims_scrollable="false">
         
         <label>{Control}</label>
         
         
-        <group ref="survey_control">
+        <group ref="survey_control" faims_scrollable="false">
             <label>Survey</label>
             <!--No input here-->
             <trigger ref="New_Survey" faims_style_class="faims-blue">
@@ -509,7 +509,7 @@
           
         
         
-        <group ref="user_control">
+        <group ref="user_control" faims_scrollable="false">
             <label>Person</label>
             <trigger ref="New_User" faims_style_class="faims-blue">
                 <label>New Person</label>
@@ -542,7 +542,7 @@
         </group>
         
         
-         <group ref="language_control">
+         <group ref="language_control" faims_scrollable="false">
             <label>Language</label>
             <!--No input here-->
             <trigger ref="New_Language" faims_style_class="faims-blue">
@@ -577,7 +577,7 @@
             </select1>
         </group>
         
-        <group ref="file_control">
+        <group ref="file_control" faims_scrollable="false">
             <label>File</label>
  
           <select1 ref="fileCategorySelect">
@@ -632,9 +632,9 @@
         </group>
     </group>
     
-    <group ref="questionnaireListAll" >
+    <group ref="questionnaireListAll" faims_scrollable="false">
           <label>Questionnaire list</label>
-           <group ref="questionnaireListInfo">
+           <group ref="questionnaireListInfo" faims_scrollable="false">
             <label>Questionnaire list</label>
              <group ref="container13" faims_style="orientation">
         
