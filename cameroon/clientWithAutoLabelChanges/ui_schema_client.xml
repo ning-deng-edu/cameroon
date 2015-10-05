@@ -794,7 +794,7 @@
         <label>Session</label>
         <group ref="sssAnsBasicInfo">
             <label>Session info</label>
-        <input ref="sssID" faims_attribute_name="SessionID" faims_attribute_type="measure" faims_certainty="false">
+        <input ref="sssID" faims_attribute_name="SessionID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
             <label>Session id</label>
         </input>
          <input ref="sssName" faims_attribute_name="SessionName" faims_attribute_type="measure" faims_certainty="false">
@@ -857,7 +857,7 @@
         
         <group ref="answerBasic">
             <label>Answer Basic Info</label>
-          <input ref="answerLabel" faims_attribute_name="AnswerLabel" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
+          <input ref="answerLabel" faims_attribute_name="AnswerLabel" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true" faims_style_class="required">
           		<label>Answer label</label>
         	</input>
         	
@@ -992,7 +992,7 @@
         <label>Session</label>
         <group ref="sessionBasicInfo">
             <label>Session info</label>
-        <input ref="sessionID" faims_attribute_name="SessionID" faims_attribute_type="measure" faims_certainty="false">
+        <input ref="sessionID" faims_attribute_name="SessionID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
             <label>Session id</label>
         </input>
          <input ref="sessionName" faims_attribute_name="SessionName" faims_attribute_type="measure" faims_certainty="false">
@@ -1055,7 +1055,7 @@
         <label>FieldtripBasicInfo</label>
         <group ref="fieldTripBasicInfo">
             <label>Fieldtrip info</label>
-        <input ref="fieldTripID" faims_attribute_name="FieldTripID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+        <input ref="fieldTripID" faims_attribute_name="FieldTripID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
             <label>Fieldtrip id</label>
         </input>
          <input ref="fieldTripName" faims_attribute_name="FieldTripName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
@@ -1121,7 +1121,7 @@
         <label>Audio File</label>
         <group ref="audioFileInfo">
             <label>Audio file info</label>
-        <input ref="audioFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
+        <input ref="audioFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true" faims_style_class="required">
           <label>Audio file id</label>
         </input>
         <input ref="audioFileName" faims_attribute_name="FileName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
@@ -1160,7 +1160,7 @@
         <label>videoFile</label>
         <group ref="videoFileInfo">
           <label>Video file info</label>
-        <input ref="videoFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
+        <input ref="videoFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true" faims_style_class="required">
           <label>Video file id}</label>
         </input>
         <input ref="videoFileName" faims_attribute_name="FileName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
@@ -1198,7 +1198,7 @@
         <label>photoFile</label>
         <group ref="photoFileInfo">
           <label>Photo file info</label>
-        <input ref="photoFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
+        <input ref="photoFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true" faims_style_class="required">
           <label>Photo file id</label>
         </input>
         <input ref="photoFileName" faims_attribute_name="FileName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
@@ -1237,7 +1237,7 @@
         <label>sketchFile</label>
         <group ref="sketchFileInfo">
             <label>Sketch file info</label>
-        <input ref="sketchFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
+        <input ref="sketchFileID" faims_attribute_name="FileID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true" faims_style_class="required">
           <label>Sketch file id</label>
         </input>
         <input ref="sketchFileName" faims_attribute_name="FileName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
@@ -1278,7 +1278,7 @@
         
         <group ref="personInfo">
           <label>{Person Information}</label>
-           <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" >
+           <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true" faims_annotation="false" >
               <label>{Person ID}</label>
             </input>
             <input ref="personName" faims_attribute_name="PersonName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
@@ -1315,7 +1315,7 @@
         <label>Language</label>
         <group ref="languageInfo">
           <label>Language Info</label>
-            <input ref="languageID" faims_attribute_name="LanguageID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
+            <input ref="languageID" faims_attribute_name="LanguageID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true" faims_style_class="required">
               <label>Language id</label>
             </input>
             <input ref="languageName" faims_attribute_name="LanguageName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
