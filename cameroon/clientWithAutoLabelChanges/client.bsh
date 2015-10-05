@@ -1941,6 +1941,105 @@ listChange(ArrayList targetList,ArrayList sourceList){
 newFile(String typeFlag){
 	String fileCategory=null;
 	String tempAnsID=null;
+	switch (typeFlag){
+		case "answer":
+			if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
+				showWarning("Warning","Please select interviewers and interviewees");
+				return;
+			}
+			if((selected_answer_interviewer.isEmpty()) || (selected_answer_interviewee.isEmpty())){
+				showWarning("Warning","No available interviwer or interviewee\n Please create person info");
+				return;
+			}
+			fileCategory=getFieldValue("survey/answerFile/file_Category");
+			answerFile=true;
+			current_answer_file_id=null;
+			if(isNull(current_answer_id)){
+				int intervieweeSize=selected_answer_interviewee.size();
+				firstInterviewee=selected_answer_interviewee.get(0).get(1);
+				if (intervieweeSize==1){
+					tempAnsID=ansLabelFstPart+firstInterviewee+ansLabelSndPart;
+					tempAnsLabel=tempAnsID;
+					setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
+				}
+				else{
+					tempAnsID=ansLabelFstPart+firstInterviewee+"EtAl"+ansLabelSndPart;
+					tempAnsLabel=tempAnsID;
+					setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
+				}
+			}
+			else
+			{
+				tempAnsID=getFieldValue("survey/answerBasic/answerLabel");
+			}
+
+			switch (fileCategory){
+				case "Audio":		
+					newTabGroup("audioFile");
+					setFieldValue("audioFile/audioFileInfo/audioFileID",tempAnsID+"-Audio");
+					setFieldValue("audioFile/audioFileInfo/audioFileCreator",username);
+					setFieldValue("audioFile/audioFileInfo/audioFileType","Audio");
+				break;
+				case "Video":
+					newTabGroup("videoFile");
+					setFieldValue("videoFile/videoFileInfo/videoFileID",tempAnsID+"-Video");
+					setFieldValue("videoFile/videoFileInfo/videoFileCreator",username);
+					setFieldValue("videoFile/videoFileInfo/videoFileType","Video");
+				break;
+				case "Photo":
+					newTabGroup("photoFile");
+					setFieldValue("photoFile/photoFileInfo/photoFileID",tempAnsID+"-Photo");
+					setFieldValue("photoFile/photoFileInfo/photoFileCreator",username);
+					setFieldValue("photoFile/photoFileInfo/photoFileType","Photo");
+				break;
+				case "Other":
+					newTabGroup("sketchFile");
+					setFieldValue("sketchFile/sketchFileInfo/sketchFileID",tempAnsID+"-Recording");
+					setFieldValue("sketchFile/sketchFileInfo/sketchFileCreator",username);
+					setFieldValue("sketchFile/sketchFileInfo/sketchFileType","Sketch");
+					break;
+				default:
+					showWarning("Invalid category","Please select a valid file category");
+				break;
+			}
+		break;
+
+		case "file":
+			fileCategory=getFieldValue("control/file_control/fileCategorySelect");
+			answerFile=false;
+			file_id=null;
+			switch (fileCategory){
+				case "Audio":		
+					newTabGroup("audioFile");
+					setFieldValue("audioFile/audioFileInfo/audioFileID","Audio_"+username+"_"+getCurrentTime());
+					setFieldValue("audioFile/audioFileInfo/audioFileCreator",username);
+					setFieldValue("audioFile/audioFileInfo/audioFileType","Audio");
+					break;
+				case "Video":
+					newTabGroup("videoFile");
+					setFieldValue("videoFile/videoFileInfo/videoFileID","Video_"+username+"_"+getCurrentTime());
+					setFieldValue("videoFile/videoFileInfo/videoFileCreator",username);
+					setFieldValue("videoFile/videoFileInfo/videoFileType","Video");
+					break;
+				case "Photo":
+					newTabGroup("photoFile");
+					setFieldValue("photoFile/photoFileInfo/photoFileID","Photo_"+username+"_"+getCurrentTime());
+					setFieldValue("photoFile/photoFileInfo/photoFileCreator",username);
+					setFieldValue("photoFile/photoFileInfo/photoFileType","Photo");
+					break;
+				case "Other":
+					newTabGroup("sketchFile");
+					setFieldValue("sketchFile/sketchFileInfo/sketchFileID","Sketch_"+username+"_"+getCurrentTime());
+					setFieldValue("sketchFile/sketchFileInfo/sketchFileCreator",username);
+					setFieldValue("sketchFile/sketchFileInfo/sketchFileType","Sketch");
+					break;
+				default:
+					showWarning("Invalid category","Please select a valid file category");
+					break;
+			}
+		break;
+	}
+	/*
 	if(typeFlag.equals("answer")){
 		if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
 			showWarning("Warning","Please select interviewers and interviewees");
@@ -2007,6 +2106,7 @@ newFile(String typeFlag){
 		showWarning("Invalid category","Please select a valid file category");
 		break;
 	}
+	*/
 }
 
 viewOrDeleteFileReln(){
