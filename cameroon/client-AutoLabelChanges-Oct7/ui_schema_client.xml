@@ -509,7 +509,7 @@
           
         
         
-        <group ref="user_control" faims_scrollable="false">
+        <group ref="user_control" >
             <label>Person</label>
             <trigger ref="New_User" faims_style_class="faims-blue">
                 <label>New Person</label>
