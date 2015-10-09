@@ -454,12 +454,12 @@
       </group>
     </group>
     
-    <group ref="control" faims_scrollable="false">
+    <group ref="control">
         
         <label>{Control}</label>
         
         
-        <group ref="survey_control" faims_scrollable="false">
+        <group ref="survey_control">
             <label>Survey</label>
             <!--No input here-->
             <trigger ref="New_Survey" faims_style_class="faims-blue">
@@ -542,7 +542,7 @@
         </group>
         
         
-         <group ref="language_control" faims_scrollable="false">
+         <group ref="language_control">
             <label>Language</label>
             <!--No input here-->
             <trigger ref="New_Language" faims_style_class="faims-blue">
@@ -577,7 +577,7 @@
             </select1>
         </group>
         
-        <group ref="file_control" faims_scrollable="false">
+        <group ref="file_control">
             <label>File</label>
  
           <select1 ref="fileCategorySelect">
@@ -794,7 +794,7 @@
         <label>Session</label>
         <group ref="sssAnsBasicInfo">
             <label>Session info</label>
-        <input ref="sssID" faims_attribute_name="SessionID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
+        <input ref="sssID" faims_attribute_name="SessionID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true" faims_annotation="true">
             <label>Session id</label>
         </input>
          <input ref="sssName" faims_attribute_name="SessionName" faims_attribute_type="measure" faims_certainty="false">
@@ -810,7 +810,7 @@
         <input ref="sssEndTimestamp" faims_attribute_name="SessionEndTimestamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
           <label>End timestamp</label>
         </input>  
-        <input ref="sssDescription" faims_attribute_name="SessionDescription" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+        <input ref="sssDescription" faims_attribute_name="SessionDescription" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
           <label>Session description</label>
         </input>             
         </group>
@@ -907,7 +907,7 @@
          		<label></label>
           		<group ref="child1" faims_style="even">
             		<label></label>
-            		<select1 appearance="compact" ref="answerInterviewerList" faims_certainty="false" faims_annotation="false" faims_style_class="person-list">
+            		<select1 appearance="compact" ref="answerInterviewerList" faims_certainty="false" faims_annotation="true" faims_style_class="person-list">
           				<label>Interviewer</label>
           				<item>
                     		<label>placeholder</label>
@@ -918,7 +918,7 @@
           
        		   <group ref="child2" faims_style="even">
             	   <label></label>
-               	   <select1 appearance="compact" ref="answerInterviewerSelectionList" faims_certainty="false" faims_annotation="false" faims_style_class="person-list">
+               	   <select1 appearance="compact" ref="answerInterviewerSelectionList" faims_certainty="false" faims_annotation="true" faims_style_class="person-list">
           				<label>Interviewer select</label>
           				<item>
                     		<label>placeholder</label>
@@ -1055,7 +1055,7 @@
         <label>FieldtripBasicInfo</label>
         <group ref="fieldTripBasicInfo">
             <label>Fieldtrip info</label>
-        <input ref="fieldTripID" faims_attribute_name="FieldTripID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
+        <input ref="fieldTripID" faims_attribute_name="FieldTripID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true" faims_read_only="true">
             <label>Fieldtrip id</label>
         </input>
          <input ref="fieldTripName" faims_attribute_name="FieldTripName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
@@ -1278,16 +1278,16 @@
         
         <group ref="personInfo">
           <label>{Person Information}</label>
-           <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true" faims_annotation="false" >
+           <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true" faims_annotation="true" >
               <label>{Person ID}</label>
             </input>
-            <input ref="personName" faims_attribute_name="PersonName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
+            <input ref="personName" faims_attribute_name="PersonName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true" faims_style_class="required">
               <label>{Person Name}</label>
             </input>
-            <input ref="personOtherNames" faims_attribute_name="PersonOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+            <input ref="personOtherNames" faims_attribute_name="PersonOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
               <label>{Person Other Names}</label>
             </input>
-			<input ref="personDOB" faims_attribute_name="PersonDOB" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+			<input ref="personDOB" faims_attribute_name="PersonDOB" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
               <label>{Person DOB}</label>
             </input>
            
@@ -1315,13 +1315,13 @@
         <label>Language</label>
         <group ref="languageInfo">
           <label>Language Info</label>
-            <input ref="languageID" faims_attribute_name="LanguageID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true" faims_style_class="required">
+            <input ref="languageID" faims_attribute_name="LanguageID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true" faims_read_only="true" faims_style_class="required">
               <label>Language id</label>
             </input>
-            <input ref="languageName" faims_attribute_name="LanguageName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
+            <input ref="languageName" faims_attribute_name="LanguageName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true" faims_style_class="required">
               <label>Language name</label>
             </input>
-            <input ref="languageOtherNames" faims_attribute_name="LanguageOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+            <input ref="languageOtherNames" faims_attribute_name="LanguageOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
               <label>Language other names</label>
             </input>      
             <trigger ref="Finish_New_Language" faims_style_class="faims-blue">
