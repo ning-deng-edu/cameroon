@@ -1104,6 +1104,25 @@ timeValidation(String startDateTime){
 	return false;
 }
 
+nameCamCaseConverter(String originName){
+	String camCase=null;
+	String [] originNameSplit=originName.split("\\s+");
+	//showWarning("originNameSplit",originNameSplit[0]);
+	StringBuffer sb=new StringBuffer();
+	//showWarning("StringBuffer","originNameSplit[0]");
+	for (part : originNameSplit){
+		if(part.length()>1){
+			sb.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+		}
+		else{
+			sb.append(Character.toUpperCase(part.charAt(0)));
+		}
+	}
+	camCase=sb.toString().trim();
+	return camCase;
+	//showWarning("camCase",camCase);
+}
+
 saveNewPerson(){
 
 	if((isNull(getFieldValue("person/personInfo/personName")))|| (isNull(getFieldValue("person/personInfo/personDOB")))){
@@ -1111,7 +1130,9 @@ saveNewPerson(){
         return;
 	}
 	//if(isNull(getFieldValue("person/personInfo/personID"))){
-	String personLabel=getFieldValue("person/personInfo/personName")+"_"+getFieldValue("person/personInfo/personDOB");
+	String personNameOrigin=getFieldValue("person/personInfo/personName");
+	String personNameCamCase=nameCamCaseConverter(personNameOrigin);
+	String personLabel=personNameCamCase+"_"+getFieldValue("person/personInfo/personDOB");
 	setFieldValue("person/personInfo/personID", personLabel);
 	//}
 	String personDOB=getFieldValue("person/personInfo/personDOB");
