@@ -122,11 +122,22 @@
                 </questionnaireListAll>
                
                 <questionnaireInfo>
+                    <surveyQuesnirHidden>
+                        <currentQuesnirID/>
+                    </surveyQuesnirHidden>
                     <surveyQuestionnaire>
                         <surveyQuestionnaireID/>
                         <surveyQuestionnaireName/>
                         <surveyQuestionnaireType/>
                         <surveyQuestionnaireDescription/>
+                        <container14>
+                            <child1>
+                                <ques_keyword/>
+                            </child1>
+                            <child2>
+                                <ques_Search/>
+                            </child2>
+                        </container14>
                         <surveyQuestionInQuestionnaire/>
                     </surveyQuestionnaire>
                 </questionnaireInfo>
@@ -666,7 +677,13 @@
     
     <group ref="questionnaireInfo" faims_archent_type="Questionnaire">
           <label>Questionnaire info</label>
-         	
+        <group ref="surveyQuesnirHidden" faims_hidden="true">
+            <label>currentQuesnirHiddenInfo</label>
+            <input ref="currentQuesnirID" faims_read_only="true">
+                <label>Current questionnaire id</label>
+            </input>
+        </group>
+
          <group ref="surveyQuestionnaire">
             <label>Questionnaire info</label>
             <input ref="surveyQuestionnaireID" faims_attribute_name="QuestionnaireID" faims_attribute_type="measure" faims_read_only="true" faims_certainty="false" faims_annotation="false">
@@ -683,7 +700,25 @@
              <input ref="surveyQuestionnaireDescription" faims_attribute_name="QuestionnaireDescription" faims_attribute_type="measure" faims_read_only="true" faims_certainty="false" faims_annotation="false">
             	<label>Current questionnaire description</label>
             </input>
-            
+
+             <group ref="container14" faims_style="orientation">
+        
+          <label></label>
+          <group ref="child1" faims_style="even">
+            <label></label>
+             <input ref="ques_keyword" faims_annotation="false" faims_certainty="false">
+                <label>question keyword</label>
+            </input>
+         
+          </group>
+       <group ref="child2" faims_style="even">
+            <label></label>
+             <trigger ref="ques_Search" faims_style_class="faims-blue">
+                <label>Search</label>
+            </trigger>
+          </group>
+        </group>
+
              <select1 appearance="compact" ref="surveyQuestionInQuestionnaire" faims_style_class="questionQuestionnaire-list">
                 <label>Questions</label>
                 <item>

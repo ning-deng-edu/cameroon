@@ -582,6 +582,7 @@ loadQuesnirInfo(){
         				new FetchCallback() {
         					onFetch(result) {
         						if (!isNull(result)) {	
+        							setFieldValue("questionnaireInfo/surveyQuesnirHidden/currentQuesnirID",current_quesnir_id);
         							ques_in_current_quesnir.clear();	
         						    ques_in_current_quesnir.addAll(result);
         						    populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
@@ -1130,6 +1131,114 @@ loadAnswerListForQuesion(){
 }
 
 onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","loadAnswerFromQuesInQuesnir()");
+onEvent("questionnaireInfo/surveyQuestionnaire/ques_Search","click","searchQuesInCrtQuesnir()");
+
+searchQuesInCrtQuesnir(){
+	String toSearchQuesnirID=null;
+	//showWarning ("toSearchQuesnirID","toSearchQuesnirID");
+	toSearchQuesnirID=getFieldValue("questionnaireInfo/surveyQuesnirHidden/currentQuesnirID");
+	//showWarning ("toSearchQuesnirID",toSearchQuesnirID);
+	String quesKeyword=null;
+	//showWarning ("quesKeyword","quesKeyword");
+	quesKeyword=getFieldValue("questionnaireInfo/surveyQuestionnaire/ques_keyword");
+	//showWarning ("quesKeyword",quesKeyword);
+
+	if(isNull(quesKeyword) || quesKeyword.equals("*")){
+		//showWarning ("All query","All query");
+		quesnir_question_all_query="select uuid,measure from latestNonDeletedAentValue "+ 
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
+				"and uuid in "+
+	 			"(select uuid from AentReln where RelationshipID in "+
+				"(select RelationshipID from AEntReln where AEntReln.uuid="+toSearchQuesnirID+" "+
+	 			"AND RelationshipID in "+
+				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+	 			"(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and Question') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL))) group by uuid";
+
+		//showWarning ("quesnir_question_all_query",quesnir_question_all_query);
+		fetchAll(quesnir_question_all_query,new FetchCallback() {
+        					onFetch(result) {
+        						if (!isNull(result)) {	
+        							ques_in_current_quesnir.clear();	
+        						    ques_in_current_quesnir.addAll(result);
+        						    populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
+        						    //showWarning("ques_in_current_quesnir done","ques_in_current_quesnir done");
+        						}
+        						else{
+        							showWarning("No question in this questionnaire","This questionnaire is not ready yet");
+        							return;
+        						}
+        
+        					}
+        			       
+        				onError(message) {
+        					showToast(message);
+        				}
+        				});
+	}
+	
+	else{
+		//showWarning ("partial query","partial query");
+	quesnir_question_search_query="select uuid,measure from latestNonDeletedAentValue "+ 
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
+				"and measure like '%"+quesKeyword+"%' "+
+				"and uuid in "+
+	 			"(select uuid from AentReln where RelationshipID in "+
+				"(select RelationshipID from AEntReln where AEntReln.uuid="+toSearchQuesnirID+" "+
+	 			"AND RelationshipID in "+
+				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+	 			"(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and Question') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL))) group by uuid";
+	//showWarning ("quesnir_question_search_query",quesnir_question_search_query);
+	fetchAll(quesnir_question_search_query,new FetchCallback() {
+        					onFetch(result) {
+        						populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire",result);
+        						//showWarning("populateList done","populateList done");
+        					}
+        			       
+        				onError(message) {
+        					showToast(message);
+        				}
+        				});
+
+	}
+	
+	/*
+	else{
+		showWarning ("All query","All query");
+		quesnir_question_all_query="select uuid,measure from latestNonDeletedAentValue "+ 
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
+				"and uuid in "+
+	 			"(select uuid from AentReln where RelationshipID in "+
+				"(select RelationshipID from AEntReln where AEntReln.uuid="+toSearchQuesnirID+" "+
+	 			"AND RelationshipID in "+
+				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+	 			"(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and Question') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL))) group by uuid";
+
+		showWarning ("quesnir_question_all_query",quesnir_question_all_query);
+		fetchAll(quesnir_question_all_query,new FetchCallback() {
+        					onFetch(result) {
+        						if (!isNull(result)) {	
+        							ques_in_current_quesnir.clear();	
+        						    ques_in_current_quesnir.addAll(result);
+        						    populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
+        						    showWarning("ques_in_current_quesnir done","ques_in_current_quesnir done");
+        						}
+        						else{
+        							showWarning("No question in this questionnaire","This questionnaire is not ready yet");
+        							return;
+        						}
+        
+        					}
+        			       
+        				onError(message) {
+        					showToast(message);
+        				}
+        				});
+	}
+	*/
+}
 
 loadAnswerFromQuesInQuesnir(){
 	if(isNull(current_quesnir_name)){
@@ -1137,6 +1246,7 @@ loadAnswerFromQuesInQuesnir(){
 		return;
 	}
 	current_question_id=getListItemValue();
+	Boolean quesLabelRead=false;
 	for(ques: ques_in_current_quesnir){
 		if(ques.get(0).equals(current_question_id))
 		{
@@ -1144,14 +1254,77 @@ loadAnswerFromQuesInQuesnir(){
 			break;
 		}
 	}
-	
+	if(isNull(current_question_content)){
+		showWarning("No question content available","Can't get the question content, please contact the admin");
+		return;
+	}
 	for(quesLabel: queslabel_current_quesnir){
 		if(quesLabel.get(0).equals(current_question_id))
 		{
 			current_question_label=quesLabel.get(1);
+			quesLabelRead=true;
 			break;
 		}
 	}
+	if(quesLabelRead){
+		newTabGroup("answerToQuestion");
+		setFieldValue("answerToQuestion/answerInfoHidden/answerListQuestionnaireID", current_quesnir_id);
+		setFieldValue("answerToQuestion/answerInfoHidden/answerListQuestionID", current_question_id);
+		setFieldValue("answerToQuestion/answerInfo/answerListQuestionnaireName", current_quesnir_name);
+		setFieldValue("answerToQuestion/answerInfo/answerListQuestionContent", current_question_content);
+	}
+	
+	else{
+		queslabel_quesnir_query="select uuid,measure from latestNonDeletedAentValue "+ 
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
+				"and uuid in "+
+	 			"(select uuid from AentReln where RelationshipID in "+
+				"(select RelationshipID from AEntReln where AEntReln.uuid="+current_quesnir_id+" "+
+	 			"AND RelationshipID in "+
+				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+	 			"(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and Question') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL))) group by uuid";
+			fetchAll(queslabel_quesnir_query,
+        				new FetchCallback() {
+        					onFetch(result) {
+        						if (!isNull(result)) {	
+        							queslabel_current_quesnir.clear();
+        							queslabel_current_quesnir.addAll(result);
+
+									for(quesLabel: queslabel_current_quesnir){
+										if(quesLabel.get(0).equals(current_question_id))
+										{
+											current_question_label=quesLabel.get(1);
+											quesLabelRead=true;
+											break;
+										}
+									}
+
+									if(quesLabelRead){
+										newTabGroup("answerToQuestion");
+										setFieldValue("answerToQuestion/answerInfoHidden/answerListQuestionnaireID", current_quesnir_id);
+										setFieldValue("answerToQuestion/answerInfoHidden/answerListQuestionID", current_question_id);
+										setFieldValue("answerToQuestion/answerInfo/answerListQuestionnaireName", current_quesnir_name);
+										setFieldValue("answerToQuestion/answerInfo/answerListQuestionContent", current_question_content);
+									}
+									else{
+											showWarning("The data is outdated","Please exit the module and retry");
+									}
+        						}
+        						else{
+        							showWarning("Something wrong with getting data","Please exit the module and retry");
+        							return;
+        						}
+        					}
+        			       
+        				onError(message) {
+        					showToast(message);
+        				}
+        				});
+	
+
+	}
+	
 	/*
 	for(int i=0;i<ques_in_current_quesnir.size();i++){
 		if(ques_in_current_quesnir.get(i).get(0).equals(current_question_id))
@@ -1161,15 +1334,8 @@ loadAnswerFromQuesInQuesnir(){
 		}
 	}
 	*/
-	if(isNull(current_question_content)){
-		showWarning("No question content available","Can't get the question content, please contact the admin");
-		return;
-	}
-	newTabGroup("answerToQuestion");
-	setFieldValue("answerToQuestion/answerInfoHidden/answerListQuestionnaireID", current_quesnir_id);
-	setFieldValue("answerToQuestion/answerInfoHidden/answerListQuestionID", current_question_id);
-	setFieldValue("answerToQuestion/answerInfo/answerListQuestionnaireName", current_quesnir_name);
-	setFieldValue("answerToQuestion/answerInfo/answerListQuestionContent", current_question_content);
+	
+	
 }
 
 onEvent("survey/answerPerson/answerInterviewerSelectionList","click","addItemToTargetList(candidate_answer_interviewer,\"interviewer\",null)");
@@ -4299,6 +4465,7 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 						}
 					}  
 			});
+
 			break;
 		case "file":
 			String fileType=getFieldValue(fileTypeRef);
