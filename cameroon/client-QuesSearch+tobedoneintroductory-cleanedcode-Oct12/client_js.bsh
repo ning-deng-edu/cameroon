@@ -21,6 +21,24 @@ loadAllQuestionnaireQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " 
 	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
 	"GROUP BY uuid;";
 
+loadAllRegQuesnirQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+	"WHERE latestNonDeletedAentValue.AttributeID "+
+	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
+	"AND latestNonDeletedAentValue.uuid IN"+
+	"(SELECT uuid from latestNonDeletedAentValue WHERE latestNonDeletedAentValue.AttributeID="+
+		"(select AttributeID from AttributeKey where AttributeName='QuestionnaireType')"+
+		"AND latestNonDeletedAentValue.measure='Regular')"+
+	"GROUP BY uuid;";
+
+loadAllIntrQuesnirQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+	"WHERE latestNonDeletedAentValue.AttributeID "+
+	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
+	"AND latestNonDeletedAentValue.uuid IN"+
+	"(SELECT uuid from latestNonDeletedAentValue WHERE latestNonDeletedAentValue.AttributeID="+
+		"(select AttributeID from AttributeKey where AttributeName='QuestionnaireType')"+
+		"AND latestNonDeletedAentValue.measure='Introductory')"+
+	"GROUP BY uuid;";
+
 loadAllPersonQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 	"WHERE latestNonDeletedAentValue.AttributeID "+
 	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonName') "+
@@ -315,7 +333,8 @@ showQuestionnaireList(){
 
 loadAllQuesnir(){
 	fetchAll(
-		loadAllQuestionnaireQuery,
+		//loadAllQuestionnaireQuery,
+		loadAllRegQuesnirQuery,
 		new FetchCallback() {
         	onFetch(result) {
 				if (!isNull(result)) {
