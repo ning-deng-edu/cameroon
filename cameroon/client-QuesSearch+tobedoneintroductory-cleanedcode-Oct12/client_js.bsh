@@ -1509,7 +1509,7 @@ saveChangedAnswer(){
 				}
 
 				if(isNull(sss_id)){
-					populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);\
+					populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
 				}
 				
 				showToast("file list changed");
@@ -1563,6 +1563,7 @@ saveChangedAnswer(){
 				String currentAnsLabelInve=currentAnsLabelSplit[currentAnsLabelSplit.length-2];//get the current interviewee included in label
 				//showWarning("currentAnsLabelInve",currentAnsLabelInve);
 				Boolean ansLabelChange=false;
+				Boolean populateAns=false;
 				tempAnsLabelInve=null;
 					int intervieweeSize=selected_answer_interviewee.size();
 					firstInterviewee=selected_answer_interviewee.get(0).get(1);
@@ -1646,6 +1647,7 @@ saveChangedAnswer(){
 								}
 								else{
 									interviewerChangeNewSession();
+									populateAns=true;
 									//showToast("Answer Info Changed");
 									//cancelTabGroup("survey", true);
 								}
@@ -1655,6 +1657,12 @@ saveChangedAnswer(){
 							cancelTabGroup("survey", true);
 							if(!isNull(sss_id)){
 								loadSessionInfo("answerLabel");
+							}
+							else{
+								if(!populateAns)
+								{
+									populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+								}
 							}
 							
 					}
@@ -1686,6 +1694,7 @@ saveChangedAnswer(){
 						if(!interviewerChange.containsKey("EQUAL")){
 							if(isNull(sss_id)){
 									interviewerChangeNewSession();
+									populateAns=true;
 							}
 							else{
 								for(interviewerDelete:ansInterviewerOriginReln){
@@ -1703,19 +1712,25 @@ saveChangedAnswer(){
 							}
 						}
 						showToast("Answer Info Changed");
-						cancelTabGroup("survey", true);		
+						cancelTabGroup("survey", true);	
+						if(!populateAns)
+							{
+								populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+							}	
 			
 			}
 		}
 		//5. only basic info changed without interviewee changes
 		else if((!answerBasicInfoChange.containsKey("EQUAL")) &&  (intervieweeChange.containsKey("EQUAL"))){
 			//showWarning("CASE5","CASE5");
+			Boolean populateAns=false;
 			saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
 					onSave(uuid, newRecord) {
 						answer_id = uuid;	//not sure how it's working
 						if(!interviewerChange.containsKey("EQUAL")){
 							if(isNull(sss_id)){
 								interviewerChangeNewSession();
+								populateAns=true;
 							}
 							else{
 								for(interviewerDelete:ansInterviewerOriginReln){
@@ -1742,6 +1757,10 @@ saveChangedAnswer(){
 						
 						showToast("Answer Info Changed");
 						cancelTabGroup("survey", true);
+						if(!populateAns)
+							{
+								populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+							}	
 				}
 				onError(message) {
 					showWarning("error",message);
@@ -1751,12 +1770,14 @@ saveChangedAnswer(){
 		}
 		//6. answer basic info changed and interviewee list also changed
 		else{
+			//showWarning("case 6","case 6");
 				String newAnsLabel=null;
 				String currentAnsLabel=getFieldValue("survey/answerBasic/answerLabel");
 				String[] currentAnsLabelSplit=currentAnsLabel.split("_");
 				String currentAnsLabelInve=currentAnsLabelSplit[currentAnsLabelSplit.length-2];//get the current interviewee included in label
 				//showWarning("currentAnsLabelInve",currentAnsLabelInve);
 				Boolean ansLabelChange=false;
+				Boolean populateAns=false;
 				tempAnsLabelInve=null;
 					int intervieweeSize=selected_answer_interviewee.size();
 					firstInterviewee=selected_answer_interviewee.get(0).get(1);
@@ -1823,13 +1844,11 @@ saveChangedAnswer(){
 									saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
 								}
 							}
-							
 
 							if (!interviewerChange.containsKey("EQUAL")) {
 								if(isNull(sss_id)){
 									interviewerChangeNewSession();
-									//showToast("Answer Info Changed");
-									//cancelTabGroup("survey", true);
+									populateAns=true;
 								}
 								else{
 									for(interviewerDelete:ansInterviewerOriginReln){
@@ -1847,7 +1866,11 @@ saveChangedAnswer(){
 							}	
 							showToast("Answer Info Changed");
 							cancelTabGroup("survey", true);
-							cancelTabGroup("answerToQuestion", true);
+							if(!populateAns)
+							{
+								populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+							}	
+							//cancelTabGroup("answerToQuestion", true);
 
 					}
 					onError(message) {
@@ -1888,6 +1911,7 @@ interviewerChangeNewSession(){
 	sss_interviewer_list.add(newInterviwer);
 	populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
 }
+
 //measure whether two arraylists are identical, if not, recording what kinds of operation have been done
 listChange(ArrayList targetList,ArrayList sourceList){
 	Hashtable listChanges=new Hashtable();
