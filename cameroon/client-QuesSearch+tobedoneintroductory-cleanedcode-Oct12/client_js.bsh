@@ -1807,13 +1807,14 @@ saveChangedAnswer(){
 						saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
 						onSave(uuid, newRecord) {
 							answer_id = uuid;	//not sure how it's working
+							//Change interviwee information
 							for(intervieweeDelete:ansIntervieweeOriginReln){
 								deleteRel(intervieweeDelete.get(0));
 							}
 							for(interviewee : selected_answer_interviewee){
 								saveEntitiesToRel("Answer and Interviewee",current_answer_id,interviewee.get(0));		
 							}
-							//TODO:still needs to change file ids
+						//change file labels
 							if(ansLabelChange){
 							for(file : files_in_current_ques){
 								entityId = file.get(0);
@@ -1822,8 +1823,8 @@ saveChangedAnswer(){
 									if (currentFileType.get(0).equals(entityId)) {
 									fileSuffix=currentFileType.get(1);
 									break;
-								}
-							}					
+									}
+								}					
 								attributes = createAttributeList();
     							attributes.add(createEntityAttribute("FileID", null, null, newAnsLabel+"_"+fileSuffix, null));
 							 	saveArchEnt(entityId, "File", null, attributes, new SaveCallback() {
@@ -1832,10 +1833,12 @@ saveChangedAnswer(){
             						}  
         							});    
 								}	
-								loadSessionInfo("answerLabel");	
+								if(!isNull(sss_id)){
+									loadSessionInfo("answerLabel");	
+								}
 							}
 
-
+							//change file list
 							if(!fileListChange.containsKey("EQUAL")){
 								for(fileDelete:ansFileOriginReln){
 									deleteRel(fileDelete.get(0));
@@ -1844,7 +1847,7 @@ saveChangedAnswer(){
 									saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
 								}
 							}
-
+							//change interviwer list
 							if (!interviewerChange.containsKey("EQUAL")) {
 								if(isNull(sss_id)){
 									interviewerChangeNewSession();
@@ -1886,9 +1889,11 @@ interviewerChangeNewSession(){
 	for(interviewerDelete:ansInterviewerOriginReln){
 		deleteRel(interviewerDelete.get(0));
 	}
+	//showWarning("CASE6","deleteDone");
 	for(interviewer : selected_answer_interviewer){
 		saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));	
 	}
+	//showWarning("CASE6","saveDone");
 	tempInterviewerPrefix=null;
 	int interviewerSize=selected_answer_interviewer.size();
 	firstInterviewer=selected_answer_interviewer.get(0).get(1);
@@ -1898,6 +1903,7 @@ interviewerChangeNewSession(){
 	else{
 		tempInterviewerPrefix=firstInterviewer+"EtAl";
 	}
+	//showWarning("tempInterviewerPrefix",tempInterviewerPrefix);
 	newInterviwer=new ArrayList();
 	newInterviwer.add(current_answer_id);
 	newInterviwer.add(tempInterviewerPrefix);
@@ -1909,7 +1915,9 @@ interviewerChangeNewSession(){
 		}
 	}
 	sss_interviewer_list.add(newInterviwer);
+	//showWarning("sss_interviewer_list","sss_interviewer_list");
 	populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+	//showWarning("populateList",sss_answer_list.size().toString());
 }
 
 //measure whether two arraylists are identical, if not, recording what kinds of operation have been done
