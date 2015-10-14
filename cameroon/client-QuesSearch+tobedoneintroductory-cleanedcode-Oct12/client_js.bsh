@@ -39,6 +39,22 @@ loadAllIntrQuesnirQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"AND latestNonDeletedAentValue.measure='Introductory')"+
 	"GROUP BY uuid;";
 
+loadAllAnsForIntroQuesnir="SELECT uuid, measure FROM latestNonDeletedAentValue "+
+			"WHERE latestNonDeletedAentValue.AttributeID = "+
+			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerLabel') "+
+			"AND latestNonDeletedAentValue.uuid IN "+
+			"(select uuid from "+
+				"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+					"(select AttributeKey.AttributeID from AttributeKey "+
+					"where AttributeKey.AttributeName='AnswerQuestionnaireID')) t1"+
+					//"and latestNonDeletedAentValue.measure="+current_quesnir_id+") t1 "+
+			 "inner join "+
+			 	"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+			 		"(select AttributeKey.AttributeID from AttributeKey "+
+			 		"where AttributeKey.AttributeName='QuestionnaireType') "+
+			 		"and latestNonDeletedAentValue.measure='Introductory') t2 "+
+			 		"using(uuid))";
+
 loadAllPersonQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 	"WHERE latestNonDeletedAentValue.AttributeID "+
 	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonName') "+
@@ -929,7 +945,6 @@ loadAnswerListForQuesion(){
 		        						answerForQuestionTemp.addAll(result);
 		        						answerForSessionTemp.retainAll(answerForQuestionTemp);
 		        						ansListForQues.clear();
-		        						
 		        						ansListForQues.addAll(result);//Answer list for a question in a questionnaire stored
 		        						
 		        						populateList("answerToQuestion/answerInfo/answerList", answerForSessionTemp);	
@@ -1338,6 +1353,49 @@ checkPersonAns(String personID){
 
 	 return false;
 }
+/*
+checkPersonIntro(String personID){
+	introAnsPerson=new ArrayList();
+	loadIntervieweeAnsQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+			"(select RelationshipID from AEntReln where AEntReln.uuid="+personID+" "+
+ 			"AND RelationshipID in "+
+			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+ 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)))";
+	fetchAll(loadIntervieweeAnsQuery,
+			new FetchCallback() {
+		        onFetch(result) {
+		        	//showWarning("fetchAll","fetchAll");
+					//if (!isNull(result)) {
+						introAnsPerson.clear();
+						introAnsPerson.addAll(result);
+						//showWarning("ansListPerson","ansListPerson");
+						introAnsPerson.retainAll(ansListForQues);
+						if(isNull(ansListPerson)){
+							//showWarning("not answered","not answered");
+							addItemToTargetList(candidate_answer_interviewee,"interviewee",toAddIntervieweeID);
+						}
+						else
+						{
+							
+							showAlert("alert", "This person has already answered this question \n"+"Do you still want to add this person?", "confirmAddInterviewee()", "stayInCurrentPage()");
+
+						}
+				
+		        }
+
+		        onError(message) {
+		        	Log.e("error",message);
+		            showToast(message);
+		           
+		        }
+		    });
+
+}
+*/
 //Do not allow user create answer without create session?
 saveNewAnswer(){
 	if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
@@ -1478,19 +1536,8 @@ saveNewAnswer(){
 		}  
 		});
 	}
-	else{//this is changing answerInfo
-			//if(!isNull(sss_id)){
+	else{//this is changing answerInfo		
 			saveChangedAnswer();
-		//}
-		/*
-		else{
-			showWarning("please save session first","Please save the session first, or you could lose your data");
-			cancelTabGroup("survey", true);			
-			showTab("sessionForAnswer/sssAnsList");
-			return;
-		}
-		*/
-
 	}
 }
 //For saving changed answer, we have five cases:
@@ -1908,11 +1955,10 @@ interviewerChangeNewSession(){
 	for(interviewerDelete:ansInterviewerOriginReln){
 		deleteRel(interviewerDelete.get(0));
 	}
-	//showWarning("CASE6","deleteDone");
 	for(interviewer : selected_answer_interviewer){
 		saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));	
 	}
-	//showWarning("CASE6","saveDone");
+
 	tempInterviewerPrefix=null;
 	int interviewerSize=selected_answer_interviewer.size();
 	firstInterviewer=selected_answer_interviewer.get(0).get(1);

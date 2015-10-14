@@ -1310,6 +1310,7 @@ stayInCurrentPage()
 	return;
 }
 
+//TODO: Try send arguments in showAlert API such that we don't need to query the db one more time
 checkPersonAns(){
 	//showWarning("0000","personAns.size().toString()");
 	
