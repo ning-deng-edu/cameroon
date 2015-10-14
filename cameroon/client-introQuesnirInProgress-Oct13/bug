@@ -1,1 +1,1 @@
-测试每个answer change 的每个case， 新session的answer改变后不populate
+checkPersonIntro里面showAlert不能传递参数，问FAIMS
