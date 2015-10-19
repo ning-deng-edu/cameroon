@@ -3100,11 +3100,11 @@ loadSessionInfo(String typeFlag){
 	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
 	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));  
 	        	fetchAll(loadAnswerForSessionQuery, new FetchCallback() {
-	                onFetch(result) {
+	                onFetch(answers) {
 	                	original_sss_answer_list.clear();
-	                	original_sss_answer_list.addAll(result);
+	                	original_sss_answer_list.addAll(answers);
 	                	sss_answer_list.clear();
-	                	sss_answer_list.addAll(result);
+	                	sss_answer_list.addAll(answers);
 	                	populateList("sessionForAnswer/sssAnsList/sssAnswerList",original_sss_answer_list);
 	                	checkSssQuesnirType("answer");
 	                }
@@ -3121,6 +3121,7 @@ loadSessionInfo(String typeFlag){
 	        }
 	    });
 		loadSessionInterviewer("answer");
+		
 		break;
 
 		case "answerLabel":
@@ -3168,6 +3169,7 @@ loadSessionInfo(String typeFlag){
 
 //check if a session is for intro quesnir or regular quesnir
 checkSssQuesnirType(String typeflag){
+	 //showWarning("checkSssQuesnirType","checkSssQuesnirType");
 	String checkAnsId=null;
 	if(typeflag.equals("answer")){
 		checkAnsId=original_sss_answer_list.get(0).get(0);
@@ -3176,18 +3178,21 @@ checkSssQuesnirType(String typeflag){
 	{
 		checkAnsId=selected_files_session.get(0).get(0);
 	}
-		checkAnsQuesnirTypeQuery="SELECT measure from latestNonDeletedAentValue "+
+ 	//showWarning("checkAnsId",checkAnsId);
+
+		checkAnsQuesnirTypeQuery="SELECT uuid,measure from latestNonDeletedAentValue "+
 		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from Attributekey where AttributeName='QuestionnaireType') "+
-		"and uuid in "+
-		"(select uuid from AentReln where RelationshipID) in "+
-		"(select RelationshipID from AEntReln where AEntReln.uuid="+checkAnsId+" "+
- 			"AND RelationshipID in "+
-			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
- 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
-			"and latestNonDeletedRelationship.Deleted IS NULL)))";
-		fetchOne(checkAnsQuesnirTypeQuery, new FetchCallback() {
-        onFetch(result) {
-              String quesnirType=result.get(0);
+		"and uuid = "+
+		"( select measure from latestNonDeletedAentValue where uuid='"+checkAnsId+"'"+
+			//"latestNonDeletedAentValue.uuid='"+checkAnsId+"' "+
+			"and AttributeID=( (select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID')))";
+
+		//showWarning("checkAnsQuesnirTypeQuery",checkAnsQuesnirTypeQuery);
+
+		fetchAll(checkAnsQuesnirTypeQuery, new FetchCallback() {
+        onFetch(quesnirTypeResult) {
+              String quesnirType=quesnirTypeResult.get(0).get(1);
+              //showWarning("quesnirType",quesnirType);
               if(quesnirType.equals("Introductory")){
               	introAns=true;
               }
