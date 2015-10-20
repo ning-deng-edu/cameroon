@@ -1454,7 +1454,7 @@ checkPersonIntro(String personID){
 										//showWarning("ansListPerson","ansListPerson");
 									introAnsPerson.retainAll(ansForIntroQuesnir);
 									if(isNull(introAnsPerson)){
-											//showWarning("not answered","not answered");
+										//showWarning("not answered","not answered");
 										//showAlert("alert", "This person has not answered introductory questionnaire \n"+"Do you still want to add this person?", "checkPersonAns(\""+person_id+"\",\""+ansPerson+"\")", "stayInCurrentPage()");
 										showAlert("alert", "This person has not answered introductory questionnaire \n"+"Do you still want to add this person?", "checkPersonAns()", "stayInCurrentPage()");
 										//showAlert with arguments from example of FAIMS team
@@ -2702,6 +2702,7 @@ timeValidation(String startDateTime){
 	}
 return false;
 }
+
 nameCamCaseConverter(String originName){
 	String camCase=null;
 	String [] originNameSplit=originName.split("\\s+");
@@ -2777,6 +2778,45 @@ saveNewPerson(String typeflag){
 
 }
 
+//Get the intro session list for a person
+checkPersonIntroSession(String personID){
+
+checkPsIntrSssQuery="select uuid,measure from latestNonDeletedAentValue "+
+					"where AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionName')  "+
+					"and uuid in "+
+						"(select uuid from AentReln where RelationshipID in "+
+							"(select RelationshipID from AentReln "+
+							"where RelationshipID in"+
+								"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session' ) "+
+							"and latestNonDeletedRelationship. Deleted IS NULL) "+
+						"and AentReln.uuid in "+
+							"( select uuid from latestNonDeletedAentValue "+
+							"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+							"and latestNonDeletedAentValue.measure in "+
+								"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+									"(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+									"and latestNonDeletedAentValue.measure='Introductory') "+
+							"and uuid in "+
+								"(select uuid from AentReln where RelationshipID in +"
+									"(select RelationshipID from AentReln where AentReln.uuid='"+personID"') "+
+									"and RelationshipID in "+
+										"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
+									"and latestNonDeletedRelationship.Deleted is null)))))";
+fetchAll(checkPsIntrSssQuery, new FetchCallback() {
+        onFetch(result) {
+        		if(!isNull(result)){
+        			//TODO: create a list of this person's intro session, and after clicked on one session, go to loadSessionInfo("answer")
+        		}
+        	}
+            
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+
+}
 /*** Language ***/
 onEvent("control/language_control/New_Language","click","newLanguage()");
 onEvent("language/languageInfo/Finish_New_Language","click","saveNewLanguage()");
@@ -3170,6 +3210,7 @@ loadSessionInfo(String typeFlag){
 	            });
 	    loadSessionInterviewer("answer");
 		break;
+
 	}
 }
 
