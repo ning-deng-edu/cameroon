@@ -1,2 +1,3 @@
 checkPersonIntro里面showAlert不能传递参数，问FAIMS
 checkPersonAns不能正确检测到有intro ans的人
+

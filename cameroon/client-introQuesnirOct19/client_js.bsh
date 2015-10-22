@@ -2730,7 +2730,7 @@ saveNewPerson(String typeflag){
 
 //Get the intro session list for a person
 checkPersonIntroSession(String personID){
-/*
+
 checkPsIntrSssQuery="select uuid,measure from latestNonDeletedAentValue "+
 					"where AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionName')  "+
 					"and uuid in "+
@@ -2748,10 +2748,11 @@ checkPsIntrSssQuery="select uuid,measure from latestNonDeletedAentValue "+
 									"and latestNonDeletedAentValue.measure='Introductory') "+
 							"and uuid in "+
 								"(select uuid from AentReln where RelationshipID in "+
-									"(select RelationshipID from AentReln where AentReln.uuid='"+personID"') "+
+									"(select RelationshipID from AentReln where AentReln.uuid='"+personID+"') "+
 									"and RelationshipID in "+
 										"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
 									"and latestNonDeletedRelationship.Deleted is null)))))";
+
 fetchAll(checkPsIntrSssQuery, new FetchCallback() {
         onFetch(result) {
         		if(!isNull(result)){
@@ -2764,7 +2765,7 @@ fetchAll(checkPsIntrSssQuery, new FetchCallback() {
         onError(message) {
             showToast(message);
         }
-    });*/
+    });
 
 }
 /*** Language ***/
