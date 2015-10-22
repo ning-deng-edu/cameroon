@@ -2593,8 +2593,10 @@ onEvent("control/user_control/userList","click","loadPersonInfo()");
 onEvent("person/personInfo/Finish_New_Person","click","saveNewPerson(\"save\")");
 onEvent("person/personInfo/Take_Intro_Quesnir","click","checkPersonIntroSession()");
 onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
-
+onEvent("introSssList/introSssInfo/intrSessionList","click","loadSessionInfo(\"answer\")");
+onEvent("introSssList/introSssInfo/new_intro_sss","click","newSessionForAnswer(\"intro\",currentPersonInfo)");
 personIntroSss=new ArrayList();
+currentPersonInfo=new ArrayList();
 
 person_id=null;
 newPerson(){
@@ -2757,11 +2759,14 @@ checkPsIntrSssQuery="select uuid,measure from latestNonDeletedAentValue "+
 fetchAll(checkPsIntrSssQuery, new FetchCallback() {
         onFetch(result) {
         		if(!isNull(result)){
-        			//TODO: create a list of this person's intro session, and after clicked on one session, go to loadSessionInfo("answer")
 					personIntroSss.clear();
 					personIntroSss.addAll(result);
 					showTabGroup("introSssList");
 					populateList("introSssList/introSssInfo/intrSessionList",personIntroSss);
+					currentPersonInfo.clear();
+					currentPersonInfo.add(person_id);
+					currentPersonInfo.add(getFieldValue("person/personInfo/personName"));
+
         		}
         		else{
         			saveNewPerson("intro");
