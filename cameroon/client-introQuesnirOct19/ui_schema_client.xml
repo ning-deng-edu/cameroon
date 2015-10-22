@@ -400,6 +400,13 @@
                         <fieldTripList/>
                     </fieldTripInfo>   
 				</fieldTripGroup>  
+
+                <introSssList>
+                    <introSssInfo>
+                        <new_intro_sss/>
+                        <intrSessionList/>
+                    </introSssInfo>
+                </introSssList>
 				
             </faims>
         </instance>
@@ -1345,7 +1352,26 @@
             </trigger>
         </group>
     </group>
+
+     <group ref="introSssList">
+        <label>Intro session</label>
+        <group ref="introSssInfo" >
+            <label>Intro session List</label>
+            <trigger ref="new_intro_sss" faims_style_class="faims-blue">
+                <label>New session</label>
+            </trigger>
     
+            <select1 appearance="compact" ref="intrSessionList" faims_style_class="survey-list">
+                <label>Tap to view session</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
+        </group>
+     </group>
+
+
      <group ref="language" faims_archent_type="Language">
         <label>Language</label>
         <group ref="languageInfo">

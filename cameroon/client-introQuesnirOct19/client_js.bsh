@@ -2591,8 +2591,10 @@ onEvent("control/user_control/New_User","click","newPerson()");
 onEvent("control/user_control","show","loadPerson()");
 onEvent("control/user_control/userList","click","loadPersonInfo()");
 onEvent("person/personInfo/Finish_New_Person","click","saveNewPerson(\"save\")");
-onEvent("person/personInfo/Take_Intro_Quesnir","click","saveNewPerson(\"intro\")");
+onEvent("person/personInfo/Take_Intro_Quesnir","click","checkPersonIntroSession()");
 onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
+
+personIntroSss=new ArrayList();
 
 person_id=null;
 newPerson(){
@@ -2729,8 +2731,7 @@ saveNewPerson(String typeflag){
 }
 
 //Get the intro session list for a person
-checkPersonIntroSession(String personID){
-
+checkPersonIntroSession(){
 checkPsIntrSssQuery="select uuid,measure from latestNonDeletedAentValue "+
 					"where AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionName')  "+
 					"and uuid in "+
@@ -2748,7 +2749,7 @@ checkPsIntrSssQuery="select uuid,measure from latestNonDeletedAentValue "+
 									"and latestNonDeletedAentValue.measure='Introductory') "+
 							"and uuid in "+
 								"(select uuid from AentReln where RelationshipID in "+
-									"(select RelationshipID from AentReln where AentReln.uuid='"+personID+"') "+
+									"(select RelationshipID from AentReln where AentReln.uuid='"+person_id+"') "+
 									"and RelationshipID in "+
 										"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
 									"and latestNonDeletedRelationship.Deleted is null)))))";
@@ -2757,11 +2758,16 @@ fetchAll(checkPsIntrSssQuery, new FetchCallback() {
         onFetch(result) {
         		if(!isNull(result)){
         			//TODO: create a list of this person's intro session, and after clicked on one session, go to loadSessionInfo("answer")
+					personIntroSss.clear();
+					personIntroSss.addAll(result);
+					showTabGroup("introSssList");
+					populateList("introSssList/introSssInfo/intrSessionList",personIntroSss);
+        		}
+        		else{
+        			saveNewPerson("intro");
         		}
         	}
             
-        
-
         onError(message) {
             showToast(message);
         }
