@@ -111,7 +111,6 @@
     <ArchaeologicalElement name="AnswerToQuestionnaire">
         <description>Entity AnswerToQuestionnaire, represent the metadata and data of the answers collected for a questionnaire</description>
         <property name="AnswerQuestionnaireID" isIdentifier="true" type="freetext"></property>		        
-        <property name="AnsQuestionnaireID" isIdentifier="true" type="freetext"></property>
         <property name="AnswerQuestionID" isIdentifier="true" type="freetext"></property>
         <property name="AnswerLabel" isIdentifier="true" type="freetext"></property>
         <property name="AnswerText" type="freetext"></property>
