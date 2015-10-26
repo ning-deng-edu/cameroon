@@ -21,40 +21,6 @@ loadAllQuestionnaireQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " 
 	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
 	"GROUP BY uuid;";
 
-loadAllRegQuesnirQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
-	"WHERE latestNonDeletedAentValue.AttributeID "+
-	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
-	"AND latestNonDeletedAentValue.uuid IN"+
-	"(SELECT uuid from latestNonDeletedAentValue WHERE latestNonDeletedAentValue.AttributeID="+
-		"(select AttributeID from AttributeKey where AttributeName='QuestionnaireType')"+
-		"AND latestNonDeletedAentValue.measure='Regular')"+
-	"GROUP BY uuid;";
-
-loadAllIntrQuesnirQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
-	"WHERE latestNonDeletedAentValue.AttributeID "+
-	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
-	"AND latestNonDeletedAentValue.uuid IN"+
-	"(SELECT uuid from latestNonDeletedAentValue WHERE latestNonDeletedAentValue.AttributeID="+
-		"(select AttributeID from AttributeKey where AttributeName='QuestionnaireType')"+
-		"AND latestNonDeletedAentValue.measure='Introductory')"+
-	"GROUP BY uuid;";
-
-loadAllAnsForIntroQuesnir="SELECT uuid, measure FROM latestNonDeletedAentValue "+
-			"WHERE latestNonDeletedAentValue.AttributeID = "+
-			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerLabel') "+
-			"AND latestNonDeletedAentValue.uuid IN "+
-			"(select uuid from "+
-				"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
-					"(select AttributeKey.AttributeID from AttributeKey "+
-					"where AttributeKey.AttributeName='AnswerQuestionnaireID')) t1 "+
-					//"and latestNonDeletedAentValue.measure="+current_quesnir_id+") t1 "+
-			 "inner join "+
-			 	"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
-			 		"(select AttributeKey.AttributeID from AttributeKey "+
-			 		"where AttributeKey.AttributeName='QuestionnaireType') "+
-			 		"and latestNonDeletedAentValue.measure='Introductory') t2 "+
-			 		"using(uuid))";
-
 loadAllPersonQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 	"WHERE latestNonDeletedAentValue.AttributeID "+
 	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonName') "+
@@ -196,7 +162,17 @@ onSyncFailure() {
 
 /***Save relationships among entities***/
 saveEntitiesToRel(String type, String entity1, String entity2) {
-	
+	/*
+    if (isNull(entity1) || isNull(entity2)) return;
+    saveRel(null, type, null, null, new SaveCallback() {
+        onSave(rel_id, newRecord) {
+            addReln(entity1, rel_id, null);
+            addReln(entity2, rel_id, null);
+        }
+        onError(message) {
+			showWarning("error saveEntitiesToRel",message);
+		}  
+    });*/
 	 if (isNull(entity1) || isNull(entity2)) return;
 	    saveRel(null, type, null, null, new SaveCallback() {
 	        onSave(reln_id, newRecord) {
@@ -209,7 +185,21 @@ saveEntitiesToRel(String type, String entity1, String entity2) {
 	        }
 	    });
 }
-
+/*
+saveThreeEntitiesToRel(String type, String entity1, String entity2, String entity3) {
+    if (isNull(entity1) || isNull(entity2) || isNull(entity3)) return;
+    saveRel(null, type, null, null, new SaveCallback() {
+        onSave(rel_id, newRecord) {
+            addReln(entity1, rel_id, null);
+            addReln(entity2, rel_id, null);
+            addReln(entity3, rel_id, null);
+        }
+        onError(message) {
+			showWarning("error saveThreeEntitiesToRel",message);
+		} 
+    });
+}
+*/
 /***User***/
 onEvent("user/usertab/users", "click", "login()");
 onEvent("user/usertab/user_Search", "click", "userSearch()");
@@ -256,7 +246,7 @@ userSearch(){
 	}
 }
 /***Survey Control***/
-onEvent("control/survey_control/New_Survey","click","newSessionForAnswer(\"answer\",null)");
+onEvent("control/survey_control/New_Survey","click","newSessionForAnswer()");
 onEvent("control/survey_control","show","loadSessionList(\"answer\")");
 //onEvent("control/survey_control/surveyList","click","loadAnswersForQuestionnaire(\"New\")");
 onEvent("control/survey_control/surveyList","click","loadSessionInfo(\"answer\")");
@@ -296,23 +286,13 @@ sssAnswerInterviewerOrigin=new LinkedHashSet();
 sssAnswerInterviewerNew=new LinkedHashSet();//This is for generating sss label
 String sssLabelOld=null;
 sessionAnswerInterviewer=new LinkedHashSet();
-Boolean introAns=false;//mark if a session is for introductory questionnaire answer collecting or not
-ArrayList newPersonForIntro=new ArrayList(); 
 
 
 
 /***Starting from creating a session***/
 
 
-newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
-	if(typeflag.equals("answer")){
-		introAns=false;
-	}
-	else{
-		introAns=true;
-		newPersonForIntro.clear();
-		newPersonForIntro.add(newAddedPerson);
-	}
+newSessionForAnswer(){
 	sss_id=null;
 	sssLabel=null;
 	sssLabelOld=null;
@@ -336,9 +316,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
     populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);    
 }
 
-
 showQuestionnaireList(){
-
 	survey_id=null;
 	current_quesnir_id=null;
 	current_question_id=null;
@@ -360,10 +338,8 @@ showQuestionnaireList(){
 }
 
 loadAllQuesnir(){
-	if(!introAns){
-		fetchAll(
-		//loadAllQuestionnaireQuery,
-		loadAllRegQuesnirQuery,
+	fetchAll(
+		loadAllQuestionnaireQuery,
 		new FetchCallback() {
         	onFetch(result) {
 				if (!isNull(result)) {
@@ -381,27 +357,6 @@ loadAllQuesnir(){
             	showToast(message);
         	}
     	});
-	}
-	else{
-		fetchAll(
-		loadAllIntrQuesnirQuery,
-		new FetchCallback() {
-        	onFetch(result) {
-				if (!isNull(result)) {
-					populateList("questionnaireListAll/questionnaireListInfo/questionnaireListInDB", result);	
-					setFieldValue("questionnaireListAll/questionnaireListInfo/quesnir_keyword","*");
-				}	
-				else{
-			    	showWarning("No questionnaire","No questionnaire is available, please contact the admin");
-					return;
-				}
-       	 }
-
-        	onError(message) {
-            	showToast(message);
-        	}
-    	});
-	}
 }
 
 loadExistSurvey(){
@@ -495,7 +450,16 @@ loadAnswersForQuestionnaire(String typeFlag){
 		}
 		}
 		}
-	
+	/*
+		for(int i=0;i<survey_list.size();i++){
+		if(survey_list.get(i).get(0).equals(current_quesnir_id))
+		{
+			current_quesnir_name=survey_list.get(i).get(1);
+			setFieldValue("answerToQuestionnaire/answerQuesnirInfo/answerListQuesnirName",current_quesnir_name);
+		}
+		}
+		}
+		*/
 	}
 	else{
 		loadAnswersForQuesnirQuery="select uuid,measure from latestNonDeletedAentValue "+
@@ -538,7 +502,20 @@ loadQuesnirInfo(){
 		return;
 	}
 	else{
-		
+		/*
+		questionnaire_question_query="SELECT uuid, measure "+
+		"from latestNonDeletedAentValue "+
+		"where latestNonDeletedAentValue.AttributeID = "+
+		"(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
+		"and uuid in "+
+		"(select AEntReln.uuid from AEntReln where AEntReln.uuid<>"+current_quesnir_id+" "+
+		"and AEntReln.RelationshipID IN "+
+		"(select  relationshipID from AEntReln aer "+
+		"inner join "+
+		"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_quesnir_id+") tm "+
+		"on aer.AentRelnTimestamp=tm.maxtime group by relationshipID)) "+
+		"group by uuid;";
+		*/
 		questionnaire_question_query="select uuid,measure from latestNonDeletedAentValue "+ 
 				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
 				"and uuid in "+
@@ -560,6 +537,8 @@ loadQuesnirInfo(){
 				"and latestNonDeletedRelationship.Deleted IS NULL))) group by uuid";
 		
 		
+		//ques_in_current_quesnir.clear();
+		//queslabel_current_quesnir.clear();
 		
 		fetchAll(queslabel_quesnir_query,
 				new FetchCallback() {
@@ -578,14 +557,31 @@ loadQuesnirInfo(){
 					showToast(message);
 				}
 				});
-		
+		/*
+		fetchAll(questionnaire_question_query,
+				new FetchCallback() {
+					onFetch(result) {
+						if (!isNull(result)) {	
+							ques_in_current_quesnir.clear();	
+						    ques_in_current_quesnir.addAll(result);
+						}
+						else{
+							showWarning("No question in this questionnaire","This questionnaire is not ready yet");
+							return;
+						}
+					}
+			       
+				onError(message) {
+					showToast(message);
+				}
+				});
+		*/		
 		showTabGroup("questionnaireInfo", current_quesnir_id, new FetchCallback() {
         	onFetch(result) {	
         		fetchAll(questionnaire_question_query,
         				new FetchCallback() {
         					onFetch(result) {
         						if (!isNull(result)) {	
-        							setFieldValue("questionnaireInfo/surveyQuesnirHidden/currentQuesnirID",current_quesnir_id);
         							ques_in_current_quesnir.clear();	
         						    ques_in_current_quesnir.addAll(result);
         						    populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
@@ -629,7 +625,31 @@ loadAnswerInfo(){
 		return;
 	}
 	else{
-	
+		/*
+	loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileName') "+
+			"and uuid in "+
+				"(select uuid from AentReln where uuid <>"+current_answer_id+" "+
+				"and RelationshipID in "+
+					"(select RelationshipID from Relationship where RelnTypeID = "+
+						"(select RelnTypeID from RelnType where RelnTypeName='Answer and File')"+ 
+							"and RelationshipID in (select RelationshipID from AentReln where AentReln.uuid="+current_answer_id+" )))";
+		 */
+		/*
+	loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileName') "+
+				"and uuid in "+
+	 			"(select uuid from AentReln where RelationshipID in "+
+	 				"(select RelationshipID from "+
+	 					"(select RelationshipID, AEntRelnTimestamp from AentReln where AentReln.uuid="+current_answer_id+" "+
+	 					"and RelationshipID in "+
+	 						"(select RelationshipID from Relationship where RelnTypeID="+
+	 							"(select RelnTypeID from RelnType where RelnTypeName='Answer and File'))) t1 "+
+	 					"inner join "+
+	 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_answer_id+" "+
+	 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
+	 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and File'))) t2 "+
+	 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";*/
 	loadFileAnsRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+current_answer_id+" "+
 				"and RelationshipID in "+
 				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
@@ -646,6 +666,23 @@ loadAnswerInfo(){
         }
     });
 	
+	
+	
+	/*
+	loadAnswerInterviewerQuery="select uuid, measure from latestNonDeletedAentValue "+
+			 		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+			 		"and uuid in "+
+			 			"(select uuid from AentReln where RelationshipID in "+
+			 				"(select RelationshipID from "+
+			 					"(select RelationshipID, AEntRelnTimestamp from AentReln where AentReln.uuid="+current_answer_id+" "+
+			 					"and RelationshipID in "+
+			 						"(select RelationshipID from Relationship where RelnTypeID="+
+			 							"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer'))) t1 "+
+			 					"inner join "+
+			 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_answer_id+" "+
+			 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
+			 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer'))) t2 "+
+			 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";*/
 	loadAnsInterviewerRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+current_answer_id+" "+
 			"and RelationshipID in "+
 			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer') "+
@@ -671,6 +708,21 @@ loadAnswerInfo(){
  			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer') "+
 			"and latestNonDeletedRelationship.Deleted IS NULL)))";
 	
+	/*
+	loadAnswerIntervieweeQuery="select uuid, measure from latestNonDeletedAentValue "+
+	 		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+	 		"and uuid in "+
+	 			"(select uuid from AentReln where RelationshipID in "+
+	 				"(select RelationshipID from "+
+	 					"(select RelationshipID, AEntRelnTimestamp from AentReln where AentReln.uuid="+current_answer_id+" "+
+	 					"and RelationshipID in "+
+	 						"(select RelationshipID from Relationship where RelnTypeID="+
+	 							"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee'))) t1 "+
+	 					"inner join "+
+	 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_answer_id+" "+
+	 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
+	 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee'))) t2 "+
+	 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";*/
 	loadAnsIntervieweeRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+current_answer_id+" "+
 			"and RelationshipID in "+
 			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
@@ -893,9 +945,12 @@ startNewAnswer(){
 	ansLabelSndPart=null;
 	tempAnsLabel=null;
 	
+	//String currentTime=getCurrentTime();
     currentDateTimeArray=current_start_time.toString().split("\\s+");
     String currentDate=currentDateTimeArray[0];
-   
+    
+    //ansLabelFstPart=current_question_label+"-"+"Answer-";
+    //ansLabelSndPart="-("+currentDate+")";
     ansLabelFstPart=current_question_label+"_"+"Answer_";
     ansLabelSndPart="_"+currentDate;
 
@@ -916,14 +971,7 @@ startNewAnswer(){
 					onFetch(result) {
 						if (!isNull(result)) {	
 							candidate_answer_interviewer.addAll(result);
-							if(introAns){
-								if(!isNull(newPersonForIntro)){
-									selected_answer_interviewee.addAll(newPersonForIntro);
-								}
-							}
-							else{
-								candidate_answer_interviewee.addAll(result);
-							}
+							candidate_answer_interviewee.addAll(result);
 							populateList("survey/answerPerson/answerInterviewerList",selected_answer_interviewer);
 							populateList("survey/answerPerson/answerIntervieweeList",selected_answer_interviewee);
 							populateList("survey/answerPerson/answerInterviewerSelectionList",candidate_answer_interviewer);
@@ -941,7 +989,9 @@ startNewAnswer(){
 }
 
 loadAnswerListForQuesion(){
-	
+	//showWarning("sss_id",sss_id);
+	//showWarning("quersionnaire",current_quesnir_id);
+	//showWarning("question",current_question_id);
 	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
 			"WHERE latestNonDeletedAentValue.AttributeID = "+
 			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerLabel') "+
@@ -961,6 +1011,51 @@ loadAnswerListForQuesion(){
 		answerForSessionTemp=new ArrayList();
 		answerForQuestionTemp=new ArrayList();
 		
+		/* below query is not working, it's over complicated and hence this query is divided to two queries
+	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
+			"WHERE latestNonDeletedAentValue.AttributeID = "+
+			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerLabel') "+
+			"AND latestNonDeletedAentValue.uuid IN "+
+			"(select uuid from "+
+				"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+					"(select AttributeKey.AttributeID from AttributeKey "+
+					"where AttributeKey.AttributeName='AnswerQuestionnaireID') "+
+					"and latestNonDeletedAentValue.measure="+current_quesnir_id+") t1 "+
+			 "inner join "+
+			 	"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+			 		"(select AttributeKey.AttributeID from AttributeKey "+
+			 		"where AttributeKey.AttributeName='AnswerQuestionID') "+
+			 		"and latestNonDeletedAentValue.measure="+current_question_id+") t2 "+
+			 		"using (uuid)"+
+			 "inner join "+
+			 	"(SELECT uuid from "+
+			 	"(select uuid from AentReln where RelationshipID in "+
+					"(select RelationshipID, AEntRelnTimestamp from AentReln where AentReln.uuid="+sss_id+" "+
+					"and RelationshipID in "+
+						"(select RelationshipID from Relationship where RelnTypeID="+
+							"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t5 "+
+							"inner join "+
+		 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+sss_id+" "+
+		 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
+		 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t6 "+
+		 					"on t5.AentRelnTimestamp=t6.maxtime group by relationshipID)) t3"+
+			 		"using(uuid))";	
+	
+	loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+ 				"(select RelationshipID from "+
+ 					"(select RelationshipID, AEntRelnTimestamp from AentReln where AentReln.uuid="+sss_id+" "+
+ 					"and RelationshipID in "+
+ 						"(select RelationshipID from Relationship where RelnTypeID="+
+ 							"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t1 "+
+ 					"inner join "+
+ 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+sss_id+" "+
+ 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
+ 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t2 "+
+ 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
+	*/
 	loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
 			"and uuid in "+
@@ -986,8 +1081,9 @@ loadAnswerListForQuesion(){
 		        						answerForQuestionTemp.addAll(result);
 		        						answerForSessionTemp.retainAll(answerForQuestionTemp);
 		        						ansListForQues.clear();
+		        						//showWarning("ansListForQues","resultadded");
 		        						ansListForQues.addAll(result);//Answer list for a question in a questionnaire stored
-		        						
+		        						//showWarning("ansListForQues","resultadded");
 		        						populateList("answerToQuestion/answerInfo/answerList", answerForSessionTemp);	
 		        					}
 		        					
@@ -1034,78 +1130,6 @@ loadAnswerListForQuesion(){
 }
 
 onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","loadAnswerFromQuesInQuesnir()");
-onEvent("questionnaireInfo/surveyQuestionnaire/ques_Search","click","searchQuesInCrtQuesnir()");
-
-searchQuesInCrtQuesnir(){
-	String toSearchQuesnirID=null;
-	
-	toSearchQuesnirID=getFieldValue("questionnaireInfo/surveyQuesnirHidden/currentQuesnirID");
-
-	String quesKeyword=null;
-
-	quesKeyword=getFieldValue("questionnaireInfo/surveyQuestionnaire/ques_keyword");
-
-
-	if(isNull(quesKeyword) || quesKeyword.equals("*")){
-	
-		quesnir_question_all_query="select uuid,measure from latestNonDeletedAentValue "+ 
-				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
-				"and uuid in "+
-	 			"(select uuid from AentReln where RelationshipID in "+
-				"(select RelationshipID from AEntReln where AEntReln.uuid="+toSearchQuesnirID+" "+
-	 			"AND RelationshipID in "+
-				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
-	 			"(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and Question') "+
-				"and latestNonDeletedRelationship.Deleted IS NULL))) group by uuid";
-
-		fetchAll(quesnir_question_all_query,new FetchCallback() {
-        					onFetch(result) {
-        						if (!isNull(result)) {	
-        							ques_in_current_quesnir.clear();	
-        						    ques_in_current_quesnir.addAll(result);
-        						    populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
-
-        						}
-        						else{
-        							showWarning("No question in this questionnaire","This questionnaire is not ready yet");
-        							return;
-        						}
-        
-        					}
-        			       
-        				onError(message) {
-        					showToast(message);
-        				}
-        				});
-	}
-	
-	else{
-
-	quesnir_question_search_query="select uuid,measure from latestNonDeletedAentValue "+ 
-				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
-				"and measure like '%"+quesKeyword+"%' "+
-				"and uuid in "+
-	 			"(select uuid from AentReln where RelationshipID in "+
-				"(select RelationshipID from AEntReln where AEntReln.uuid="+toSearchQuesnirID+" "+
-	 			"AND RelationshipID in "+
-				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
-	 			"(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and Question') "+
-				"and latestNonDeletedRelationship.Deleted IS NULL))) group by uuid";
-
-	fetchAll(quesnir_question_search_query,new FetchCallback() {
-        					onFetch(result) {
-        						populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire",result);
-        						//showWarning("populateList done","populateList done");
-        					}
-        			       
-        				onError(message) {
-        					showToast(message);
-        				}
-        				});
-
-	}
-	
-}
 
 loadAnswerFromQuesInQuesnir(){
 	if(isNull(current_quesnir_name)){
@@ -1113,7 +1137,6 @@ loadAnswerFromQuesInQuesnir(){
 		return;
 	}
 	current_question_id=getListItemValue();
-	Boolean quesLabelRead=false;
 	for(ques: ques_in_current_quesnir){
 		if(ques.get(0).equals(current_question_id))
 		{
@@ -1121,76 +1144,32 @@ loadAnswerFromQuesInQuesnir(){
 			break;
 		}
 	}
-	if(isNull(current_question_content)){
-		showWarning("No question content available","Can't get the question content, please contact the admin");
-		return;
-	}
+	
 	for(quesLabel: queslabel_current_quesnir){
 		if(quesLabel.get(0).equals(current_question_id))
 		{
 			current_question_label=quesLabel.get(1);
-			quesLabelRead=true;
 			break;
 		}
 	}
-	if(quesLabelRead){
-		newTabGroup("answerToQuestion");
-		setFieldValue("answerToQuestion/answerInfoHidden/answerListQuestionnaireID", current_quesnir_id);
-		setFieldValue("answerToQuestion/answerInfoHidden/answerListQuestionID", current_question_id);
-		setFieldValue("answerToQuestion/answerInfo/answerListQuestionnaireName", current_quesnir_name);
-		setFieldValue("answerToQuestion/answerInfo/answerListQuestionContent", current_question_content);
+	/*
+	for(int i=0;i<ques_in_current_quesnir.size();i++){
+		if(ques_in_current_quesnir.get(i).get(0).equals(current_question_id))
+		{
+			current_question_content=ques_in_current_quesnir.get(i).get(1);
+			break;
+		}
 	}
-	
-	else{
-		queslabel_quesnir_query="select uuid,measure from latestNonDeletedAentValue "+ 
-				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
-				"and uuid in "+
-	 			"(select uuid from AentReln where RelationshipID in "+
-				"(select RelationshipID from AEntReln where AEntReln.uuid="+current_quesnir_id+" "+
-	 			"AND RelationshipID in "+
-				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
-	 			"(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and Question') "+
-				"and latestNonDeletedRelationship.Deleted IS NULL))) group by uuid";
-			fetchAll(queslabel_quesnir_query,
-        				new FetchCallback() {
-        					onFetch(result) {
-        						if (!isNull(result)) {	
-        							queslabel_current_quesnir.clear();
-        							queslabel_current_quesnir.addAll(result);
-
-									for(quesLabel: queslabel_current_quesnir){
-										if(quesLabel.get(0).equals(current_question_id))
-										{
-											current_question_label=quesLabel.get(1);
-											quesLabelRead=true;
-											break;
-										}
-									}
-
-									if(quesLabelRead){
-										newTabGroup("answerToQuestion");
-										setFieldValue("answerToQuestion/answerInfoHidden/answerListQuestionnaireID", current_quesnir_id);
-										setFieldValue("answerToQuestion/answerInfoHidden/answerListQuestionID", current_question_id);
-										setFieldValue("answerToQuestion/answerInfo/answerListQuestionnaireName", current_quesnir_name);
-										setFieldValue("answerToQuestion/answerInfo/answerListQuestionContent", current_question_content);
-									}
-									else{
-											showWarning("The data is outdated","Please exit the module and retry");
-									}
-        						}
-        						else{
-        							showWarning("Something wrong with getting data","Please exit the module and retry");
-        							return;
-        						}
-        					}
-        			       
-        				onError(message) {
-        					showToast(message);
-        				}
-        				});
-	
-
+	*/
+	if(isNull(current_question_content)){
+		showWarning("No question content available","Can't get the question content, please contact the admin");
+		return;
 	}
+	newTabGroup("answerToQuestion");
+	setFieldValue("answerToQuestion/answerInfoHidden/answerListQuestionnaireID", current_quesnir_id);
+	setFieldValue("answerToQuestion/answerInfoHidden/answerListQuestionID", current_question_id);
+	setFieldValue("answerToQuestion/answerInfo/answerListQuestionnaireName", current_quesnir_name);
+	setFieldValue("answerToQuestion/answerInfo/answerListQuestionContent", current_question_content);
 }
 
 onEvent("survey/answerPerson/answerInterviewerSelectionList","click","addItemToTargetList(candidate_answer_interviewer,\"interviewer\",null)");
@@ -1340,7 +1319,17 @@ addInterviewee(){
 		showWarning("Invalid person","Invalid person, please choose another person");
 		return;
 	}
-	checkPersonIntro(toAddIntervieweeID);
+	checkPersonAns(toAddIntervieweeID);
+	/*
+	if(checkPersonAns(toAddIntervieweeID)){
+	//if(personCheckFlag.equals("TRU")){
+		addItemToTargetList(candidate_answer_interviewee,"interviewee",toAddIntervieweeID);
+		//personCheckFlag="FAL";
+	}
+	else{
+		showAlert("alert", "This person has already answered this question \n"+"Do you still want to add this person?", "confirmAddInterviewee()", "stayInCurrentPage()");
+	}
+	*/
 }
 confirmAddInterviewee(){
 	addItemToTargetList(candidate_answer_interviewee,"interviewee",toAddIntervieweeID);
@@ -1351,16 +1340,14 @@ stayInCurrentPage()
 	return;
 }
 
-//TODO: Try send arguments in showAlert API such that we don't need to query the db one more time
-checkPersonAns(){
-	//showWarning("0000","personAns.size().toString()");
+checkPersonAns(String personID){
 	
 	ansListPerson=new ArrayList();
 	loadIntervieweeAnsQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
 			"and uuid in "+
  			"(select uuid from AentReln where RelationshipID in "+
-			"(select RelationshipID from AEntReln where AEntReln.uuid="+toAddIntervieweeID+" "+
+			"(select RelationshipID from AEntReln where AEntReln.uuid="+personID+" "+
  			"AND RelationshipID in "+
 			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
  			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
@@ -1380,63 +1367,32 @@ checkPersonAns(){
 						}
 						else
 						{
-							
+							//if(isNull(ansListForQues)){
+								//showWarning("ques","null");
+								//return true;//No answers for this question
+							//}
+							//else{
+							//showWarning("answered","answered");
 							showAlert("alert", "This person has already answered this question \n"+"Do you still want to add this person?", "confirmAddInterviewee()", "stayInCurrentPage()");
-
+							//}
 						}
-				
+					//}
+					//else//This person has never answered a question
+					//{
+						//return true;
+					//}
+					
 		        }
 
 		        onError(message) {
 		        	Log.e("error",message);
 		            showToast(message);
-		           
+		           //return false;
 		        }
 		    });
-
+	 //Thread.sleep(2000);
+	 return false;
 }
-
-checkPersonIntro(String personID){
-	ansPerson=new ArrayList();
-	ansForIntroQuesnir=new ArrayList();
-	introAnsPerson=new ArrayList();
-	String person_id=personID;
-
-checkPsIntrAnsQuery="select uuid from latestNonDeletedAentValue "+
-					"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
-					"and latestNonDeletedAentValue.measure in "+
-					"(select uuid from latestNonDeletedAentValue "+
-						"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
-						"and latestNonDeletedAentValue.measure='Introductory') "+
-					"and uuid in "+
-					"(select uuid from AentReln where RelationshipID in "+
-						"(select RelationshipID from AentReln where AentReln.uuid='"+person_id+"') "+
-						"and RelationshipID in "+
-						"(select RelationshipID from latestNonDeletedRelationship "+
-							"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
-							"and latestNonDeletedRelationship.Deleted is null))";
-	
-fetchAll(checkPsIntrAnsQuery,new FetchCallback() {
-						        	onFetch(result) {					        	
-									if(isNull(result)){
-										showAlert("alert", "This person has not answered introductory questionnaire \n"+"Do you still want to add this person?", "checkPersonAns()", "stayInCurrentPage()");
-									}
-									else
-									{	
-										checkPersonAns();
-									}
-								
-						        }
-
-						        onError(message) {
-						        	Log.e("error",message);
-						            showToast(message);
-						           
-						        }
-						    });
-
-}
-
 //Do not allow user create answer without create session?
 saveNewAnswer(){
 	if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
@@ -1447,7 +1403,13 @@ saveNewAnswer(){
 		showWarning("Warning","No available interviwer or interviewee\n Please create person info");
 		return;
 	}
-	
+	/*
+	String answerLabel=getFieldValue("survey/answerBasic/answerLabel");
+	if(isNull(answerLabel)){
+		showWarning("Warning","You must input valid answer label");
+		return;
+	}
+	*/
 	if(isNull(getFieldValue("survey/answerBasic/answerText"))){
 		if(isNull(files_in_current_ques)){
 			showWarning("Warning","Please input answer text or adding an answer file");
@@ -1472,12 +1434,12 @@ saveNewAnswer(){
 	
 	if (intervieweeSize==1){
 		tempAnsID=ansLabelFstPart+firstInterviewee+ansLabelSndPart;
-		
+		//tempAnsLabel=tempAnsID;
 		setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
 	}
 	else{
 		tempAnsID=ansLabelFstPart+firstInterviewee+"EtAl"+ansLabelSndPart;
-		
+		//tempAnsLabel=tempAnsID;
 		setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
 	}
 
@@ -1487,14 +1449,14 @@ saveNewAnswer(){
 	
 	if (interviewerSize==1){
 		tempInterviewerPrefix=firstInterviewer;
-		
+		//tempAnsLabel=tempAnsID;
 	}
 	else{
 		tempInterviewerPrefix=firstInterviewer+"EtAl";
 	}
 	
 	if(!tempAnsID.equals(tempAnsLabel)){
-		
+		//TRIGGER HERE, CHANGING FILELABELS
 		fileIdChange=true;
 	}
 	
@@ -1503,7 +1465,7 @@ saveNewAnswer(){
 			answer_id = uuid;
 			if (newRecord) {
 				if(!isNull(sss_id)){
-					
+					//showWarning("!isNull(sss_id)","!isNull(sss_id)");
 					for(interviewer : selected_answer_interviewer){
 						saveEntitiesToRel("Answer and Interviewer",answer_id,interviewer.get(0));
 						interviwerNew=new ArrayList();
@@ -1520,9 +1482,9 @@ saveNewAnswer(){
 				for(interviewee : selected_answer_interviewee){
 					saveEntitiesToRel("Answer and Interviewee",answer_id,interviewee.get(0));	
 				}
-				
+				//showWarning("interviewee","interviewee done");
 				if(fileIdChange){
-
+					//TODO:trigger filelabel change here
 					for(file : files_in_current_ques){
 						entityId = file.get(0);
 						String fileSuffix=null;
@@ -1536,17 +1498,18 @@ saveNewAnswer(){
     					attributes.add(createEntityAttribute("FileID", null, null, tempAnsID+"_"+fileSuffix, null));
 						 saveArchEnt(entityId, "File", null, attributes, new SaveCallback() {
             				onSave(uuid,newRecord) {
-            					
+            					//showWarning(entityId,tempAnsID+"-"+fileSuffix);
             				}  
         				});    
 					}				
 
 				}
-
+				//else{
 				for(file : files_in_current_ques){
 					saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
 				}
-				
+				//}
+				//showWarning("File","File done");
 				newAnswer=new ArrayList();
 				newAnswer.add(answer_id);
 				newAnswer.add(tempAnsID);
@@ -1554,21 +1517,27 @@ saveNewAnswer(){
 				newInterviwer=new ArrayList();
 				newInterviwer.add(answer_id);
 				newInterviwer.add(tempInterviewerPrefix);
-				
+				/*
+				if(!isNull(sssAnswerInterviewerOrigin)){
+					sssAnswerInterviewerOrigin.add(newInterviwer);
+				}
+				*/
 				sss_interviewer_list.add(newInterviwer);//added Interviwer to sss_interviewer
-
+				//showWarning("sss_answer_list","sss_answer_list");
 				populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
 				if(!isNull(sss_id)){//new answer for an existing session
+					//showWarning("!isNull(sss_id)saveSession","!isNull(sss_id)saveSession");
 					saveSession("interviwer");
 				}
 				
 				//what if adding new answer to a session?
 				//Don't need to care about it because this answer would not be the first answer?
-				
+				//showWarning("sessionForAnswer","sessionForAnswer");
 				showToast("new answer created");
 				cancelTabGroup("survey", true);
 				cancelTabGroup("answerToQuestion", true);
-
+				//showTabGroup("questionnaireInfo");
+				//showTab("sessionForAnswer/sssAnsList");
 			}
 			current_answer_id=answer_id;
 		}
@@ -1577,8 +1546,8 @@ saveNewAnswer(){
 		}  
 		});
 	}
-	else{//this is changing answerInfo		
-			saveChangedAnswer();
+	else{//this is changing answerInfo
+		saveChangedAnswer();
 	}
 }
 //For saving changed answer, we have five cases:
@@ -1614,14 +1583,14 @@ saveChangedAnswer(){
 				for(file : files_in_current_ques){
 					saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
 				}
-
-				if(isNull(sss_id)){
-					populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-				}
 				
+				//files_origin.clear();
+				//files_origin.addAll(files_in_current_ques);
 				showToast("file list changed");
 				cancelTabGroup("survey", true);
-			
+				//cancelTabGroup("answerToQuestion", true);
+				//showTabGroup("questionnaireInfo");
+				//showTab("sessionForAnswer/sssAnsList");
 		}
 		//3.case3 pass: only interviewer list changed (or with filelist changes), we need to update interviewer list in answer, and change sessionID in session
 		else if((!interviewerChange.containsKey("EQUAL"))&&(intervieweeChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
@@ -1636,8 +1605,7 @@ saveChangedAnswer(){
 				}
 				showToast("interviewerChange list changed");
 			}
-			if(!isNull(sss_id)){
-				for(interviewerDelete:ansInterviewerOriginReln){
+			for(interviewerDelete:ansInterviewerOriginReln){
 						deleteRel(interviewerDelete.get(0));
 					}
 				
@@ -1651,13 +1619,7 @@ saveChangedAnswer(){
 					saveSession("interviwer");
 					showToast("Interviewer lists changed");
 					cancelTabGroup("survey", true);
-				}
-
-			else{
-				interviewerChangeNewSession();
-				showToast("Interviewer lists changed");
-				cancelTabGroup("survey", true);
-			}
+					//cancelTabGroup("answerToQuestion", true);
 
 		}
 		//4.only interviewee list changed, we need to update answerID as well as file ids, save"survey" pass
@@ -1670,19 +1632,18 @@ saveChangedAnswer(){
 				String currentAnsLabelInve=currentAnsLabelSplit[currentAnsLabelSplit.length-2];//get the current interviewee included in label
 				//showWarning("currentAnsLabelInve",currentAnsLabelInve);
 				Boolean ansLabelChange=false;
-				Boolean populateAns=false;
 				tempAnsLabelInve=null;
 					int intervieweeSize=selected_answer_interviewee.size();
 					firstInterviewee=selected_answer_interviewee.get(0).get(1);
-					
+					//showWarning("firstInterviewee",firstInterviewee);
 		
 					if (intervieweeSize==1){
 						tempAnsLabelInve=firstInterviewee;
-				
+						//showWarning("tempAnsLabelInve",tempAnsLabelInve);
 						}
 					else{
 						tempAnsLabelInve=firstInterviewee+"EtAl";
-						
+						//showWarning("tempAnsLabelInveEtAl",tempAnsLabelInve);
 					}
 				if (!tempAnsLabelInve.equals(currentAnsLabelInve)) {
 					currentAnsLabelSplit[currentAnsLabelSplit.length-2]=tempAnsLabelInve;
@@ -1692,12 +1653,12 @@ saveChangedAnswer(){
 						sb.append(field);
 					}
 					newAnsLabel=sb.toString();
-					
+					//showWarning("newAnsLabel",newAnsLabel);
 					setFieldValue("survey/answerBasic/answerLabel",newAnsLabel);
 					ansLabelChange=true;
 					}
 					if (ansLabelChange) {
-						
+						//showWarning("ansLabelChange:","ansLabelChange");
 						saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
 						onSave(uuid, newRecord) {
 							answer_id = uuid;	//not sure how it's working
@@ -1721,7 +1682,7 @@ saveChangedAnswer(){
     						attributes.add(createEntityAttribute("FileID", null, null, newAnsLabel+"_"+fileSuffix, null));
 							 saveArchEnt(entityId, "File", null, attributes, new SaveCallback() {
             					onSave(uuid,newRecord) {
-            					
+            					//showWarning(entityId,tempAnsID+"-"+fileSuffix);
             					}  
         					});    
 							}		
@@ -1736,42 +1697,25 @@ saveChangedAnswer(){
 							}
 
 							if (!interviewerChange.containsKey("EQUAL")) {
-								if (!isNull(sss_id)){
-									for(interviewerDelete:ansInterviewerOriginReln){
-										deleteRel(interviewerDelete.get(0));
-									}
-									for(interviewer : selected_answer_interviewer){
-										interviwerNew=new ArrayList();
-										interviwerNew.add(current_answer_id);
-										interviwerNew.add(interviewer.get(1));
-										sssAnswerInterviewerNew.add(interviwerNew);
-										saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
-									}
-									saveSession("interviwer");
-									//showToast("Answer Info Changed");
-									//cancelTabGroup("survey", true);
-									//loadSessionInfo("answerLabel");
+								for(interviewerDelete:ansInterviewerOriginReln){
+									deleteRel(interviewerDelete.get(0));
 								}
-								else{
-									interviewerChangeNewSession();
-									populateAns=true;
-									//showToast("Answer Info Changed");
-									//cancelTabGroup("survey", true);
+								for(interviewer : selected_answer_interviewer){
+									interviwerNew=new ArrayList();
+									interviwerNew.add(current_answer_id);
+									interviwerNew.add(interviewer.get(1));
+									sssAnswerInterviewerNew.add(interviwerNew);
+									saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
 								}
-								
+								saveSession("interviwer");
 							}	
 							showToast("Answer Info Changed");
+
 							cancelTabGroup("survey", true);
-							if(!isNull(sss_id)){
-								loadSessionInfo("answerLabel");
-							}
-							else{
-								if(!populateAns)
-								{
-									populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-								}
-							}
-							
+							loadSessionInfo("answerLabel");
+							//cancelTabGroup("answerToQuestion", true);
+						//showTabGroup("questionnaireInfo");
+							//showTab("sessionForAnswer/sssAnsList");
 					}
 					onError(message) {
 						showWarning("error",message);
@@ -1781,7 +1725,7 @@ saveChangedAnswer(){
 
 			else
 			{
-
+				//showWarning("!ansLabelChange","!ansLabelChange");
 						for(intervieweeDelete:ansIntervieweeOriginReln){
 							deleteRel(intervieweeDelete.get(0));
 						}
@@ -1799,59 +1743,44 @@ saveChangedAnswer(){
 						}
 
 						if(!interviewerChange.containsKey("EQUAL")){
-							if(isNull(sss_id)){
-									interviewerChangeNewSession();
-									populateAns=true;
+							for(interviewerDelete:ansInterviewerOriginReln){
+								deleteRel(interviewerDelete.get(0));
 							}
-							else{
-								for(interviewerDelete:ansInterviewerOriginReln){
-									deleteRel(interviewerDelete.get(0));
-								}
-								for(interviewer : selected_answer_interviewer){
-									interviwerNew=new ArrayList();
-									interviwerNew.add(current_answer_id);
-									interviwerNew.add(interviewer.get(1));
-									sssAnswerInterviewerNew.add(interviwerNew);
-									saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
-								}
-								saveSession("interviwer");
-								
+							for(interviewer : selected_answer_interviewer){
+								interviwerNew=new ArrayList();
+								interviwerNew.add(current_answer_id);
+								interviwerNew.add(interviewer.get(1));
+								sssAnswerInterviewerNew.add(interviwerNew);
+								saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
 							}
+							saveSession("interviwer");
 						}
+						
 						showToast("Answer Info Changed");
-						cancelTabGroup("survey", true);	
-						if(!populateAns)
-							{
-								populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-							}	
-			
+						cancelTabGroup("survey", true);
+						//cancelTabGroup("answerToQuestion", true);
+						//showTabGroup("questionnaireInfo");
+						//showTab("sessionForAnswer/sssAnsList");
 			}
 		}
 		//5. only basic info changed without interviewee changes
 		else if((!answerBasicInfoChange.containsKey("EQUAL")) &&  (intervieweeChange.containsKey("EQUAL"))){
 			//showWarning("CASE5","CASE5");
-			Boolean populateAns=false;
 			saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
 					onSave(uuid, newRecord) {
 						answer_id = uuid;	//not sure how it's working
 						if(!interviewerChange.containsKey("EQUAL")){
-							if(isNull(sss_id)){
-								interviewerChangeNewSession();
-								populateAns=true;
+							for(interviewerDelete:ansInterviewerOriginReln){
+								deleteRel(interviewerDelete.get(0));
 							}
-							else{
-								for(interviewerDelete:ansInterviewerOriginReln){
-									deleteRel(interviewerDelete.get(0));
-								}
-								for(interviewer : selected_answer_interviewer){
-									interviwerNew=new ArrayList();
-									interviwerNew.add(current_answer_id);
-									interviwerNew.add(interviewer.get(1));
-									sssAnswerInterviewerNew.add(interviwerNew);
-									saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
-								}
-								saveSession("interviwer");
+							for(interviewer : selected_answer_interviewer){
+								interviwerNew=new ArrayList();
+								interviwerNew.add(current_answer_id);
+								interviwerNew.add(interviewer.get(1));
+								sssAnswerInterviewerNew.add(interviwerNew);
+								saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
 							}
+						saveSession("interviwer");
 						}
 						if(!fileListChange.containsKey("EQUAL")){
 							for(fileDelete:ansFileOriginReln){
@@ -1864,10 +1793,9 @@ saveChangedAnswer(){
 						
 						showToast("Answer Info Changed");
 						cancelTabGroup("survey", true);
-						if(!populateAns)
-							{
-								populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-							}	
+						//cancelTabGroup("answerToQuestion", true);
+						//showTabGroup("questionnaireInfo");
+						//showTab("sessionForAnswer/sssAnsList");
 				}
 				onError(message) {
 					showWarning("error",message);
@@ -1877,14 +1805,13 @@ saveChangedAnswer(){
 		}
 		//6. answer basic info changed and interviewee list also changed
 		else{
-			//showWarning("case 6","case 6");
+			//showWarning("case6","case6");
 				String newAnsLabel=null;
 				String currentAnsLabel=getFieldValue("survey/answerBasic/answerLabel");
 				String[] currentAnsLabelSplit=currentAnsLabel.split("_");
 				String currentAnsLabelInve=currentAnsLabelSplit[currentAnsLabelSplit.length-2];//get the current interviewee included in label
 				//showWarning("currentAnsLabelInve",currentAnsLabelInve);
 				Boolean ansLabelChange=false;
-				Boolean populateAns=false;
 				tempAnsLabelInve=null;
 					int intervieweeSize=selected_answer_interviewee.size();
 					firstInterviewee=selected_answer_interviewee.get(0).get(1);
@@ -1892,11 +1819,11 @@ saveChangedAnswer(){
 		
 					if (intervieweeSize==1){
 						tempAnsLabelInve=firstInterviewee;
-						
+						//showWarning("tempAnsLabelInve",tempAnsLabelInve);
 						}
 					else{
 						tempAnsLabelInve=firstInterviewee+"EtAl";
-						
+						//showWarning("tempAnsLabelInveEtAl",tempAnsLabelInve);
 					}
 				if (!tempAnsLabelInve.equals(currentAnsLabelInve)) {
 					currentAnsLabelSplit[currentAnsLabelSplit.length-2]=tempAnsLabelInve;
@@ -1906,7 +1833,7 @@ saveChangedAnswer(){
 						sb.append(field);
 					}
 					newAnsLabel=sb.toString();
-	
+					//showWarning("newAnsLabel",newAnsLabel);
 					setFieldValue("survey/answerBasic/answerLabel",newAnsLabel);
 					ansLabelChange=true;
 					}
@@ -1914,14 +1841,13 @@ saveChangedAnswer(){
 						saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
 						onSave(uuid, newRecord) {
 							answer_id = uuid;	//not sure how it's working
-							//Change interviwee information
 							for(intervieweeDelete:ansIntervieweeOriginReln){
 								deleteRel(intervieweeDelete.get(0));
 							}
 							for(interviewee : selected_answer_interviewee){
 								saveEntitiesToRel("Answer and Interviewee",current_answer_id,interviewee.get(0));		
 							}
-						//change file labels
+							//TODO:still needs to change file ids
 							if(ansLabelChange){
 							for(file : files_in_current_ques){
 								entityId = file.get(0);
@@ -1930,22 +1856,20 @@ saveChangedAnswer(){
 									if (currentFileType.get(0).equals(entityId)) {
 									fileSuffix=currentFileType.get(1);
 									break;
-									}
-								}					
+								}
+							}					
 								attributes = createAttributeList();
     							attributes.add(createEntityAttribute("FileID", null, null, newAnsLabel+"_"+fileSuffix, null));
 							 	saveArchEnt(entityId, "File", null, attributes, new SaveCallback() {
             						onSave(uuid,newRecord) {
-            				
+            					//showWarning(entityId,tempAnsID+"-"+fileSuffix);
             						}  
         							});    
 								}	
-								if(!isNull(sss_id)){
-									loadSessionInfo("answerLabel");	
-								}
+								loadSessionInfo("answerLabel");	
 							}
 
-							//change file list
+
 							if(!fileListChange.containsKey("EQUAL")){
 								for(fileDelete:ansFileOriginReln){
 									deleteRel(fileDelete.get(0));
@@ -1954,34 +1878,26 @@ saveChangedAnswer(){
 									saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
 								}
 							}
-							//change interviwer list
+							
+
 							if (!interviewerChange.containsKey("EQUAL")) {
-								if(isNull(sss_id)){
-									interviewerChangeNewSession();
-									populateAns=true;
+								for(interviewerDelete:ansInterviewerOriginReln){
+									deleteRel(interviewerDelete.get(0));
 								}
-								else{
-									for(interviewerDelete:ansInterviewerOriginReln){
-										deleteRel(interviewerDelete.get(0));
-									}
-									for(interviewer : selected_answer_interviewer){
-										interviwerNew=new ArrayList();
-										interviwerNew.add(current_answer_id);
-										interviwerNew.add(interviewer.get(1));
-										sssAnswerInterviewerNew.add(interviwerNew);
-										saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
-									}
-									saveSession("interviwer");
+								for(interviewer : selected_answer_interviewer){
+									interviwerNew=new ArrayList();
+									interviwerNew.add(current_answer_id);
+									interviwerNew.add(interviewer.get(1));
+									sssAnswerInterviewerNew.add(interviwerNew);
+									saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));
 								}
+								saveSession("interviwer");
 							}	
 							showToast("Answer Info Changed");
 							cancelTabGroup("survey", true);
-							if(!populateAns)
-							{
-								populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-							}	
-							//cancelTabGroup("answerToQuestion", true);
-
+							cancelTabGroup("answerToQuestion", true);
+						//showTabGroup("questionnaireInfo");
+							//showTab("sessionForAnswer/sssAnsList");
 					}
 					onError(message) {
 						showWarning("error",message);
@@ -1991,41 +1907,6 @@ saveChangedAnswer(){
 		}
 
 }
-
-interviewerChangeNewSession(){
-	for(interviewerDelete:ansInterviewerOriginReln){
-		deleteRel(interviewerDelete.get(0));
-	}
-	for(interviewer : selected_answer_interviewer){
-		saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));	
-	}
-
-	tempInterviewerPrefix=null;
-	int interviewerSize=selected_answer_interviewer.size();
-	firstInterviewer=selected_answer_interviewer.get(0).get(1);
-	if (interviewerSize==1){
-		tempInterviewerPrefix=firstInterviewer;
-	}
-	else{
-		tempInterviewerPrefix=firstInterviewer+"EtAl";
-	}
-	//showWarning("tempInterviewerPrefix",tempInterviewerPrefix);
-	newInterviwer=new ArrayList();
-	newInterviwer.add(current_answer_id);
-	newInterviwer.add(tempInterviewerPrefix);
-	for (person: sss_interviewer_list){
-		String personUuid=person.get(0);
-		if (personUuid.equals(current_answer_id)) {
-			sss_interviewer_list.remove(person);
-			break;
-		}
-	}
-	sss_interviewer_list.add(newInterviwer);
-	//showWarning("sss_interviewer_list","sss_interviewer_list");
-	populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-	//showWarning("populateList",sss_answer_list.size().toString());
-}
-
 //measure whether two arraylists are identical, if not, recording what kinds of operation have been done
 listChange(ArrayList targetList,ArrayList sourceList){
 	Hashtable listChanges=new Hashtable();
@@ -2076,14 +1957,6 @@ newFile(String typeFlag){
 				showWarning("Warning","No available interviwer or interviewee\n Please create person info");
 				return;
 			}
-			/*
-			if(isNull(sss_id)){
-				showWarning("Please save the session first","Please save the session first\n Or you could lose your data");
-				cancelTabGroup("survey",true);
-				showTab("sessionForAnswer/sssAnsList");
-				return;
-			}
-			*/
 			fileCategory=getFieldValue("survey/answerFile/file_Category");
 			answerFile=true;
 			current_answer_file_id=null;
@@ -2172,7 +2045,74 @@ newFile(String typeFlag){
 			}
 		break;
 	}
-	
+	/*
+	if(typeFlag.equals("answer")){
+		if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
+			showWarning("Warning","Please select interviewers and interviewees");
+			return;
+		}
+		if((selected_answer_interviewer.isEmpty()) || (selected_answer_interviewee.isEmpty())){
+			showWarning("Warning","No available interviwer or interviewee\n Please create person info");
+			return;
+		}
+		fileCategory=getFieldValue("survey/answerFile/file_Category");
+		answerFile=true;
+		current_answer_file_id=null;
+	}
+	else{
+		fileCategory=getFieldValue("control/file_control/fileCategorySelect");
+		answerFile=false;
+		file_id=null;
+	}
+	if(isNull(current_answer_id)){
+		int intervieweeSize=selected_answer_interviewee.size();
+		firstInterviewee=selected_answer_interviewee.get(0).get(1);
+		if (intervieweeSize==1){
+			tempAnsID=ansLabelFstPart+firstInterviewee+ansLabelSndPart;
+			tempAnsLabel=tempAnsID;
+			setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
+		}
+	else{
+			tempAnsID=ansLabelFstPart+firstInterviewee+"EtAl"+ansLabelSndPart;
+			tempAnsLabel=tempAnsID;
+			setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
+		}
+	}
+	else
+	{
+		tempAnsID=getFieldValue("survey/answerBasic/answerLabel");
+	}
+
+	switch (fileCategory){
+	case "Audio":		
+		newTabGroup("audioFile");
+		setFieldValue("audioFile/audioFileInfo/audioFileID",tempAnsID+"-Audio");
+		setFieldValue("audioFile/audioFileInfo/audioFileCreator",username);
+		setFieldValue("audioFile/audioFileInfo/audioFileType","Audio");
+		break;
+	case "Video":
+		newTabGroup("videoFile");
+		setFieldValue("videoFile/videoFileInfo/videoFileID",tempAnsID+"-Video");
+		setFieldValue("videoFile/videoFileInfo/videoFileCreator",username);
+		setFieldValue("videoFile/videoFileInfo/videoFileType","Video");
+		break;
+	case "Photo":
+		newTabGroup("photoFile");
+		setFieldValue("photoFile/photoFileInfo/photoFileID",tempAnsID+"-Photo");
+		setFieldValue("photoFile/photoFileInfo/photoFileCreator",username);
+		setFieldValue("photoFile/photoFileInfo/photoFileType","Photo");
+		break;
+	case "Other":
+		newTabGroup("sketchFile");
+		setFieldValue("sketchFile/sketchFileInfo/sketchFileID",tempAnsID+"-Recording");
+		setFieldValue("sketchFile/sketchFileInfo/sketchFileCreator",username);
+		setFieldValue("sketchFile/sketchFileInfo/sketchFileType","Sketch");
+		break;
+	default:
+		showWarning("Invalid category","Please select a valid file category");
+		break;
+	}
+	*/
 }
 
 viewOrDeleteFileReln(){
@@ -2213,11 +2153,21 @@ deleteFileRelation(){
 			break;
 		}
 	}
-
+	/*
+	for(int i=0;i<files_in_current_ques.size();i++){
+		if(files_in_current_ques.get(i).get(0).equals(delete_file_id))
+		{
+			files_in_current_ques.remove(i);
+			populateList("survey/answer/answerFileList",files_in_current_ques);
+			break;
+		}
+	}
+	*/
 }
 Boolean answerFile=false;//flag of whether user is viewing file from answer page
 loadAnswerFileInfo(String typeFlag){
 	String view_file_id=null;
+	//showWarning("typeFlag",typeFlag);
 	if(typeFlag.equals("answer")){
 		current_answer_file_id=getListItemValue();
 		if(isNull(current_answer_file_id)){
@@ -2301,7 +2251,8 @@ loadAnswerFileInfo(String typeFlag){
 }
 
 searchPersonForAnswer(){
-
+	//searchResult=new ArrayList();
+	//searchResult.clear();
 	personType = null;
 	personType = getFieldValue("survey/answerPerson/personType");
 	//showWarning("type",personType);
@@ -2590,17 +2541,9 @@ setFileToField(String ref) {
 onEvent("control/user_control/New_User","click","newPerson()");
 onEvent("control/user_control","show","loadPerson()");
 onEvent("control/user_control/userList","click","loadPersonInfo()");
-onEvent("person/personInfo/Finish_New_Person","click","saveNewPerson(\"save\")");
-onEvent("person/personInfo/Take_Intro_Quesnir","click","checkPersonIntroSession()");
+onEvent("person/personInfo/Finish_New_Person","click","saveNewPerson()");
+//onEvent("person/personInfo/Take_Intro_Quesnir","click","nameCamCaseConverter(\"tim hiddlson\")");
 onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
-onEvent("introSssList/introSssInfo/intrSessionList","click","loadSessionInfo(\"answer\")");
-onEvent("introSssList/introSssInfo/new_intro_sss","click","newSessionForAnswer(\"intro\",currentPersonInfo)");
-
-personIntroSss=new ArrayList();
-currentPersonInfo=new ArrayList();//for creating intro session for a new added person or existing person
-originPersonInfo =new ArrayList();//for recording original loaded person info so that we can tell if a person's info has changed
-changedPersonInfo=new ArrayList();//for recording newest edited person info so that we can tell if a person's info has been changed
-
 
 person_id=null;
 newPerson(){
@@ -2612,7 +2555,11 @@ newPerson(){
 
 loadPerson(){
 	person_id=null;
-	fetchAll(loadAllPersonIDQuery, new FetchCallback() {
+	fetchAll(/*"SELECT uuid, group_concat(coalesce(measure, ''),' - ') as response " +
+    "FROM (select * from latestNonDeletedArchentIdentifiers) " +
+    "WHERE aenttypename = 'Person' " +
+    "GROUP BY uuid " +
+    "order by response;"*/loadAllPersonIDQuery, new FetchCallback() {
         onFetch(result) {
             populateList("control/user_control/userList", result);
         }
@@ -2660,7 +2607,6 @@ timeValidation(String startDateTime){
 	}
 return false;
 }
-
 nameCamCaseConverter(String originName){
 	String camCase=null;
 	String [] originNameSplit=originName.split("\\s+");
@@ -2680,7 +2626,7 @@ nameCamCaseConverter(String originName){
 	//showWarning("camCase",camCase);
 }
 
-saveNewPerson(String typeflag){
+saveNewPerson(){
 
 	if((isNull(getFieldValue("person/personInfo/personName")))|| (isNull(getFieldValue("person/personInfo/personDOB")))){
 		showWarning("Validation Error", "You must fill in the Person Name and Person DOB before you can continue");
@@ -2689,6 +2635,7 @@ saveNewPerson(String typeflag){
 	String personNameOrigin=getFieldValue("person/personInfo/personName");
 	String personNameCamCase=nameCamCaseConverter(personNameOrigin);
 	String personLabel=personNameCamCase+"_"+getFieldValue("person/personInfo/personDOB");
+	//showWarning("personLabel",personLabel);
 	setFieldValue("person/personInfo/personID", personLabel);
 	String personDOB=getFieldValue("person/personInfo/personDOB");
 	if(timeValidation(personDOB)){
@@ -2697,29 +2644,12 @@ saveNewPerson(String typeflag){
 	    onSave(uuid, newRecord) {
 	      person_id = uuid;
 	      if (newRecord) {
-	      	newPersonIntro=new ArrayList();
-	      	newPersonIntro.add(person_id);
-			newPersonIntro.add(personNameOrigin);
-
-	      	if(typeflag.equals("intro")){
-				newSessionForAnswer("intro",newPersonIntro);
-			}
-			else{
-	        	showToast("New record created");
-	        	cancelTabGroup("person",true);
-	     	    showTab("control/user_control");
-	    	}
+	        showToast("New record created");
+	        cancelTabGroup("person",true);
+	        showTab("control/user_control");
 	      }
 		  else{
 			showToast("Record changed");	
-			if(typeflag.equals("intro")){
-				//showWarning("intro","intro");
-				newPersonIntro=new ArrayList();
-	      		newPersonIntro.add(person_id);
-				newPersonIntro.add(personNameOrigin);
-				//showWarning("newPersonIntro","newPersonIntro");
-				newSessionForAnswer("intro",newPersonIntro);
-			}
 		  }
 		  
 	    }
@@ -2728,61 +2658,13 @@ saveNewPerson(String typeflag){
 	    }  
 	  	});
 		}
-
 		else{
 			showWarning("Invalid DOB","1.Datetime format should be yyyy-MM-dd \n"+"2.The value for date should be valid");
 						return;
 		}
-
 }
 
-//Get the intro session list for a person
-checkPersonIntroSession(){
-checkPsIntrSssQuery="select uuid,measure from latestNonDeletedAentValue "+
-					"where AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionName')  "+
-					"and uuid in "+
-						"(select uuid from AentReln where RelationshipID in "+
-							"(select RelationshipID from AentReln "+
-							"where RelationshipID in"+
-								"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session' ) "+
-							"and latestNonDeletedRelationship. Deleted IS NULL) "+
-						"and AentReln.uuid in "+
-							"( select uuid from latestNonDeletedAentValue "+
-							"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
-							"and latestNonDeletedAentValue.measure in "+
-								"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
-									"(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
-									"and latestNonDeletedAentValue.measure='Introductory') "+
-							"and uuid in "+
-								"(select uuid from AentReln where RelationshipID in "+
-									"(select RelationshipID from AentReln where AentReln.uuid='"+person_id+"') "+
-									"and RelationshipID in "+
-										"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
-									"and latestNonDeletedRelationship.Deleted is null)))))";
 
-fetchAll(checkPsIntrSssQuery, new FetchCallback() {
-        onFetch(result) {
-        		if(!isNull(result)){
-					personIntroSss.clear();
-					personIntroSss.addAll(result);
-					showTabGroup("introSssList");
-					populateList("introSssList/introSssInfo/intrSessionList",personIntroSss);
-					currentPersonInfo.clear();
-					currentPersonInfo.add(person_id);
-					currentPersonInfo.add(getFieldValue("person/personInfo/personName"));
-
-        		}
-        		else{
-        			saveNewPerson("intro");
-        		}
-        	}
-            
-        onError(message) {
-            showToast(message);
-        }
-    });
-
-}
 /*** Language ***/
 onEvent("control/language_control/New_Language","click","newLanguage()");
 onEvent("language/languageInfo/Finish_New_Language","click","saveNewLanguage()");
@@ -2827,7 +2709,11 @@ saveNewLanguage(){
 
 loadLanguage(){
 	language_id=null;
-	
+	//"SELECT uuid, group_concat(coalesce(measure, ''),' - ') as response " +
+    //"FROM (select * from latestNonDeletedArchentIdentifiers) " +
+    //"WHERE aenttypename = 'Language' " +
+    //"GROUP BY uuid " +
+    //"order by response;"
 	fetchAll(loadAllLanguageQuery, new FetchCallback() {
         onFetch(result) {
             populateList("control/language_control/languageList", result);
@@ -3006,7 +2892,23 @@ loadSessionInfo(String typeFlag){
 		showWarning("Invalid session","No session is selected or session is not available");
 		return;
 	}
-	
+	/*
+	loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+ 				"(select RelationshipID from "+
+ 					"(select RelationshipID, AEntRelnTimestamp from AentReln where AentReln.uuid="+session_id+" "+
+ 					"and RelationshipID in "+
+ 						"(select RelationshipID from Relationship where RelnTypeID="+
+ 							"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t1 "+
+ 					"inner join "+
+ 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+session_id+" "+
+ 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
+ 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t2 "+
+ 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
+	*/
+	//showWarning("session id",session_id);
 	loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
 			"and uuid in "+
@@ -3045,7 +2947,7 @@ loadSessionInfo(String typeFlag){
                 	selected_files_session.addAll(result);
                 	original_files_session.clear();
                 	original_files_session.addAll(result);
-                	checkSssQuesnirType("session");
+                	
                 	fetchAll(loadAllAnswerQuery, new FetchCallback() {
                         onFetch(result) {
                         	candidate_files_session.clear();
@@ -3079,7 +2981,22 @@ loadSessionInfo(String typeFlag){
 			showWarning("Invalid session","No session is selected or session is not available");
 			return;
 		}
-		
+		/*
+		loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+				"and uuid in "+
+	 			"(select uuid from AentReln where RelationshipID in "+
+	 				"(select RelationshipID from "+
+	 					"(select RelationshipID, AEntRelnTimestamp from AentReln where AentReln.uuid="+sss_id+" "+
+	 					"and RelationshipID in "+
+	 						"(select RelationshipID from Relationship where RelnTypeID="+
+	 							"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t1 "+
+	 					"inner join "+
+	 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+sss_id+" "+
+	 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
+	 					"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session'))) t2 "+
+	 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
+		*/
 		loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
 				"and uuid in "+
@@ -3112,13 +3029,12 @@ loadSessionInfo(String typeFlag){
 	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
 	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));  
 	        	fetchAll(loadAnswerForSessionQuery, new FetchCallback() {
-	                onFetch(answers) {
+	                onFetch(result) {
 	                	original_sss_answer_list.clear();
-	                	original_sss_answer_list.addAll(answers);
+	                	original_sss_answer_list.addAll(result);
 	                	sss_answer_list.clear();
-	                	sss_answer_list.addAll(answers);
+	                	sss_answer_list.addAll(result);
 	                	populateList("sessionForAnswer/sssAnsList/sssAnswerList",original_sss_answer_list);
-	                	checkSssQuesnirType("answer");
 	                }
 
 	                onError(message) {
@@ -3133,7 +3049,6 @@ loadSessionInfo(String typeFlag){
 	        }
 	    });
 		loadSessionInterviewer("answer");
-		
 		break;
 
 		case "answerLabel":
@@ -3176,44 +3091,7 @@ loadSessionInfo(String typeFlag){
 	            });
 	    loadSessionInterviewer("answer");
 		break;
-
 	}
-}
-
-//check if a session is for intro quesnir or regular quesnir
-checkSssQuesnirType(String typeflag){
-	 //showWarning("checkSssQuesnirType","checkSssQuesnirType");
-	String checkAnsId=null;
-	if(typeflag.equals("answer")){
-		checkAnsId=original_sss_answer_list.get(0).get(0);
-	}
-	else
-	{
-		checkAnsId=selected_files_session.get(0).get(0);
-	}
- 	//showWarning("checkAnsId",checkAnsId);
-
-		checkAnsQuesnirTypeQuery="SELECT uuid,measure from latestNonDeletedAentValue "+
-		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from Attributekey where AttributeName='QuestionnaireType') "+
-		"and uuid = "+
-		"( select measure from latestNonDeletedAentValue where uuid='"+checkAnsId+"'"+
-			//"latestNonDeletedAentValue.uuid='"+checkAnsId+"' "+
-			"and AttributeID=( (select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID')))";
-
-		//showWarning("checkAnsQuesnirTypeQuery",checkAnsQuesnirTypeQuery);
-
-		fetchAll(checkAnsQuesnirTypeQuery, new FetchCallback() {
-        onFetch(quesnirTypeResult) {
-              String quesnirType=quesnirTypeResult.get(0).get(1);
-              //showWarning("quesnirType",quesnirType);
-              if(quesnirType.equals("Introductory")){
-              	introAns=true;
-              }
-              else{
-              	introAns=false;
-              }
-       		 }
-   		 });
 }
 
 loadSessionInterviewer(String typeflag){
@@ -3316,7 +3194,77 @@ loadSessionInterviewer(String typeflag){
 
 	}
 }
-        		
+        		/*
+        		firstAns=tempAnsList.get(0).get(0);
+        		firstInterviewerForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+        				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+        				"and uuid in "+
+        	 			"(select uuid from AentReln where RelationshipID in "+
+        				"(select RelationshipID from AEntReln where AEntReln.uuid="+firstAns+" "+
+        	 			"AND RelationshipID in "+
+        				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+        	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer') "+
+        				"and latestNonDeletedRelationship.Deleted IS NULL)))";
+        		fetchAll(firstInterviewerForAnswerQuery, new FetchCallback() {
+	                onFetch(result) {	                
+	                	sssAnswerInterviewerOrigin.addAll(result);
+	                	if(sssAnswerInterviewerOrigin.size()>1){
+	                		prefix=sssAnswerInterviewerOrigin.get(0).get(1)+"EtAl";
+	                		showWarning(">2interviewer",prefix);
+	                	}
+	                	else{
+	                		if(tempAnsList.size()>=2){
+	                			prefix=sssAnswerInterviewerOrigin.get(0).get(1);
+	                		//sssAnswerInterviewerOrigin.clear();
+	                		Boolean mul=false;
+	                		for (ans:tempAnsList){
+	                			if(!nmul){
+	                    		loadInterviewerForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+	                    				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+	                    				"and uuid in "+
+	                    	 			"(select uuid from AentReln where RelationshipID in "+
+	                    				"(select RelationshipID from AEntReln where AEntReln.uuid="+ans.get(0)+" "+
+	                    	 			"AND RelationshipID in "+
+	                    				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+	                    	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer') "+
+	                    				"and latestNonDeletedRelationship.Deleted IS NULL)))";
+	                    		tempInt=fetchAll(loadInterviewerForAnswerQuery);
+	                    		//sssAnswerInterviewerOrigin.addAll(tempInt);	
+	                    		fetchAll(loadInterviewerForAnswerQuery, new FetchCallback() {
+	            	                onFetch(result) {	                
+	            	                	sssAnswerInterviewerOrigin.addAll(result);
+	            	                	if(sssAnswerInterviewerOrigin.size()>1){
+	            	                		prefix=prefix+"EtAl";
+	            	                		mul=true;
+		            	                }
+	            	                	//showWarning("loadSessionInterviewer",sssAnswerInterviewerOrigin.size().toString());
+	            	                	//tempInterviwerList.addAll(result);
+	            	                }
+	            	                
+	            	                onError(message) {
+	            	                    showToast(message);
+	            	                	}
+	                    			});
+	                    		}
+	                		}
+	                		}
+	                		else
+	                		{
+	                			prefix=sssAnswerInterviewerOrigin.get(0).get(1);
+	                			showWarning("1interviewer1ans",prefix);
+	                		}
+	                		
+	                	}
+	                }
+	                onError(message) {
+	                    showToast(message);
+	                }
+	            });
+        	}*/
+        	
+	
+//}
+
 saveSession(String typeflag){
 	switch(typeflag){
 	case "session":
@@ -4351,12 +4299,17 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 						}
 					}  
 			});
-
 			break;
 		case "file":
 			String fileType=getFieldValue(fileTypeRef);
 			switch (fileType){
 			case "Audio":
+				//select uuid,measure from 
+				//((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Audio' 
+				//and AttributeID = (select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 
+				//inner join 
+				//(select uuid,measure from latestNonDeletedAentValue where AttributeID=
+				//(select AttributeID from AttributeKey where AttributeName='FileName')) t2 on t1.fileID=t2.uuid);
 				searchAudioFileQuery="select uuid,measure from "+
 						"((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Audio' and AttributeID = "+
 							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+

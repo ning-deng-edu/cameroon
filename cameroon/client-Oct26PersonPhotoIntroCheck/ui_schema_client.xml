@@ -240,7 +240,7 @@
                        <file_Category/>
                         <Add_New_File/>
                         <answerFileList/>
-                         <Finish_New_Answer/>
+                        <Finish_New_Answer/>
                    </answerFile>                                              
                 </survey>                
                
@@ -356,7 +356,9 @@
                     <personDOB/>
                     <personPhoto/>
                     <Take_Photo/>
+                    <personPhotoDesc/>
                     <Take_Intro_Quesnir/>
+                    <personIntroDesc/>
                     <Finish_New_Person/>
                   </personInfo>
                 </person>
@@ -1344,10 +1346,18 @@
             <trigger ref="Take_Photo" faims_style_class="faims-blue">
                 <label>Take Photo</label>
             </trigger>
-         
+
+            <input ref="personPhotoDesc" faims_attribute_name="PersonPhotoDescription" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
+              <label>Photo decription</label>
+            </input>
+
             <trigger ref="Take_Intro_Quesnir" faims_style_class="faims-blue">
                 <label>Intro Questionnaire</label>
             </trigger>
+
+            <input ref="personIntroDesc" faims_attribute_name="PersonIntroQuenirDesp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
+              <label>Intro quesnir description</label>
+            </input>
 
             <trigger ref="Finish_New_Person" faims_style_class="faims-blue">
                 <label>Save Person</label>
