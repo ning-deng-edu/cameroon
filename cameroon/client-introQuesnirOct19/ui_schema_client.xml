@@ -1333,7 +1333,7 @@
               <label>Person DOB</label>
             </input>
            
-            <select type="camera" faims_sync="true" ref="personPhoto" faims_attribute_name="PersonPhoto" faims_attribute_type="measure" faims_certainty="true" faims_annotation="true" faims_read_only="false">
+            <select type="image" faims_sync="true" ref="personPhoto" faims_attribute_name="PersonPhoto" faims_attribute_type="measure" faims_annotation="true" faims_read_only="false">
             <label>Photo</label>
               <item>
                   <label>placeholder</label>
@@ -1361,7 +1361,7 @@
                 <label>New session</label>
             </trigger>
     
-            <select1 appearance="compact" ref="intrSessionList" faims_style_class="survey-list">
+            <select1 appearance="compact" ref="intrSessionList" faims_style_class="survey-list" faims_annotation="true">
                 <label>Tap to view session</label>
                 <item>
                     <label>placeholder</label>
