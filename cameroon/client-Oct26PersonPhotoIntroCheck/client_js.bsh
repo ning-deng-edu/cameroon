@@ -2755,7 +2755,7 @@ saveNewPerson(String typeflag){
 	changedPersonInfo.add(getFieldValue("person/personInfo/personIntroDesc"));
 
 	if(timeValidation(personDOB)){
-		//showWarning("timevalid","timevalid");
+
 		Hashtable personInfoChange=listChange(changedPersonInfo,originPersonInfo);
 
 		if((personInfoChange.containsKey("EQUAL"))&& (typeflag.equals("intro"))){
@@ -2764,9 +2764,14 @@ saveNewPerson(String typeflag){
 				newPersonIntro.add(personNameOrigin);
 				newSessionForAnswer("intro",newPersonIntro);
 		}
+		
+		else if((personInfoChange.containsKey("EQUAL"))&& (!typeflag.equals("intro"))){
+			showWarning("No changes","All data are saved");
+			return;
+		}
 
 		else{
-			
+
 		saveTabGroup("person", person_id, null, null, new SaveCallback() {
 	    onSave(uuid, newRecord) {
 	      person_id = uuid;
