@@ -2631,6 +2631,13 @@ person_id=getListItemValue();
 	}
 	showTabGroup("person", person_id, new FetchCallback() {
         onFetch(result) {
+        	originPersonInfo.clear();
+        	originPersonInfo.add(getFieldValue("person/personInfo/personID"));
+        	originPersonInfo.add(getFieldValue("person/personInfo/personName"));
+        	originPersonInfo.add(getFieldValue("person/personInfo/personOtherNames"));
+        	originPersonInfo.add(getFieldValue("person/personInfo/personDOB"));
+        	originPersonInfo.add(getFieldValue("person/personInfo/personPhoto"));
+
             person=result;
             showToast("Loaded person"+person.getId());            
         }
@@ -2691,8 +2698,23 @@ saveNewPerson(String typeflag){
 	String personLabel=personNameCamCase+"_"+getFieldValue("person/personInfo/personDOB");
 	setFieldValue("person/personInfo/personID", personLabel);
 	String personDOB=getFieldValue("person/personInfo/personDOB");
+	changedPersonInfo.clear();
+	changedPersonInfo.add(personLabel);
+	changedPersonInfo.add(personNameOrigin);
+	changedPersonInfo.add(getFieldValue("person/personInfo/personOtherNames"));
+	changedPersonInfo.add(personDOB);
+	changedPersonInfo.add(getFieldValue("person/personInfo/personPhoto"));
 	if(timeValidation(personDOB)){
 		//showWarning("timevalid","timevalid");
+		Hashtable personInfoChange=listChange(changedPersonInfo,originPersonInfo);
+		if((personInfoChange.containsKey("EQUAL"))&& (typeflag.equals("intro"))){
+				newPersonIntro=new ArrayList();
+	      		newPersonIntro.add(person_id);
+				newPersonIntro.add(personNameOrigin);
+				//showWarning("newPersonIntro","newPersonIntro");
+				newSessionForAnswer("intro",newPersonIntro);
+		}
+		else{
 		saveTabGroup("person", person_id, null, null, new SaveCallback() {
 	    onSave(uuid, newRecord) {
 	      person_id = uuid;
@@ -2728,7 +2750,7 @@ saveNewPerson(String typeflag){
 	    }  
 	  	});
 		}
-
+		}
 		else{
 			showWarning("Invalid DOB","1.Datetime format should be yyyy-MM-dd \n"+"2.The value for date should be valid");
 						return;
