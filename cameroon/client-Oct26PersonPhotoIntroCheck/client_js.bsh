@@ -1397,9 +1397,9 @@ checkPersonAns(){
 }
 
 checkPersonIntro(String personID){
-	ansPerson=new ArrayList();
-	ansForIntroQuesnir=new ArrayList();
-	introAnsPerson=new ArrayList();
+	//ansPerson=new ArrayList();
+	//ansForIntroQuesnir=new ArrayList();
+	//introAnsPerson=new ArrayList();
 	String person_id=personID;
 
 checkPsIntrAnsQuery="select uuid from latestNonDeletedAentValue "+
@@ -2637,6 +2637,8 @@ person_id=getListItemValue();
         	originPersonInfo.add(getFieldValue("person/personInfo/personOtherNames"));
         	originPersonInfo.add(getFieldValue("person/personInfo/personDOB"));
         	originPersonInfo.add(getFieldValue("person/personInfo/personPhoto"));
+			originPersonInfo.add(getFieldValue("person/personInfo/personPhotoDesc"));
+			originPersonInfo.add(getFieldValue("person/personInfo/personIntroDesc"));
 
             person=result;
             showToast("Loaded person"+person.getId());            
@@ -2693,6 +2695,51 @@ saveNewPerson(String typeflag){
 		showWarning("Validation Error", "You must fill in the Person Name and Person DOB before you can continue");
         return;
 	}
+
+	if((isNull(getFieldValue("person/personInfo/personPhoto")))&& (isNull(getFieldValue("person/personInfo/personPhotoDesc")))){
+		showWarning("Validation Error", "You must either take person photo or write the reason of not taking photo");
+        return;
+	}
+
+    if((!typeflag.equals("intro")) && (isNull(getFieldValue("person/personInfo/personIntroDesc"))) && (isNull(person_id))){
+    	
+		showWarning("Validation Error", "You must either take person introductory questionnaire \n"+"or write the reason of not taking introductory questionnaire");
+        	return;
+    	}
+
+    if((!typeflag.equals("intro")) && (isNull(getFieldValue("person/personInfo/personIntroDesc"))) && (!isNull(person_id))){
+			checkPsIntrAnsQuery="select uuid from latestNonDeletedAentValue "+
+					"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+					"and latestNonDeletedAentValue.measure in "+
+					"(select uuid from latestNonDeletedAentValue "+
+						"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+						"and latestNonDeletedAentValue.measure='Introductory') "+
+					"and uuid in "+
+					"(select uuid from AentReln where RelationshipID in "+
+						"(select RelationshipID from AentReln where AentReln.uuid='"+person_id+"') "+
+						"and RelationshipID in "+
+						"(select RelationshipID from latestNonDeletedRelationship "+
+							"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
+							"and latestNonDeletedRelationship.Deleted is null))";
+	
+				fetchAll(checkPsIntrAnsQuery,new FetchCallback() {
+						        	onFetch(result) {					        	
+									if(isNull(result)){
+										showWarning("Validation Error", "You must either take person introductory questionnaire \n"+"or write the reason of not taking introductory questionnaire");
+        								return;
+									}
+								
+						        }
+						        onError(message) {
+						        	Log.e("error",message);
+						            showToast(message);
+						           
+						        }
+						    });
+
+    	}
+
+    
 	String personNameOrigin=getFieldValue("person/personInfo/personName");
 	String personNameCamCase=nameCamCaseConverter(personNameOrigin);
 	String personLabel=personNameCamCase+"_"+getFieldValue("person/personInfo/personDOB");
@@ -2704,17 +2751,22 @@ saveNewPerson(String typeflag){
 	changedPersonInfo.add(getFieldValue("person/personInfo/personOtherNames"));
 	changedPersonInfo.add(personDOB);
 	changedPersonInfo.add(getFieldValue("person/personInfo/personPhoto"));
+	changedPersonInfo.add(getFieldValue("person/personInfo/personPhotoDesc"));
+	changedPersonInfo.add(getFieldValue("person/personInfo/personIntroDesc"));
+
 	if(timeValidation(personDOB)){
 		//showWarning("timevalid","timevalid");
 		Hashtable personInfoChange=listChange(changedPersonInfo,originPersonInfo);
+
 		if((personInfoChange.containsKey("EQUAL"))&& (typeflag.equals("intro"))){
 				newPersonIntro=new ArrayList();
 	      		newPersonIntro.add(person_id);
 				newPersonIntro.add(personNameOrigin);
-				//showWarning("newPersonIntro","newPersonIntro");
 				newSessionForAnswer("intro",newPersonIntro);
 		}
+
 		else{
+			
 		saveTabGroup("person", person_id, null, null, new SaveCallback() {
 	    onSave(uuid, newRecord) {
 	      person_id = uuid;
