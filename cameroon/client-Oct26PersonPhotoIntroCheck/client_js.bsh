@@ -3699,18 +3699,89 @@ saveSession(String typeflag){
 			//showWarning("sssInfoChange","sssInfoChange added");
 			Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
 			//showWarning("sssAnsChange","sssAnsChange added");
-			if(sssInfoChange.containsKey("EQUAL")){
+			if((sssInfoChange.containsKey("EQUAL")) && (sssAnsChange.containsKey("EQUAL"))){
 				//showWarning("sssInfoChange","EQUAL");
-				if(sssAnsChange.containsKey("EQUAL")){
+				//if(sssAnsChange.containsKey("EQUAL")){
 					showWarning("No change","No data changed");
 					return;
-				}
+				//}
 				
 			}
 
+			else if((!sssInfoChange.containsKey("EQUAL"))&& (sssAnsChange.containsKey("EQUAL"))){
+				String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+				//String endTimeStamp=endTimeAuto;
+				String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+				if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+					//showWarning("timeValidation","pass");
+				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+				    onSave(uuid, newRecord) {
+				    	//showWarning("saveTabGroup","sessionForAnswer");
+				    	for(ansDelete:sssAnsOrigin){
+							 deleteRel(ansDelete.get(0));
+							 //showWarning("deleteRel",ansDelete.get(0));
+				    	  }
+				    	
+				    	 for(answer:sss_answer_list){
+				    		  saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
+				    	  }
+				        showToast("Session info changed");
+
+				    }
+				    onError(message) {
+				        showWarning("error",message);
+				    }  
+				  });
+				}
+				else{
+					showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
+							+"2.Datetime input should be valid \n"+
+										"3.Start timestamp should be before end timestamp \n"+
+													"4.Two dates should be the same");
+					return;
+				}
+
+			}
+
+			else {//if((sssInfoChange.containsKey("EQUAL"))&& (!sssAnsChange.containsKey("EQUAL"))) {//
 				setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
 				String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
 				String endTimeStamp=endTimeAuto;
+				if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+					//showWarning("timeValidation","pass");
+				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+				    onSave(uuid, newRecord) {
+				    	//showWarning("saveTabGroup","sessionForAnswer");
+				    	for(ansDelete:sssAnsOrigin){
+							 deleteRel(ansDelete.get(0));
+							 //showWarning("deleteRel",ansDelete.get(0));
+				    	  }
+				    	
+				    	 for(answer:sss_answer_list){
+				    		  saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
+				    	  }
+				        showToast("Session info changed");
+
+				    }
+				    onError(message) {
+				        showWarning("error",message);
+				    }  
+				  });
+				}
+				else{
+					showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
+							+"2.Answers created on different days are not allowed in the same session \n"+
+										"3.Start timestamp should be before end timestamp \n"+
+													"4.Two dates should be the same");
+					return;
+				}
+			}
+
+		}
+			/*
+				//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
+				//String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+				//String endTimeStamp=endTimeAuto;
 				if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 					//showWarning("timeValidation","pass");
 				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
@@ -3739,7 +3810,8 @@ saveSession(String typeflag){
 													"4.Two dates should be the same");
 					return;
 				}
-			}
+				*/
+		//	}
 		
 		break;
 		
