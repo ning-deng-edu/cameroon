@@ -199,7 +199,7 @@ onEvent("control/questionnaire_control/New_Questionnaire","click","newQuestionna
 onEvent("control/questionnaire_control","show","loadQuestionnaire()");
 onEvent("control/questionnaire_control/questionnaireList","click","loadQuestionnaireInfo()");
 onEvent("questionnaire/questionnaire_info/Start_Question_Selection","click","startQuestionSelection()");
-onEvent("questionnaire/questionnaire_info","show","loadQuesnirType()");
+onEvent("questionnaire/questionnaire_info","show","loadQuesnirType(\"newQuesnir\")");
 onEvent("questionnaire_question/questionnaire_question_info","show","initializeQuestionSelect()");
 onEvent("questionnaire_question/questionnaire_question_info/questionList","click","questionSelection()");
 onEvent("questionnaire_question/questionnaire_question_info/questionInQuestionnaire","click","deleteSelectedQuestion()");
@@ -220,6 +220,8 @@ questionnaireInfoOriginal=new ArrayList();//Comparing whether or not the questio
 questionnaireInfoNew=new ArrayList();//Comparing whether or not the questionnaire basic info is changed
 quesListRelnOrigin=new ArrayList();//Storing the existing reln between questions and questionnaire, used for deletion
 questionirType = new ArrayList();
+quesnirTypeRelnOrigin=new ArrayList();
+
 //questionirType.add(new NameValuePair("{Regular}", "Regular"));
 //questionirType.add(new NameValuePair("{Introductory}", "Introductory"));
 //flag_return_questionnaire=false;
@@ -234,6 +236,7 @@ newQuestionnaire(){
     questionnaireInfoNew.clear();
     quesListRelnOrigin.clear();
     questionirType.clear();
+    quesnirTypeRelnOrigin.clear();
 	finished_questionnaire_id=null;
 }
 
@@ -241,9 +244,8 @@ stayInCurrentPage(){
 	return;
 }
 
-loadQuesnirType(){
-	fetchAll(
-	loadAllQuesnirTypeQuery,
+loadQuesnirType(String typeFlag){
+	fetchAll(loadAllQuesnirTypeQuery,
 	new FetchCallback() {
         onFetch(result) {
 			if (!isNull(result)) {
@@ -252,8 +254,10 @@ loadQuesnirType(){
 				String firstType=result.get(0).get(1);
 				String firstTypeUuid=result.get(0).get(0);
 				populateDropDown("questionnaire/questionnaire_info/questionnaireTypeSelection",questionirType);
-				setFieldValue("questionnaire/questionnaire_info/questionnaireType",firstType);
-				setFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid",firstTypeUuid);
+				if(typeFlag.equals("newQuesnir")){
+					setFieldValue("questionnaire/questionnaire_info/questionnaireType",firstType);
+					setFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid",firstTypeUuid);
+				}
 			}
 			else{
 				showAlert("Questionnaire Type data", "There is no available questionnaire type yet\n"+"Do you want to create new type now?", "newQuesnirType()", "stayInCurrentPage()");
@@ -304,14 +308,59 @@ loadQuestionnaireInfo(){
 	//showWarning("questionnaireID",finished_questionnaire_id.toString());
 	showTabGroup("questionnaire", finished_questionnaire_id, new FetchCallback() {
         onFetch(result) {
-            questionnaire=result;		
+            questionnaire=result;	
+            String qnirTypeUuid= getFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid");
+
+            quesnirTypeNameQuery="SELECT measure from latestNonDeletedAentValue "+
+	        	"WHERE latestNonDeletedAentValue.AttributeID="+
+	        	"(SELECT AttributeID from AttributeKey WHERE AttributeName='QuesnirTypeName') "+
+	        	"AND latestNonDeletedAentValue.uuid='"+qnirTypeUuid+"';";
+
+	        fetchOne(quesnirTypeNameQuery,new FetchCallback() {
+					onFetch(result) {
+							if(!isNull(result)){
+								setFieldValue("questionnaire/questionnaire_info/questionnaireType",result.get(0));
+								//showToast("Loaded question"+question_id);
+							}
+							else{
+								showWarning("Out-of-date data","The questionnaire type in the questionnaire is not using anymore");
+							}
+							onError(message) {
+	    						showToast(message);
+	  						}
+  						}
+					});
+
             showToast("Loaded questionnaire"+questionnaire.getId());
-            populateDropDown("questionnaire/questionnaire_info/questionnaireTypeSelection",questionirType);
-            //String quesnirType=getFieldValue("questionnaire/questionnaire_info/questionnaireType");
+
+            //populateDropDown("questionnaire/questionnaire_info/questionnaireTypeSelection",questionirType);
+            
+
 			questionnaireInfoOriginal.add(getFieldValue("questionnaire/questionnaire_info/questionnaireID"));
 			questionnaireInfoOriginal.add(getFieldValue("questionnaire/questionnaire_info/questionnaireName"));
 			questionnaireInfoOriginal.add(getFieldValue("questionnaire/questionnaire_info/questionnaireDescription"));
-			questionnaireInfoOriginal.add(getFieldValue("questionnaire/questionnaire_info/questionnaireType"));
+			//questionnaireInfoOriginal.add(getFieldValue("questionnaire/questionnaire_info/questionnaireType"));
+			questionnaireInfoOriginal.add(qnirTypeUuid);
+			loadQuesnirType("load");
+
+			quesnir_type_reln_query="select RelationshipID from AentReln where AentReln.uuid="+finished_questionnaire_id+" "+
+				"and RelationshipID in "+
+				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+					"(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and QuesnirType') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL)";
+
+			fetchAll(quesnir_type_reln_query, new FetchCallback() {
+	        onFetch(result) {
+	        	quesnirTypeRelnOrigin.clear();
+	        	quesnirTypeRelnOrigin.addAll(result);
+	        }
+
+	        onError(message) {
+	            showToast(message);
+	        }
+	   	 });
+
+
         }
         onError(message) {
             showToast(message);
@@ -433,7 +482,8 @@ startQuestionSelection(){
 			questionnaireInfoNew.add(questionnaire_id);
 			questionnaireInfoNew.add(questionnaire_name);
 			questionnaireInfoNew.add(getFieldValue("questionnaire/questionnaire_info/questionnaireDescription"));
-			questionnaireInfoNew.add(getFieldValue("questionnaire/questionnaire_info/questionnaireType"));
+
+			questionnaireInfoNew.add(getFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid"));
             showTabGroup("questionnaire_question");
             //cancelTab(\"questionnaire/questionnaire_info\", false);
             //setFieldValue("questionnaire_question/questionnaire_question_info/questionnaireID", questionnaire_id);
@@ -662,6 +712,16 @@ finishCreateQuestionnaire(){
 			return;
 		}
 	}
+	if((isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireID")))||(isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireName")))){
+		showWarning("Incomplete basic data","Please input questionnaire label and questionnaire name");
+		return;
+	}
+	String quesnirTypeUuid=getFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid");
+
+	if(isNull(quesnirTypeUuid)){
+		showWarning("Incomplete basic data","Please input questionnaire type data");
+		return;
+	}
 	//showWarning("questionSelected","not null");
 		finished_questionnaire_id=null;//Creating a new questionnaire
 		//showWarning("save started","started");
@@ -678,6 +738,7 @@ finishCreateQuestionnaire(){
 				saveEntitiesToRel("Questionnaire and Question",finished_questionnaire_id,question.get(0));
 			//showWarning("savedrel()",question.get(0).toString());
 			}
+			saveEntitiesToRel("Questionnaire and QuesnirType",finished_questionnaire_id,quesnirTypeUuid);
 			//questionOriginal.addAll(questionSelected);
 			showToast("New record created");
 			cancelTabGroup("questionnaire_question",true);
@@ -704,12 +765,25 @@ finishChangeQuestionnaire(){
 		showWarning("Failed","Please create questionnaire then change");
 		return;
 	}
+
 	if(questionSelected.isEmpty())
 	{
 		showWarning("No question selected","No question selected in this questionnaire");
 		return;
 	}
-	else{//This is for changing questionnaire
+
+	if((isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireID")))||(isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireName")))){
+		showWarning("Incomplete basic data","Please input questionnaire label and questionnaire name");
+		return;
+	}
+
+	String quesnirTypeUuid=getFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid");
+
+	if(isNull(quesnirTypeUuid)){
+		showWarning("Incomplete basic data","Please input questionnaire type data");
+		return;
+	}
+
 		question_origin=new ArrayList();
 		//The onSave is executed parallel with the sentences following it, so be careful!  
 		//showWarning("change started","going to start");
@@ -720,7 +794,7 @@ finishChangeQuestionnaire(){
 		if (!isNull(questionnaireInfoOriginal)){//change from the list
 			Hashtable questionnaireInfoChanges=listChange(questionnaireInfoNew,questionnaireInfoOriginal);
 		//showWarning("questionnaireInfoChanges","questionnaireInfoChanges done");
-		if(questionnaireInfoChanges.containsKey("EQUAL")){		
+		if(questionnaireInfoChanges.containsKey("EQUAL")){		//No basic info has been changed
 			if(questionListChanges.containsKey("EQUAL")){
 				showWarning("Questionnaire Modification","No data is changed");
 				return;
@@ -744,7 +818,7 @@ finishChangeQuestionnaire(){
 				//showWarning("Attention!","Questions in quesitonnaire are not changeable, please create a new questionnaire!");
 				}
 		}
-		else{
+		else{//basic info is changed
 			saveTabGroup("questionnaire", finished_questionnaire_id, null, null, new SaveCallback() {
 			//showWarning("saveTabGroup()","started");
 			onSave(uuid, newRecord) {
@@ -756,6 +830,12 @@ finishChangeQuestionnaire(){
 					//showWarning("basic info changed (else)",question.get(0).toString());
 					saveEntitiesToRel("Questionnaire and Question",finished_questionnaire_id,question.get(0));
 				}
+				for (quesTypeDel : quesnirTypeRelnOrigin){
+					//showWarning("basic info not changed",question.get(0).toString());
+						deleteRel(quesTypeDel.get(0));
+					}
+				saveEntitiesToRel("Questionnaire and QuesnirType",finished_questionnaire_id,quesnirTypeUuid);
+
 				showToast("Questionnaire data is changed");
 				cancelTabGroup("questionnaire_question",true);
 				cancelTabGroup("questionnaire",true);
@@ -769,25 +849,8 @@ finishChangeQuestionnaire(){
 			}
 		}
 		else{
-			if(questionListChanges.containsKey("EQUAL")){
-				showWarning("Questionnaire Modification","No data is changed");
-				return;
-			}
-			else{				
-				//showWarning("basic info not changed (else)","not changed basic info");
-				for (question : questionSelected){
-					//showWarning("basic info not changed",question.get(0).toString());
-					saveEntitiesToRel("Questionnaire and Question",finished_questionnaire_id,question.get(0));
-					}
-				//reset the used arraylists
-				questionOriginal.clear();
-				questionOriginal.addAll(questionSelected);
-				showToast("Questions in this questionnaire are changed");
-				//showWarning("Attention!","Questions in quesitonnaire are not changeable, please create a new questionnaire!");
-			}
+			showWarning("Error","saving error happened, the old data is lost, please report to the Admin");
 		}
-		
-	}
 }
 
 //Search questions when selecting questions to questionnaire
@@ -1083,7 +1146,7 @@ loadQuestionInfo(){
 								showToast("Loaded question"+question_id);
 							}
 							else{
-								showWarning("Out-of-data data","The language in the question is not using anymore");
+								showWarning("Out-of-date data","The language in the question is not using anymore");
 							}
 							onError(message) {
 	    						showToast(message);
