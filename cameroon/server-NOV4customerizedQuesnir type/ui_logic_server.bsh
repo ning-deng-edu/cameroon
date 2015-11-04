@@ -254,7 +254,7 @@ loadQuesnirType(String typeFlag){
 				String firstType=result.get(0).get(1);
 				String firstTypeUuid=result.get(0).get(0);
 				populateDropDown("questionnaire/questionnaire_info/questionnaireTypeSelection",questionirType);
-				if(typeFlag.equals("newQuesnir")){
+				if((isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireType"))) && (isNull(getFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid")))){
 					setFieldValue("questionnaire/questionnaire_info/questionnaireType",firstType);
 					setFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid",firstTypeUuid);
 				}
@@ -310,7 +310,7 @@ loadQuestionnaireInfo(){
         onFetch(result) {
             questionnaire=result;	
             String qnirTypeUuid= getFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid");
-
+            //showWarning("qnirTypeUuid",qnirTypeUuid);
             quesnirTypeNameQuery="SELECT measure from latestNonDeletedAentValue "+
 	        	"WHERE latestNonDeletedAentValue.AttributeID="+
 	        	"(SELECT AttributeID from AttributeKey WHERE AttributeName='QuesnirTypeName') "+
