@@ -42,6 +42,11 @@ loadAllQuesnirTypeQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesnirTypeName') "+
 		"GROUP BY uuid;";
+
+loadAllPersonRoleQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+		"WHERE latestNonDeletedAentValue.AttributeID "+
+		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonRoleName') "+
+		"GROUP BY uuid;";
 /*Common queries end*/
 
 /***Query instance examples***/
@@ -1241,17 +1246,49 @@ searchLanguage(){
 }
 
 
-/*** Person ***/
+/*** Person AND PersonRole***/
 onEvent("control/user_control/New_User","click","newPerson()");
 onEvent("personWithIntro/personWithIntroInfo/Finish_New_Person","click","saveNewPerson()");
 onEvent("control/user_control","show","loadPerson()");
 onEvent("personWithIntro/personWithIntroInfo/Take_Photo","click","attachPictureTo(\"personWithIntro/personWithIntroInfo/personPhoto\")");
 onEvent("control/user_control/userList","click","loadPersonInfo()");
+onEvent("personRoleSelect/personRoleSelectInfo/CreateNewRole","click","newRole()");
+
 person_id=null;
+role_id=null;
+role_list=new ArrayList();
+
+newRole(){
+	newTabGroup("personRole");
+
+}
+
 newPerson(){
+	showTabGroup("personRoleSelect");
+
+	fetchAll(loadAllPersonRoleQuery,new FetchCallback() {
+				onFetch(result) {
+				role_list.clear();
+				role_list.addAll(result);
+				populateDropDown("personRoleSelect/personRoleSelectInfo/PersonRoleSelectList", role_list);
+				}  
+		});
+	/*
+	person_id=null;
+	newTabGroup("personWithIntro");
+	onEvent("personWithIntro", "show", "showTab(\"personWithIntro/personWithIntroInfo\");"); 
+	*/ 
+}
+
+newPersonWithoutIntro(){
+
+}
+
+newPersonWithIntro(String personRole){
 	person_id=null;
 	newTabGroup("personWithIntro");
 	onEvent("personWithIntro", "show", "showTab(\"personWithIntro/personWithIntroInfo\");");  
+	setFieldValue("personWithIntro/personWithIntroInfo/personRole",personRole);
 }
 
 timeValidation(String startDateTime){	

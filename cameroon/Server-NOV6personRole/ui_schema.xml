@@ -551,9 +551,6 @@
         </group>
     </group>
     
-    
-    
-    
     <group ref="questionBank" faims_archent_type="QuestionBank">
         <label>Question Bank</label>
         
@@ -647,9 +644,9 @@
           <label></label>
           <group ref="child1" faims_style="even">
             <label></label>
-          <trigger ref="keywordOfRole">
-             <label>Keyword</label>
-           </trigger>
+           <input ref="keywordOfRole">
+            	<label>role keyword</label>
+            </input>
            </group>
           <group ref="child2" faims_style="even">
             <label></label>
@@ -695,7 +692,7 @@
               <label>{Person DOB}</label>
             </input>
             <input ref="personRole" faims_attribute_name="PersonRole" faims_attribute_type="measure" faims_certainty="false" >
-              <label>{Person DOB}</label>
+              <label>{Person Role}</label>
             </input>
            
             <select type="camera" faims_sync="true" ref="personPhoto" faims_attribute_name="PersonPhoto" faims_attribute_type="measure" faims_certainty="true" faims_annotation="true" faims_read_only="false">
