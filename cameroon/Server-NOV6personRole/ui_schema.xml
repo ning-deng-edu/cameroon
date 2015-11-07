@@ -651,7 +651,7 @@
           <group ref="child2" faims_style="even">
             <label></label>
              <trigger ref="SearchRole" faims_style_class="faims-blue-parallel">
-            <label>New Role</label>
+            <label>Search Role</label>
           </trigger>            
           </group>
         </group>       

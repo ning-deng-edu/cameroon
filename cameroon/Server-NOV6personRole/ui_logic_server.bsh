@@ -1253,19 +1253,85 @@ onEvent("control/user_control","show","loadPerson()");
 onEvent("personWithIntro/personWithIntroInfo/Take_Photo","click","attachPictureTo(\"personWithIntro/personWithIntroInfo/personPhoto\")");
 onEvent("control/user_control/userList","click","loadPersonInfo()");
 onEvent("personRoleSelect/personRoleSelectInfo/CreateNewRole","click","newRole()");
+onEvent("personRole/personRoleInfo/SavePersonRole","click","checkRole()");
+onEvent("personRoleSelect/personRoleSelectInfo/","show","loadRoles()");
 
 person_id=null;
 role_id=null;
 role_list=new ArrayList();
 
 newRole(){
+	role_id=null;
 	newTabGroup("personRole");
+}
+
+checkRole(){
+	String newRoleName=getFieldValue("personRole/personRoleInfo/personRoleName");
+	if(isNull(newRoleName)){
+		showWarning("Incomplete data","You must enter valid person role name");
+		return;
+	}
+	else{
+			personRoleCheckQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+								"WHERE latestNonDeletedAentValue.AttributeID "+
+								"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonRoleName') "+
+								"AND latestNonDeletedAentValue.measure like '%"+newRoleName+"%'; ";
+
+			fetchAll(personRoleCheckQuery,
+				new FetchCallback() {
+					onFetch(result) {
+						if (!isNull(result)) {
+							populateList("personRole/personRoleInfo/duplicateRoleList",result);
+							showAlert("Person Role data", "This could be a duplicate role\n"+"The possible existing roles are listed in the list\n"+"Do you still want to save this role?", "saveRole()", "stayInCurrentPage()");
+						}
+						else{
+							saveRole();
+						}
+					}
+			       
+				onError(message) {
+					showToast(message);
+				}
+				});
+	
+	}
+}
+
+saveRole(){
+	saveTabGroup("personRole", role_id, null, null, new SaveCallback() {
+    onSave(uuid, newRecord) {
+      role_id = uuid;
+      if (newRecord) {
+		//newPerson();
+		//person_id=null;
+		
+        showToast("New record created");
+        cancelTabGroup("personRole",true);
+        //showTab("control/user_control");
+      }
+	  else{
+		showToast("Record changed");	
+	  }
+	  
+    }
+	    onError(message) {
+	        showWarning("error",message);
+	    }  
+  	});
 
 }
 
 newPerson(){
 	showTabGroup("personRoleSelect");
-
+	loadRoles();
+	
+	/*
+	person_id=null;
+	newTabGroup("personWithIntro");
+	onEvent("personWithIntro", "show", "showTab(\"personWithIntro/personWithIntroInfo\");"); 
+	*/ 
+}
+loadRoles(){
 	fetchAll(loadAllPersonRoleQuery,new FetchCallback() {
 				onFetch(result) {
 				role_list.clear();
@@ -1273,11 +1339,7 @@ newPerson(){
 				populateDropDown("personRoleSelect/personRoleSelectInfo/PersonRoleSelectList", role_list);
 				}  
 		});
-	/*
-	person_id=null;
-	newTabGroup("personWithIntro");
-	onEvent("personWithIntro", "show", "showTab(\"personWithIntro/personWithIntroInfo\");"); 
-	*/ 
+
 }
 
 newPersonWithoutIntro(){
