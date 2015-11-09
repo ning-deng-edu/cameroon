@@ -193,7 +193,7 @@
                     <personName/>
                     <personOtherNames/>
                     <personDOB/>
-                    <personRole/>
+                    <personRoleName/>
                     <personPhoto/>
                     <Take_Photo/>
                     <Take_Intro_Quesnir/>
@@ -217,8 +217,8 @@
                     <personRoleName/>
                     <RoleIntroRequired/>
                     <RolePhotoRequired/>
+                    <!--RoleDataOnServer/-->
                     <RoleDataOnClient/>
-                    <RoleShownOnClient/>
                     <SavePersonRole/>
                     <duplicateRoleList/>
                   </personRoleInfo>
@@ -718,7 +718,7 @@
 			<input ref="personDOB" faims_attribute_name="PersonDOB" faims_attribute_type="measure" faims_certainty="false" >
               <label>{Person DOB}</label>
             </input>
-            <input ref="personRole" faims_certainty="false" faims_read_only="true">
+            <input ref="personRoleName" faims_certainty="false" faims_read_only="true">
               <label>{Person Role}</label>
             </input>
            
@@ -789,14 +789,14 @@
             <value>placeholder</value>
           </item>
         </select1>
-        <select1 ref="RoleDataOnClient" faims_attribute_name="RoleDataOnClient" faims_attribute_type="measure">
+        <!--select1 ref="RoleDataOnServer" faims_attribute_name="RoleDataOnServer" faims_attribute_type="measure">
           <label>Data collected on client module?</label>
           <item>
             <label>placeholder</label>
             <value>placeholder</value>
           </item>
-        </select1>
-        <select1 ref="RoleShownOnClient" faims_attribute_name="RoleShowOnClient" faims_attribute_type="measure">
+        </select1-->
+        <select1 ref="RoleDataOnClient" faims_attribute_name="RoleDataOnClient" faims_attribute_type="measure">
           <label>Role shown on client module's list?</label>
           <item>
             <label>placeholder</label>

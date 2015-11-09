@@ -1269,8 +1269,8 @@ newRole(){
 	newTabGroup("personRole");
 	populateDropDown("personRole/personRoleInfo/RoleIntroRequired",propertyIndicator);
 	populateDropDown("personRole/personRoleInfo/RolePhotoRequired",propertyIndicator);
+	//populateDropDown("personRole/personRoleInfo/RoleDataOnServer",propertyIndicator);
 	populateDropDown("personRole/personRoleInfo/RoleDataOnClient",propertyIndicator);
-	populateDropDown("personRole/personRoleInfo/RoleShownOnClient",propertyIndicator);
 }
 
 checkRole(){
@@ -1450,9 +1450,9 @@ newPersonWithIntro(ArrayList roleflag, ArrayList propertyFlag){
 	newTabGroup("personWithIntro");
 	onEvent("personWithIntro", "show", "showTab(\"personWithIntro/personWithIntroInfo\");");  
 	setFieldValue("personWithIntro/personWithIntroInfoHide/personRoleId",roleflag.get(0));
-	setFieldValue("personWithIntro/personWithIntroInfo/personRole",roleflag.get(1));
-	showWarning("intro",propertyFlag.get(0));
-	showWarning("phtp",propertyFlag.get(1));
+	setFieldValue("personWithIntro/personWithIntroInfo/personRoleName",roleflag.get(1));
+	//showWarning("intro",propertyFlag.get(0));
+	//showWarning("phtp",propertyFlag.get(1));
 }
 
 timeValidation(String startDateTime){	
@@ -1560,19 +1560,20 @@ person_id=getListItemValue();
 		showToast("No Person selected");
 		return;
 	}
-	
-	checkPersonRoleQuery="SELECT measure from latestNonDeletedAentValue "+
-	"WHERE latestNonDeletedAentValue.uuid='"+person_id+"' "+
-	"AND latestNonDeletedAentValue.AttributeID="+
-	"(select AttributeID from AttributeKey where AttributeName='PersonRoleName');";
 
 	showTabGroup("personWithIntro", person_id, new FetchCallback() {
         onFetch(result) {
             person=result;
+            String roleUuid=getFieldValue("personWithIntro/personWithIntroInfoHide/personRoleId");
+            checkPersonRoleQuery="SELECT measure from latestNonDeletedAentValue "+
+											"WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
+											"AND latestNonDeletedAentValue.AttributeID="+
+											"(select AttributeID from AttributeKey where AttributeName='PersonRoleName');";
         	fetchOne(checkPersonRoleQuery,new FetchCallback() {
 								onFetch(result) {
 									if(!isNull(result)){
-										setFieldValue("personWithIntro/personWithIntroInfo/personRole",result.get(0));
+										setFieldValue("personWithIntro/personWithIntroInfo/personRoleName",result.get(0));
+										
 									}
 									else{
 										showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");

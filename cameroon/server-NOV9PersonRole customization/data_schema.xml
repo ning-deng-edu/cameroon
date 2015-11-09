@@ -195,15 +195,15 @@
             </lookup>
         </property>
 
-		<property name="RoleDataOnClient" type="enum">
+		<!--property name="RoleDataOnServer" type="enum">
 			 <description>Indicating whether data of person of this role is collected by client module</description>
         	 <lookup>
                 <term>Yes</term>
                 <term>No</term>
             </lookup>
-        </property>
+        </property-->
 
-         <property name="RoleShowOnClient" type="enum">
+         <property name="RoleDataOnClient" type="enum">
          	<description>Indicating whether this role is shown on client module's list for creating person information</description>
         	 <lookup>
                 <term>Yes</term>
