@@ -1255,6 +1255,7 @@ onEvent("control/user_control/userList","click","loadPersonInfo()");
 onEvent("personRoleSelect/personRoleSelectInfo/CreateNewRole","click","newRole()");
 onEvent("personRole/personRoleInfo/SavePersonRole","click","checkRole()");
 onEvent("personRoleSelect/personRoleSelectInfo/","show","loadRoles()");
+onEvent("personRoleSelect/personRoleSelectInfo/CreateNewPerson","click","newPersonByRole()");
 
 person_id=null;
 role_id=null;
@@ -1338,6 +1339,7 @@ newPerson(){
 	onEvent("personWithIntro", "show", "showTab(\"personWithIntro/personWithIntroInfo\");"); 
 	*/ 
 }
+
 loadRoles(){
 	fetchAll(loadAllPersonRoleQuery,new FetchCallback() {
 				onFetch(result) {
@@ -1349,15 +1351,108 @@ loadRoles(){
 
 }
 
-newPersonWithoutIntro(){
+newPersonByRole(){
+	role_id=getFieldValue("personRoleSelect/personRoleSelectInfo/PersonRoleSelectList");
+	roleInfo=new ArrayList();
+	roleInfo.clear();
+	propertyInfo=new ArrayList();
+	propertyInfo.clear();
+	String roleName=null;
+	if(isNull(role_id)){
+		showWarning("Invalid role","This role is invalid, please select another role for continue");
+		return;
+	}
+	for(role : role_list){
+		if(role.get(0).equals(role_id)){
+			roleName=role.get(1);
+			break;
+		}
+	}
+	if(isNull(roleName)){
+		showWarning("Invalid role","This role is invalid, please select another role for continue");
+		return;
+	}
+	roleInfo.add(role_id);
+	roleInfo.add(roleName);
+	checkRoleIntroQuery="SELECT measure from latestNonDeletedAentValue WHERE "+
+	"latestNonDeletedAentValue.AttributeID="+
+	"(select AttributeID from AttributeKey where AttributeKey.AttributeName='RoleIntroAnsRequired') "+
+	"AND latestNonDeletedAentValue.uuid='"+role_id+"';";
+	checkRolePhotoQuery="SELECT measure from latestNonDeletedAentValue WHERE "+
+	"latestNonDeletedAentValue.AttributeID="+
+	"(select AttributeID from AttributeKey where AttributeKey.AttributeName='RolePhotoRequired') "+
+	"AND latestNonDeletedAentValue.uuid='"+role_id+"';";
+
+	fetchOne(checkRoleIntroQuery,new FetchCallback() {
+				onFetch(result) {
+					if(!isNull(result)){
+						if(result.get(0).equals("Yes")){
+							propertyInfo.add("Y");
+							fetchOne(checkRolePhotoQuery,new FetchCallback() {
+								onFetch(result) {
+									if(!isNull(result)){
+										if(result.get(0).equals("Yes")){
+											//showWarning("checkRolePhotoQuery","Yes");
+											propertyInfo.add("Y");
+											//showWarning("propertyInfo",propertyInfo.get(1));
+											newPersonWithIntro(roleInfo,propertyInfo);
+										}
+										else{
+											propertyInfo.add("N");
+											newPersonWithIntro(roleInfo,propertyInfo);
+										}
+									}
+									else{
+										showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+										return;
+									}
+								 
+								}  
+						});
+						}
+						else{
+							propertyInfo.add("N");
+							fetchOne(checkRolePhotoQuery,new FetchCallback() {
+								onFetch(result) {
+									if(!isNull(result)){
+										if(result.get(0).equals("Yes")){
+											propertyInfo.add("Y");
+											newPersonWithIntro(roleInfo,propertyInfo);
+										}
+										else{
+											propertyInfo.add("N");
+											newPersonWithIntro(roleInfo,propertyInfo);
+										}
+									}
+									else{
+										showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+										return;
+									}
+								 
+								}  
+						});
+						}
+					}
+
+					else{
+						showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+										return;
+					}
+				 
+				}  
+		});
 
 }
 
-newPersonWithIntro(String personRole){
+
+newPersonWithIntro(ArrayList roleflag, ArrayList propertyFlag){
 	person_id=null;
 	newTabGroup("personWithIntro");
 	onEvent("personWithIntro", "show", "showTab(\"personWithIntro/personWithIntroInfo\");");  
-	setFieldValue("personWithIntro/personWithIntroInfo/personRole",personRole);
+	setFieldValue("personWithIntro/personWithIntroInfoHide/personRoleId",roleflag.get(0));
+	setFieldValue("personWithIntro/personWithIntroInfo/personRole",roleflag.get(1));
+	showWarning("intro",propertyFlag.get(0));
+	showWarning("phtp",propertyFlag.get(1));
 }
 
 timeValidation(String startDateTime){	
@@ -1465,11 +1560,26 @@ person_id=getListItemValue();
 		showToast("No Person selected");
 		return;
 	}
+	
+	checkPersonRoleQuery="SELECT measure from latestNonDeletedAentValue "+
+	"WHERE latestNonDeletedAentValue.uuid='"+person_id+"' "+
+	"AND latestNonDeletedAentValue.AttributeID="+
+	"(select AttributeID from AttributeKey where AttributeName='PersonRoleName');";
 
 	showTabGroup("personWithIntro", person_id, new FetchCallback() {
         onFetch(result) {
             person=result;
-        
+        	fetchOne(checkPersonRoleQuery,new FetchCallback() {
+								onFetch(result) {
+									if(!isNull(result)){
+										setFieldValue("personWithIntro/personWithIntroInfo/personRole",result.get(0));
+									}
+									else{
+										showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+									}
+								 
+								}  
+						});
             showToast("Loaded person"+person.getId());            
         }
         onError(message) {

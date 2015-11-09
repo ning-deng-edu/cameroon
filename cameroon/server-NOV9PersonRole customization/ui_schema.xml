@@ -184,6 +184,10 @@
              	</personRoleSelect>
                 
               <personWithIntro>
+                <personWithIntroInfoHide>
+                  <personRoleId/>
+                </personWithIntroInfoHide>
+
                	<personWithIntroInfo>
                     <personID/>
                     <personName/>
@@ -196,6 +200,17 @@
                     <Finish_New_Person/>
                   </personWithIntroInfo>
                 </personWithIntro>
+
+                <!--personWithoutIntro>
+                <personWithoutIntroInfo>
+                    <person_ID/>
+                    <person_Name/>
+                    <person_OtherNames/>
+                    <person_DOB/>
+                    <person_Role/>
+                    <FinishNewPerson/>
+                  </personWithoutIntroInfo>
+                </personWithoutIntro-->
 
                 <personRole>
                	  <personRoleInfo>
@@ -681,6 +696,14 @@
 
     <group ref="personWithIntro" faims_archent_type="Person">
         <label>Person</label>
+
+        <group ref="personWithIntroInfoHide" faims_hidden="true">
+          <label>{PersonInfoHide}</label>
+          <input ref="personRoleId" faims_attribute_name="PersonRole" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
+              <label>{Person role ID}</label>
+            </input>
+        </group>
+
         <group ref="personWithIntroInfo">
           <label>{Person Information}</label>
            <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
@@ -695,7 +718,7 @@
 			<input ref="personDOB" faims_attribute_name="PersonDOB" faims_attribute_type="measure" faims_certainty="false" >
               <label>{Person DOB}</label>
             </input>
-            <input ref="personRole" faims_attribute_name="PersonRole" faims_attribute_type="measure" faims_certainty="false" >
+            <input ref="personRole" faims_certainty="false" faims_read_only="true">
               <label>{Person Role}</label>
             </input>
            
@@ -719,6 +742,32 @@
         </group>
     </group>
 
+      <!--group ref="personWithoutIntro" faims_archent_type="Person">
+        <label>Person</label>
+        <group ref="personWithoutIntroInfo">
+          <label>{Person Information}</label>
+           <input ref="person_ID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
+              <label>{Person ID}</label>
+            </input>
+            <input ref="person_Name" faims_attribute_name="PersonName" faims_attribute_type="measure" faims_certainty="false" faims_style_class="required">
+              <label>{Person Name}</label>
+            </input>
+            <input ref="person_OtherNames" faims_attribute_name="PersonOtherNames" faims_attribute_type="measure" faims_certainty="false" >
+              <label>{Person Other Names}</label>
+            </input>
+      <input ref="person_DOB" faims_attribute_name="PersonDOB" faims_attribute_type="measure" faims_certainty="false" >
+              <label>{Person DOB}</label>
+            </input>
+            <input ref="person_Role" faims_attribute_name="PersonRole" faims_attribute_type="measure" faims_certainty="false" >
+              <label>{Person Role}</label>
+            </input>
+        
+            <trigger ref="FinishNewPerson" faims_style_class="faims-blue">
+                <label>Save Person</label>
+            </trigger>
+        </group>
+    </group-->
+              
     <group ref="personRole" faims_archent_type="PersonRole">
         <label>Person Role</label>
         <group ref="personRoleInfo">
