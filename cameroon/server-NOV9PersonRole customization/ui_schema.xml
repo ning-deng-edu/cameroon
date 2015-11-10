@@ -183,23 +183,25 @@
              		</personRoleSelectInfo>
              	</personRoleSelect>
                 
-              <personWithIntro>
-                <personWithIntroInfoHide>
+              <person>
+                <personInfoHide>
                   <personRoleId/>
-                </personWithIntroInfoHide>
+                </personInfoHide>
 
-               	<personWithIntroInfo>
+               	<personInfo>
                     <personID/>
                     <personName/>
                     <personOtherNames/>
                     <personDOB/>
                     <personRoleName/>
                     <personPhoto/>
+                    <personPhotoDescp/>
                     <Take_Photo/>
                     <Take_Intro_Quesnir/>
+                     <personIntroDesc/>
                     <Finish_New_Person/>
-                  </personWithIntroInfo>
-                </personWithIntro>
+                  </personInfo>
+                </person>
 
                 <!--personWithoutIntro>
                 <personWithoutIntroInfo>
@@ -694,17 +696,17 @@
     </group>
 
 
-    <group ref="personWithIntro" faims_archent_type="Person">
+    <group ref="person" faims_archent_type="Person">
         <label>Person</label>
 
-        <group ref="personWithIntroInfoHide" faims_hidden="true">
+        <group ref="personInfoHide" faims_hidden="true">
           <label>{PersonInfoHide}</label>
           <input ref="personRoleId" faims_attribute_name="PersonRole" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
               <label>{Person role ID}</label>
             </input>
         </group>
 
-        <group ref="personWithIntroInfo">
+        <group ref="personInfo">
           <label>{Person Information}</label>
            <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
               <label>{Person ID}</label>
@@ -733,9 +735,19 @@
             <trigger ref="Take_Photo" faims_style_class="faims-blue">
                 <label>Take Photo</label>
             </trigger>
+
+             <input ref="personPhotoDescp" faims_attribute_name="PersonPhotoDescription" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
+              <label>Photo decription</label>
+            </input>
+
             <trigger ref="Take_Intro_Quesnir" faims_style_class="faims-blue">
                 <label>Intro Questionnaire</label>
             </trigger>
+
+            <input ref="personIntroDesc" faims_attribute_name="PersonIntroQuenirDesp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
+              <label>Intro quesnir description</label>
+            </input>
+
             <trigger ref="Finish_New_Person" faims_style_class="faims-blue">
                 <label>Save Person</label>
             </trigger>

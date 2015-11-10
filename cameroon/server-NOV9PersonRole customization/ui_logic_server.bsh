@@ -1248,9 +1248,9 @@ searchLanguage(){
 
 /*** Person AND PersonRole***/
 onEvent("control/user_control/New_User","click","newPerson()");
-onEvent("personWithIntro/personWithIntroInfo/Finish_New_Person","click","saveNewPerson()");
+onEvent("person/personInfo/Finish_New_Person","click","saveNewPerson()");
 onEvent("control/user_control","show","loadPerson()");
-onEvent("personWithIntro/personWithIntroInfo/Take_Photo","click","attachPictureTo(\"personWithIntro/personWithIntroInfo/personPhoto\")");
+onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
 onEvent("control/user_control/userList","click","loadPersonInfo()");
 onEvent("personRoleSelect/personRoleSelectInfo/CreateNewRole","click","newRole()");
 onEvent("personRole/personRoleInfo/SavePersonRole","click","checkRole()");
@@ -1263,6 +1263,8 @@ role_list=new ArrayList();
 propertyIndicator= new ArrayList();
 propertyIndicator.add(new NameValuePair("Yes", "Yes"));
 propertyIndicator.add(new NameValuePair("No", "No"));
+savePersonWfProperty=new ArrayList();
+
 
 newRole(){
 	role_id=null;
@@ -1335,8 +1337,8 @@ newPerson(){
 	
 	/*
 	person_id=null;
-	newTabGroup("personWithIntro");
-	onEvent("personWithIntro", "show", "showTab(\"personWithIntro/personWithIntroInfo\");"); 
+	newTabGroup("person");
+	onEvent("person", "show", "showTab(\"person/personInfo\");"); 
 	*/ 
 }
 
@@ -1447,12 +1449,12 @@ newPersonByRole(){
 
 newPersonWithIntro(ArrayList roleflag, ArrayList propertyFlag){
 	person_id=null;
-	newTabGroup("personWithIntro");
-	onEvent("personWithIntro", "show", "showTab(\"personWithIntro/personWithIntroInfo\");");  
-	setFieldValue("personWithIntro/personWithIntroInfoHide/personRoleId",roleflag.get(0));
-	setFieldValue("personWithIntro/personWithIntroInfo/personRoleName",roleflag.get(1));
-	//showWarning("intro",propertyFlag.get(0));
-	//showWarning("phtp",propertyFlag.get(1));
+	newTabGroup("person");
+	onEvent("person", "show", "showTab(\"person/personInfo\");");  
+	setFieldValue("person/personInfoHide/personRoleId",roleflag.get(0));
+	setFieldValue("person/personInfo/personRoleName",roleflag.get(1));
+	savePersonWfProperty.clear();
+	savePersonWfProperty.addAll(propertyFlag);
 }
 
 timeValidation(String startDateTime){	
@@ -1467,8 +1469,6 @@ timeValidation(String startDateTime){
 					sdt=df.parse(startDateTime);	
 				}
 				catch(Exception ex){
-					//Log.e("error", ex.getMessage().toString());
-					//showWarning("ex","ex");
 					return false;
 				}
 			return true;
@@ -1496,20 +1496,109 @@ nameCamCaseConverter(String originName){
 }
 
 saveNewPerson(){
-
-	if((isNull(getFieldValue("personWithIntro/personWithIntroInfo/personName")))|| (isNull(getFieldValue("personWithIntro/personWithIntroInfo/personDOB")))){
+	if((isNull(getFieldValue("person/personInfo/personName")))|| (isNull(getFieldValue("person/personInfo/personDOB")))){
 		showWarning("Validation Error", "You must fill in the Person Name and Person DOB before you can continue");
         return;
 	}
+	if((savePersonWfProperty.get(1).equals("Y"))&&(savePersonWfProperty.get(0).equals("N"))){
+			if((isNull(getFieldValue("person/personInfo/personPhoto")))&& (isNull(getFieldValue("person/personInfo/personPhotoDescp")))){
+				showWarning("Validation Error", "You must either take person photo or write the reason of not taking photo");
+        		return;
+			}
+
+	}
+	if((savePersonWfProperty.get(1).equals("Y"))&&(savePersonWfProperty.get(0).equals("Y"))){
+			if((isNull(getFieldValue("person/personInfo/personPhoto")))&& (isNull(getFieldValue("person/personInfo/personPhotoDescp")))){
+				showWarning("Validation Error", "You must either take person photo or write the reason of not taking photo");
+        		return;
+			}
+			if((isNull(person_id)) && (isNull(getFieldValue("person/personInfo/personIntroDesc")))){
+				showWarning("Validation Error", "You must either take person introductory questionnaire \n"+"or write the reason of not taking introductory questionnaire");
+        		return;
+			}
+			if((!isNull(person_id))&&(isNull(getFieldValue("person/personInfo/personIntroDesc")))){
+				checkPsIntrAnsQuery="select uuid from latestNonDeletedAentValue "+
+					"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+					"and latestNonDeletedAentValue.measure in "+
+					"(select uuid from latestNonDeletedAentValue "+
+						"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+						"and latestNonDeletedAentValue.measure="+
+						"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID= "+
+							"(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+							"and latestNonDeletedAentValue.measure = 'Introductory')) "+
+					"and uuid in "+
+					"(select uuid from AentReln where RelationshipID in "+
+						"(select RelationshipID from AentReln where AentReln.uuid='"+person_id+"') "+
+						"and RelationshipID in "+
+						"(select RelationshipID from latestNonDeletedRelationship "+
+							"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
+							"and latestNonDeletedRelationship.Deleted is null))";
+	
+				fetchAll(checkPsIntrAnsQuery,new FetchCallback() {
+						        	onFetch(result) {					        	
+									if(isNull(result)){
+										showWarning("Validation Error", "You must either take person introductory questionnaire \n"+"or write the reason of not taking introductory questionnaire");
+        								return;
+									}
+								
+						        }
+						        onError(message) {
+						        	Log.e("error",message);
+						            showToast(message);
+						           
+						        }
+						    });
+			}
+
+	}
+	if((savePersonWfProperty.get(1).equals("N"))&&(savePersonWfProperty.get(0).equals("Y"))){
+			if((isNull(person_id)) && (isNull(getFieldValue("person/personInfo/personIntroDesc")))){
+				showWarning("Validation Error", "You must either take person introductory questionnaire \n"+"or write the reason of not taking introductory questionnaire");
+        		return;
+			}
+			if((!isNull(person_id))&&(isNull(getFieldValue("person/personInfo/personIntroDesc")))){
+				checkPsIntrAnsQuery="select uuid from latestNonDeletedAentValue "+
+					"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+					"and latestNonDeletedAentValue.measure in "+
+					"(select uuid from latestNonDeletedAentValue "+
+						"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+						"and latestNonDeletedAentValue.measure="+
+						"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID= "+
+							"(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+							"and latestNonDeletedAentValue.measure = 'Introductory')) "+
+					"and uuid in "+
+					"(select uuid from AentReln where RelationshipID in "+
+						"(select RelationshipID from AentReln where AentReln.uuid='"+person_id+"') "+
+						"and RelationshipID in "+
+						"(select RelationshipID from latestNonDeletedRelationship "+
+							"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
+							"and latestNonDeletedRelationship.Deleted is null))";
+	
+				fetchAll(checkPsIntrAnsQuery,new FetchCallback() {
+						        	onFetch(result) {					        	
+									if(isNull(result)){
+										showWarning("Validation Error", "You must either take person introductory questionnaire \n"+"or write the reason of not taking introductory questionnaire");
+        								return;
+									}
+								
+						        }
+						        onError(message) {
+						        	Log.e("error",message);
+						            showToast(message);
+						           
+						        }
+						    });
+			}
+	}
 	//if(isNull(getFieldValue("person/personInfo/personID"))){
-	String personNameOrigin=getFieldValue("personWithIntro/personWithIntroInfo/personName");
+	String personNameOrigin=getFieldValue("person/personInfo/personName");
 	String personNameCamCase=nameCamCaseConverter(personNameOrigin);
-	String personLabel=personNameCamCase+"_"+getFieldValue("personWithIntro/personWithIntroInfo/personDOB");
-	setFieldValue("personWithIntro/personWithIntroInfo/personID", personLabel);
+	String personLabel=personNameCamCase+"_"+getFieldValue("person/personInfo/personDOB");
+	setFieldValue("person/personInfo/personID", personLabel);
 	//}
-	String personDOB=getFieldValue("personWithIntro/personWithIntroInfo/personDOB");
+	String personDOB=getFieldValue("person/personInfo/personDOB");
 	if(timeValidation(personDOB)){
-	saveTabGroup("personWithIntro", person_id, null, null, new SaveCallback() {
+	saveTabGroup("person", person_id, null, null, new SaveCallback() {
     onSave(uuid, newRecord) {
       person_id = uuid;
       if (newRecord) {
@@ -1517,7 +1606,7 @@ saveNewPerson(){
 		//person_id=null;
 		
         showToast("New record created");
-        cancelTabGroup("personWithIntro",true);
+        cancelTabGroup("person",true);
         showTab("control/user_control");
       }
 	  else{
@@ -1561,10 +1650,10 @@ person_id=getListItemValue();
 		return;
 	}
 
-	showTabGroup("personWithIntro", person_id, new FetchCallback() {
+	showTabGroup("person", person_id, new FetchCallback() {
         onFetch(result) {
             person=result;
-            String roleUuid=getFieldValue("personWithIntro/personWithIntroInfoHide/personRoleId");
+            String roleUuid=getFieldValue("person/personInfoHide/personRoleId");
             checkPersonRoleQuery="SELECT measure from latestNonDeletedAentValue "+
 											"WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
 											"AND latestNonDeletedAentValue.AttributeID="+
@@ -1572,7 +1661,7 @@ person_id=getListItemValue();
         	fetchOne(checkPersonRoleQuery,new FetchCallback() {
 								onFetch(result) {
 									if(!isNull(result)){
-										setFieldValue("personWithIntro/personWithIntroInfo/personRoleName",result.get(0));
+										setFieldValue("person/personInfo/personRoleName",result.get(0));
 										
 									}
 									else{
