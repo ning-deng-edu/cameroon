@@ -1658,6 +1658,17 @@ person_id=getListItemValue();
 											"WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
 											"AND latestNonDeletedAentValue.AttributeID="+
 											"(select AttributeID from AttributeKey where AttributeName='PersonRoleName');";
+
+			checkRoleIntroQuery="SELECT measure from latestNonDeletedAentValue "+
+								"WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
+								"AND latestNonDeletedAentValue.AttributeID="+
+								"(select AttributeID from AttributeKey where AttributeName='RoleIntroAnsRequired');";
+
+			checkRolePhotoQuery="SELECT measure from latestNonDeletedAentValue "+
+								"WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
+								"AND latestNonDeletedAentValue.AttributeID="+
+								"(select AttributeID from AttributeKey where AttributeName='RolePhotoRequired');";
+
         	fetchOne(checkPersonRoleQuery,new FetchCallback() {
 								onFetch(result) {
 									if(!isNull(result)){
@@ -1670,6 +1681,42 @@ person_id=getListItemValue();
 								 
 								}  
 						});
+
+        	fetchOne(checkRoleIntroQuery,new FetchCallback() {
+								onFetch(result) {
+									if(!isNull(result)){
+										savePersonWfProperty.clear();
+										if(result.get(0).equals("Yes")){
+											savePersonWfProperty.add("Y");
+										}
+										else{
+											savePersonWfProperty.add("N");
+										}
+										fetchOne(checkRolePhotoQuery,new FetchCallback() {
+											onFetch(result) {
+												if(!isNull(result)){
+													if(result.get(0).equals("Yes")){
+														savePersonWfProperty.add("Y");
+													}
+													else{
+														savePersonWfProperty.add("N");
+													}
+													
+												}
+												else{
+													showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+												}
+											 
+											}  
+										});
+									}
+									else{
+										showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+									}
+								 
+								}  
+						});
+
             showToast("Loaded person"+person.getId());            
         }
         onError(message) {
@@ -1789,7 +1836,6 @@ recordSearch(){
 		"latestNonDeletedAentValue.AttributeID in "+
 		"(select AttributeID from IdealAent where IdealAent.AentTypeID in "+
 		"(select AEntTypeID from AEntType where  AEntType.AEntTypeName= '"+type+"'));";// without group by uuid, user can view every related details
-		//showWarning("query",search_query);
 		fetchAll(search_query, new FetchCallback() {
         onFetch(result) {
 			if(!isNull(result)){
@@ -1822,8 +1868,6 @@ recordSearch(){
             showToast(message);
         }
     });
-		//showWarning("query",search_query);
-		//populateCursorList("control/search/entityList", search_query, 25);
 	}
 }
 
