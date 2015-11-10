@@ -21,7 +21,7 @@ loadAllQuestionnaireQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " 
 	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
 	"GROUP BY uuid;";
 
-	loadAllRegQuesnirQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+loadAllRegQuesnirQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 	"WHERE latestNonDeletedAentValue.AttributeID = "+
 	"(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
 	"AND latestNonDeletedAentValue.uuid IN "+
@@ -44,19 +44,21 @@ loadAllIntrQuesnirQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 			"and latestNonDeletedAentValue.measure = 'Introductory')) GROUP BY uuid;";
 
 loadAllAnsForIntroQuesnir="SELECT uuid, measure FROM latestNonDeletedAentValue "+
-			"WHERE latestNonDeletedAentValue.AttributeID = "+
-			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerLabel') "+
-			"AND latestNonDeletedAentValue.uuid IN "+
-			"(select uuid from "+
-				"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
-					"(select AttributeKey.AttributeID from AttributeKey "+
-					"where AttributeKey.AttributeName='AnswerQuestionnaireID')) t1 "+
-			 "inner join "+
-			 	"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
-			 		"(select AttributeKey.AttributeID from AttributeKey "+
-			 		"where AttributeKey.AttributeName='QuestionnaireType') "+
-			 		"and latestNonDeletedAentValue.measure='Introductory') t2 "+
-			 		"using(uuid))";
+	"WHERE latestNonDeletedAentValue.AttributeID = "+
+	"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerLabel') "+
+	"AND latestNonDeletedAentValue.uuid IN "+
+	"(select uuid from "+
+		"(SELECT uuid FROM latestNonDeletedAentValue "+
+			"where latestNonDeletedAentValue.AttributeID= "+
+			"(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionnaireID')) t1 "+
+		"inner join "+
+		"(SELECT uuid FROM latestNonDeletedAentValue "+
+			"where latestNonDeletedAentValue.AttributeID= "+
+			"(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='QuestionnaireType') "+
+			"and latestNonDeletedAentValue.measure= "+
+			"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID= "+
+				"(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+				"and latestNonDeletedAentValue.measure = 'Introductory')) t2 using(uuid));";
 
 loadAllPersonQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 	"WHERE latestNonDeletedAentValue.AttributeID "+
@@ -1410,7 +1412,10 @@ checkPsIntrAnsQuery="select uuid from latestNonDeletedAentValue "+
 					"and latestNonDeletedAentValue.measure in "+
 					"(select uuid from latestNonDeletedAentValue "+
 						"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
-						"and latestNonDeletedAentValue.measure='Introductory') "+
+						"and latestNonDeletedAentValue.measure="+
+						"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID= "+
+							"(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+							"and latestNonDeletedAentValue.measure = 'Introductory')) "+
 					"and uuid in "+
 					"(select uuid from AentReln where RelationshipID in "+
 						"(select RelationshipID from AentReln where AentReln.uuid='"+person_id+"') "+
@@ -2716,7 +2721,10 @@ saveNewPerson(String typeflag){
 					"and latestNonDeletedAentValue.measure in "+
 					"(select uuid from latestNonDeletedAentValue "+
 						"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
-						"and latestNonDeletedAentValue.measure='Introductory') "+
+						"and latestNonDeletedAentValue.measure="+
+						"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID= "+
+							"(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+							"and latestNonDeletedAentValue.measure = 'Introductory')) "+
 					"and uuid in "+
 					"(select uuid from AentReln where RelationshipID in "+
 						"(select RelationshipID from AentReln where AentReln.uuid='"+person_id+"') "+
@@ -2834,7 +2842,10 @@ checkPsIntrSssQuery="select uuid,measure from latestNonDeletedAentValue "+
 							"and latestNonDeletedAentValue.measure in "+
 								"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
 									"(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
-									"and latestNonDeletedAentValue.measure='Introductory') "+
+									"and latestNonDeletedAentValue.measure="+
+									"((select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID= "+
+										"(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+										"and latestNonDeletedAentValue.measure = 'Introductory')) "+
 							"and uuid in "+
 								"(select uuid from AentReln where RelationshipID in "+
 									"(select RelationshipID from AentReln where AentReln.uuid='"+person_id+"') "+
@@ -3275,12 +3286,15 @@ checkSssQuesnirType(String typeflag){
 	}
  	//showWarning("checkAnsId",checkAnsId);
 
-		checkAnsQuesnirTypeQuery="SELECT uuid,measure from latestNonDeletedAentValue "+
+		checkAnsQuesnirTypeQuery="SELECT measure from latestNonDeletedAentValue "+
+		"WHERE AttributeID="+
+		"(SELECT AttributeID from Attributekey where AttributeName='QuesnirTypeName')"+
+		"AND uuid ="
+		"(SELECT measure from latestNonDeletedAentValue "+
 		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from Attributekey where AttributeName='QuestionnaireType') "+
 		"and uuid = "+
-		"( select measure from latestNonDeletedAentValue where uuid='"+checkAnsId+"'"+
-			//"latestNonDeletedAentValue.uuid='"+checkAnsId+"' "+
-			"and AttributeID=( (select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID')))";
+		"(select measure from latestNonDeletedAentValue where uuid='"+checkAnsId+"'"+
+			"and AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID')))";
 
 		//showWarning("checkAnsQuesnirTypeQuery",checkAnsQuesnirTypeQuery);
 
