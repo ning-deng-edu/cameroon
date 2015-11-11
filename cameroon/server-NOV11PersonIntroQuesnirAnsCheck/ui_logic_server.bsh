@@ -1872,6 +1872,7 @@ entityTypes.add(new NameValuePair("{Questionnaire}", "Questionnaire"));
 entityTypes.add(new NameValuePair("{Question}", "QuestionBank"));
 entityTypes.add(new NameValuePair("{Person}", "Person"));
 entityTypes.add(new NameValuePair("{Language}", "Language"));
+entityTypes.add(new NameValuePair("{Role}", "PersonRole"));
 
 onEvent("control/search","show","initializeSearch()");
 onEvent("control/search/Record_Search","click","recordSearch()");
@@ -1948,6 +1949,9 @@ showEntity(){
 			break;
 		case "QuestionBank":
 			loadQuestionInfo();
+			break;
+		case "PersonRole":
+			loadRoleInfo();
 			break;
 			
 	}
