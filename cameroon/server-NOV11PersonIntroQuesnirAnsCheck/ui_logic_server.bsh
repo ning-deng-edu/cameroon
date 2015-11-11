@@ -1253,7 +1253,7 @@ onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personI
 onEvent("control/user_control/userList","click","loadPersonInfo()");
 onEvent("personRoleSelect/personRoleSelectInfo/CreateNewRole","click","newRole()");
 onEvent("personRole/personRoleInfo/SavePersonRole","click","checkRole()");
-onEvent("personRoleSelect/personRoleSelectInfo/","show","loadRoles()");
+onEvent("personRoleSelect/personRoleSelectInfo/","show","loadRoles(\"newPerson\",\"personRoleSelect/personRoleSelectInfo/PersonRoleSelectList\")");
 onEvent("personRoleSelect/personRoleSelectInfo/CreateNewPerson","click","newPersonByRole()");
 
 person_id=null;
@@ -1268,10 +1268,10 @@ savePersonWfProperty=new ArrayList();
 newRole(){
 	role_id=null;
 	newTabGroup("personRole");
-	populateDropDown("personRole/personRoleInfo/RoleIntroRequired",propertyIndicator);
-	populateDropDown("personRole/personRoleInfo/RolePhotoRequired",propertyIndicator);
+	//populateRadioGroup("personRole/personRoleInfo/RoleIntroRequired",propertyIndicator);
+	//populateRadioGroup("personRole/personRoleInfo/RolePhotoRequired",propertyIndicator);
 	//populateDropDown("personRole/personRoleInfo/RoleDataOnServer",propertyIndicator);
-	populateDropDown("personRole/personRoleInfo/RoleDataOnClient",propertyIndicator);
+	//populateRadioGroup("personRole/personRoleInfo/RoleDataOnClient",propertyIndicator);
 }
 
 checkRole(){
@@ -1332,7 +1332,7 @@ saveRole(){
 
 newPerson(){
 	showTabGroup("personRoleSelect");
-	loadRoles();
+	//loadRoles();
 	
 	/*
 	person_id=null;
@@ -1341,12 +1341,18 @@ newPerson(){
 	*/ 
 }
 
-loadRoles(){
+loadRoles(String typeFlag, String populateRef){
 	fetchAll(loadAllPersonRoleQuery,new FetchCallback() {
 				onFetch(result) {
-				role_list.clear();
-				role_list.addAll(result);
-				populateDropDown("personRoleSelect/personRoleSelectInfo/PersonRoleSelectList", role_list);
+					role_list.clear();
+					role_list.addAll(result);
+					if(typeFlag.equals("newPerson")){
+						populateDropDown(populateRef, role_list);
+					}
+					else{
+						populateList(populateRef,role_list);
+					}
+					
 				}  
 		});
 
@@ -1832,7 +1838,28 @@ language_id=getListItemValue();
     });
 }
 
+/*** PersonRole ***/
+onEvent("control/role_control/New_Role","click","newRole()");
+onEvent("control/role_control","show","loadRoles(\"newRole\",\"control/role_control/roleList\")");
+onEvent("control/role_control/roleList","click","loadRoleInfo()");
+roleID=null; //This is for differenciate the role id used for creating new person and here view roles
+loadRoleInfo(){
+	roleID=getListItemValue();
+	if(isNull(roleID)){
+		showWarning("Invalid data","No role selected");
+		return;
+	}
+	showTabGroup("personRole", roleID, new FetchCallback() {
+        onFetch(result) {
+            showToast("Loaded role"+result.getId());  
+            //showWarning("intro?",result.getClass().getName());          
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
 
+}
 /*** Search Page ***/
 //Add entity types
 entityTypes = new ArrayList();

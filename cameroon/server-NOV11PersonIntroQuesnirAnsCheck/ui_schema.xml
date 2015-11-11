@@ -59,6 +59,11 @@
                         <languageList/>
                     </language_control>
 
+                    <role_control>
+                        <New_Role/>
+                        <roleList/>
+                    </role_control>
+
                     <querytest>
 						<query/>
 						<Submit/>
@@ -370,7 +375,21 @@
                 </item>
             </select1>
         </group>
-        
+
+        <group ref="role_control">
+            <label>Role</label>
+            <trigger ref="New_Role" faims_style_class="faims-blue">
+                <label>New Role</label>
+            </trigger>
+            <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="roleList" faims_style_class="user-list">
+                <label>{Tap role to view details}</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
+       </group>
+
        <group ref="querytest">
         <label>{query}</label>
         
@@ -800,18 +819,26 @@
            <input ref="personRoleName" faims_attribute_name="PersonRoleName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
               <label>{Role Name}</label>
             </input>
-           <select1 ref="RoleIntroRequired" faims_attribute_name="RoleIntroAnsRequired" faims_attribute_type="measure">
+           <select1 ref="RoleIntroRequired" faims_attribute_name="RoleIntroAnsRequired" faims_attribute_type="measure" appearance="full">
           <label>Answering introductory questionnaire required?</label>
           <item>
-            <label>placeholder</label>
-            <value>placeholder</value>
+            <label>Yes</label>
+            <value>Yes</value>
+          </item>
+           <item>
+            <label>No</label>
+            <value>No</value>
           </item>
         </select1>
-        <select1 ref="RolePhotoRequired" faims_attribute_name="RolePhotoRequired" faims_attribute_type="measure">
+        <select1 ref="RolePhotoRequired" faims_attribute_name="RolePhotoRequired" faims_attribute_type="measure" appearance="full">
           <label>Taking photo required?</label>
           <item>
-            <label>placeholder</label>
-            <value>placeholder</value>
+            <label>Yes</label>
+            <value>Yes</value>
+          </item>
+           <item>
+            <label>No</label>
+            <value>No</value>
           </item>
         </select1>
         <!--select1 ref="RoleDataOnServer" faims_attribute_name="RoleDataOnServer" faims_attribute_type="measure">
@@ -821,11 +848,15 @@
             <value>placeholder</value>
           </item>
         </select1-->
-        <select1 ref="RoleDataOnClient" faims_attribute_name="RoleDataOnClient" faims_attribute_type="measure">
+        <select1 ref="RoleDataOnClient" faims_attribute_name="RoleDataOnClient" faims_attribute_type="measure" appearance="full">
           <label>Role shown on client module's list?</label>
           <item>
-            <label>placeholder</label>
-            <value>placeholder</value>
+            <label>Yes</label>
+            <value>Yes</value>
+          </item>
+           <item>
+            <label>No</label>
+            <value>No</value>
           </item>
         </select1>
 
