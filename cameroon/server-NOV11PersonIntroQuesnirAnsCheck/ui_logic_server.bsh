@@ -1259,9 +1259,9 @@ onEvent("personRoleSelect/personRoleSelectInfo/CreateNewPerson","click","newPers
 person_id=null;
 role_id=null;
 role_list=new ArrayList();
-propertyIndicator= new ArrayList();
-propertyIndicator.add(new NameValuePair("Yes", "Yes"));
-propertyIndicator.add(new NameValuePair("No", "No"));
+//propertyIndicator= new ArrayList();
+//propertyIndicator.add(new NameValuePair("Yes", "Yes"));
+//propertyIndicator.add(new NameValuePair("No", "No"));
 savePersonWfProperty=new ArrayList();
 
 
@@ -1275,6 +1275,7 @@ newRole(){
 }
 
 checkRole(){
+	if(isNull(role_id)){
 	String newRoleName=getFieldValue("personRole/personRoleInfo/personRoleName");
 	if(isNull(newRoleName)){
 		showWarning("Incomplete data","You must enter valid person role name");
@@ -1303,6 +1304,10 @@ checkRole(){
 				}
 				});
 	
+	}
+	}
+	else{
+		saveRole();
 	}
 }
 
@@ -1842,14 +1847,14 @@ language_id=getListItemValue();
 onEvent("control/role_control/New_Role","click","newRole()");
 onEvent("control/role_control","show","loadRoles(\"newRole\",\"control/role_control/roleList\")");
 onEvent("control/role_control/roleList","click","loadRoleInfo()");
-roleID=null; //This is for differenciate the role id used for creating new person and here view roles
+//roleID=null; //This is for differenciate the role id used for creating new person and here view roles
 loadRoleInfo(){
-	roleID=getListItemValue();
-	if(isNull(roleID)){
+	role_id=getListItemValue();
+	if(isNull(role_id)){
 		showWarning("Invalid data","No role selected");
 		return;
 	}
-	showTabGroup("personRole", roleID, new FetchCallback() {
+	showTabGroup("personRole", role_id, new FetchCallback() {
         onFetch(result) {
             showToast("Loaded role"+result.getId());  
             //showWarning("intro?",result.getClass().getName());          
