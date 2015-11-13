@@ -1,0 +1,4 @@
+1.Non-elegant checkPersonIntro and checkPersonAns, can't send arguments in the showAlert API
+2.Add photo skip description and intro questionnaire skip description
+3.After adding a new intro session, populate it on the person intro session page
+4.Deal with the problem that when person's info doesn't change, the intro quesnir doesn't response
