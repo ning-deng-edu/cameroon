@@ -137,6 +137,21 @@ addActionBarItem("sync", new ToggleActionButtonCallback() {
         showToast("Sync enabled.");
     }
 });
+
+onSyncEvent("onSyncStart()", "onSyncSuccess()", "onSyncFailure()");
+
+
+onSyncStart() {
+    showToast("sync started");
+}
+ 
+onSyncSuccess() {
+    showToast("sync success");
+}
+ 
+onSyncFailure() {
+    showToast("sync failed");
+}
 /***Save relationships among entities***/
 saveEntitiesToRel(String type, String entity1, String entity2) {
 	//If this function doesn't work, generally it's because that no corresponding relationship table could be found in the data schema
@@ -1281,6 +1296,10 @@ checkRole(){
 		showWarning("Incomplete data","You must enter valid person role name");
 		return;
 	}
+	if((isNull(getFieldValue("personRole/personRoleInfo/RoleIntroRequired"))) || (isNull(getFieldValue("personRole/personRoleInfo/RolePhotoRequired"))) || (isNull(getFieldValue("personRole/personRoleInfo/RoleDataOnClient")))){
+		showWarning("Incomplete data","You must finish all data input");
+		return;
+	}
 	else{
 			personRoleCheckQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 								"WHERE latestNonDeletedAentValue.AttributeID "+
@@ -1312,6 +1331,7 @@ checkRole(){
 }
 
 saveRole(){
+
 	saveTabGroup("personRole", role_id, null, null, new SaveCallback() {
     onSave(uuid, newRecord) {
       role_id = uuid;
@@ -1321,7 +1341,7 @@ saveRole(){
 		
         showToast("New record created");
         cancelTabGroup("personRole",true);
-        //showTab("control/user_control");
+        showTab("control/role_control");
       }
 	  else{
 		showToast("Record changed");	
