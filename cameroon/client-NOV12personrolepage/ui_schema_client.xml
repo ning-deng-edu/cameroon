@@ -345,10 +345,28 @@
                     	<sketchFilePath/>
                     	<Save_New_Sketch/>
                     </sketchFileInfo>
-                </sketchFile>                 
-                
+                </sketchFile>    
 
-                <person>                  
+                <personRoleSelect>
+             		<personRoleSelectInfo>
+             			<container15>
+             				<child1>
+             					<keywordOfRole/>
+             				</child1>
+             				<child2>
+             					<SearchRole/>
+             				</child2>
+             			</container15>
+             			<PersonRoleSelectList/>
+             			<CreateNewPerson/>
+             		</personRoleSelectInfo>
+             	</personRoleSelect>
+
+                <person>     
+                 <personInfoHide>
+                  <personRoleId/>
+                </personInfoHide>
+
                   <personInfo>
                     <personID/>
                     <personName/>
@@ -372,7 +390,6 @@
                     <Finish_New_Language/>
                   </languageInfo>
                 </language>
-                
                
                 <sessionGroup>
                   <sessionInfo>
@@ -1316,10 +1333,52 @@
         </group>
     </group>
     
+     <group ref="personRoleSelect">
+        <label>Person Role</label>     
+        <group ref="personRoleSelectInfo">
+          <label>{Person Role Information}</label>
+          <group ref="container15" faims_style="orientation">
+          <label></label>
+          <group ref="child1" faims_style="even">
+            <label></label>
+           <input ref="keywordOfRole">
+            	<label>role keyword</label>
+            </input>
+           </group>
+          <group ref="child2" faims_style="even">
+            <label></label>
+             <trigger ref="SearchRole" faims_style_class="faims-blue-parallel">
+            <label>Search Role</label>
+          </trigger>            
+          </group>
+        </group>       
+
+        <select1 ref="PersonRoleSelectList">
+            <label>Role List:</label>
+            <item>
+                <label>Item A</label>
+                <value>0</value>
+            </item>
+         </select1>
+
+            <trigger ref="CreateNewPerson" faims_style_class="faims-blue">
+                <label>New Person</label>
+            </trigger>
+        </group>
+
+    </group>
+
+
         
       <group ref="person" faims_archent_type="Person">
         <label>Person</label>
 
+		<group ref="personInfoHide" faims_hidden="true">
+          <label>{PersonInfoHide}</label>
+          <input ref="personRoleId" faims_attribute_name="PersonRole" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
+              <label>{Person role ID}</label>
+            </input>
+        </group>
         
         <group ref="personInfo">
           <label>Person Info</label>

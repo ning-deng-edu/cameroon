@@ -1424,7 +1424,7 @@ checkPsIntrAnsQuery="select uuid from latestNonDeletedAentValue "+
 						"where RelationshipID in(select RelationshipID from AentReln where AentReln.uuid='"+person_id+"') "+
 						"and RelationshipID IN(select RelationshipID from latestNonDeletedRelationship "+
 							"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee' ) "+
-							"and latestNonDeletedRelationship.Deleted IS NULL));";
+							"and latestNonDeletedRelationship.Deleted IS NULL))";
 	
 fetchAll(checkPsIntrAnsQuery,new FetchCallback() {
 						        	onFetch(result) {					        	
@@ -2617,6 +2617,7 @@ savePersonWfProperty=new ArrayList();
 role_id=null;
 
 person_id=null;
+
 newPerson(){
 	showTabGroup("personRoleSelect");
 }
@@ -2637,8 +2638,6 @@ loadRoles(String typeFlag, String populateRef){
 		});
 
 }
-
-
 newPersonByRole(){
 	role_id=getFieldValue("personRoleSelect/personRoleSelectInfo/PersonRoleSelectList");
 	roleInfo=new ArrayList();
@@ -2681,9 +2680,7 @@ newPersonByRole(){
 								onFetch(result) {
 									if(!isNull(result)){
 										if(result.get(0).equals("Yes")){
-											//showWarning("checkRolePhotoQuery","Yes");
 											propertyInfo.add("Y");
-											//showWarning("propertyInfo",propertyInfo.get(1));
 											newPersonWithIntro(roleInfo,propertyInfo);
 										}
 										else{
@@ -2755,7 +2752,6 @@ loadPerson(){
         }
     });
 }
-
 loadPersonInfo(){
 person_id=getListItemValue();
 	if(isNull(person_id)){
@@ -2845,7 +2841,6 @@ person_id=getListItemValue();
         }
     });
 }
-
 timeValidation(String startDateTime){	
 	String hyphenDateRegex="^\\d{4}[-]\\d{2}[-]\\d{2}$";
 	Pattern hyphenDatePattern=Pattern.compile(hyphenDateRegex);
@@ -2885,7 +2880,6 @@ nameCamCaseConverter(String originName){
 	return camCase;
 	//showWarning("camCase",camCase);
 }
-
 saveNewPerson(String typeflag){
 
 	if((isNull(getFieldValue("person/personInfo/personName")))|| (isNull(getFieldValue("person/personInfo/personDOB")))){
@@ -2924,24 +2918,6 @@ saveNewPerson(String typeflag){
 						"and RelationshipID IN(select RelationshipID from latestNonDeletedRelationship "+
 							"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee' ) "+
 							"and latestNonDeletedRelationship.Deleted IS NULL));";
-				
-				checkPsIntrAnsQuery="select uuid from latestNonDeletedAentValue "+
-					"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
-					"and latestNonDeletedAentValue.measure in "+
-					"(select uuid from latestNonDeletedAentValue "+
-						"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
-						"and latestNonDeletedAentValue.measure="+
-						"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID= "+
-							"(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
-							"and latestNonDeletedAentValue.measure = 'Introductory'))"+
-					"and uuid in "+
-					"(select uuid from AentReln where RelationshipID in "+
-						"(select RelationshipID from AentReln where AentReln.uuid='"+person_id+"') "+
-						"and RelationshipID in "+
-						"(select RelationshipID from latestNonDeletedRelationship "+
-							"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
-							"and latestNonDeletedRelationship.Deleted is null))";
-							
 	
 				fetchAll(checkPsIntrAnsQuery,new FetchCallback() {
 						        	onFetch(result) {					        	
@@ -2961,43 +2937,6 @@ saveNewPerson(String typeflag){
 
 		}
 	}
-	
-	/*
-    if((!typeflag.equals("intro")) && (isNull(getFieldValue("person/personInfo/personIntroDesc"))) && (!isNull(person_id))){
-			checkPsIntrAnsQuery="select uuid from latestNonDeletedAentValue "+
-					"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
-					"and latestNonDeletedAentValue.measure in "+
-					"(select uuid from latestNonDeletedAentValue "+
-						"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
-						"and latestNonDeletedAentValue.measure="+
-						"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID= "+
-							"(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
-							"and latestNonDeletedAentValue.measure = 'Introductory')) "+
-					"and uuid in "+
-					"(select uuid from AentReln where RelationshipID in "+
-						"(select RelationshipID from AentReln where AentReln.uuid='"+person_id+"') "+
-						"and RelationshipID in "+
-						"(select RelationshipID from latestNonDeletedRelationship "+
-							"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
-							"and latestNonDeletedRelationship.Deleted is null))";
-	
-				fetchAll(checkPsIntrAnsQuery,new FetchCallback() {
-						        	onFetch(result) {					        	
-									if(isNull(result)){
-										showWarning("Validation Error", "You must either take person introductory questionnaire \n"+"or write the reason of not taking introductory questionnaire");
-        								return;
-									}
-								
-						        }
-						        onError(message) {
-						        	Log.e("error",message);
-						            showToast(message);
-						           
-						        }
-						    });
-
-    	}
-	*/
     
 	String personNameOrigin=getFieldValue("person/personInfo/personName");
 	String personNameCamCase=nameCamCaseConverter(personNameOrigin);
@@ -3051,11 +2990,9 @@ saveNewPerson(String typeflag){
 		  else{
 			showToast("Record changed");	
 			if(typeflag.equals("intro")){
-				//showWarning("intro","intro");
 				newPersonIntro=new ArrayList();
 	      		newPersonIntro.add(person_id);
 				newPersonIntro.add(personNameOrigin);
-				//showWarning("newPersonIntro","newPersonIntro");
 				newSessionForAnswer("intro",newPersonIntro);
 			}
 		  }
@@ -3096,33 +3033,7 @@ checkPersonIntroSession(){
 								"where AentReln.uuid='"+person_id+"') "+
 								"and RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
 									"where RelnTypeID= (select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
-									"and latestNonDeletedRelationship.Deleted is null))))));";
-/*
-checkPsIntrSssQuery="select uuid,measure from latestNonDeletedAentValue "+
-					"where AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionName')  "+
-					"and uuid in "+
-						"(select uuid from AentReln where RelationshipID in "+
-							"(select RelationshipID from AentReln "+
-							"where RelationshipID in"+
-								"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session' ) "+
-							"and latestNonDeletedRelationship. Deleted IS NULL) "+
-						"and AentReln.uuid in "+
-							"( select uuid from latestNonDeletedAentValue "+
-							"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
-							"and latestNonDeletedAentValue.measure in "+
-								"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
-									"(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
-									"and latestNonDeletedAentValue.measure="+
-									"((select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID= "+
-										"(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
-										"and latestNonDeletedAentValue.measure = 'Introductory')) "+
-							"and uuid in "+
-								"(select uuid from AentReln where RelationshipID in "+
-									"(select RelationshipID from AentReln where AentReln.uuid='"+person_id+"') "+
-									"and RelationshipID in "+
-										"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
-									"and latestNonDeletedRelationship.Deleted is null)))))";
-									*/
+									"and latestNonDeletedRelationship.Deleted is null))))))";
 
 fetchAll(checkPsIntrSssQuery, new FetchCallback() {
         onFetch(result) {
@@ -3555,24 +3466,16 @@ checkSssQuesnirType(String typeflag){
 	{
 		checkAnsId=selected_files_session.get(0).get(0);
 	}
- 	//showWarning("checkAnsId",checkAnsId);
-
-		checkAnsQuesnirTypeQuery="SELECT measure from latestNonDeletedAentValue "+
-		"WHERE AttributeID="+
-		"(SELECT AttributeID from Attributekey where AttributeName='QuesnirTypeName')"+
-		"AND uuid ="+
-		"(SELECT measure from latestNonDeletedAentValue "+
-		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from Attributekey where AttributeName='QuestionnaireType') "+
-		"and uuid = "+
-		"(select measure from latestNonDeletedAentValue where uuid='"+checkAnsId+"'"+
-			"and AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID')))";
-
-		//showWarning("checkAnsQuesnirTypeQuery",checkAnsQuesnirTypeQuery);
+	checkAnsQuesnirTypeQuery="select uuid,measure from latestNonDeletedAentValue "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+		"and uuid=(select measure from latestNonDeletedAentValue "+
+			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+			"and uuid=(select measure from latestNonDeletedAentValue where uuid='"+checkAnsId+"' "+
+				"and AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID')))";
 
 		fetchAll(checkAnsQuesnirTypeQuery, new FetchCallback() {
         onFetch(quesnirTypeResult) {
               String quesnirType=quesnirTypeResult.get(0).get(1);
-              //showWarning("quesnirType",quesnirType);
               if(quesnirType.equals("Introductory")){
               	introAns=true;
               }
