@@ -1548,21 +1548,17 @@ saveNewPerson(){
 			}
 			if((!isNull(person_id))&&(isNull(getFieldValue("person/personInfo/personIntroDesc")))){
 				checkPsIntrAnsQuery="select uuid from latestNonDeletedAentValue "+
-					"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
-					"and latestNonDeletedAentValue.measure in "+
-					"(select uuid from latestNonDeletedAentValue "+
-						"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
-						"and latestNonDeletedAentValue.measure="+
-						"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID= "+
-							"(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
-							"and latestNonDeletedAentValue.measure = 'Introductory')) "+
-					"and uuid in "+
-					"(select uuid from AentReln where RelationshipID in "+
-						"(select RelationshipID from AentReln where AentReln.uuid='"+person_id+"') "+
-						"and RelationshipID in "+
-						"(select RelationshipID from latestNonDeletedRelationship "+
-							"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
-							"and latestNonDeletedRelationship.Deleted is null))";
+					"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+					"and measure in( select uuid from latestNonDeletedAentValue "+
+						"where AttributeID = (select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+						"and measure in ( select uuid from latestNonDeletedAentValue "+
+							"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+							"and latestNonDeletedAentValue.measure = 'Introductory' ) ) "+
+					"and uuid in( select uuid from AentReln "+
+						"where RelationshipID in(select RelationshipID from AentReln where AentReln.uuid='"+person_id+"') "+
+						"and RelationshipID IN(select RelationshipID from latestNonDeletedRelationship "+
+							"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee' ) "+
+							"and latestNonDeletedRelationship.Deleted IS NULL));";
 	
 				fetchAll(checkPsIntrAnsQuery,new FetchCallback() {
 						        	onFetch(result) {					        	
