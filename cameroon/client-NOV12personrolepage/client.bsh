@@ -83,14 +83,25 @@ loadAllSurveyQuery="select uuid,measure from "+
 			"(select AttributeID from AttributeKey where AttributeName='QuestionnaireName')) t2 "+
 		"on t2.uuid=t1.quesnirid );";
 
+
 loadAllFileQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='FileName') "+
 		"GROUP BY uuid;";
 
+loadAllFileIDQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+		"WHERE latestNonDeletedAentValue.AttributeID "+
+		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='FileID') "+
+		"GROUP BY uuid;";
+
 loadAllSessionQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionName') "+
+		"GROUP BY uuid;";
+
+loadAllSessionIDQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+		"WHERE latestNonDeletedAentValue.AttributeID "+
+		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionID') "+
 		"GROUP BY uuid;";
 
 loadAllFieldTripQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
@@ -3142,7 +3153,7 @@ loadFile(){
 	file_id=null;
 	populateDropDown("control/file_control/fileCategorySelect",fileCategory);
 	setFieldValue("control/file_control/file_keyword","*");
-	fetchAll(loadAllFileQuery, new FetchCallback() {
+	fetchAll(loadAllFileIDQuery, new FetchCallback() {
         onFetch(result) {
             populateList("control/file_control/fileList", result);
         }
@@ -3207,7 +3218,7 @@ showSession(){
 }
 
 loadSessionList(String typeflag){
-	fetchAll(loadAllSessionQuery, new FetchCallback() {
+	fetchAll(loadAllSessionIDQuery, new FetchCallback() {
         onFetch(result) {
         	switch(typeflag){
         	case "session":
@@ -4373,7 +4384,7 @@ testQuery(){
 }
 
 /***Search button ***/
-onEvent("control/survey_control/Survey_Search","click","entitySearch(\"survey\",\"control/survey_control/survey_keyword\",\"control/survey_control/surveyList\",null)");
+onEvent("control/survey_control/Survey_Search","click","entitySearch(\"session\",\"control/survey_control/survey_keyword\",\"control/survey_control/surveyList\",null)");
 onEvent("control/user_control/Person_Search","click","entitySearch(\"person\",\"control/user_control/person_keyword\",\"control/user_control/userList\",null)");
 onEvent("control/language_control/Language_Search","click","entitySearch(\"language\",\"control/language_control/language_keyword\",\"control/language_control/languageList\",null)");
 onEvent("control/file_control/File_Search","click","entitySearch(\"file\",\"control/file_control/file_keyword\",\"control/file_control/fileList\",\"control/file_control/fileCategorySelect\")");
@@ -4431,7 +4442,7 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 			break;
 			
 		case "session":	
-			fetchAll(loadAllSessionQuery,
+			fetchAll(loadAllSessionIDQuery,
 					new FetchCallback() {
 					onFetch(result) {
 						if(!isNull(result)){
@@ -4475,7 +4486,7 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
 						"inner join "+
 						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
-							"(select AttributeID from AttributeKey where AttributeName='FileName')) t2 "+
+							"(select AttributeID from AttributeKey where AttributeName='FileID')) t2 "+
 							"on t1.fileID=t2.uuid );";
 				fetchAll(searchAudioFileQuery,
 						new FetchCallback() {
@@ -4495,7 +4506,7 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
 						"inner join "+
 						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
-							"(select AttributeID from AttributeKey where AttributeName='FileName')) t2 "+
+							"(select AttributeID from AttributeKey where AttributeName='FileID')) t2 "+
 							"on t1.fileID=t2.uuid );";
 				fetchAll(searchVideoFileQuery,
 						new FetchCallback() {
@@ -4514,7 +4525,7 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
 						"inner join "+
 						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
-							"(select AttributeID from AttributeKey where AttributeName='FileName')) t2 "+
+							"(select AttributeID from AttributeKey where AttributeName='FileID')) t2 "+
 							"on t1.fileID=t2.uuid );";
 				fetchAll(searchPhotoFileQuery,
 						new FetchCallback() {
@@ -4533,7 +4544,7 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
 						"inner join "+
 						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
-							"(select AttributeID from AttributeKey where AttributeName='FileName')) t2 "+
+							"(select AttributeID from AttributeKey where AttributeName='FileID')) t2 "+
 							"on t1.fileID=t2.uuid );";
 				fetchAll(searchOtherFileQuery,
 						new FetchCallback() {
@@ -4548,7 +4559,7 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 				
 				break;
 			case "All":
-				fetchAll(loadAllFileQuery,
+				fetchAll(loadAllFileIDQuery,
 						new FetchCallback() {
 						onFetch(result) {
 							if(!isNull(result)){
@@ -4629,7 +4640,7 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 			searchSessionQuery="select uuid, measure from latestNonDeletedAentValue where " +
 					"latestNonDeletedAentValue.Measure like '%"+ keywordOfEntity +
 					"%' and latestNonDeletedAentValue.AttributeID = "+
-					"(select AttributeID from AttributeKey where AttributeName='SessionName')";
+					"(select AttributeID from AttributeKey where AttributeName='SessionID')";
 			fetchAll(searchSessionQuery,
 					new FetchCallback() {
 					onFetch(result) {
@@ -4667,7 +4678,7 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
 						"inner join "+
 						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
-							"(select AttributeID from AttributeKey where AttributeName='FileName') and measure like '%"+keywordOfEntity+"%') t2 "+
+							"(select AttributeID from AttributeKey where AttributeName='FileID') and measure like '%"+keywordOfEntity+"%') t2 "+
 							"on t1.fileID=t2.uuid );";
 				fetchAll(searchAudioFileQuery,
 						new FetchCallback() {
@@ -4687,7 +4698,7 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
 						"inner join "+
 						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
-						"(select AttributeID from AttributeKey where AttributeName='FileName') and measure like '%"+keywordOfEntity+"%') t2 "+
+						"(select AttributeID from AttributeKey where AttributeName='FileID') and measure like '%"+keywordOfEntity+"%') t2 "+
 							"on t1.fileID=t2.uuid );";
 				fetchAll(searchVideoFileQuery,
 						new FetchCallback() {
@@ -4706,7 +4717,7 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
 						"inner join "+
 						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
-						"(select AttributeID from AttributeKey where AttributeName='FileName') and measure like '%"+keywordOfEntity+"%') t2 "+
+						"(select AttributeID from AttributeKey where AttributeName='FileID') and measure like '%"+keywordOfEntity+"%') t2 "+
 							"on t1.fileID=t2.uuid );";
 				fetchAll(searchPhotoFileQuery,
 						new FetchCallback() {
@@ -4725,7 +4736,7 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
 						"inner join "+
 						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
-						"(select AttributeID from AttributeKey where AttributeName='FileName') and measure like '%"+keywordOfEntity+"%') t2 "+
+						"(select AttributeID from AttributeKey where AttributeName='FileID') and measure like '%"+keywordOfEntity+"%') t2 "+
 							"on t1.fileID=t2.uuid );";
 				fetchAll(searchOtherFileQuery,
 						new FetchCallback() {
@@ -4743,7 +4754,7 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 				searchAllFileQuery="select uuid, measure from latestNonDeletedAentValue where " +
 						"latestNonDeletedAentValue.Measure like '%"+ keywordOfEntity +
 						"%' and latestNonDeletedAentValue.AttributeID = "+
-						"(select AttributeID from AttributeKey where AttributeName='FileName')";
+						"(select AttributeID from AttributeKey where AttributeName='FileID')";
 				fetchAll(searchAllFileQuery,
 						new FetchCallback() {
 						onFetch(result) {
