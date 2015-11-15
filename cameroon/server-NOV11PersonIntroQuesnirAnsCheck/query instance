@@ -1,0 +1,88 @@
+SELECT uuid FROM latestNonDeletedAentValue WHERE AttributeID= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='RoleDataOnClient') AND measure ='Yes'
+
+SELECT uuid,measure FROM latestNonDeletedAentValue WHERE latestNonDeletedAentValue.AttributeID = (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonRoleName') AND uuid in (SELECT uuid FROM latestNonDeletedAentValue WHERE AttributeID= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='RoleDataOnClient') AND measure ='Yes')
+
+
+checkPsIntrSssQuery="select uuid,measure from latestNonDeletedAentValue "+
+        	"where AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionName') "+
+        	"and latestNonDeletedAentValue.uuid IN "+
+        	"(select uuid from AentReln where RelationshipID in"+
+        		"(select RelationshipID from AentReln where RelationshipID in "+
+        			"(select RelationshipID from latestNonDeletedRelationship "+
+        				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+        					"and latestNonDeletedRelationship.Deleted IS NULL) "+
+						"AND AentReln.uuid in(select uuid from latestNonDeletedAentValue "+
+							"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+							"and latestNonDeletedAentValue.measure in (select uuid from latestNonDeletedAentValue "+
+								"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+								"and latestNonDeletedAentValue.measure= (select uuid from latestNonDeletedAentValue "+
+									"where latestNonDeletedAentValue.AttributeID= (select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+									"and latestNonDeletedAentValue.measure = 'Introductory') "+
+							"and uuid in (select uuid from AentReln where RelationshipID in (select RelationshipID from AentReln "+
+								"where AentReln.uuid='"+person_id+"') "+
+								"and RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+									"where RelnTypeID= (select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
+									"and latestNonDeletedRelationship.Deleted is null))))));";
+
+select uuid from AentReln where RelationshipID in (select RelationshipID from AentReln where AentReln.uuid=' 1000011447437376938') and RelationshipID in (select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') and latestNonDeletedRelationship.Deleted is null)
+
+//working uuid of relationshipID that is related to a person
+select uuid from AentReln where RelationshipID in(select RelationshipID from AentReln where AentReln.uuid=' 1000011447437376938')
+
+select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee' )
+
+//the answer uuids of a person answered
+select uuid from AentReln where RelationshipID in(select RelationshipID from AentReln where AentReln.uuid=' 1000011447437376938')
+and RelationshipID IN(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee' ))
+
+
+//uuid of introductory questionnaire
+select uuid from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') and latestNonDeletedAentValue.measure = 'Introductory'
+
+//uuid of qustionnaire ids that are introductory questionnaire
+select uuid from latestNonDeletedAentValue where AttributeID = (select AttributeID from AttributeKey where AttributeName='QuestionnaireType') and measure in ( select uuid from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') and latestNonDeletedAentValue.measure = 'Introductory' )
+
+//uuid of all introductory answers
+select uuid from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') and measure in( select uuid from latestNonDeletedAentValue where AttributeID = (select AttributeID from AttributeKey where AttributeName='QuestionnaireType') and measure in ( select uuid from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') and latestNonDeletedAentValue.measure = 'Introductory' ) )
+
+//answer's quesnir type
+SELECT measure from latestNonDeletedAentValue WHERE AttributeID= (SELECT AttributeID from Attributekey where AttributeName='QuesnirTypeName') AND uuid = (SELECT measure from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID=(select AttributeID from Attributekey where AttributeName='QuestionnaireType') and uuid = (select measure from latestNonDeletedAentValue where uuid='1000011447538269072' and AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID')))
+
+
+//All answers that an interviewee has answered
+select uuid from AentReln where RelationshipID in (select RelationshipID from AentReln where AentReln.uuid='1000011447540898689') and RelationshipID in (select RelationshipID from latestNonDeletedRelationship where RelnTypeID= (select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') and latestNonDeletedRelationship.Deleted is null)
+
+
+checkPsIntrSssQuery="select uuid,measure from latestNonDeletedAentValue "+
+					"where AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionName')  "+
+					"and uuid in "+
+						"(select uuid from AentReln where RelationshipID in "+
+							"(select RelationshipID from AentReln "+
+							"where RelationshipID in"+
+								"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session' ) "+
+								"and latestNonDeletedRelationship. Deleted IS NULL) "+
+							"and AentReln.uuid in "+
+							"( select uuid from latestNonDeletedAentValue "+
+							"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+							"and latestNonDeletedAentValue.measure in "+
+								"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+									"(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+									"and latestNonDeletedAentValue.measure='Introductory') "+
+							"and uuid in "+
+								"(select uuid from AentReln where RelationshipID in "+
+									"(select RelationshipID from AentReln where AentReln.uuid='"+person_id+"') "+
+									"and RelationshipID in "+
+										"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
+									"and latestNonDeletedRelationship.Deleted is null)))))";
+
+//all introductory quesnir answers from a certain person
+select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') and latestNonDeletedAentValue.measure in (select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType')and measure= (select uuid from latestNonDeletedAentValue where AttributeID= (select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') and measure = 'Introductory')) and uuid in (select uuid from AentReln where RelationshipID in (select RelationshipID from AentReln where AentReln.uuid='1000011447540898689')and RelationshipID in (select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee')and latestNonDeletedRelationship.Deleted is null))
+
+//all relationshipids of session with the intro quesnir answer from a certain person
+select RelationshipID from AentReln where RelationshipID in (select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session' ) and latestNonDeletedRelationship. Deleted IS NULL) and uuid in ( select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') and latestNonDeletedAentValue.measure in (select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType')and measure= (select uuid from latestNonDeletedAentValue where AttributeID= (select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') and measure = 'Introductory')) and uuid in (select uuid from AentReln where RelationshipID in (select RelationshipID from AentReln where AentReln.uuid='1000011447540898689')and RelationshipID in (select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee')and latestNonDeletedRelationship.Deleted is null)) )
+
+//All entity ids that are for a certain person's intro answer
+select uuid from AentReln where RelationshipID in(select RelationshipID from AentReln where RelationshipID in (select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session' ) and latestNonDeletedRelationship. Deleted IS NULL) and uuid in ( select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') and latestNonDeletedAentValue.measure in (select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType')and measure= (select uuid from latestNonDeletedAentValue where AttributeID= (select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') and measure = 'Introductory')) and uuid in (select uuid from AentReln where RelationshipID in (select RelationshipID from AentReln where AentReln.uuid='1000011447540898689')and RelationshipID in (select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee')and latestNonDeletedRelationship.Deleted is null)) ))
+
+//intro session for a certain person
+select uuid,measure from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionName') and uuid in ( select uuid from AentReln where RelationshipID in(select RelationshipID from AentReln where RelationshipID in (select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session' ) and latestNonDeletedRelationship.Deleted IS NULL) and uuid in ( select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') and latestNonDeletedAentValue.measure in (select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType')and measure= (select uuid from latestNonDeletedAentValue where AttributeID= (select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') and measure = 'Introductory')) and uuid in (select uuid from AentReln where RelationshipID in (select RelationshipID from AentReln where AentReln.uuid='1000011447540898689')and RelationshipID in (select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee')and latestNonDeletedRelationship.Deleted is null)) )) )
