@@ -870,25 +870,25 @@
             <label>Session</label>
             <group ref="sssAnsBasicInfo">
                 <label>Session info</label>
-            <input ref="sssID" faims_attribute_name="SessionID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true" faims_annotation="true">
-                <label>Session label</label>
-            </input>
-             <input ref="sssName" faims_attribute_name="SessionName" faims_attribute_type="measure" faims_certainty="false">
-                <label>Session name</label>
-            </input>
-       
-              <input ref="sssLocation" faims_attribute_name="SessionLocation" faims_attribute_type="measure" faims_certainty="false">
-                <label>Session Location</label>
-            </input>
-            <input ref="sssStartTimetamp" faims_attribute_name="SessionStartTimestamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-              <label>Start timestamp</label>
-            </input>
-            <input ref="sssEndTimestamp" faims_attribute_name="SessionEndTimestamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-              <label>End timestamp</label>
-            </input>  
-            <input ref="sssDescription" faims_attribute_name="SessionDescription" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
-              <label>Session description</label>
-            </input>             
+                <input ref="sssID" faims_attribute_name="SessionID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true" faims_annotation="true">
+                    <label>Session label</label>
+                </input>
+                 <input ref="sssName" faims_attribute_name="SessionName" faims_attribute_type="measure" faims_certainty="false">
+                    <label>Session name</label>
+                </input>
+           
+                  <input ref="sssLocation" faims_attribute_name="SessionLocation" faims_attribute_type="measure" faims_certainty="false">
+                    <label>Session Location</label>
+                </input>
+                <input ref="sssStartTimetamp" faims_attribute_name="SessionStartTimestamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+                  <label>Start timestamp</label>
+                </input>
+                <input ref="sssEndTimestamp" faims_attribute_name="SessionEndTimestamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+                  <label>End timestamp</label>
+                </input>  
+                <input ref="sssDescription" faims_attribute_name="SessionDescription" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
+                  <label>Session description</label>
+                </input>             
             </group>
          
              <group ref="sssPersonInfo">
@@ -907,7 +907,7 @@
                  
                     </select1>
                   </group>
-                <group ref="child2" faims_style="even">
+                  <group ref="child2" faims_style="even">
                     <label></label>
                     <select1 ref="sssPersonName" faims_annotation="false" faims_certainty="false">
                     <label>Person Name</label>
@@ -918,15 +918,15 @@
                     </select1>
                   </group>
             
-                </group>
+                 </group>
 
-               <trigger ref="Add_Person_Role" faims_style_class="faims-blue">
+                 <trigger ref="Add_Person_Role" faims_style_class="faims-blue">
                         <label>Add Person</label>
-                </trigger>
+                 </trigger>
                 
                  <trigger ref="Add_New_Person" faims_style_class="faims-blue">
                         <label>New Person</label>
-                </trigger>
+                 </trigger>
                 
                  <select1 appearance="compact" ref="sssPersonList" faims_certainty="false" faims_annotation="false" faims_style_class="session-file-list">
                     <label>Session person list</label>
@@ -934,27 +934,26 @@
                             <label>placeholder</label>
                             <value>placeholder</value>
                         </item>
-                </select1>
-                </group>
-     
-        
+                 </select1>
+             </group>
+
             <group ref="sssAnsList">
                  <label>Session Answers</label>
-           <trigger ref="Save_Session" faims_style_class="faims-blue">
-                    <label>Save Session</label>
-            </trigger>
-            
-             <trigger ref="New_Answer_In_Session" faims_style_class="faims-blue">
-                    <label>New Answer</label>
-            </trigger>
-            
-             <select1 appearance="compact" ref="sssAnswerList" faims_certainty="false" faims_annotation="false" faims_style_class="session-file-list">
-              	<label>Session answer list</label>
-              		<item>
-                        <label>placeholder</label>
-                        <value>placeholder</value>
-                    </item>
-            </select1>
+                   <trigger ref="Save_Session" faims_style_class="faims-blue">
+                     <label>Save Session</label>
+                    </trigger>
+                    
+                     <trigger ref="New_Answer_In_Session" faims_style_class="faims-blue">
+                            <label>New Answer</label>
+                    </trigger>
+                    
+                     <select1 appearance="compact" ref="sssAnswerList" faims_certainty="false" faims_annotation="false" faims_style_class="session-file-list">
+                      	<label>Session answer list</label>
+                      		<item>
+                                <label>placeholder</label>
+                                <value>placeholder</value>
+                            </item>
+                    </select1>
             </group>
     </group>    
       
