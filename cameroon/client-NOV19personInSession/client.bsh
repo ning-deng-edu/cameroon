@@ -321,6 +321,9 @@ sessionAnswerInterviewer=new LinkedHashSet();
 Boolean introAns=false;//mark if a session is for introductory questionnaire answer collecting or not
 ArrayList newPersonForIntro=new ArrayList(); 
 
+sssPersonRoleandNameList=new ArrayList();//selected person role
+personRoleList=new ArrayList();
+personList=new ArrayList();
 
 
 /***Starting from creating a session***/
@@ -330,6 +333,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	if(typeflag.equals("answer")){
 		introAns=false;
 	}
+	//TODO: WHEN INTRO SESSION, ADD PERSONROLE AND PERSON NAME TO LIST
 	else{
 		introAns=true;
 		newPersonForIntro.clear();
@@ -351,11 +355,49 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
     String currentDate=currentDateTimeArray[0];
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp",currentTime);           
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",currentDate+" 23:59:59");
-    //sssLabel="-("+currentPosition.get(1)+")-("+currentPosition.get(2)+")-("+currentDate+")";
     sssLabel="_"+currentPosition.get(1)+"_"+currentPosition.get(2)+"_"+currentDate;
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",username+sssLabel);
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation",currentPosition.get(0));
-    populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);    
+    populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list); 
+
+    personRoleList.clear();
+    personList.clear();
+    sssPersonRoleandNameList.clear();
+
+    fetchAll(loadAllRoleQuery, new FetchCallback() {
+        	onFetch(result) {
+				if (!isNull(result)) {
+					personRoleList.addAll(result);
+					populateDropDown("sessionForAnswer/sssPersonInfo/sssPersonRole", personRoleList);	
+
+					fetchAll(loadAllPersonQuery,new FetchCallback() {
+			        	onFetch(fetchResult) {
+							if (!isNull(fetchResult)) {
+								personList.addAll(fetchResult);
+								populateDropDown("sessionForAnswer/sssPersonInfo/sssPersonName", personList);	
+								
+							}	
+							else{
+						    	showWarning("No person data","No person data is available, please contact the admin");
+								return;
+							}
+			       	 }
+
+			        	onError(message) {
+			            	showToast(message);
+			        	}
+			    	});
+				}	
+				else{
+			    	showWarning("No Role data","No role data is available, please contact the admin");
+					return;
+				}
+       	    }
+
+        	onError(message) {
+            	showToast(message);
+        	}
+    });
 }
 
 

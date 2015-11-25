@@ -206,7 +206,7 @@
      <ArchaeologicalElement name="SessionPerson">
         <description>Entity SessionPerson, recording person and person roles in a session</description>
         <property name="SessionIDforPerson" isIdentifier="true" type="measure"></property>
-        <property name="SessionPersonName" type="measure"></property>
+        <property name="SessionPersonID" type="measure"></property>
         <property name="SessionPersonRole" type="measure"></property>
     </ArchaeologicalElement>
     
