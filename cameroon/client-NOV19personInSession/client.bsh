@@ -287,7 +287,7 @@ onEvent("sessionForAnswer/sssAnsList/sssAnswerList","click","loadAnswerInfo()");
 onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","showQuestionnaireList()");
 onEvent("sessionForAnswer/sssAnsList/Save_Session","click","saveSession(\"answer\")");
 onEvent("sessionForAnswer/sssPersonInfo/Add_Person","click","addPersonToSession()");
-
+onEvent("sessionForAnswer/sssPersonInfo/sssPersonList","click","deletePersonInSession()");
 /***variables for answers***/
 answer_id=null;//new answer_id
 survey_id=null;
@@ -400,6 +400,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
         	}
     });
 }
+
 addPersonToSession(){
 	String selectedRoleID=getFieldValue("sessionForAnswer/sssPersonInfo/sssPersonRole");
 	String selectedPersonID=getFieldValue("sessionForAnswer/sssPersonInfo/sssPersonName");
@@ -435,6 +436,17 @@ addPersonToSession(){
 
 	populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
 
+}
+
+deletePersonInSession(){
+	String toDelPerson=getListItemValue();
+	for(psInfo : sssPersonRoleandNameList){
+		if(psInfo.get(0).equals(toDelPerson)){
+			sssPersonRoleandNameList.remove(psInfo);
+			break;
+		}
+	}
+	populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
 }
 
 showQuestionnaireList(){
