@@ -286,6 +286,7 @@ onEvent("sessionForAnswer/sssAnsList/sssAnswerList","click","loadAnswerInfo()");
 /***session for answer***/
 onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","showQuestionnaireList()");
 onEvent("sessionForAnswer/sssAnsList/Save_Session","click","saveSession(\"answer\")");
+onEvent("sessionForAnswer/sssPersonInfo/Add_Person","click","addPersonToSession()");
 
 /***variables for answers***/
 answer_id=null;//new answer_id
@@ -399,7 +400,42 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
         	}
     });
 }
+addPersonToSession(){
+	String selectedRoleID=getFieldValue("sessionForAnswer/sssPersonInfo/sssPersonRole");
+	String selectedPersonID=getFieldValue("sessionForAnswer/sssPersonInfo/sssPersonName");
+	if((isNull(selectedRoleID))||(isNull(selectedPersonID))){
+		showWarning("Invalid data","Invalid role data or person data\n"+"you could be using stale data, please contact the Admin");
+		return;
+	}
+	rolePerson=new ArrayList();
+	rolePerson.add(selectedRoleID+"_"+selectedPersonID);
+	String selectedRoleName=null;
+	String selectedPersonName=null;
 
+	for(role:personRoleList){
+		if(role.get(0).equals(selectedRoleID)){
+			selectedRoleName=role.get(1);
+			break;
+		}
+	}
+	for(person:personList){
+		if(person.get(0).equals(selectedPersonID)){
+			selectedPersonName=person.get(1);
+			break;
+		}
+
+	}
+	if((isNull(selectedRoleName))||(isNull(selectedPersonName))){
+		showWarning("Invalid data","Invalid role data or person data\n"+"you might be using stale data, please contact the Admin");
+		return;
+	}
+
+	rolePerson.add(selectedRoleName+"_"+selectedPersonName);
+	sssPersonRoleandNameList.add(rolePerson);
+
+	populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
+
+}
 
 showQuestionnaireList(){
 

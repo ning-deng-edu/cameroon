@@ -193,7 +193,7 @@
                                 <sssPersonName/>
                             </child2>
                         </container16>
-                        <Add_Person_Role/>
+                        <Add_Person/>
                         <Add_New_Person/>
                         <sssPersonList/>
                     </sssPersonInfo>
@@ -920,7 +920,7 @@
             
                  </group>
 
-                 <trigger ref="Add_Person_Role" faims_style_class="faims-blue">
+                 <trigger ref="Add_Person" faims_style_class="faims-blue">
                         <label>Add Person</label>
                  </trigger>
                 
