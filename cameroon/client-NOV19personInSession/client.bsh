@@ -1513,7 +1513,7 @@ checkPersonAns(){
 
 checkPersonIntro(String personID, ArrayList toAddPerson){
 	String person_id=personID;
-	
+
 	checkPsIntrAnsQuery="select uuid from latestNonDeletedAentValue "+
 					"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
 					"and measure in( select uuid from latestNonDeletedAentValue "+
@@ -1530,9 +1530,11 @@ checkPersonIntro(String personID, ArrayList toAddPerson){
 	fetchAll(checkPsIntrAnsQuery,new FetchCallback() {
 						        	onFetch(result) {					        	
 									if(isNull(result)){
-										String toAddPersonIdInfo=toAddPerson.get(0);
-										String toAddPersonReadableInfo=toAddPerson.get(1);
-										showAlert("alert", "This person has not answered introductory questionnaire \n"+"Do you still want to add this person?", "addPersonToSessionConfirm(\""+toAddPersonIdInfo+"\", \""+toAddPersonReadableInfo+"\")", "addPersonIntro(\""+person_id+"\")");
+										String toAddPsIdInfo=toAddPerson.get(0);
+										String toAddPsInfo=toAddPerson.get(1);
+
+										showAlert("alert", "This person has not answered introductory questionnaire \n"+"Do you still want to add this person?", 
+											"addPsToSssConfirm(\""+toAddPsIdInfo+"\", \""+toAddPsInfo+"\")", "addPersonIntro(\""+person_id+"\")");
 									}
 									else
 									{	
@@ -1552,12 +1554,12 @@ checkPersonIntro(String personID, ArrayList toAddPerson){
 
 }
 
-addPersonToSessionConfirm(String toAddPersonID, String toAddPersonName){
+addPsToSssConfirm(String toAddPersonID, String toAddPersonName){
 	toAddPersonTemp=new ArrayList();
 	toAddPersonTemp.clear();
 	toAddPersonTemp.add(toAddPersonID);
 	toAddPersonTemp.add(toAddPersonName);
-	sssPersonRoleandNameList.add(toAddPerson);
+	sssPersonRoleandNameList.add(toAddPersonTemp);
 	populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
 }
 
