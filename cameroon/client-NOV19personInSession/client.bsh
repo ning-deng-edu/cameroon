@@ -430,11 +430,14 @@ addPersonToSession(){
 		showWarning("Invalid data","Invalid role data or person data\n"+"you might be using stale data, please contact the Admin");
 		return;
 	}
-
 	rolePerson.add(selectedRoleName+"_"+selectedPersonName);
-	sssPersonRoleandNameList.add(rolePerson);
+	if(selectedRoleName.equals("consultant")){
+		checkPersonIntro(selectedPersonID,rolePerson);
+	}
+	
+	//sssPersonRoleandNameList.add(rolePerson);
 
-	populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
+	//populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
 
 }
 
@@ -1508,13 +1511,10 @@ checkPersonAns(){
 
 }
 
-checkPersonIntro(String personID){
-	//ansPerson=new ArrayList();
-	//ansForIntroQuesnir=new ArrayList();
-	//introAnsPerson=new ArrayList();
+checkPersonIntro(String personID, ArrayList toAddPerson){
 	String person_id=personID;
-
-checkPsIntrAnsQuery="select uuid from latestNonDeletedAentValue "+
+	
+	checkPsIntrAnsQuery="select uuid from latestNonDeletedAentValue "+
 					"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
 					"and measure in( select uuid from latestNonDeletedAentValue "+
 						"where AttributeID = (select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
@@ -1527,14 +1527,18 @@ checkPsIntrAnsQuery="select uuid from latestNonDeletedAentValue "+
 							"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee' ) "+
 							"and latestNonDeletedRelationship.Deleted IS NULL))";
 	
-fetchAll(checkPsIntrAnsQuery,new FetchCallback() {
+	fetchAll(checkPsIntrAnsQuery,new FetchCallback() {
 						        	onFetch(result) {					        	
 									if(isNull(result)){
-										showAlert("alert", "This person has not answered introductory questionnaire \n"+"Do you still want to add this person?", "checkPersonAns()", "stayInCurrentPage()");
+										String toAddPersonIdInfo=toAddPerson.get(0);
+										String toAddPersonReadableInfo=toAddPerson.get(1);
+										showAlert("alert", "This person has not answered introductory questionnaire \n"+"Do you still want to add this person?", "addPersonToSessionConfirm(\""+toAddPersonIdInfo+"\", \""+toAddPersonReadableInfo+"\")", "addPersonIntro(\""+person_id+"\")");
 									}
 									else
 									{	
-										checkPersonAns();
+										sssPersonRoleandNameList.add(toAddPerson);
+										populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
+
 									}
 								
 						        }
@@ -1548,6 +1552,22 @@ fetchAll(checkPsIntrAnsQuery,new FetchCallback() {
 
 }
 
+addPersonToSessionConfirm(String toAddPersonID, String toAddPersonName){
+	toAddPersonTemp=new ArrayList();
+	toAddPersonTemp.clear();
+	toAddPersonTemp.add(toAddPersonID);
+	toAddPersonTemp.add(toAddPersonName);
+	sssPersonRoleandNameList.add(toAddPerson);
+	populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
+}
+
+addPersonIntro(String toAddIntroPersonId){
+	showAlert("alert", "Do you want to add introductory answer for this person?", "addPersonIntroAnswer(\""+toAddIntroPersonId+"\")", "stayInCurrentPage()");
+}
+
+addPersonIntroAnswer(String toAddIntroPersonId){
+
+}
 //Do not allow user create answer without create session?
 saveNewAnswer(){
 	if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
