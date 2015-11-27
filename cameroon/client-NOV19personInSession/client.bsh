@@ -1568,7 +1568,7 @@ addPersonIntro(String toAddIntroPersonId){
 }
 
 addPersonIntroAnswer(String toAddIntroPersonId){
-
+	showTabGroup("person",toAddIntroPersonId);
 }
 //Do not allow user create answer without create session?
 saveNewAnswer(){
