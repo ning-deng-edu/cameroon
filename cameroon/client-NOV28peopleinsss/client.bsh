@@ -325,8 +325,8 @@ ArrayList newPersonForIntro=new ArrayList();
 sssPersonRoleandNameList=new ArrayList();//selected person role
 personRoleList=new ArrayList();
 personList=new ArrayList();
-
-
+sssConsultantList=new LinkedHashSet();
+sssInterviewerList=new LinkedHashSet();
 /***Starting from creating a session***/
 
 
@@ -349,6 +349,8 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	original_sss_answer_list.clear();
 	sssAnsOrigin.clear();
 	sss_interviewer_list.clear();
+	sssConsultantList.clear()
+	sssInterviewerList.clear();
 	ArrayList currentPosition=takePoint();
 	newTabGroup("sessionForAnswer");
 	String currentTime=getCurrentTime();
@@ -460,12 +462,11 @@ checkRolesInSession(){
 		String [] psInfo=person.get(1).split("_");
 		if(psInfo[0].equals("consultant")){
 			psRoleSum.add("consultant");
+			sssConsultantList.add(psInfo[1]);
 		}
 		else if(psInfo[0].equals("interviewer")){
 			psRoleSum.add("interviewer");
-		}
-		if(psRoleSum.size()==2){
-			break;
+			sssInterviewerList.add(psInfo[1]);
 		}
 	}
 	return psRoleSum;
@@ -1003,12 +1004,15 @@ categoryTypes.add(new NameValuePair("{Video}", "Video"));
 categoryTypes.add(new NameValuePair("{Photo}", "Photo"));
 categoryTypes.add(new NameValuePair("{Other}", "Other"));
 
-ansLabelFstPart=null;//QuestionID+"Answer"+username
+ansLabelFstPart=null;//QuestionID+"Answer"
+ansLabelMidPart=null;//Interviewee("EtAl")
 ansLabelSndPart=null;//Date of interview
+
 tempAnsLabel=null;//tempAnsLabel, for trigger of changing answer label
 file_and_fileType=new ArrayList();//Keep track of file types, used for changing file labels
 
 startNewAnswer(){
+
 	String current_start_time=getCurrentTime();
 	
 	//origin_selected_interviewer.clear();
@@ -1033,6 +1037,7 @@ startNewAnswer(){
 	toAddIntervieweeID=null;
 	ansLabelFstPart=null;
 	ansLabelSndPart=null;
+	ansLabelMidPart=null;
 	tempAnsLabel=null;
 	
     currentDateTimeArray=current_start_time.toString().split("\\s+");
@@ -1041,18 +1046,26 @@ startNewAnswer(){
     ansLabelFstPart=current_question_label+"_"+"Answer_";
     ansLabelSndPart="_"+currentDate;
 
+    Iterator itConsultant=sssConsultantList.iterator();
+    firstConsultant=itConsultant.next();
+    ansLabelMidPart=firstConsultant;
+
+    if(sssConsultantList.size()>1){
+		ansLabelMidPart=ansLabelMidPart+"EtAl";
+    }
+
 	newTabGroup("survey");
 	setFieldValue("survey/answerHidden/answerQuestionnaireID", current_quesnir_id);
 	setFieldValue("survey/answerHidden/answerQuestionID", current_question_id);
 	setFieldValue("survey/answerHidden/answerChoice", "N/A");
 	setFieldValue("survey/answerBasic/answerStartTimestamp", current_start_time);
 	setFieldValue("survey/answerBasic/answerEndTimestamp", "placeholder");
-	tempAnsLabel=ansLabelFstPart+username+ansLabelSndPart;
+	tempAnsLabel=ansLabelFstPart+ansLabelMidPart+ansLabelSndPart;
 	setFieldValue("survey/answerBasic/answerLabel", tempAnsLabel);
 	populateList("survey/answerFile/answerFileList",files_in_current_ques);
 	populateDropDown("survey/answerFile/file_Category",categoryTypes);
-	populateDropDown("survey/answerPerson/personType",personTypes);
-	
+	//populateDropDown("survey/answerPerson/personType",personTypes);
+	/*
 	fetchAll(loadAllPersonQuery,
 				new FetchCallback() {
 					onFetch(result) {
@@ -1080,6 +1093,7 @@ startNewAnswer(){
 					showToast(message);
 				}
 			});
+			*/
 }
 
 loadAnswerListForQuesion(){
