@@ -1568,7 +1568,8 @@ addPersonIntro(String toAddIntroPersonId){
 }
 
 addPersonIntroAnswer(String toAddIntroPersonId){
-	showTabGroup("person",toAddIntroPersonId);
+	//showTabGroup("person",toAddIntroPersonId);
+	loadPersonInfo("sss",toAddIntroPersonId);
 }
 //Do not allow user create answer without create session?
 saveNewAnswer(){
@@ -2722,7 +2723,7 @@ setFileToField(String ref) {
 /*******Person********/
 onEvent("control/user_control/New_User","click","newPerson()");
 onEvent("control/user_control","show","loadPerson()");
-onEvent("control/user_control/userList","click","loadPersonInfo()");
+onEvent("control/user_control/userList","click","loadPersonInfo(\"person\",null)");
 onEvent("person/personInfo/Finish_New_Person","click","saveNewPerson(\"save\")");
 onEvent("person/personInfo/Take_Intro_Quesnir","click","checkPersonIntroSession()");
 onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
@@ -2875,8 +2876,13 @@ loadPerson(){
         }
     });
 }
-loadPersonInfo(){
-person_id=getListItemValue();
+loadPersonInfo(String typeflag, String toShowPsId){
+if(typeflag.equals("person")){
+	person_id=getListItemValue();
+}
+else{
+	person_id=toShowPsId;
+}
 	if(isNull(person_id)){
 		showToast("No Person selected");
 		return;
