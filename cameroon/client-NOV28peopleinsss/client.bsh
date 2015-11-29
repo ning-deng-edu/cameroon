@@ -2175,44 +2175,11 @@ newFile(String typeFlag){
 	String tempAnsID=null;
 	switch (typeFlag){
 		case "answer":
-			if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
-				showWarning("Warning","Please select interviewers and interviewees");
-				return;
-			}
-			if((selected_answer_interviewer.isEmpty()) || (selected_answer_interviewee.isEmpty())){
-				showWarning("Warning","No available interviwer or interviewee\n Please create person info");
-				return;
-			}
-			/*
-			if(isNull(sss_id)){
-				showWarning("Please save the session first","Please save the session first\n Or you could lose your data");
-				cancelTabGroup("survey",true);
-				showTab("sessionForAnswer/sssAnsList");
-				return;
-			}
-			*/
 			fileCategory=getFieldValue("survey/answerFile/file_Category");
 			answerFile=true;
-			current_answer_file_id=null;
-			if(isNull(current_answer_id)){
-				int intervieweeSize=selected_answer_interviewee.size();
-				firstInterviewee=selected_answer_interviewee.get(0).get(1);
-				if (intervieweeSize==1){
-					tempAnsID=ansLabelFstPart+firstInterviewee+ansLabelSndPart;
-					tempAnsLabel=tempAnsID;
-					setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
-				}
-				else{
-					tempAnsID=ansLabelFstPart+firstInterviewee+"EtAl"+ansLabelSndPart;
-					tempAnsLabel=tempAnsID;
-					setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
-				}
-			}
-			else
-			{
-				tempAnsID=getFieldValue("survey/answerBasic/answerLabel");
-			}
-
+			current_answer_file_id=null;	
+			tempAnsID=getFieldValue("survey/answerBasic/answerLabel");
+			
 			switch (fileCategory){
 				case "Audio":		
 					newTabGroup("audioFile");
