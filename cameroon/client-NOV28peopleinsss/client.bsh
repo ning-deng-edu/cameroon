@@ -792,56 +792,6 @@ loadAnswerInfo(){
         }
     });
 	
-	loadAnsInterviewerRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+current_answer_id+" "+
-			"and RelationshipID in "+
-			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer') "+
-			"and latestNonDeletedRelationship.Deleted IS NULL)";
-	fetchAll(loadAnsInterviewerRelnQuery, new FetchCallback() {
-        onFetch(result) {
-        	ansInterviewerOriginReln.clear();
-        	ansInterviewerOriginReln.addAll(result);
-        }
-
-        onError(message) {
-            showToast(message);
-        }
-    });
-	
-	loadAnswerInterviewerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
-			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
-			"and uuid in "+
- 			"(select uuid from AentReln where RelationshipID in "+
-			"(select RelationshipID from AEntReln where AEntReln.uuid="+current_answer_id+" "+
- 			"AND RelationshipID in "+
-			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
- 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer') "+
-			"and latestNonDeletedRelationship.Deleted IS NULL)))";
-	
-	loadAnsIntervieweeRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+current_answer_id+" "+
-			"and RelationshipID in "+
-			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
-			"and latestNonDeletedRelationship.Deleted IS NULL)";
-	fetchAll(loadAnsIntervieweeRelnQuery, new FetchCallback() {
-        onFetch(result) {
-        	ansIntervieweeOriginReln.clear();
-        	ansIntervieweeOriginReln.addAll(result);
-        }
-
-        onError(message) {
-            showToast(message);
-        }
-    });
-	
-	loadAnswerIntervieweeQuery="select uuid,measure from latestNonDeletedAentValue "+ 
-			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
-			"and uuid in "+
- 			"(select uuid from AentReln where RelationshipID in "+
-			"(select RelationshipID from AEntReln where AEntReln.uuid="+current_answer_id+" "+
- 			"AND RelationshipID in "+
-			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
- 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
-			"and latestNonDeletedRelationship.Deleted IS NULL)))";
-	
 	loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileName') "+
 			"and uuid in "+
@@ -885,46 +835,6 @@ loadAnswerInfo(){
         }
     });
 
-	fetchAll(loadAnswerInterviewerQuery, new FetchCallback() {
-        onFetch(result) {
-        	selected_answer_interviewer.clear();
-        	origin_selected_interviewer.clear();
-        	selected_answer_interviewer.addAll(result);
-        	origin_selected_interviewer.addAll(result);
-        }
-
-        onError(message) {
-            showToast(message);
-        }
-    });
-	fetchAll(loadAnswerIntervieweeQuery, new FetchCallback() {
-        onFetch(result) {
-        	selected_answer_interviewee.clear();
-        	origin_selected_interviewee.clear();
-        	selected_answer_interviewee.addAll(result);
-        	origin_selected_interviewee.addAll(result);
-
-        }
-
-        onError(message) {
-            showToast(message);
-        }
-    });
-	fetchAll(loadAllPersonQuery, new FetchCallback() {
-        onFetch(result) {
-        	candidate_answer_interviewee.clear();
-        	candidate_answer_interviewee.addAll(result);
-        	candidate_answer_interviewer.clear();
-        	candidate_answer_interviewer.addAll(result);
-        	candidate_answer_interviewer.removeAll(selected_answer_interviewer);
-        	candidate_answer_interviewee.removeAll(selected_answer_interviewee);    	
-        }
-
-        onError(message) {
-            showToast(message);
-        }
-    });
-	
 	showTabGroup("survey", current_answer_id, new FetchCallback() {
         onFetch(result) {
 			answerInfoOriginal.clear();
@@ -1544,16 +1454,8 @@ addPersonIntro(String toAddIntroPersonId){
 addPersonIntroAnswer(String toAddIntroPersonId){
 	loadPersonInfo("sss",toAddIntroPersonId);
 }
-//Do not allow user create answer without create session?
+
 saveNewAnswer(){
-	if((isNull(selected_answer_interviewer)) || (isNull(selected_answer_interviewee))){
-		showWarning("Warning","Please select interviewers and interviewees");
-		return;
-	}
-	if((selected_answer_interviewer.isEmpty()) || (selected_answer_interviewee.isEmpty())){
-		showWarning("Warning","No available interviwer or interviewee\n Please create person info");
-		return;
-	}
 	
 	if(isNull(getFieldValue("survey/answerBasic/answerText"))){
 		if(isNull(files_in_current_ques)){
@@ -1566,127 +1468,103 @@ saveNewAnswer(){
 		}
 		
 	}
-	tempAnsID=null;
-	tempInterviewerPrefix=null;
-	Boolean fileIdChange=false;
-
+	
 	if(isNull(current_answer_id)){//create new answer
 	setFieldValue("survey/answerBasic/answerEndTimestamp",getCurrentTime());
-	
-	int intervieweeSize=selected_answer_interviewee.size();
-
-	firstInterviewee=selected_answer_interviewee.get(0).get(1);
-	
-	if (intervieweeSize==1){
-		tempAnsID=ansLabelFstPart+firstInterviewee+ansLabelSndPart;
-		
-		setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
-	}
-	else{
-		tempAnsID=ansLabelFstPart+firstInterviewee+"EtAl"+ansLabelSndPart;
-		
-		setFieldValue("survey/answerBasic/answerLabel", tempAnsID);
-	}
-
-
-	int interviewerSize=selected_answer_interviewer.size();
-	firstInterviewer=selected_answer_interviewer.get(0).get(1);
-	
-	if (interviewerSize==1){
-		tempInterviewerPrefix=firstInterviewer;
-		
-	}
-	else{
-		tempInterviewerPrefix=firstInterviewer+"EtAl";
-	}
-	
-	if(!tempAnsID.equals(tempAnsLabel)){
-		
-		fileIdChange=true;
-	}
-	
+	String newAnsLabel=getFieldValue("survey/answerBasic/answerLabel");
 	saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
 		onSave(uuid, newRecord) {
 			answer_id = uuid;
+			current_answer_id=answer_id;
 			if (newRecord) {
-				if(!isNull(sss_id)){
-					
-					for(interviewer : selected_answer_interviewer){
-						saveEntitiesToRel("Answer and Interviewer",answer_id,interviewer.get(0));
-						interviwerNew=new ArrayList();
-						interviwerNew.add(answer_id);
-						interviwerNew.add(interviewer.get(1));
-						sssAnswerInterviewerNew.add(interviwerNew);
-					}
-				}
-				else{
-					for(interviewer : selected_answer_interviewer){
-						saveEntitiesToRel("Answer and Interviewer",answer_id,interviewer.get(0));
-					}
-				}
-				for(interviewee : selected_answer_interviewee){
-					saveEntitiesToRel("Answer and Interviewee",answer_id,interviewee.get(0));	
-				}
-				
-				if(fileIdChange){
-
-					for(file : files_in_current_ques){
-						entityId = file.get(0);
-						String fileSuffix=null;
-						for(currentFileType:file_and_fileType){
-							if (currentFileType.get(0).equals(entityId)) {
-								fileSuffix=currentFileType.get(1);
-								break;
-							}
-						}					
-						attributes = createAttributeList();
-    					attributes.add(createEntityAttribute("FileID", null, null, tempAnsID+"_"+fileSuffix, null));
-						 saveArchEnt(entityId, "File", null, attributes, new SaveCallback() {
-            				onSave(uuid,newRecord) {
-            					
-            				}  
-        				});    
-					}				
-
-				}
-
 				for(file : files_in_current_ques){
 					saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
 				}
-				
+				//showWarning("file saving","file ans reln save done");
 				newAnswer=new ArrayList();
 				newAnswer.add(answer_id);
-				newAnswer.add(tempAnsID);
+				newAnswer.add(newAnsLabel);
+				//showWarning("newAnswer","newAnswer array created");
 				sss_answer_list.add(newAnswer);
-				newInterviwer=new ArrayList();
-				newInterviwer.add(answer_id);
-				newInterviwer.add(tempInterviewerPrefix);
-				
-				sss_interviewer_list.add(newInterviwer);//added Interviwer to sss_interviewer
-
+				//showWarning("sss_answer_list",sss_answer_list.size().toString());
 				populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-				if(!isNull(sss_id)){//new answer for an existing session
-					saveSession("interviwer");
-				}
-				
-				//what if adding new answer to a session?
-				//Don't need to care about it because this answer would not be the first answer?
-				
+				//showWarning("populateList","populateList done");
 				showToast("new answer created");
 				cancelTabGroup("survey", true);
 				cancelTabGroup("answerToQuestion", true);
-
 			}
-			current_answer_id=answer_id;
 		}
 		onError(message) {
 			showWarning("error",message);
 		}  
 		});
 	}
+/*
 	else{//this is changing answerInfo		
-			saveChangedAnswer();
+			//saveChangedAnswer();
+		answerInfoNew.clear();
+		answerInfoNew.add(getFieldValue("survey/answerBasic/answerLabel"));
+		answerInfoNew.add(getFieldValue("survey/answerBasic/answerText"));
+		Hashtable fileListChange=listChange(files_in_current_ques,files_origin);
+		Hashtable answerBasicInfoChange=listChange(answerInfoNew,answerInfoOriginal);
+		//case1: Nothing changed
+		if((fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
+				showWarning("Answer Modification","No data is changed");
+				return;
+			}
+		//case2: only fileList changed
+		else if((!fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
+				for(fileDelete:ansFileOriginReln){
+					deleteRel(fileDelete.get(0));
+				}
+				
+				for(file : files_in_current_ques){
+					saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
+				}
+
+				if(isNull(sss_id)){
+					populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+				}
+				
+				showToast("file list changed");
+				cancelTabGroup("survey", true);
+			}
+		else{//case 3: both answer basic info and file list are changed
+				saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
+						onSave(uuid, newRecord) {
+							answer_id = uuid;	//not sure how it's working
+
+							for(fileDelete:ansFileOriginReln){
+								deleteRel(fileDelete.get(0));
+							}
+							for(file : files_in_current_ques){
+								saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
+							}
+		
+							showToast("Answer Info Changed");
+							cancelTabGroup("survey", true);
+							/*
+							if(!isNull(sss_id)){
+								loadSessionInfo("answerLabel");
+							}*/
+							/*
+							else{
+								if(!populateAns)
+								{
+									populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+								}
+							}
+						
+							
+					}
+					onError(message) {
+						showWarning("error",message);
+					}  
+					});
+		}
+
 	}
+	*/
 }
 //For saving changed answer, we have five cases:
 //1.Nothing changed, inform the user nothing have changed
@@ -1694,7 +1572,7 @@ saveNewAnswer(){
 //3.only interviewer list changed, we need to update interviewer list in answer, and change sessionID in session
 //4.only interviewee list changed, we need to update answerID as well as file ids, save"survey"
 //5.both interviewee and interviwer lists are change, we need to firstly update answerID and fileIDs, saving "survey", then change sessionID
-
+/* This is an exhausting function that took 2 days just because of my advisor didn't know his requirement
 saveChangedAnswer(){
 		answerInfoNew.clear();
 		answerInfoNew.add(getFieldValue("survey/answerBasic/answerLabel"));
@@ -2098,7 +1976,7 @@ saveChangedAnswer(){
 		}
 
 }
-
+*/
 interviewerChangeNewSession(){
 	for(interviewerDelete:ansInterviewerOriginReln){
 		deleteRel(interviewerDelete.get(0));
@@ -2179,7 +2057,7 @@ newFile(String typeFlag){
 			answerFile=true;
 			current_answer_file_id=null;	
 			tempAnsID=getFieldValue("survey/answerBasic/answerLabel");
-			
+
 			switch (fileCategory){
 				case "Audio":		
 					newTabGroup("audioFile");
