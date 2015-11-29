@@ -349,7 +349,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	original_sss_answer_list.clear();
 	sssAnsOrigin.clear();
 	sss_interviewer_list.clear();
-	sssConsultantList.clear()
+	sssConsultantList.clear();
 	sssInterviewerList.clear();
 	ArrayList currentPosition=takePoint();
 	newTabGroup("sessionForAnswer");
@@ -928,13 +928,8 @@ loadAnswerInfo(){
 	showTabGroup("survey", current_answer_id, new FetchCallback() {
         onFetch(result) {
 			answerInfoOriginal.clear();
-        	populateList("survey/answerFile/answerFileList", files_in_current_ques);
-        	populateList("survey/answerPerson/answerInterviewerList", selected_answer_interviewer);
-        	populateList("survey/answerPerson/answerIntervieweeList", selected_answer_interviewee);
-        	populateList("survey/answerPerson/answerInterviewerSelectionList", candidate_answer_interviewer);
-        	populateList("survey/answerPerson/answerIntervieweeSelectionList", candidate_answer_interviewee);
+        	populateList("survey/answerFile/answerFileList", files_in_current_ques);   	
         	populateDropDown("survey/answerFile/file_Category",categoryTypes);
-        	populateDropDown("survey/answerPerson/personType",personTypes);
         	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerLabel"));
         	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerText"));
             showToast("Loaded answer"+result.getId());            
@@ -1064,36 +1059,7 @@ startNewAnswer(){
 	setFieldValue("survey/answerBasic/answerLabel", tempAnsLabel);
 	populateList("survey/answerFile/answerFileList",files_in_current_ques);
 	populateDropDown("survey/answerFile/file_Category",categoryTypes);
-	//populateDropDown("survey/answerPerson/personType",personTypes);
-	/*
-	fetchAll(loadAllPersonQuery,
-				new FetchCallback() {
-					onFetch(result) {
-						if (!isNull(result)) {	
-							candidate_answer_interviewer.addAll(result);
-							if(introAns){
-								if(!isNull(newPersonForIntro)){
-									selected_answer_interviewee.addAll(newPersonForIntro);
-								}
-							}
-							else{
-								candidate_answer_interviewee.addAll(result);
-							}
-							populateList("survey/answerPerson/answerInterviewerList",selected_answer_interviewer);
-							populateList("survey/answerPerson/answerIntervieweeList",selected_answer_interviewee);
-							populateList("survey/answerPerson/answerInterviewerSelectionList",candidate_answer_interviewer);
-							populateList("survey/answerPerson/answerIntervieweeSelectionList",candidate_answer_interviewee);
-						}
-						else{
-							showWarning("No person info available","No person info available\n"+"Please add person info first");
-						}
-					}
-			       
-				onError(message) {
-					showToast(message);
-				}
-			});
-			*/
+	
 }
 
 loadAnswerListForQuesion(){
@@ -1349,15 +1315,10 @@ loadAnswerFromQuesInQuesnir(){
 	}
 }
 
-onEvent("survey/answerPerson/answerInterviewerSelectionList","click","addItemToTargetList(candidate_answer_interviewer,\"interviewer\",null)");
-onEvent("survey/answerPerson/answerIntervieweeSelectionList","click","addInterviewee()");
-onEvent("survey/answerPerson/answerInterviewerList","click","deleteItemFromTargetList(selected_answer_interviewer,\"interviewer\")");
-onEvent("survey/answerPerson/answerIntervieweeList","click","deleteItemFromTargetList(selected_answer_interviewee,\"interviewee\")");
+
 onEvent("survey/answerFile/Finish_New_Answer","click","saveNewAnswer()");
 onEvent("survey/answerFile/Add_New_File","click","newFile(\"answer\")");
 onEvent("survey/answerFile/answerFileList","click","viewOrDeleteFileReln()");
-onEvent("survey/answerPerson/Search_Person","click","searchPersonForAnswer()");
-//onEvent("survey/answerPerson","show","searchPersonForAnswer()");
 
 personTypes = new ArrayList();
 personTypes.add(new NameValuePair("Interviewer", "Interviewer"));
@@ -1395,18 +1356,6 @@ addItemToTargetList(ArrayList sourceList, String type_flag, String intervieweeID
 		
 		if (idx_item>=0) {
 			switch (type_flag){
-			case "interviewer":		
-					selected_answer_interviewer.add(sourceList.get(idx_item));
-					candidate_answer_interviewer.remove(idx_item);
-					populateList("survey/answerPerson/answerInterviewerList", selected_answer_interviewer);
-					populateList("survey/answerPerson/answerInterviewerSelectionList", candidate_answer_interviewer);
-					break;
-			case "interviewee":
-					selected_answer_interviewee.add(sourceList.get(idx_item));
-					candidate_answer_interviewee.remove(idx_item);
-					populateList("survey/answerPerson/answerIntervieweeList", selected_answer_interviewee);
-					populateList("survey/answerPerson/answerIntervieweeSelectionList", candidate_answer_interviewee);
-					break;
 			case "sessionFile":
 				selected_files_session.add(sourceList.get(idx_item));
 				candidate_files_session.remove(idx_item);
@@ -1455,18 +1404,6 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag){
 		
 		if (idx_delete>=0) {
 			switch (type_flag){
-			case "interviewer":		
-				candidate_answer_interviewer.add(targetList.get(idx_delete));
-				selected_answer_interviewer.remove(idx_delete);
-				populateList("survey/answerPerson/answerInterviewerList", selected_answer_interviewer);
-				populateList("survey/answerPerson/answerInterviewerSelectionList", candidate_answer_interviewer);
-				break;
-			case "interviewee":
-				candidate_answer_interviewee.add(targetList.get(idx_delete));
-				selected_answer_interviewee.remove(idx_delete);
-				populateList("survey/answerPerson/answerIntervieweeList", selected_answer_interviewee);
-				populateList("survey/answerPerson/answerIntervieweeSelectionList", candidate_answer_interviewee);
-				break;
 			case "sessionFile":
 				candidate_files_session.add(targetList.get(idx_delete));
 				selected_files_session.remove(idx_delete);
@@ -2468,98 +2405,6 @@ loadAnswerFileInfo(String typeFlag){
 		        }
 		    });
 	
-}
-
-searchPersonForAnswer(){
-
-	personType = null;
-	personType = getFieldValue("survey/answerPerson/personType");
-	//showWarning("type",personType);
-	keywordOfPerson=getFieldValue("survey/answerPerson/keywordOfPerson").trim();
-	
-	if(isNull(keywordOfPerson) || keywordOfPerson.equals("*")){
-		fetchAll(loadAllPersonQuery, new FetchCallback() {
-	        onFetch(result) {
-				if(!isNull(result)){
-				//searchResult.clear();
-				//searchResult.addAll(result);
-				switch (personType){
-				case "Interviewer":
-					//showWarning("case","Interviewer");
-					candidate_answer_interviewer.clear();
-					candidate_answer_interviewer.addAll(result);
-					if(!isNull(selected_answer_interviewer)){
-					candidate_answer_interviewer.removeAll(selected_answer_interviewer);       
-					} 
-					populateList("survey/answerPerson/answerInterviewerSelectionList",candidate_answer_interviewer);
-					break;
-				case "Interviewee":
-					//showWarning("case","Interviewee");
-					candidate_answer_interviewee.clear();
-					candidate_answer_interviewee.addAll(result);
-					if(!isNull(selected_answer_interviewer)){
-						candidate_answer_interviewee.removeAll(selected_answer_interviewee);
-		        	}
-					populateList("survey/answerPerson/answerIntervieweeSelectionList",candidate_answer_interviewee);
-					break;					
-			}
-	           				
-	        }
-				else{
-					showWarning("No result","Sorry, no result is found");
-				}
-	        onError(message) {
-	            showToast(message);
-	        }
-	        }
-	    });
-		 //populateCursorList("control/search/entityList", "select uuid, response from latestNonDeletedArchEntFormattedIdentifiers where aenttypename = '" + type + "' limit ? offset ?;", 25);
-	}
-	else{
-		
-		searchPersonNameQueryFirstHalf="select uuid, measure from latestNonDeletedAentValue where " +
-				"latestNonDeletedAentValue.Measure like '%"; 
-		searchPersonNameQueryLastHalf="%' and latestNonDeletedAentValue.AttributeID = "+
-				"(select AttributeID from AttributeKey where AttributeName='PersonName')";
-		
-		fetchAll(searchPersonNameQueryFirstHalf+keywordOfPerson+searchPersonNameQueryLastHalf, new FetchCallback() {
-        onFetch(result) {
-			if(!isNull(result)){
-			//searchResult.clear();
-			//searchResult.addAll(result);
-			switch (personType){
-
-			case "Interviewer":
-				candidate_answer_interviewer.clear();
-				candidate_answer_interviewer.addAll(result);
-				if(!isNull(selected_answer_interviewer)){
-					candidate_answer_interviewer.removeAll(selected_answer_interviewer);       
-					}   
-				populateList("survey/answerPerson/answerInterviewerSelectionList",candidate_answer_interviewer);
-				break;
-			case "Interviewee":
-				candidate_answer_interviewee.clear();
-				candidate_answer_interviewee.addAll(result);
-				if(!isNull(selected_answer_interviewer)){
-		        	candidate_answer_interviewee.removeAll(selected_answer_interviewee);
-		        	}
-				populateList("survey/answerPerson/answerIntervieweeSelectionList",candidate_answer_interviewee);
-				break;
-				
-		}
-           
-			
-        }
-			else{
-				showWarning("No result","Sorry, no result is found");
-			}
-        onError(message) {
-            showToast(message);
-        }
-    }
-        });
-		
-	}
 }
 
 onEvent("audioFile/audioFileInfo/Take_Audio_File","click","attachAudioToField(\"audioFile/audioFileInfo/audioFileContent\")");

@@ -217,38 +217,7 @@
                         <answerText/>
                          <answerStartTimestamp/>
                         <answerEndTimestamp/>
-                   </answerBasic>
-                   
-                   <answerPerson>
-                       
-                       <container6>
-                          <child1>
-                            <personType/>
-                          </child1>
-                          <child2>
-                           <keywordOfPerson/>
-                          </child2>
-                        </container6>
-                        <Search_Person/>
-                        
-                        <container2>
-                            <child1>
-                                <answerInterviewerList/>
-                            </child1>
-                            <child2>
-                                <answerInterviewerSelectionList/>
-                            </child2>
-                        </container2>
-                        
-                        <container3>
-                            <child1>
-                                <answerIntervieweeList/>
-                            </child1>
-                            <child2>
-                                 <answerIntervieweeSelectionList/>
-                            </child2>
-                        </container3>                 
-                   </answerPerson>               
+                   </answerBasic>   
                                          
                    <answerFile>
                        <file_Category/>
@@ -994,89 +963,7 @@
         </input>
         </group>
            
-       <group ref="answerPerson">
-        	 <label>Answer Person</label>
-        	     
-      <group ref="container6" faims_style="orientation">
-        
-          <label></label>
-          <group ref="child1" faims_style="even">
-            <label></label>
-             <select1 ref="personType" faims_annotation="false" faims_certainty="false">
-            <label>Person Type</label>
-            <item>
-                <label>placeholder</label>
-                <value>placeholder</value>
-            </item>
-         
-         </select1>
-          </group>
-       <group ref="child2" faims_style="even">
-            <label></label>
-               <input ref="keywordOfPerson" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-                <label>Name keyword</label>
-            </input>
-          </group>
-        
-        </group>
-        
-       <trigger ref="Search_Person" faims_style_class="faims-blue">
-                <label>Search</label>
-        	</trigger>
-        	
-            <group ref="container2" faims_style="orientation">
-         		<label></label>
-          		<group ref="child1" faims_style="even">
-            		<label></label>
-            		<select1 appearance="compact" ref="answerInterviewerList" faims_certainty="false" faims_annotation="true" faims_style_class="person-list">
-          				<label>Interviewer</label>
-          				<item>
-                    		<label>placeholder</label>
-                    		<value>placeholder</value>
-                		</item>
-        			</select1>
-        	    </group>
-          
-       		   <group ref="child2" faims_style="even">
-            	   <label></label>
-               	   <select1 appearance="compact" ref="answerInterviewerSelectionList" faims_certainty="false" faims_annotation="true" faims_style_class="person-list">
-          				<label>Interviewer select</label>
-          				<item>
-                    		<label>placeholder</label>
-                    		<value>placeholder</value>
-                		</item>
-        		 </select1>
-        	  </group>
-          </group>
-          
-         
-        
-            <group ref="container3" faims_style="orientation">
-         		<label></label>
-          		<group ref="child1" faims_style="even">
-            		<label></label>
-            		<select1 appearance="compact" ref="answerIntervieweeList" faims_certainty="false" faims_annotation="false" faims_style_class="person-list">
-          				<label>Interviewee</label>
-          				<item>
-                    		<label>placeholder</label>
-                    		<value>placeholder</value>
-                		</item>
-        			</select1>
-        	    </group>
-          
-       		   <group ref="child2" faims_style="even">
-            	   <label></label>
-               	   <select1 appearance="compact" ref="answerIntervieweeSelectionList" faims_certainty="false" faims_annotation="false" faims_style_class="person-list">
-          				<label>Interviewee select</label>
-          				<item>
-                    		<label>placeholder</label>
-                    		<value>placeholder</value>
-                		</item>
-        		 </select1>
-        	  </group>
-          </group>
-          
-       </group>
+      
        
         <group ref="answerFile">
              <label>Answer file</label>
