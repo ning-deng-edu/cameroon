@@ -1499,7 +1499,7 @@ saveNewAnswer(){
 		}  
 		});
 	}
-/*
+
 	else{//this is changing answerInfo		
 			//saveChangedAnswer();
 		answerInfoNew.clear();
@@ -1543,18 +1543,6 @@ saveNewAnswer(){
 		
 							showToast("Answer Info Changed");
 							cancelTabGroup("survey", true);
-							/*
-							if(!isNull(sss_id)){
-								loadSessionInfo("answerLabel");
-							}*/
-							/*
-							else{
-								if(!populateAns)
-								{
-									populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-								}
-							}
-						
 							
 					}
 					onError(message) {
@@ -1564,7 +1552,7 @@ saveNewAnswer(){
 		}
 
 	}
-	*/
+
 }
 //For saving changed answer, we have five cases:
 //1.Nothing changed, inform the user nothing have changed
