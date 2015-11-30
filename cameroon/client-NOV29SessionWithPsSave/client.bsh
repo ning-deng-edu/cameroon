@@ -413,9 +413,17 @@ addPersonToSession(){
 		return;
 	}
 	rolePerson=new ArrayList();
-	rolePerson.add(selectedRoleID+"_"+selectedPersonID);
+	String psRoleNameId=selectedRoleID+"_"+selectedPersonID;
+	rolePerson.add(psRoleNameId);
 	String selectedRoleName=null;
 	String selectedPersonName=null;
+	//check duplication
+	for (existPs: sssPersonRoleandNameList){
+		if (existPs.get(0).equals(psRoleNameId)){
+			showWarning("Duplicate data","This person with this role is already in the list");
+			return;
+		}
+	}
 
 	for(role:personRoleList){
 		if(role.get(0).equals(selectedRoleID)){
@@ -435,6 +443,8 @@ addPersonToSession(){
 		return;
 	}
 	rolePerson.add(selectedRoleName+"_"+selectedPersonName);
+
+	
 	if(selectedRoleName.equals("consultant")){
 		checkPersonIntro(selectedPersonID,rolePerson);
 	}
@@ -3257,6 +3267,7 @@ loadSessionInfo(String typeFlag){
 	                onFetch(sssPsReln) {
 	                	if(!isNull(sssPsReln)){
 	                	sssPersonRoleNameListOrigin.clear();
+	                	sssPersonRoleandNameList.clear();
 	                	sssPsRelnList=new ArrayList();
 	                	sssPsRelnList.clear();
 	                	sssPsRelnList.addAll(sssPsReln);
@@ -3297,7 +3308,8 @@ loadSessionInfo(String typeFlag){
 													psRoleNamePair.add(psRoleID+"_"+psNameID);
 													psRoleNamePair.add(psRoleName+"_"+psName);
 													sssPersonRoleNameListOrigin.add(psRoleNamePair);
-													populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleNameListOrigin);
+													sssPersonRoleandNameList.add(psRoleNamePair);
+													populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
 												}
 												else{
 													showWarning("Out-of-date Data","Some person in this session may not be used anymore\n"+"Please contact the admin for further information");
@@ -3707,6 +3719,8 @@ saveSession(String typeflag){
 				sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));
 				Hashtable sssInfoChange=listChange(sssNewInfo,sssOriginInfo);
 				Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
+				Hashtable sssPsChange=listChange(sssPersonRoleandNameList,sssPersonRoleNameListOrigin);
+				
 				if((sssInfoChange.containsKey("EQUAL")) && (sssAnsChange.containsKey("EQUAL"))){
 						showWarning("No change","No data changed");
 						return;				
