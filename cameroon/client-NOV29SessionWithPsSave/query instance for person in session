@@ -1,0 +1,5 @@
+//select ps-sss reln id for a session
+select uuid from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and measure='1000011448843872746'
+
+//select psRoleName and id for a session
+select uuid,measure from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') and uuid=(select measure from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') and uuid='1000011448843872878')

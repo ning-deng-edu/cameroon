@@ -322,6 +322,7 @@ sessionAnswerInterviewer=new LinkedHashSet();
 Boolean introAns=false;//mark if a session is for introductory questionnaire answer collecting or not
 ArrayList newPersonForIntro=new ArrayList(); 
 
+sssPersonRoleNameListOrigin=new ArrayList();
 sssPersonRoleandNameList=new ArrayList();//selected person role
 personRoleList=new ArrayList();
 personList=new ArrayList();
@@ -3213,6 +3214,13 @@ loadSessionInfo(String typeFlag){
 	 					"and RelationshipID in "+
 	 					"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
 	 					"and latestNonDeletedRelationship.Deleted IS NULL)";
+		//Query out the reln id of person and person roles in a session
+		loadSssPersonRelnQuery="select uuid from latestNonDeletedAentValue "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
+		"and measure='"+sss_id+"' ";
+
+
+
 		fetchAll(loadAnsSssRelnQuery, new FetchCallback() {
 	        onFetch(result) {
 	        	sssAnsOrigin.clear();
@@ -3244,6 +3252,113 @@ loadSessionInfo(String typeFlag){
 	                    showToast(message);
 	                }
 	            });
+
+	            fetchAll(loadSssPersonRelnQuery, new FetchCallback() {
+	                onFetch(sssPsReln) {
+	                	if(!isNull(sssPsReln)){
+	                	sssPersonRoleNameListOrigin.clear();
+	                	sssPsRelnList=new ArrayList();
+	                	sssPsRelnList.clear();
+	                	sssPsRelnList.addAll(sssPsReln);
+	                	for (psReln: sssPsRelnList){
+	                		String psRelnId=psReln.get(0);
+
+	                		loadSssPersonRoleQuery="select uuid,measure from latestNonDeletedAentValue "+
+	                		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
+	                		"and uuid=(select measure from latestNonDeletedAentValue where AttributeID="+
+	                			"(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') "+
+	                			"and uuid='"+psRelnId+"')";
+							
+	            			fetchOne(loadSssPersonRoleQuery,new FetchCallback() {
+								onFetch(sssPsRoleInfo) {
+									if(!isNull(sssPsRoleInfo)){
+										sssPsRoleInfoList=new ArrayList();
+										sssPsRoleInfoList.clear();
+										sssPsRoleInfoList.addAll(sssPsRoleInfo);
+										String psRoleID=sssPsRoleInfoList.get(0);
+										String psRoleName=sssPsRoleInfoList.get(1);
+
+				            			loadSssPersonNameQuery="select uuid,measure from latestNonDeletedAentValue "+
+				                		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+				                		"and uuid=(select measure from latestNonDeletedAentValue where AttributeID="+
+				                			"(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
+				                			"and uuid='"+psRelnId+"')";
+
+										fetchOne(loadSssPersonNameQuery,new FetchCallback() {
+											onFetch(sssPsNameInfo) {
+												if(!isNull(sssPsNameInfo)){
+													sssPsNameInfoList=new ArrayList();
+													sssPsNameInfoList.clear();
+													sssPsNameInfoList.addAll(sssPsNameInfo);
+													String psNameID=sssPsNameInfoList.get(0);
+													String psName=sssPsNameInfoList.get(1);
+													psRoleNamePair=new ArrayList();
+													psRoleNamePair.clear();
+													psRoleNamePair.add(psRoleID+"_"+psNameID);
+													psRoleNamePair.add(psRoleName+"_"+psName);
+													sssPersonRoleNameListOrigin.add(psRoleNamePair);
+													populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleNameListOrigin);
+												}
+												else{
+													showWarning("Out-of-date Data","Some person in this session may not be used anymore\n"+"Please contact the admin for further information");
+												}
+												
+											    }  
+										    });
+								    }
+								    else{
+								    	showWarning("Out-of-date Data","Some person roles in this session may not be used anymore\n"+"Please contact the admin for further information");
+								    }
+								}  
+							});
+	                	}
+	                  }
+
+	                  else{
+	                  	 showWarning("Out-of-date Data","This session may not be used anymore\n"+"Please contact the admin for further information");
+	                  }
+	                }
+
+	                onError(message) {
+	                    showToast(message);
+	                }
+	            });
+
+				fetchAll(loadAllRoleQuery, new FetchCallback() {
+		        	onFetch(result) {
+						if (!isNull(result)) {
+							personRoleList.addAll(result);
+							populateDropDown("sessionForAnswer/sssPersonInfo/sssPersonRole", personRoleList);	
+
+							fetchAll(loadAllPersonQuery,new FetchCallback() {
+					        	onFetch(fetchResult) {
+									if (!isNull(fetchResult)) {
+										personList.addAll(fetchResult);
+										populateDropDown("sessionForAnswer/sssPersonInfo/sssPersonName", personList);	
+										
+									}	
+									else{
+								    	showWarning("No person data","No person data is available, please contact the admin");
+										return;
+									}
+					       	 }
+
+					        	onError(message) {
+					            	showToast(message);
+					        	}
+					    	});
+						}	
+						else{
+					    	showWarning("No Role data","No role data is available, please contact the admin");
+							return;
+						}
+		       	    }
+
+		        	onError(message) {
+		            	showToast(message);
+		        	}
+		    	});
+
 	        	
 	            showToast("Loaded session"+result.getId());            
 	        }
@@ -3251,7 +3366,7 @@ loadSessionInfo(String typeFlag){
 	            showToast(message);
 	        }
 	    });
-		loadSessionInterviewer("answer");
+		//loadSessionInterviewer("answer");
 		
 		break;
 
@@ -3582,6 +3697,51 @@ saveSession(String typeflag){
 											"4.Two dates should be the same");
 						return;
 				}
+			}
+
+			else{//Changing session Info
+				String endTimeAuto=getCurrentTime();
+				sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
+				sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
+				sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
+				sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));
+				Hashtable sssInfoChange=listChange(sssNewInfo,sssOriginInfo);
+				Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
+				if((sssInfoChange.containsKey("EQUAL")) && (sssAnsChange.containsKey("EQUAL"))){
+						showWarning("No change","No data changed");
+						return;				
+				}
+				else if((!sssInfoChange.containsKey("EQUAL"))&& (sssAnsChange.containsKey("EQUAL"))){
+					String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+					String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+					if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+					saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+					    onSave(uuid, newRecord) {
+					    	for(ansDelete:sssAnsOrigin){
+								 deleteRel(ansDelete.get(0));
+					    	  }
+					    	
+					    	 for(answer:sss_answer_list){
+					    		  saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
+					    	  }
+					        showToast("Session info changed");
+
+					    }
+					    onError(message) {
+					        showWarning("error",message);
+					    }  
+					  });
+					}
+					else{
+						showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
+								+"2.Datetime input should be valid \n"+
+											"3.Start timestamp should be before end timestamp \n"+
+														"4.Two dates should be the same");
+						return;
+					}
+
+				}
+
 			}
 		break;
 		
