@@ -3264,13 +3264,12 @@ loadSessionInfo(String typeFlag){
 	                    showToast(message);
 	                }
 	            });
-
+				sssPersonRoleNameListOrigin.clear();
+	            sssPersonRoleandNameList.clear();
+	            sssPsInfoRelnOrigin.clear();
 	            fetchAll(loadSssPersonRelnQuery, new FetchCallback() {
 	                onFetch(sssPsReln) {
 	                	if(!isNull(sssPsReln)){
-	                	sssPersonRoleNameListOrigin.clear();
-	                	sssPersonRoleandNameList.clear();
-	                	sssPsInfoRelnOrigin.clear();
 	                	//sssPsInfoRelnOrigin.addAll(sssPsReln);
 	                	sssPsRelnList=new ArrayList();
 	                	sssPsRelnList.clear();
@@ -3321,6 +3320,7 @@ loadSessionInfo(String typeFlag){
 													sssPsInfoRelnOrigin.add(psInfTriplePair);
 												}
 												else{
+													populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
 													showWarning("Out-of-date Data","Some person in this session may not be used anymore\n"+"Please contact the admin for further information");
 												}
 												
@@ -3328,6 +3328,7 @@ loadSessionInfo(String typeFlag){
 										    });
 								    }
 								    else{
+								    	populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
 								    	showWarning("Out-of-date Data","Some person roles in this session may not be used anymore\n"+"Please contact the admin for further information");
 								    }
 								}  
@@ -3336,7 +3337,8 @@ loadSessionInfo(String typeFlag){
 	                  }
 
 	                  else{
-	                  	 showWarning("Out-of-date Data","This session may not be used anymore\n"+"Please contact the admin for further information");
+	                  	populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
+	                  	showWarning("Out-of-date Data","This session may not be used anymore\n"+"Please contact the admin for further information");
 	                  }
 	                }
 
@@ -3820,7 +3822,7 @@ saveSession(String typeflag){
 				
 				else{// need to test case by case
 					psRoleInfo=checkRolesInSession();
-					showWarning("checkRolesInSession","checkRolesInSession done");
+					//showWarning("checkRolesInSession","checkRolesInSession done");
 
 					if(!psRoleInfo.contains("consultant")){
 						showWarning("No consultant","No consultant selected, please add consultant");
@@ -3834,27 +3836,27 @@ saveSession(String typeflag){
 					Iterator itConsultant=sssConsultantList.iterator();
 				    firstConsultant=itConsultant.next();
 				    ansConsultant=firstConsultant;
-				    showWarning("ansConsultant",ansConsultant);
+				    //showWarning("ansConsultant",ansConsultant);
 				    if(sssConsultantList.size()>1){
 						ansConsultant=ansConsultant+"EtAl";
-						showWarning("ansConsultantEtal",ansConsultant);
+						//showWarning("ansConsultantEtal",ansConsultant);
 				    }
 				    
 				    //generate session label
 					interviwerPrefix=null;
 					Iterator inveIt=sssInterviewerList.iterator();
 					interviwerPrefix=inveIt.next();
-					showWarning("interviwerPrefix",interviwerPrefix);
+					//showWarning("interviwerPrefix",interviwerPrefix);
 					if (sssInterviewerList.size()>1){
 						interviwerPrefix=interviwerPrefix+"EtAl";
-						showWarning("interviwerPrefixEtal",interviwerPrefix);
+						//showWarning("interviwerPrefixEtal",interviwerPrefix);
 					}
 
 					Boolean sssLabelChange=false;
 				    String oldSssLabel=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID");
 					String [] oldSssLabelSplit=oldSssLabel.split("_");
 					String sssOldInv=oldSssLabelSplit[0];
-					showWarning("sssOldInv",sssOldInv);
+					//showWarning("sssOldInv",sssOldInv);
 					String newSssLabel=oldSssLabel;
 					if(!sssOldInv.equals(interviwerPrefix)){
 						oldSssLabelSplit[0]=interviwerPrefix;
@@ -3865,7 +3867,7 @@ saveSession(String typeflag){
 							sb.append(sssLabelComp);
 						}
 						newSssLabel=sb.toString();
-						showWarning("newSssLabel",newSssLabel);
+						//showWarning("newSssLabel",newSssLabel);
 						
 						sssLabelChange=true;
 						//showWarning("setDone",sssLabelChange.toString());
@@ -3876,7 +3878,7 @@ saveSession(String typeflag){
 					//change session label
 					if(sssLabelChange){
 						setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",newSssLabel);
-						showWarning("sssLabelChange",sssLabelChange.toString());
+						//showWarning("sssLabelChange",sssLabelChange.toString());
 						saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 					    	onSave(uuid, newRecord) {
 					    		if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
@@ -3891,7 +3893,7 @@ saveSession(String typeflag){
 					    		}
 					    		//below is changing role info
 					    		if (sssPsChange.containsKey("PUREADD")){
-					    			showWarning("PUREADD","PUREADD");
+					    			//showWarning("PUREADD","PUREADD");
 					    			sssNewAddedPs=sssPsChange.get("PUREADD");
 					    			for(personInSss: sssNewAddedPs){
 						    	  		String psInfoId=personInSss.get(0);
@@ -3902,11 +3904,11 @@ saveSession(String typeflag){
 						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, psInfoIdSplit[0], null));
 						    	  		saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
 						    	  	}
-						    	  	showWarning("PUREADD changing role info","PUREADD changing role info");
+						    	  	//showWarning("PUREADD changing role info","PUREADD changing role info");
 
 					    		}//if (sssPsChange.containsKey("PUREADD"))
 					    		else if (sssPsChange.containsKey("PUREDELETE")){
-					    			showWarning("PUREDELETE","PUREDELETE");
+					    			//showWarning("PUREDELETE","PUREDELETE");
 					    			sssNewDelPs=sssPsChange.get("PUREDELETE");
 					    			for(personInSss: sssNewDelPs){
 						    	  		String toDelPsID=personInSss.get(0);
@@ -3916,19 +3918,19 @@ saveSession(String typeflag){
 						    	  				showWarning("toDelPsRelnID",toDelPsRelnID);
 						    	  				deleteArchEnt(toDelPsRelnID, new DeleteCallback() {
 												    onDelete(uuid) {
-												      showWarning("Record deleted",toDelPsRelnID);
+												      //showWarning("Record deleted",toDelPsRelnID);
 												    }
 												  });
 						    	  				//deleteArchEnt(toDelPsRelnID);
 						    	  			}
 						    	  		}
 						    	  	}
-						    	  	showWarning("PUREDELETE changing role info","PUREDELETE changing role info");
+						    	  	//showWarning("PUREDELETE changing role info","PUREDELETE changing role info");
 
 					    		}//else if (sssPsChange.containsKey("PUREDELETE"))
 					    		else{
 					    			sssToAddPs=sssPsChange.get("ADD");
-					    			showWarning("ADD","ADD");
+					    			//showWarning("ADD","ADD");
 					    			for(personInSss: sssToAddPs){
 						    	  		String psInfoId=personInSss.get(0);
 						    	  		String [] psInfoIdSplit=psInfoId.split("_");
@@ -3938,7 +3940,7 @@ saveSession(String typeflag){
 						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, psInfoIdSplit[0], null));
 						    	  		saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
 						    	  	}
-									showWarning("DELETE","DELETE");
+									//showWarning("DELETE","DELETE");
 						    	  	sssToDelPs=sssPsChange.get("DELETE");
 						    	  	for(personInSss: sssToDelPs){
 						    	  		String toDelPsID=personInSss.get(0);
@@ -3949,7 +3951,7 @@ saveSession(String typeflag){
 						    	  			}
 						    	  		}
 						    	  	}
-						    	  	showWarning("ADD+DELETE","ADD+DELETE");
+						    	  	//showWarning("ADD+DELETE","ADD+DELETE");
 					    		}//sssPsChange containsKey("ADD") and "DELETE"
 					    		
 					    		
@@ -4002,12 +4004,12 @@ saveSession(String typeflag){
 						}//if sssInfo changed 
 					}//! sssLabelChange
 					//below is answer and answer file label change
-					showWarning("BEGIN ANSWER LABEL CHANGE","BEGIN ANSWER LABEL CHANGE");
+					//showWarning("BEGIN ANSWER LABEL CHANGE","BEGIN ANSWER LABEL CHANGE");
 					for(ans : sss_answer_list){
 					    	  	 String ansLabel=ans.get(1);
 					    	  	 String [] ansLabelSplit=ansLabel.split("_");
 					    	  	 String ansOldPs=ansLabelSplit[2];
-					    	  	 showWarning("ansOldPs",ansOldPs);
+					    	  	 //showWarning("ansOldPs",ansOldPs);
 					    	  	 if(!ansOldPs.equals(ansConsultant)){
 					    	  	 	ansLabelSplit[2]=ansConsultant;
 					    	  	 	StringBuilder sb=new StringBuilder();
@@ -4018,14 +4020,14 @@ saveSession(String typeflag){
 									}
 
 									String newAnsLabelSss=sb.toString();
-									showWarning("newAnsLabelSss",newAnsLabelSss);
+									//showWarning("newAnsLabelSss",newAnsLabelSss);
 									attributes = createAttributeList();
 		    						attributes.add(createEntityAttribute("AnswerLabel", null, null, newAnsLabelSss, null));
 									entityId=ans.get(0);
 									saveArchEnt(entityId, "AnswerToQuestionnaire", null, attributes, new SaveCallback() {
 		            					onSave(answerUuid,newRecord) {
 		            						//below is changing the filelabel
-		            						showWarning("answerLabel change done",entityId+"answer label change done");
+		            						//showWarning("answerLabel change done",entityId+"answer label change done");
 		            						loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 											"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileID') "+
 											"and uuid in "+
@@ -4040,15 +4042,15 @@ saveSession(String typeflag){
 										        	fileListForAns=new ArrayList();
 										        	fileListForAns.clear();
 										        	fileListForAns.addAll(result);
-										        	showWarning("answerFileFetchDone","answerFileFetchDone");
+										        	//showWarning("answerFileFetchDone","answerFileFetchDone");
 										        	for (file: fileListForAns){
 										        		String fileEntityId=file.get(0);
 										        		String oldFileLabel=file.get(1);
 										        		String [] oldFileLabelSplit=oldFileLabel.split("_");
 										        		String oldFileLabelType=oldFileLabelSplit[oldFileLabelSplit.length-1];
-										        		showWarning("oldFileLabelType",oldFileLabelType);
+										        		//showWarning("oldFileLabelType",oldFileLabelType);
 										        		String newFileLabel=newAnsLabelSss+"_"+oldFileLabelType;
-										        		showWarning("newFileLabel",newFileLabel);
+										        		//showWarning("newFileLabel",newFileLabel);
 										        		attributesForFile = createAttributeList();
 		    											attributesForFile.add(createEntityAttribute("FileID", null, null, newFileLabel, null));
 		    											saveArchEnt(fileEntityId, "File", null, attributesForFile);
@@ -4064,8 +4066,8 @@ saveSession(String typeflag){
 								}//if(!ansOldPs.equals(ansConsultant))
 					    	  }// for(ans : sss_answer_list)
 					showToast("Session info updated");
-					//cancelTabGroup("sessionForAnswer",true);
-					//showTab("control/survey_control");
+					cancelTabGroup("sessionForAnswer",true);
+					showTab("control/survey_control");
 
 				}//when sssPsInfo changed
 				
