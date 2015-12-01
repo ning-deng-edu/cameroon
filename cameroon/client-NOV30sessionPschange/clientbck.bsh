@@ -3737,14 +3737,12 @@ saveSession(String typeflag){
 				Hashtable sssInfoChange=listChange(sssNewInfo,sssOriginInfo);
 				Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
 				Hashtable sssPsChange=listChange(sssPersonRoleandNameList,sssPersonRoleNameListOrigin);
-				showWarning("listChange done","listChange check done");
-				//case 0: nothing changed PASS
+				//case 0: nothing changed NOT PASS
 				if((sssInfoChange.containsKey("EQUAL")) && (sssAnsChange.containsKey("EQUAL")) && (sssPsChange.containsKey("EQUAL"))){
 					showWarning("No change","No data changed");
 					return;				
 				}
 				//when sssPsInfo does not change
-				
 				else if (sssPsChange.containsKey("EQUAL")){
 					//case 1: sssInfoChanged only PASS
 					if((!sssInfoChange.containsKey("EQUAL")) && (sssAnsChange.containsKey("EQUAL"))){
@@ -3769,7 +3767,7 @@ saveSession(String typeflag){
 						}
 
 					}
-					//case 2: sssAns changed only PASS (prob: allow to add session that is not taken in the same day?)
+					//case 2: sssAns changed only NOT PASS!!!
 					else if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
 						for(ansDelete:sssAnsOrigin){
 							deleteRel(ansDelete.get(0));
@@ -3813,9 +3811,7 @@ saveSession(String typeflag){
 					}
 
 				}
-				
 				//when sssPsInfo changed
-				/*
 				else{
 					psRoleInfo=checkRolesInSession();
 					showWarning("checkRolesInSession","checkRolesInSession done");
@@ -4032,7 +4028,7 @@ saveSession(String typeflag){
 					showTab("control/survey_control");
 
 				}//when sssPsInfo changed
-				*/
+
 			}//Changing session Info
 		break;
 		
