@@ -105,6 +105,10 @@
                         <query/>
                         <Submit/>
                     </querytest>
+                     <deleteTest>
+                        <delQuery/>
+                        <delSubmit/>
+                    </deleteTest>
                 </control>
                 
                 <questionnaireListAll>
@@ -647,6 +651,19 @@
             </input>
     
             <trigger ref="Submit" faims_style_class="faims-blue">
+                <label>New {submit}</label>
+            </trigger>
+   
+        </group>
+       
+         <group ref="deleteTest">
+        <label>{del}</label>
+        
+            <input ref="delQuery" faims_attribute_type="freetext" faims_certainty="false" faims_annotation="false">
+              <label>{del}</label>
+            </input>
+    
+            <trigger ref="delSubmit" faims_style_class="faims-blue">
                 <label>New {submit}</label>
             </trigger>
    

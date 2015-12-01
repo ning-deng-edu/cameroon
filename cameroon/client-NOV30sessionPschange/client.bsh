@@ -89,8 +89,8 @@ loadAllFileQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='FileName') "+
 		"GROUP BY uuid;";
 
-loadAllFileIDQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
-		"WHERE latestNonDeletedAentValue.AttributeID "+
+loadAllFileIDQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers " +
+		"WHERE AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='FileID') "+
 		"GROUP BY uuid;";
 
@@ -99,8 +99,8 @@ loadAllSessionQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionName') "+
 		"GROUP BY uuid;";
 
-loadAllSessionIDQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
-		"WHERE latestNonDeletedAentValue.AttributeID "+
+loadAllSessionIDQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers " +
+		"WHERE AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionID') "+
 		"GROUP BY uuid;";
 
@@ -109,8 +109,8 @@ loadAllFieldTripQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='FieldTripName') "+
 		"GROUP BY uuid;";
 
-loadAllAnswerQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
-		"WHERE latestNonDeletedAentValue.AttributeID "+
+loadAllAnswerQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers " +
+		"WHERE AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='AnswerLabel') "+
 		"GROUP BY uuid;";
 
@@ -3227,7 +3227,7 @@ loadSessionInfo(String typeFlag){
 	 					"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
 	 					"and latestNonDeletedRelationship.Deleted IS NULL)";
 		//Query out the reln id of person and person roles in a session
-		loadSssPersonRelnQuery="select uuid from latestNonDeletedAentValue "+
+		loadSssPersonRelnQuery="select uuid from latestNonDeletedArchEntIdentifiers "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
 		"and measure='"+sss_id+"' ";
 
@@ -3348,12 +3348,14 @@ loadSessionInfo(String typeFlag){
 				fetchAll(loadAllRoleQuery, new FetchCallback() {
 		        	onFetch(result) {
 						if (!isNull(result)) {
+							personRoleList.clear();
 							personRoleList.addAll(result);
 							populateDropDown("sessionForAnswer/sssPersonInfo/sssPersonRole", personRoleList);	
 
 							fetchAll(loadAllPersonQuery,new FetchCallback() {
 					        	onFetch(fetchResult) {
 									if (!isNull(fetchResult)) {
+										personList.clear();
 										personList.addAll(fetchResult);
 										populateDropDown("sessionForAnswer/sssPersonInfo/sssPersonName", personList);	
 										
@@ -3815,8 +3817,8 @@ saveSession(String typeflag){
 				}
 				
 				//when sssPsInfo changed
-				/*
-				else{
+				
+				else{// need to test case by case
 					psRoleInfo=checkRolesInSession();
 					showWarning("checkRolesInSession","checkRolesInSession done");
 
@@ -3837,12 +3839,7 @@ saveSession(String typeflag){
 						ansConsultant=ansConsultant+"EtAl";
 						showWarning("ansConsultantEtal",ansConsultant);
 				    }
-				    String newSssLabel=interviwerPrefix+sssLabel;
-					Boolean sssLabelChange=false;
-					if(!newSssLabel.equals(sssLabelOld)){
-						setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",newSssLabel);
-						sssLabelChange=true;
-					}
+				    
 				    //generate session label
 					interviwerPrefix=null;
 					Iterator inveIt=sssInterviewerList.iterator();
@@ -3852,8 +3849,34 @@ saveSession(String typeflag){
 						interviwerPrefix=interviwerPrefix+"EtAl";
 						showWarning("interviwerPrefixEtal",interviwerPrefix);
 					}
+
+					Boolean sssLabelChange=false;
+				    String oldSssLabel=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID");
+					String [] oldSssLabelSplit=oldSssLabel.split("_");
+					String sssOldInv=oldSssLabelSplit[0];
+					showWarning("sssOldInv",sssOldInv);
+					String newSssLabel=oldSssLabel;
+					if(!sssOldInv.equals(interviwerPrefix)){
+						oldSssLabelSplit[0]=interviwerPrefix;
+						StringBuilder sb=new StringBuilder();
+						for (sssLabelComp : oldSssLabelSplit){
+							if (sb.length()>0)
+								{sb.append("_");}
+							sb.append(sssLabelComp);
+						}
+						newSssLabel=sb.toString();
+						showWarning("newSssLabel",newSssLabel);
+						
+						sssLabelChange=true;
+						//showWarning("setDone",sssLabelChange.toString());
+					}
+
+				    
+				    //showWarning("newSssLabel",newSssLabel);
 					//change session label
 					if(sssLabelChange){
+						setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",newSssLabel);
+						showWarning("sssLabelChange",sssLabelChange.toString());
 						saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 					    	onSave(uuid, newRecord) {
 					    		if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
@@ -3868,6 +3891,7 @@ saveSession(String typeflag){
 					    		}
 					    		//below is changing role info
 					    		if (sssPsChange.containsKey("PUREADD")){
+					    			showWarning("PUREADD","PUREADD");
 					    			sssNewAddedPs=sssPsChange.get("PUREADD");
 					    			for(personInSss: sssNewAddedPs){
 						    	  		String psInfoId=personInSss.get(0);
@@ -3878,23 +3902,33 @@ saveSession(String typeflag){
 						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, psInfoIdSplit[0], null));
 						    	  		saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
 						    	  	}
+						    	  	showWarning("PUREADD changing role info","PUREADD changing role info");
 
 					    		}//if (sssPsChange.containsKey("PUREADD"))
 					    		else if (sssPsChange.containsKey("PUREDELETE")){
+					    			showWarning("PUREDELETE","PUREDELETE");
 					    			sssNewDelPs=sssPsChange.get("PUREDELETE");
 					    			for(personInSss: sssNewDelPs){
 						    	  		String toDelPsID=personInSss.get(0);
 						    	  		for(oldPs: sssPsInfoRelnOrigin){
 						    	  			if (toDelPsID.equals(oldPs.get(1))){
 						    	  				String toDelPsRelnID=oldPs.get(0);
-						    	  				deleteArchEnt(toDelPsRelnID);
+						    	  				showWarning("toDelPsRelnID",toDelPsRelnID);
+						    	  				deleteArchEnt(toDelPsRelnID, new DeleteCallback() {
+												    onDelete(uuid) {
+												      showWarning("Record deleted",toDelPsRelnID);
+												    }
+												  });
+						    	  				//deleteArchEnt(toDelPsRelnID);
 						    	  			}
 						    	  		}
 						    	  	}
+						    	  	showWarning("PUREDELETE changing role info","PUREDELETE changing role info");
 
 					    		}//else if (sssPsChange.containsKey("PUREDELETE"))
 					    		else{
 					    			sssToAddPs=sssPsChange.get("ADD");
+					    			showWarning("ADD","ADD");
 					    			for(personInSss: sssToAddPs){
 						    	  		String psInfoId=personInSss.get(0);
 						    	  		String [] psInfoIdSplit=psInfoId.split("_");
@@ -3904,7 +3938,7 @@ saveSession(String typeflag){
 						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, psInfoIdSplit[0], null));
 						    	  		saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
 						    	  	}
-
+									showWarning("DELETE","DELETE");
 						    	  	sssToDelPs=sssPsChange.get("DELETE");
 						    	  	for(personInSss: sssToDelPs){
 						    	  		String toDelPsID=personInSss.get(0);
@@ -3915,6 +3949,7 @@ saveSession(String typeflag){
 						    	  			}
 						    	  		}
 						    	  	}
+						    	  	showWarning("ADD+DELETE","ADD+DELETE");
 					    		}//sssPsChange containsKey("ADD") and "DELETE"
 					    		
 					    		
@@ -3967,11 +4002,12 @@ saveSession(String typeflag){
 						}//if sssInfo changed 
 					}//! sssLabelChange
 					//below is answer and answer file label change
+					showWarning("BEGIN ANSWER LABEL CHANGE","BEGIN ANSWER LABEL CHANGE");
 					for(ans : sss_answer_list){
 					    	  	 String ansLabel=ans.get(1);
 					    	  	 String [] ansLabelSplit=ansLabel.split("_");
 					    	  	 String ansOldPs=ansLabelSplit[2];
-					    	  	 //showWarning("ansOldPs",ansOldPs);
+					    	  	 showWarning("ansOldPs",ansOldPs);
 					    	  	 if(!ansOldPs.equals(ansConsultant)){
 					    	  	 	ansLabelSplit[2]=ansConsultant;
 					    	  	 	StringBuilder sb=new StringBuilder();
@@ -4028,11 +4064,11 @@ saveSession(String typeflag){
 								}//if(!ansOldPs.equals(ansConsultant))
 					    	  }// for(ans : sss_answer_list)
 					showToast("Session info updated");
-					cancelTabGroup("sessionForAnswer",true);
-					showTab("control/survey_control");
+					//cancelTabGroup("sessionForAnswer",true);
+					//showTab("control/survey_control");
 
 				}//when sssPsInfo changed
-				*/
+				
 			}//Changing session Info
 		break;
 		
@@ -4166,7 +4202,7 @@ loadFieldTripInfo(){
                 	original_session_fieldTrip.clear();
                 	original_session_fieldTrip.addAll(result);
 
-                	fetchAll(loadAllSessionQuery, new FetchCallback() {
+                	fetchAll(loadAllSessionIDQuery, new FetchCallback() {
                         onFetch(result) {
                         	candidate_session_fieldTrip.clear();
                         	candidate_session_fieldTrip.addAll(result);
@@ -4205,7 +4241,7 @@ startNewFieldTrip(){
 	
 	newTabGroup("fieldTrip");
 	
-	fetchAll(loadAllSessionQuery, new FetchCallback() {
+	fetchAll(loadAllSessionIDQuery, new FetchCallback() {
         onFetch(result) {
         	candidate_session_fieldTrip.addAll(result);
             populateList("fieldTrip/fieldTripSession/fieldTripFileSelectionList", candidate_session_fieldTrip);
@@ -4360,6 +4396,19 @@ testQuery(){
 	
 }
 
+onEvent("control/deleteTest/delSubmit","click","delQuery()");
+
+delQuery(){
+	delId=getFieldValue("control/deleteTest/delQuery");
+	//fetchAll("SELECT sql FROM sqlite_master WHERE name='archentity';",
+	deleteArchEnt(delId, new DeleteCallback() {
+    onDelete(uuid) {
+      showWarning("Record deleted",delId);
+      //cancelTabGroup(tabgroup, false);
+    	}
+  	});
+	
+}
 /***Search button ***/
 onEvent("control/survey_control/Survey_Search","click","entitySearch(\"session\",\"control/survey_control/survey_keyword\",\"control/survey_control/surveyList\",null)");
 onEvent("control/user_control/Person_Search","click","entitySearch(\"person\",\"control/user_control/person_keyword\",\"control/user_control/userList\",null)");
