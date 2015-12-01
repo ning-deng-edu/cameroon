@@ -3741,7 +3741,7 @@ saveSession(String typeflag){
 				Hashtable sssInfoChange=listChange(sssNewInfo,sssOriginInfo);
 				Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
 				Hashtable sssPsChange=listChange(sssPersonRoleandNameList,sssPersonRoleNameListOrigin);
-				showWarning("listChange done","listChange check done");
+				//showWarning("listChange done","listChange check done");
 				//case 0: nothing changed PASS
 				if((sssInfoChange.containsKey("EQUAL")) && (sssAnsChange.containsKey("EQUAL")) && (sssPsChange.containsKey("EQUAL"))){
 					showWarning("No change","No data changed");
@@ -3891,69 +3891,6 @@ saveSession(String typeflag){
 									}
 
 					    		}
-					    		//below is changing role info
-					    		if (sssPsChange.containsKey("PUREADD")){
-					    			//showWarning("PUREADD","PUREADD");
-					    			sssNewAddedPs=sssPsChange.get("PUREADD");
-					    			for(personInSss: sssNewAddedPs){
-						    	  		String psInfoId=personInSss.get(0);
-						    	  		String [] psInfoIdSplit=psInfoId.split("_");
-						    	  		sssPsRoleAttributes= createAttributeList();
-						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionIDforPerson", null, null, sss_id, null));
-						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, psInfoIdSplit[1], null));
-						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, psInfoIdSplit[0], null));
-						    	  		saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
-						    	  	}
-						    	  	//showWarning("PUREADD changing role info","PUREADD changing role info");
-
-					    		}//if (sssPsChange.containsKey("PUREADD"))
-					    		else if (sssPsChange.containsKey("PUREDELETE")){
-					    			//showWarning("PUREDELETE","PUREDELETE");
-					    			sssNewDelPs=sssPsChange.get("PUREDELETE");
-					    			for(personInSss: sssNewDelPs){
-						    	  		String toDelPsID=personInSss.get(0);
-						    	  		for(oldPs: sssPsInfoRelnOrigin){
-						    	  			if (toDelPsID.equals(oldPs.get(1))){
-						    	  				String toDelPsRelnID=oldPs.get(0);
-						    	  				showWarning("toDelPsRelnID",toDelPsRelnID);
-						    	  				deleteArchEnt(toDelPsRelnID, new DeleteCallback() {
-												    onDelete(uuid) {
-												      //showWarning("Record deleted",toDelPsRelnID);
-												    }
-												  });
-						    	  				//deleteArchEnt(toDelPsRelnID);
-						    	  			}
-						    	  		}
-						    	  	}
-						    	  	//showWarning("PUREDELETE changing role info","PUREDELETE changing role info");
-
-					    		}//else if (sssPsChange.containsKey("PUREDELETE"))
-					    		else{
-					    			sssToAddPs=sssPsChange.get("ADD");
-					    			//showWarning("ADD","ADD");
-					    			for(personInSss: sssToAddPs){
-						    	  		String psInfoId=personInSss.get(0);
-						    	  		String [] psInfoIdSplit=psInfoId.split("_");
-						    	  		sssPsRoleAttributes= createAttributeList();
-						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionIDforPerson", null, null, sss_id, null));
-						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, psInfoIdSplit[1], null));
-						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, psInfoIdSplit[0], null));
-						    	  		saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
-						    	  	}
-									//showWarning("DELETE","DELETE");
-						    	  	sssToDelPs=sssPsChange.get("DELETE");
-						    	  	for(personInSss: sssToDelPs){
-						    	  		String toDelPsID=personInSss.get(0);
-						    	  		for(oldPs: sssPsInfoRelnOrigin){
-						    	  			if (toDelPsID.equals(oldPs.get(1))){
-						    	  				String toDelPsRelnID=oldPs.get(0);
-						    	  				deleteArchEnt(toDelPsRelnID);
-						    	  			}
-						    	  		}
-						    	  	}
-						    	  	//showWarning("ADD+DELETE","ADD+DELETE");
-					    		}//sssPsChange containsKey("ADD") and "DELETE"
-					    		
 					    		
 					    	}//onSave(uuid, newRecord)
 
@@ -4005,6 +3942,69 @@ saveSession(String typeflag){
 					}//! sssLabelChange
 					//below is answer and answer file label change
 					//showWarning("BEGIN ANSWER LABEL CHANGE","BEGIN ANSWER LABEL CHANGE");
+					//below is changing role info
+					    		if (sssPsChange.containsKey("PUREADD")){
+					    			//showWarning("PUREADD","PUREADD");
+					    			sssNewAddedPs=sssPsChange.get("PUREADD");
+					    			for(personInSss: sssNewAddedPs){
+						    	  		String psInfoId=personInSss.get(0);
+						    	  		String [] psInfoIdSplit=psInfoId.split("_");
+						    	  		sssPsRoleAttributes= createAttributeList();
+						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionIDforPerson", null, null, sss_id, null));
+						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, psInfoIdSplit[1], null));
+						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, psInfoIdSplit[0], null));
+						    	  		saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
+						    	  	}
+						    	  	//showWarning("PUREADD changing role info","PUREADD changing role info");
+
+					    		}//if (sssPsChange.containsKey("PUREADD"))
+					    		else if (sssPsChange.containsKey("PUREDELETE")){
+					    			//showWarning("PUREDELETE","PUREDELETE");
+					    			sssNewDelPs=sssPsChange.get("PUREDELETE");
+					    			for(personInSss: sssNewDelPs){
+						    	  		String toDelPsID=personInSss.get(0);
+						    	  		for(oldPs: sssPsInfoRelnOrigin){
+						    	  			if (toDelPsID.equals(oldPs.get(1))){
+						    	  				String toDelPsRelnID=oldPs.get(0);
+						    	  				showWarning("toDelPsRelnID",toDelPsRelnID);
+						    	  				deleteArchEnt(toDelPsRelnID, new DeleteCallback() {
+												    onDelete(uuid) {
+												      //showWarning("Record deleted",toDelPsRelnID);
+												    }
+												  });
+						    	  				//deleteArchEnt(toDelPsRelnID);
+						    	  			}
+						    	  		}
+						    	  	}
+						    	  	//showWarning("PUREDELETE changing role info","PUREDELETE changing role info");
+
+					    		}//else if (sssPsChange.containsKey("PUREDELETE"))
+					    		else{
+					    			//showWarning("DELETE","DELETE");
+						    	  	sssToDelPs=sssPsChange.get("DELETE");
+						    	  	for(personInSss: sssToDelPs){
+						    	  		String toDelPsID=personInSss.get(0);
+						    	  		for(oldPs: sssPsInfoRelnOrigin){
+						    	  			if (toDelPsID.equals(oldPs.get(1))){
+						    	  				String toDelPsRelnID=oldPs.get(0);
+						    	  				deleteArchEnt(toDelPsRelnID);
+						    	  			}
+						    	  		}
+						    	  	}
+					    			sssToAddPs=sssPsChange.get("ADD");
+					    			//showWarning("ADD","ADD");
+					    			for(personInSss: sssToAddPs){
+						    	  		String psInfoId=personInSss.get(0);
+						    	  		String [] psInfoIdSplit=psInfoId.split("_");
+						    	  		sssPsRoleAttributes= createAttributeList();
+						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionIDforPerson", null, null, sss_id, null));
+						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, psInfoIdSplit[1], null));
+						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, psInfoIdSplit[0], null));
+						    	  		saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
+						    	  	}
+									
+						    	  	//showWarning("ADD+DELETE","ADD+DELETE");
+					    		}//sssPsChange containsKey("ADD") and "DELETE"
 					for(ans : sss_answer_list){
 					    	  	 String ansLabel=ans.get(1);
 					    	  	 String [] ansLabelSplit=ansLabel.split("_");
@@ -4066,8 +4066,8 @@ saveSession(String typeflag){
 								}//if(!ansOldPs.equals(ansConsultant))
 					    	  }// for(ans : sss_answer_list)
 					showToast("Session info updated");
-					cancelTabGroup("sessionForAnswer",true);
-					showTab("control/survey_control");
+					//cancelTabGroup("sessionForAnswer",true);
+					//showTab("control/survey_control");
 
 				}//when sssPsInfo changed
 				
