@@ -298,6 +298,8 @@ onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","showQuestio
 onEvent("sessionForAnswer/sssAnsList/Save_Session","click","saveSession(\"answer\")");
 onEvent("sessionForAnswer/sssPersonInfo/Add_Person","click","addPersonToSession()");
 onEvent("sessionForAnswer/sssPersonInfo/sssPersonList","click","deletePersonInSession()");
+onEvent("sessionForAnswer/sssAnsList/sssAnsSelList","click","addItemToTargetList(candidate_files_session,\"sessionFile\",null)");
+
 //onEvent("sessionForAnswer/sssAnsList/Add_Del_Ans","click","addOrDelAnsInSss()");
 /***variables for answers***/
 answer_id=null;//new answer_id
@@ -1335,11 +1337,11 @@ addItemToTargetList(ArrayList sourceList, String type_flag, String intervieweeID
 		if (idx_item>=0) {
 			switch (type_flag){
 			case "sessionFile":
-				selected_files_session.add(sourceList.get(idx_item));
+				sss_answer_list.add(sourceList.get(idx_item));
 				candidate_files_session.remove(idx_item);
-				loadSessionInterviewer("session");
-				//populateList("session/sessionFiles/sessionFileList", selected_files_session);
-				//populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
+				//loadSessionInterviewer("session");
+				populateList("sessionForAnswer/sssAnsList/sssAnswerList", sss_answer_list);
+				populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
 				
 				break;
 			
@@ -1384,10 +1386,10 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag){
 			switch (type_flag){
 			case "sessionFile":
 				candidate_files_session.add(targetList.get(idx_delete));
-				selected_files_session.remove(idx_delete);
-				loadSessionInterviewer("session");
-				//populateList("session/sessionFiles/sessionFileList", selected_files_session);
-				//populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
+				sss_answer_list.remove(idx_delete);
+				//loadSessionInterviewer("session");
+				populateList("sessionForAnswer/sssAnsList/sssAnswerList", sss_answer_list);
+				populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
 				break;
 			case "fieldTripSession":
 				candidate_session_fieldTrip.add(targetList.get(idx_delete));
