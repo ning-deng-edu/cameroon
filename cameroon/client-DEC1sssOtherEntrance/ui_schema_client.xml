@@ -982,7 +982,7 @@
                       
                     </group-->
                     <select1 appearance="compact" ref="sssAnsSelList" faims_certainty="false" faims_annotation="false" faims_style_class="session-file-list">
-                                <label>Existing answer</label>
+                                <label>Answers not in a session</label>
                                 <item>
                                     <label>placeholder</label>
                                     <value>placeholder</value>

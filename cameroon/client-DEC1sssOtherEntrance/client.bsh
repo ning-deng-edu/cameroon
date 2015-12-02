@@ -123,6 +123,48 @@ loadAllIntroAnsQuery="select uuid,measure from latestNonDeletedArchEntIdentifier
 		"and measure=(select uuid from latestNonDeletedAentValue "+
 			"where AttributeID= (select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') and measure = 'Introductory')))";
 
+loadAllNonIntroAnsQuery="select uuid,measure from latestNonDeletedArchEntIdentifiers "+
+	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+	"and uuid NOT IN (select uuid from latestNonDeletedAentValue "+
+	"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+	"and latestNonDeletedAentValue.measure in(select uuid from latestNonDeletedAentValue "+
+		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+		"and measure=(select uuid from latestNonDeletedAentValue "+
+			"where AttributeID= (select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') and measure = 'Introductory')))";
+
+loadAllAnsNotInSssQuery="select uuid,measure from latestNonDeletedArchEntIdentifiers "+
+	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+	"and uuid NOT IN(select uuid from AentReln "+
+		"where RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+			"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL))";
+
+loadAllIntroAnsNotInSssQuery="select uuid,measure from latestNonDeletedArchEntIdentifiers "+
+"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+"and uuid in (select uuid from latestNonDeletedAentValue "+
+	"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+	"and latestNonDeletedAentValue.measure in(select uuid from latestNonDeletedAentValue "+
+		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+		"and measure=(select uuid from latestNonDeletedAentValue "+
+			"where AttributeID= (select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') and measure = 'Introductory'))) "+
+"and uuid NOT IN(select uuid from AentReln "+
+	"where RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+		"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+		"and latestNonDeletedRelationship.Deleted IS NULL))";
+
+loadAllNonIntroAnsNotInSssQuery="select uuid,measure from latestNonDeletedArchEntIdentifiers "+
+"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+"and uuid NOT IN (select uuid from latestNonDeletedAentValue "+
+	"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+	"and latestNonDeletedAentValue.measure in(select uuid from latestNonDeletedAentValue "+
+		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+		"and measure=(select uuid from latestNonDeletedAentValue "+
+			"where AttributeID= (select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') and measure = 'Introductory'))) "+
+"and uuid NOT IN(select uuid from AentReln "+
+	"where RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+		"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+		"and latestNonDeletedRelationship.Deleted IS NULL))";
+
 loadAllRoleQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 		"WHERE latestNonDeletedAentValue.AttributeID =( SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonRoleName') "+
 		"AND uuid in (SELECT uuid FROM latestNonDeletedAentValue "+
@@ -439,7 +481,8 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 
 	if(!introAns){
 		//query exist answers and prepare for answer selection
-		fetchAll(loadAllAnswerQuery, new FetchCallback() {
+		//loadAllNonIntroAnsNotInSssQuery
+		fetchAll(loadAllNonIntroAnsNotInSssQuery, new FetchCallback() {
         onFetch(result) {
         	candidate_files_session.addAll(result);
             populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
@@ -451,21 +494,21 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
     	});
 
 	}
+	else{
+		fetchAll(loadAllIntroAnsNotInSssQuery, new FetchCallback() {
+        onFetch(result) {
+        	candidate_files_session.addAll(result);
+            populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
+        }
+
+	        onError(message) {
+	            showToast(message);
+	        }
+    	});
+	}
 	
 }
-/*
-viewOrDeleteFileReln(){
-	select_file_id=getListItemValue();
-	if(isNull(select_file_id) || select_file_id.equals("0000")){
-		showWarning("Invalid file","File not exist");
-		return;
-	}
-	showAlert("View File Info","Do you want to view file info?","loadAnswerFileInfo(\"answer\")","deleteRelnAlert()");
-}
-deleteRelnAlert(){
-	showAlert("Delete File","Do you want to delete this file from this answer?","deleteFileRelation()","returnToCurrentPage()");
-}
-*/
+
 checkDelOrView(){
 	current_answer_id=null;
 	current_answer_id=getListItemValue();
@@ -3112,7 +3155,7 @@ checkSssQuesnirType(String typeflag){
               String quesnirType=quesnirTypeResult.get(0).get(1);
               if(quesnirType.equals("Introductory")){
               	introAns=true;
-              	fetchAll(loadAllIntroAnsQuery, new FetchCallback() {
+              	fetchAll(loadAllIntroAnsNotInSssQuery, new FetchCallback() {
     	                onFetch(result) {
     	                	candidate_files_session.clear();
     	                	candidate_files_session.addAll(result);
@@ -3128,7 +3171,7 @@ checkSssQuesnirType(String typeflag){
               }
               else{
               	introAns=false;
-              	fetchAll(loadAllAnswerQuery, new FetchCallback() {
+              	fetchAll(loadAllNonIntroAnsNotInSssQuery, new FetchCallback() {
     	                onFetch(result) {
     	                	candidate_files_session.clear();
     	                	candidate_files_session.addAll(result);
@@ -3249,9 +3292,6 @@ loadSessionInterviewer(String typeflag){
         		
 saveSession(String typeflag){
 	switch(typeflag){
-		case "session":
-			
-		break;
 
 		case "answer":	
 			if(isNull(sss_id)){
@@ -3336,14 +3376,14 @@ saveSession(String typeflag){
 									}
 
 									String newAnsLabelSss=sb.toString();
-									showWarning("newAnsLabelSss",newAnsLabelSss);
+									//showWarning("newAnsLabelSss",newAnsLabelSss);
 									attributes = createAttributeList();
 		    						attributes.add(createEntityAttribute("AnswerLabel", null, null, newAnsLabelSss, null));
 									entityId=ans.get(0);
 									saveArchEnt(entityId, "AnswerToQuestionnaire", null, attributes, new SaveCallback() {
 		            					onSave(answerUuid,newRecord) {
 		            						//below is changing the filelabel
-		            						showWarning("answerLabel change done",entityId+"answer label change done");
+		            						//showWarning("answerLabel change done",entityId+"answer label change done");
 		            						loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 											"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileID') "+
 											"and uuid in "+
@@ -3358,15 +3398,15 @@ saveSession(String typeflag){
 										        	fileListForAns=new ArrayList();
 										        	fileListForAns.clear();
 										        	fileListForAns.addAll(result);
-										        	showWarning("answerFileFetchDone","answerFileFetchDone");
+										        	//showWarning("answerFileFetchDone","answerFileFetchDone");
 										        	for (file: fileListForAns){
 										        		String fileEntityId=file.get(0);
 										        		String oldFileLabel=file.get(1);
 										        		String [] oldFileLabelSplit=oldFileLabel.split("_");
 										        		String oldFileLabelType=oldFileLabelSplit[oldFileLabelSplit.length-1];
-										        		showWarning("oldFileLabelType",oldFileLabelType);
+										        		//showWarning("oldFileLabelType",oldFileLabelType);
 										        		String newFileLabel=newAnsLabelSss+"_"+oldFileLabelType;
-										        		showWarning("newFileLabel",newFileLabel);
+										        		//showWarning("newFileLabel",newFileLabel);
 										        		attributesForFile = createAttributeList();
 		    											attributesForFile.add(createEntityAttribute("FileID", null, null, newFileLabel, null));
 		    											saveArchEnt(fileEntityId, "File", null, attributesForFile);
@@ -3458,7 +3498,7 @@ saveSession(String typeflag){
 					    	
 						for(answer:sss_answer_list){
 						    saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
-						}
+						}//for(answer:sss_answer_list)
 
 						showToast("Session answer data changed");
 					}
@@ -3492,6 +3532,88 @@ saveSession(String typeflag){
 							return;
 						}
 					}
+					if(!sssAnsChange.containsKey("EQUAL")){
+						psRoleInfo=checkRolesInSession();//for building consultant list
+						if(!psRoleInfo.contains("consultant")){
+							showWarning("No consultant","No consultant selected, please add consultant");
+							return;
+						}
+						if(!psRoleInfo.contains("interviewer")){
+							showWarning("No interviewer","No interviewer selected, please add interviewer");
+							return;
+						}
+
+						Iterator itConsultant=sssConsultantList.iterator();
+						firstConsultant=itConsultant.next();
+						ansConsultant=firstConsultant;
+						showWarning("ansConsultant",ansConsultant);
+
+						if(sssConsultantList.size()>1){
+							ansConsultant=ansConsultant+"EtAl";
+							showWarning("ansConsultantEtal",ansConsultant);
+						}
+
+						for(answer: sss_answer_list){
+					    	String ansLabel=answer.get(1);
+					    	String [] ansLabelSplit=ansLabel.split("_");
+					    	String ansOldPs=ansLabelSplit[2];
+					    	showWarning("ansOldPs",ansOldPs);
+					    	if(!ansOldPs.equals(ansConsultant)){
+					    	  	ansLabelSplit[2]=ansConsultant;
+					    	  	StringBuilder sb=new StringBuilder();
+								for (ansLabelComp : ansLabelSplit){
+									if (sb.length()>0)
+										{sb.append("_");}
+									sb.append(ansLabelComp);
+								}
+
+								String newAnsLabelSss=sb.toString();
+								showWarning("newAnsLabelSss",newAnsLabelSss);
+								attributes = createAttributeList();
+		    					attributes.add(createEntityAttribute("AnswerLabel", null, null, newAnsLabelSss, null));
+								entityId=answer.get(0);
+								saveArchEnt(entityId, "AnswerToQuestionnaire", null, attributes, new SaveCallback() {
+		            				onSave(answerUuid,newRecord) {
+		            						//below is changing the filelabel
+		            					showWarning("answerLabel change done",entityId+"answer label change done");
+		            					loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+											"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileID') "+
+											"and uuid in "+
+	 										"(select uuid from AentReln where RelationshipID in "+
+											"(select RelationshipID from AEntReln where AEntReln.uuid="+entityId+" "+
+	 										"AND RelationshipID in "+
+											"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+	 										"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
+											"and latestNonDeletedRelationship.Deleted IS NULL)))";
+										fetchAll(loadFileForAnswerQuery, new FetchCallback() {
+										        onFetch(result) {
+										        	fileListForAns=new ArrayList();
+										        	fileListForAns.clear();
+										        	fileListForAns.addAll(result);
+										        	showWarning("answerFileFetchDone","answerFileFetchDone");
+										        	for (file: fileListForAns){
+										        		String fileEntityId=file.get(0);
+										        		String oldFileLabel=file.get(1);
+										        		String [] oldFileLabelSplit=oldFileLabel.split("_");
+										        		String oldFileLabelType=oldFileLabelSplit[oldFileLabelSplit.length-1];
+										        		showWarning("oldFileLabelType",oldFileLabelType);
+										        		String newFileLabel=newAnsLabelSss+"_"+oldFileLabelType;
+										        		showWarning("newFileLabel",newFileLabel);
+										        		attributesForFile = createAttributeList();
+		    											attributesForFile.add(createEntityAttribute("FileID", null, null, newFileLabel, null));
+		    											saveArchEnt(fileEntityId, "File", null, attributesForFile);
+										        	}
+										        }
+
+										        onError(message) {
+										            showToast(message);
+										        }
+										    });
+		            					}  
+		        					});    //saveArchEnt(entityId, "AnswerToQuestionnaire"
+								}//if(!ansOldPs.equals(ansConsultant))
+							}//for loop
+					}//if(!sssAnsChange.containsKey("EQUAL"))
 
 				}
 				
@@ -3682,7 +3804,7 @@ saveSession(String typeflag){
 									
 						    	  	//showWarning("ADD+DELETE","ADD+DELETE");
 					    		}//sssPsChange containsKey("ADD") and "DELETE"
-					for(ans : sss_answer_list){
+							for(ans : sss_answer_list){
 					    	  	 String ansLabel=ans.get(1);
 					    	  	 String [] ansLabelSplit=ansLabel.split("_");
 					    	  	 String ansOldPs=ansLabelSplit[2];
