@@ -291,7 +291,8 @@ onEvent("control/survey_control/New_Survey","click","newSessionForAnswer(\"answe
 onEvent("control/survey_control","show","loadSessionList(\"answer\")");
 //onEvent("control/survey_control/surveyList","click","loadAnswersForQuestionnaire(\"New\")");
 onEvent("control/survey_control/surveyList","click","loadSessionInfo(\"answer\")");
-onEvent("sessionForAnswer/sssAnsList/sssAnswerList","click","loadAnswerInfo()");
+//onEvent("sessionForAnswer/sssAnsList/sssAnswerList","click","loadAnswerInfo()");
+onEvent("sessionForAnswer/sssAnsList/sssAnswerList","click","checkDelOrView()");
 //onEvent("sessionForAnswer/sssAnsList/sssAnswerList","delayclick","deleteAnsFromList()");
 /***session for answer***/
 onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","showQuestionnaireList()");
@@ -452,7 +453,32 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	}
 	
 }
+/*
+viewOrDeleteFileReln(){
+	select_file_id=getListItemValue();
+	if(isNull(select_file_id) || select_file_id.equals("0000")){
+		showWarning("Invalid file","File not exist");
+		return;
+	}
+	showAlert("View File Info","Do you want to view file info?","loadAnswerFileInfo(\"answer\")","deleteRelnAlert()");
+}
+deleteRelnAlert(){
+	showAlert("Delete File","Do you want to delete this file from this answer?","deleteFileRelation()","returnToCurrentPage()");
+}
+*/
+checkDelOrView(){
+	current_answer_id=null;
+	current_answer_id=getListItemValue();
 
+	if(isNull(current_answer_id)){
+		showWarning("Error","Can't find this answer, please contact the admin");
+		return;
+	}
+	showAlert("View File Info","Do you want to view answer info?","loadAnswerInfo()","delAnsInSssAlert(\""+current_answer_id+"\")");
+}
+delAnsInSssAlert(String toDelId){
+	showAlert("Delete File","Do you want to delete this answer from this session?","deleteItemFromTargetList(sss_answer_list,\"sessionFile\",\""+toDelId+"\")","returnToCurrentPage()");
+}
 
 addPersonToSession(){
 	String selectedRoleID=getFieldValue("sessionForAnswer/sssPersonInfo/sssPersonRole");
@@ -1362,8 +1388,13 @@ addItemToTargetList(ArrayList sourceList, String type_flag, String intervieweeID
 }
 
 
-deleteItemFromTargetList(ArrayList targetList, String type_flag){
-	deleteItemId=getListItemValue();
+deleteItemFromTargetList(ArrayList targetList, String type_flag, String toDelId){
+	if(type_flag.equals("sessionFile")){
+		deleteItemId=toDelId;
+	}
+	else{
+		deleteItemId=getListItemValue();
+	}
 	int idx_delete=-1;
 	if(isNull(deleteItemId)){
 		showToast("No Item selected");
@@ -3786,7 +3817,7 @@ onEvent("fieldTripGroup/fieldTripInfo/fieldTripList","click","loadFieldTripInfo(
 onEvent("fieldTripGroup/fieldTripInfo/New_FieldTrip","click","startNewFieldTrip()");
 onEvent("fieldTrip/fieldTripSession/Finish_New_FieldTrip","click","saveFieldTrip()");
 onEvent("fieldTrip/fieldTripSession/fieldTripFileSelectionList","click","addItemToTargetList(candidate_session_fieldTrip,\"fieldTripSession\",null)");
-onEvent("fieldTrip/fieldTripSession/fieldTripFileList","click","deleteItemFromTargetList(selected_session_fieldTrip,\"fieldTripSession\")");
+onEvent("fieldTrip/fieldTripSession/fieldTripFileList","click","deleteItemFromTargetList(selected_session_fieldTrip,\"fieldTripSession\",null)");
 fieldTrip_id=null;
 selected_session_fieldTrip=new ArrayList();
 candidate_session_fieldTrip=new ArrayList();
