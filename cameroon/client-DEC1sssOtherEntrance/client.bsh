@@ -114,6 +114,15 @@ loadAllAnswerQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers 
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='AnswerLabel') "+
 		"GROUP BY uuid;";
 
+loadAllIntroAnsQuery="select uuid,measure from latestNonDeletedArchEntIdentifiers "+
+	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+	"and uuid in (select uuid from latestNonDeletedAentValue "+
+	"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+	"and latestNonDeletedAentValue.measure in(select uuid from latestNonDeletedAentValue "+
+		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+		"and measure=(select uuid from latestNonDeletedAentValue "+
+			"where AttributeID= (select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') and measure = 'Introductory')))";
+
 loadAllRoleQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 		"WHERE latestNonDeletedAentValue.AttributeID =( SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonRoleName') "+
 		"AND uuid in (SELECT uuid FROM latestNonDeletedAentValue "+
@@ -283,11 +292,13 @@ onEvent("control/survey_control","show","loadSessionList(\"answer\")");
 //onEvent("control/survey_control/surveyList","click","loadAnswersForQuestionnaire(\"New\")");
 onEvent("control/survey_control/surveyList","click","loadSessionInfo(\"answer\")");
 onEvent("sessionForAnswer/sssAnsList/sssAnswerList","click","loadAnswerInfo()");
+//onEvent("sessionForAnswer/sssAnsList/sssAnswerList","delayclick","deleteAnsFromList()");
 /***session for answer***/
 onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","showQuestionnaireList()");
 onEvent("sessionForAnswer/sssAnsList/Save_Session","click","saveSession(\"answer\")");
 onEvent("sessionForAnswer/sssPersonInfo/Add_Person","click","addPersonToSession()");
 onEvent("sessionForAnswer/sssPersonInfo/sssPersonList","click","deletePersonInSession()");
+//onEvent("sessionForAnswer/sssAnsList/Add_Del_Ans","click","addOrDelAnsInSss()");
 /***variables for answers***/
 answer_id=null;//new answer_id
 survey_id=null;
@@ -422,7 +433,24 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
             	showToast(message);
         	}
     });
+
+	if(!introAns){
+		//query exist answers and prepare for answer selection
+		fetchAll(loadAllAnswerQuery, new FetchCallback() {
+        onFetch(result) {
+        	candidate_files_session.addAll(result);
+            populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
+        }
+
+	        onError(message) {
+	            showToast(message);
+	        }
+    	});
+
+	}
+	
 }
+
 
 addPersonToSession(){
 	String selectedRoleID=getFieldValue("sessionForAnswer/sssPersonInfo/sssPersonRole");
@@ -606,7 +634,7 @@ loadExistSurvey(){
 	        	}
 	    	});
 }
-
+/*
 loadAnswersForQuestionnaire(String typeFlag){
 	if(typeFlag.equals("New")){
 	current_quesnir_id=getListItemValue();
@@ -711,7 +739,7 @@ loadAnswersForQuestionnaire(String typeFlag){
 							});
 	}
 }
-
+*/
 onEvent("questionnaireListAll/questionnaireListInfo/questionnaireListInDB","click","loadQuesnirInfo()");
 loadQuesnirInfo(){
 	current_quesnir_id=getListItemValue();
@@ -798,9 +826,9 @@ loadQuesnirInfo(){
 	}
 }
 
-onEvent("answerToQuestionnaire/answerQuesnirInfo/answerInQuesnir","click","loadAnswerInfo()");
-onEvent("answerToQuestionnaire/answerQuesnirInfo/quesInQuesnirList","click","ViewAnswersOfQuestion()");
-onEvent("answerToQuestionnaire/answerQuesnirInfo/View_All_Answer","click","loadAnswersForQuestionnaire(\"Refresh\")");
+//onEvent("answerToQuestionnaire/answerQuesnirInfo/answerInQuesnir","click","loadAnswerInfo()");
+//onEvent("answerToQuestionnaire/answerQuesnirInfo/quesInQuesnirList","click","ViewAnswersOfQuestion()");
+//onEvent("answerToQuestionnaire/answerQuesnirInfo/View_All_Answer","click","loadAnswersForQuestionnaire(\"Refresh\")");
 
 files_in_current_ques=new ArrayList();
 files_origin=new ArrayList();
@@ -890,7 +918,7 @@ loadAnswerInfo(){
     });
 	}
 }
-
+/*
 ViewAnswersOfQuestion(){
 	current_question_id=getListItemValue();
 	current_quesnir_id=getFieldValue("answerToQuestionnaire/answerListQuesnirHidden/answerListQuesnirID");
@@ -923,7 +951,7 @@ ViewAnswersOfQuestion(){
 		    });
 	
 }
-
+*/
 onEvent("answerToQuestion/answerInfo/Create_New_Answer","click","startNewAnswer()");
 onEvent("answerToQuestion/answerInfo","show","loadAnswerListForQuesion()");
 onEvent("answerToQuestion/answerInfo/answerList","click","loadAnswerInfo()");
@@ -1310,8 +1338,8 @@ addItemToTargetList(ArrayList sourceList, String type_flag, String intervieweeID
 				selected_files_session.add(sourceList.get(idx_item));
 				candidate_files_session.remove(idx_item);
 				loadSessionInterviewer("session");
-				populateList("session/sessionFiles/sessionFileList", selected_files_session);
-				populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
+				//populateList("session/sessionFiles/sessionFileList", selected_files_session);
+				//populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
 				
 				break;
 			
@@ -1358,8 +1386,8 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag){
 				candidate_files_session.add(targetList.get(idx_delete));
 				selected_files_session.remove(idx_delete);
 				loadSessionInterviewer("session");
-				populateList("session/sessionFiles/sessionFileList", selected_files_session);
-				populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
+				//populateList("session/sessionFiles/sessionFileList", selected_files_session);
+				//populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
 				break;
 			case "fieldTripSession":
 				candidate_session_fieldTrip.add(targetList.get(idx_delete));
@@ -2648,11 +2676,11 @@ loadFile(){
 /***session***/
 onEvent("control/fileGroup_control/sessionGroup","click","showSession()");
 onEvent("sessionGroup/sessionInfo","show","loadSessionList(\"session\")");
-onEvent("sessionGroup/sessionInfo/New_Session","click","newSession()");
-onEvent("sessionGroup/sessionInfo/sessionList","click","loadSessionInfo(\"session\")");
-onEvent("session/sessionFiles/Finish_New_Session","click","saveSession(\"session\")");
-onEvent("session/sessionFiles/sessionFileList","click","deleteItemFromTargetList(selected_files_session,\"sessionFile\")");
-onEvent("session/sessionFiles/sessionFileSelectionList","click","addItemToTargetList(candidate_files_session,\"sessionFile\",null)");
+//onEvent("sessionGroup/sessionInfo/New_Session","click","newSession()");
+//onEvent("sessionGroup/sessionInfo/sessionList","click","loadSessionInfo(\"session\")");
+//onEvent("session/sessionFiles/Finish_New_Session","click","saveSession(\"session\")");
+//onEvent("session/sessionFiles/sessionFileList","click","deleteItemFromTargetList(selected_files_session,\"sessionFile\")");
+//onEvent("session/sessionFiles/sessionFileSelectionList","click","addItemToTargetList(candidate_files_session,\"sessionFile\",null)");
 
 session_id=null;
 selected_files_session=new ArrayList();
@@ -2717,7 +2745,7 @@ loadSessionList(String typeflag){
         }
     });
 }
-
+/*
 newSession(){
 	session_id=null;
 	sessionLabel=null;
@@ -2761,10 +2789,11 @@ newSession(){
         }
     });
 }
-
+*/
 loadSessionInfo(String typeFlag){
 	switch (typeFlag){
 	case "session":
+	/*
 	session_id=getListItemValue();
 	if(isNull(session_id)){
 		showWarning("Invalid session","No session is selected or session is not available");
@@ -2834,7 +2863,7 @@ loadSessionInfo(String typeFlag){
         onError(message) {
             showToast(message);
         }
-    });
+    });*/
 	break;
 	//TODO:CHANGE THE QUERY FOR ANSWER AND SESSION RELN
 	case "answer":
@@ -3037,10 +3066,7 @@ checkSssQuesnirType(String typeflag){
 	if(typeflag.equals("answer")){
 		checkAnsId=original_sss_answer_list.get(0).get(0);
 	}
-	else
-	{
-		checkAnsId=selected_files_session.get(0).get(0);
-	}
+	
 	checkAnsQuesnirTypeQuery="select uuid,measure from latestNonDeletedAentValue "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
 		"and uuid=(select measure from latestNonDeletedAentValue "+
@@ -3053,9 +3079,35 @@ checkSssQuesnirType(String typeflag){
               String quesnirType=quesnirTypeResult.get(0).get(1);
               if(quesnirType.equals("Introductory")){
               	introAns=true;
+              	fetchAll(loadAllIntroAnsQuery, new FetchCallback() {
+    	                onFetch(result) {
+    	                	candidate_files_session.clear();
+    	                	candidate_files_session.addAll(result);
+    	                	candidate_files_session.removeAll(original_sss_answer_list);
+    	                	populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
+    	                }
+    	                
+
+    	                onError(message) {
+    	                    showToast(message);
+    	                	}
+            			});
               }
               else{
               	introAns=false;
+              	fetchAll(loadAllAnswerQuery, new FetchCallback() {
+    	                onFetch(result) {
+    	                	candidate_files_session.clear();
+    	                	candidate_files_session.addAll(result);
+    	                	candidate_files_session.removeAll(original_sss_answer_list);
+    	                	populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
+    	                }
+    	                
+
+    	                onError(message) {
+    	                    showToast(message);
+    	                	}
+            			});
               }
        		 }
    		 });

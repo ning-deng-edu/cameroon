@@ -160,7 +160,7 @@
                     </answerInfo>
                 </answerToQuestion>
                 
-                <answerToQuestionnaire>
+                <!--answerToQuestionnaire>
                      <answerListQuesnirHidden>
                         <answerListQuesnirID/>
                         </answerListQuesnirHidden>
@@ -176,7 +176,7 @@
                             </child2>
                         </container5>
                     </answerQuesnirInfo>                     
-                </answerToQuestionnaire>
+                </answerToQuestionnaire-->
                 
                 <sessionForAnswer>
                     <sssAnsBasicInfo>
@@ -205,6 +205,15 @@
                     <sssAnsList>
                         <Save_Session/>
                     	<New_Answer_In_Session/>
+                        <!--container18>
+                            <child1>
+                                <sssAnsSelectedList/>
+                            </child1>
+                            <child2>
+                                <sssAnsSelList/>
+                            </child2>
+                        </container18-->
+                        <sssAnsSelList/>
                     	<sssAnswerList/>
                     </sssAnsList>
                 </sessionForAnswer>
@@ -232,7 +241,7 @@
                 </survey>                
                
                 
-                 <session>
+                 <!--session>
                     <sessionBasicInfo>
                     	<sessionID/>
                     	<sessionName/>
@@ -241,7 +250,21 @@
                     	<sessionEndTimestamp/>
                     	<sessionDescription/>
                     </sessionBasicInfo>
-                    
+
+                    <sessionPerson>
+                         <container17>
+                            <child1>
+                                <sessionPsRole/>
+                            </child1>
+                            <child2>
+                                <sessionPsName/>
+                            </child2>
+                        </container17>
+                        <Session_Add_Person/>
+                        <Create_New_Person/>
+                        <sessionPsList/>
+                    </sessionPerson>
+
                     <sessionFiles>
                         <container4>
                     	    <child1>
@@ -253,7 +276,7 @@
                     	</container4>
                     	<Finish_New_Session/>
                     </sessionFiles>
-                </session>
+                </session-->
                 
                  <fieldTrip>
                     <fieldTripBasicInfo>
@@ -758,7 +781,7 @@
       
  
                 
-     <group ref="answerToQuestionnaire">
+     <!--group ref="answerToQuestionnaire">
           <label>AnswerToQuestionnaire</label>
          	
         <group ref="answerListQuesnirHidden" faims_hidden="true">
@@ -807,7 +830,7 @@
             
       
         </group>
-      </group>
+      </group-->
     
     
       <group ref="answerToQuestion">
@@ -929,10 +952,42 @@
                      <label>Save Session</label>
                     </trigger>
                     
-                     <trigger ref="New_Answer_In_Session" faims_style_class="faims-blue">
+                    <trigger ref="New_Answer_In_Session" faims_style_class="faims-blue">
                             <label>New Answer</label>
                     </trigger>
                     
+                    <!--group ref="container18" faims_style="orientation">
+                        <label></label>
+                        <group ref="child1" faims_style="even">
+                            <label></label>
+                             <select1 appearance="compact" ref="sssAnsSelectedList" faims_annotation="false" faims_certainty="false" faims_style_class="session-file-list">
+                                <label>Answers</label>
+                                <item>
+                                    <label>placeholder</label>
+                                    <value>placeholder</value>
+                                </item>
+                            </select1>
+                        </group>
+                        
+                         <group ref="child2" faims_style="even">
+                           <label></label>
+                           <select1 appearance="compact" ref="sssAnsSelList" faims_certainty="false" faims_annotation="false" faims_style_class="session-file-list">
+                                <label>Exist answer</label>
+                                <item>
+                                    <label>placeholder</label>
+                                    <value>placeholder</value>
+                                </item>
+                         </select1>
+                      </group>
+                      
+                    </group-->
+                    <select1 appearance="compact" ref="sssAnsSelList" faims_certainty="false" faims_annotation="false" faims_style_class="session-file-list">
+                                <label>Existing answer</label>
+                                <item>
+                                    <label>placeholder</label>
+                                    <value>placeholder</value>
+                                </item>
+                    </select1>
                      <select1 appearance="compact" ref="sssAnswerList" faims_certainty="false" faims_annotation="false" faims_style_class="session-file-list">
                       	<label>Session answer list</label>
                       		<item>
@@ -1013,7 +1068,7 @@
      
      
                 
-     <group ref="session" faims_archent_type="Session">
+     <!--group ref="session" faims_archent_type="Session">
         <label>Session</label>
         <group ref="sessionBasicInfo">
             <label>Session info</label>
@@ -1037,7 +1092,52 @@
         </input>
         </group>
         
-        
+        <group ref="sessionPerson">
+                 <label>Session Person</label>
+                 <group ref="container17" faims_style="orientation">
+            
+                  <label></label>
+                  <group ref="child1" faims_style="even">
+                    <label></label>
+                     <select1 ref="sessionPsRole" faims_annotation="false" faims_certainty="false">
+                    <label>Person Role</label>
+                    <item>
+                        <label>placeholder</label>
+                        <value>placeholder</value>
+                    </item>
+                 
+                    </select1>
+                  </group>
+                  <group ref="child2" faims_style="even">
+                    <label></label>
+                    <select1 ref="sessionPsName" faims_annotation="false" faims_certainty="false">
+                    <label>Person Name</label>
+                    <item>
+                        <label>placeholder</label>
+                        <value>placeholder</value>
+                    </item>
+                    </select1>
+                  </group>
+            
+                 </group>
+
+                 <trigger ref="Session_Add_Person" faims_style_class="faims-blue">
+                        <label>Add Person</label>
+                 </trigger>
+                
+                 <trigger ref="Create_New_Person" faims_style_class="faims-blue">
+                        <label>New Person</label>
+                 </trigger>
+                
+                 <select1 appearance="compact" ref="sessionPsList" faims_certainty="false" faims_annotation="false" faims_style_class="session-file-list">
+                    <label>Session person list</label>
+                        <item>
+                            <label>placeholder</label>
+                            <value>placeholder</value>
+                        </item>
+                 </select1>
+        </group>
+                 
         <group ref="sessionFiles">
              <label>Session answer</label>
               <group ref="container4" faims_style="orientation">
@@ -1071,7 +1171,7 @@
                 <label>Save Session</label>
         </trigger>
         </group>
-    </group>
+    </group-->
     
      
 
