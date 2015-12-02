@@ -115,10 +115,10 @@
                         <query/>
                         <Submit/>
                     </querytest>
-                     <deleteTest>
+                     <!--deleteTest>
                         <delQuery/>
                         <delSubmit/>
-                    </deleteTest>
+                    </deleteTest-->
                 </control>
                 
                 <questionnaireListAll>
@@ -346,36 +346,6 @@
                     <Finish_New_Language/>
                   </languageInfo>
                 </language>
-               
-                <!--sessionGroup>
-                  <sessionInfo>
-                        <New_Session/>
-                        <container1>
-                            <child1>
-                            	<session_Name/>
-                            </child1>
-                            <child2>
-                            	<Session_Search/>
-                            </child2>
-                    	</container1>
-                        <sessionList/>
-                    </sessionInfo>   
-				</sessionGroup>  
-				
-                 <fieldTripGroup>
-                  <fieldTripInfo>
-                        <New_FieldTrip/>
-                        <container1>
-                            <child1>
-                            	<fieldTrip_Name/>
-                            </child1>
-                            <child2>
-                            	<fieldTrip_Search/>
-                            </child2>
-                    	</container1>
-                        <fieldTripList/>
-                    </fieldTripInfo>   
-				</fieldTripGroup-->  
 
                 <introSssList>
                     <introSssInfo>
@@ -651,7 +621,7 @@
    
         </group>
        
-         <group ref="deleteTest">
+         <!--group ref="deleteTest">
         <label>{del}</label>
         
             <input ref="delQuery" faims_attribute_type="freetext" faims_certainty="false" faims_annotation="false">
@@ -662,7 +632,7 @@
                 <label>New {submit}</label>
             </trigger>
    
-        </group>
+        </group-->
     </group>
     
     <group ref="questionnaireListAll" faims_scrollable="false">
@@ -1315,80 +1285,6 @@
             </trigger>
       </group>
     </group>
-    
-      <!--group ref="sessionGroup" faims_scrollable="false">   
-           <label>Session</label> 
-      <group ref="sessionInfo" faims_scrollable="false">
-            <label>Session</label>
-             <trigger ref="New_Session" faims_style_class="faims-blue">
-                <label>New Session</label>
-            </trigger>
-            
-             <group ref="container1" faims_style="orientation">
-               <label></label>
-              	<group ref="child1" faims_style="even">
-            	<label></label>
-            		<input ref="session_Name">
-            		    <label>Session keyword</label>
-            		</input>
-            	</group>
-            	
-              	<group ref="child2" faims_style="even">
-            	<label></label>
-            		<trigger ref="Session_Search" faims_style_class="faims-blue">
-            		    <label>Search</label>
-            		 </trigger>
-            		
-            	</group>
-           </group>
-           
-            <select1 ref="sessionList" appearance="compact" faims_annotation="false" faims_certainty="false"  faims_style_class="session-list">
-                <label>Tap to view session</label>
-                <item>
-                    <label>placeholder</label>
-                    <value>placeholder</value>
-                </item>
-            </select1>
-           
-        </group>
-    </group>  
-    
-     <group ref="fieldTripGroup">   
-           <label>FieldTrip</label> 
-      <group ref="fieldTripInfo">
-            <label>Fieldtrip</label>
-             <trigger ref="New_FieldTrip" faims_style_class="faims-blue">
-                <label>New Fieldtrip</label>
-            </trigger>
-            
-             <group ref="container1" faims_style="orientation">
-               <label></label>
-              	<group ref="child1" faims_style="even">
-            	<label></label>
-            		<input ref="fieldTrip_Name">
-            		    <label>Fieldtrip keyword</label>
-            		</input>
-            	</group>
-            	
-              	<group ref="child2" faims_style="even">
-            	<label></label>
-            		<trigger ref="fieldTrip_Search" faims_style_class="faims-blue">
-            		    <label>Search</label>
-            		 </trigger>
-            		
-            	</group>
-           </group>
-           
-            <select1 ref="fieldTripList" appearance="compact" faims_annotation="false" faims_certainty="false"  faims_style_class="session-list">
-                <label>Tap to view fieldTrip</label>
-                <item>
-                    <label>placeholder</label>
-                    <value>placeholder</value>
-                </item>
-            </select1>
-           
-        </group>
-    </group--> 
     
  </h:body>
 </h:html>
