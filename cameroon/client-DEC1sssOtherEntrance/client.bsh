@@ -2750,8 +2750,8 @@ loadFile(){
 }
 
 /***session***/
-onEvent("control/fileGroup_control/sessionGroup","click","showSession()");
-onEvent("sessionGroup/sessionInfo","show","loadSessionList(\"session\")");
+//onEvent("control/fileGroup_control/sessionGroup","click","showSession()");
+//onEvent("sessionGroup/sessionInfo","show","loadSessionList(\"session\")");
 //onEvent("sessionGroup/sessionInfo/New_Session","click","newSession()");
 //onEvent("sessionGroup/sessionInfo/sessionList","click","loadSessionInfo(\"session\")");
 //onEvent("session/sessionFiles/Finish_New_Session","click","saveSession(\"session\")");
@@ -3933,10 +3933,10 @@ timeValidation(String startDateTime, String endDateTime, String flag){
 }
 /***fieldTrip***/
 
-onEvent("control/fileGroup_control/fieldTripGroup","click","showFieldTrip()");
-onEvent("fieldTripGroup/fieldTripInfo","show","loadFieldTripList()");
-onEvent("fieldTripGroup/fieldTripInfo/fieldTripList","click","loadFieldTripInfo()");
-onEvent("fieldTripGroup/fieldTripInfo/New_FieldTrip","click","startNewFieldTrip()");
+//onEvent("control/fileGroup_control/fieldTripGroup","click","showFieldTrip()");
+onEvent("control/fieldTrip_control","show","loadFieldTripList()");
+onEvent("control/fieldTrip_control/fieldTripList","click","loadFieldTripInfo()");
+onEvent("control/fieldTrip_control/New_FieldTrip","click","startNewFieldTrip()");
 onEvent("fieldTrip/fieldTripSession/Finish_New_FieldTrip","click","saveFieldTrip()");
 onEvent("fieldTrip/fieldTripSession/fieldTripFileSelectionList","click","addItemToTargetList(candidate_session_fieldTrip,\"fieldTripSession\",null)");
 onEvent("fieldTrip/fieldTripSession/fieldTripFileList","click","deleteItemFromTargetList(selected_session_fieldTrip,\"fieldTripSession\",null)");
@@ -3946,15 +3946,15 @@ candidate_session_fieldTrip=new ArrayList();
 original_session_fieldTrip=new ArrayList();
 fieldTripInfoOrigin=new ArrayList();
 fieldTripInfoNew=new ArrayList();
-
+/*
 showFieldTrip(){
-	showTabGroup("fieldTripGroup");
+	showTabGroup("fileGroup_control");
 }
-
+*/
 loadFieldTripList(){
 	fetchAll(loadAllFieldTripQuery, new FetchCallback() {
         onFetch(result) {
-            populateList("fieldTripGroup/fieldTripInfo/fieldTripList", result);
+            populateList("control/fieldTrip_control/fieldTripList", result);
         }
 
         onError(message) {
@@ -4196,7 +4196,7 @@ testQuery(){
     });
 	
 }
-
+/*
 onEvent("control/deleteTest/delSubmit","click","delQuery()");
 
 delQuery(){
@@ -4210,12 +4210,13 @@ delQuery(){
   	});
 	
 }
+*/
 /***Search button ***/
 onEvent("control/survey_control/Survey_Search","click","entitySearch(\"session\",\"control/survey_control/survey_keyword\",\"control/survey_control/surveyList\",null)");
 onEvent("control/user_control/Person_Search","click","entitySearch(\"person\",\"control/user_control/person_keyword\",\"control/user_control/userList\",null)");
 onEvent("control/language_control/Language_Search","click","entitySearch(\"language\",\"control/language_control/language_keyword\",\"control/language_control/languageList\",null)");
 onEvent("control/file_control/File_Search","click","entitySearch(\"file\",\"control/file_control/file_keyword\",\"control/file_control/fileList\",\"control/file_control/fileCategorySelect\")");
-onEvent("sessionGroup/sessionInfo/Session_Search","click","entitySearch(\"session\",\"sessionGroup/sessionInfo/session_Name\",\"sessionGroup/sessionInfo/sessionList\",null)");
+//onEvent("sessionGroup/sessionInfo/Session_Search","click","entitySearch(\"session\",\"sessionGroup/sessionInfo/session_Name\",\"sessionGroup/sessionInfo/sessionList\",null)");
 onEvent("questionnaireListAll/questionnaireListInfo/quesnir_Search","click","entitySearch(\"questionnaire\",\"questionnaireListAll/questionnaireListInfo/quesnir_keyword\",\"questionnaireListAll/questionnaireListInfo/questionnaireListInDB\",null)");
 
 entitySearch(String entityNameRef, String keywordRef, String listRef, String fileTypeRef){
