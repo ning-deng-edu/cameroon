@@ -13,11 +13,11 @@
             <faims id="ldd_client">
 
                <style>
-                <orientation>
-                    <orientation/>
-                </orientation>
+            	<orientation>
+              		<orientation/>
+            	</orientation>
             <even>
-                <layout_weight/>
+              	<layout_weight/>
             </even>
             <large>
               <layout_weight/>
@@ -28,12 +28,12 @@
                     <usertab>
                          <container12>
                             <child1>
-                                <user_keyword/>
+                            	<user_keyword/>
                             </child1>
                             <child2>
-                                <user_Search/>
+                            	<user_Search/>
                             </child2>
-                        </container12>
+                    	</container12>
                         <users/>
                         <login/>
                     </usertab>
@@ -42,20 +42,20 @@
                  
                 <control>         
                     <survey_control>
-                        <New_Survey/>
-                         <container7>
+        				<New_Survey/>
+        				 <container7>
                             <child1>
-                                <survey_keyword/>
+                            	<survey_keyword/>
                             </child1>
                             <child2>
-                                <Survey_Search/>
+                            	<Survey_Search/>
                             </child2>
-                        </container7>
+                    	</container7>
                         <surveyList/>                      
                     </survey_control>
                 
                     <fieldTrip_control>
-                        <fieldTripInfo>
+                    	<fieldTripInfo>
                         <New_FieldTrip/>
                         <container1>
                             <child1>
@@ -73,12 +73,12 @@
                         <New_User/>
                          <container8>
                             <child1>
-                                <person_keyword/>
+                            	<person_keyword/>
                             </child1>
                             <child2>
-                                <Person_Search/>
+                            	<Person_Search/>
                             </child2>
-                        </container8>
+                    	</container8>
                         <userList/>
                     </user_control>
                     
@@ -87,12 +87,12 @@
                         <New_Language/>
                          <container9>
                             <child1>
-                                <language_keyword/>
+                            	<language_keyword/>
                             </child1>
                             <child2>
-                                <Language_Search/>
+                            	<Language_Search/>
                             </child2>
-                        </container9>
+                    	</container9>
                         <languageList/>
                     </language_control>
                    
@@ -102,12 +102,12 @@
                         <New_File/>
                         <container10>
                             <child1>
-                                <file_keyword/>
+                            	<file_keyword/>
                             </child1>
                             <child2>
-                                <File_Search/>
+                            	<File_Search/>
                             </child2>
-                        </container10>
+                    	</container10>
                         <fileList/>
                     </file_control>
                     
@@ -125,12 +125,12 @@
                    <questionnaireListInfo>
                        <container13>
                             <child1>
-                                <quesnir_keyword/>
+                            	<quesnir_keyword/>
                             </child1>
                             <child2>
-                                <quesnir_Search/>
+                            	<quesnir_Search/>
                             </child2>
-                        </container13>
+                    	</container13>
                        <questionnaireListInDB/>
                    </questionnaireListInfo> 
                 </questionnaireListAll>
@@ -172,12 +172,12 @@
                 
                 <sessionForAnswer>
                     <sssAnsBasicInfo>
-                        <sssID/>
-                        <sssName/>
-                        <sssLocation/>
-                        <sssStartTimetamp/>
-                        <sssEndTimestamp/>
-                        <sssDescription/>
+                    	<sssID/>
+                    	<sssName/>
+                    	<sssLocation/>
+                    	<sssStartTimetamp/>
+                    	<sssEndTimestamp/>
+                    	<sssDescription/>
                     </sssAnsBasicInfo>
 
                     <sssPersonInfo>
@@ -196,9 +196,9 @@
 
                     <sssAnsList>
                         <Save_Session/>
-                        <New_Answer_In_Session/>
+                    	<New_Answer_In_Session/>
                         <sssAnsSelList/>
-                        <sssAnswerList/>
+                    	<sssAnswerList/>
                     </sssAnsList>
                 </sessionForAnswer>
                 
@@ -226,97 +226,97 @@
                 
                  <fieldTrip>
                     <fieldTripBasicInfo>
-                        <fieldTripID/>
-                        <fieldTripName/>
-                        <fieldTripStartDatePicker/>
-                        <fieldTripEndDatePicker/>
+                    	<fieldTripID/>
+                    	<fieldTripName/>
+                    	<fieldTripStartDatePicker/>
+                    	<fieldTripEndDatePicker/>
                     </fieldTripBasicInfo>
                     
                     <fieldTripBasicInfoHidden>
-                        <fieldTripStartTimetamp/>
-                        <fieldTripEndTimestamp/>
+                    	<fieldTripStartTimetamp/>
+                    	<fieldTripEndTimestamp/>
                     </fieldTripBasicInfoHidden>
                     
                     <fieldTripSession>
                         <container11>
-                            <child1>
-                                <fieldTripFileList/>
-                            </child1>
-                            <child2>
-                                <fieldTripFileSelectionList/>
-                            </child2>
-                        </container11>
-                        <Finish_New_FieldTrip/>
+                    	    <child1>
+                    	        <fieldTripFileList/>
+                    	    </child1>
+                    	    <child2>
+                    	        <fieldTripFileSelectionList/>
+                    	    </child2>
+                    	</container11>
+                    	<Finish_New_FieldTrip/>
                     </fieldTripSession>
                 </fieldTrip>
                 
                  
                   <audioFile>
                     <audioFileInfo>
-                        <audioFileID/>
-                        <audioFileName/>
-                        <audioFileType/>
-                        <audioFileCreator/>
-                        <audioFileContent/>
-                        <Take_Audio_File/>
-                        <audioFilePath/>
-                        <Save_New_Audio/>
+                    	<audioFileID/>
+                    	<audioFileName/>
+                    	<audioFileType/>
+                    	<audioFileCreator/>
+                   	 	<audioFileContent/>
+                    	<Take_Audio_File/>
+                    	<audioFilePath/>
+                    	<Save_New_Audio/>
                     </audioFileInfo>
                 </audioFile>
                 
                 <videoFile>
                     <videoFileInfo>
-                        <videoFileID/>
-                        <videoFileName/>
-                        <videoFileType/>
-                        <videoFileCreator/>                         
-                        <videoFileContent/>
-                        <Take_Video_File/>
-                        <videoFilePath/>
-                        <Save_New_Video/>
+                    	<videoFileID/>
+                    	<videoFileName/>
+                    	<videoFileType/>
+                    	<videoFileCreator/>                  	 	
+                   	 	<videoFileContent/>
+                    	<Take_Video_File/>
+                    	<videoFilePath/>
+                    	<Save_New_Video/>
                     </videoFileInfo>
                 </videoFile>
                 
                 <photoFile>
                     <photoFileInfo>
-                        <photoFileID/>
-                        <photoFileName/>
-                        <photoFileType/>
-                        <photoFileCreator/>                     
-                        <photoFileContent/>
-                        <Take_Photo_File/>
-                        <photoFilePath/>
-                        <Save_New_Photo/>
+                    	<photoFileID/>
+                    	<photoFileName/>
+                    	<photoFileType/>
+                    	<photoFileCreator/>                	 	
+                   	 	<photoFileContent/>
+                    	<Take_Photo_File/>
+                    	<photoFilePath/>
+                    	<Save_New_Photo/>
                     </photoFileInfo>
                 </photoFile>
                 
                 <sketchFile>
                     <sketchFileInfo>
-                        <sketchFileID/>
-                        <sketchFileName/>
-                        <sketchFileType/>
-                        <sketchFileCreator/>                    
-                        <sketchFileContent/>
-                        <Take_Sketch_File/>
-                        <sketchFilePath/>
-                        <Save_New_Sketch/>
+                    	<sketchFileID/>
+                    	<sketchFileName/>
+                    	<sketchFileType/>
+                    	<sketchFileCreator/>              	 	
+                   	 	<sketchFileContent/>
+                    	<Take_Sketch_File/>
+                    	<sketchFilePath/>
+                    	<Save_New_Sketch/>
                     </sketchFileInfo>
                 </sketchFile>    
 
                 <personRoleSelect>
-                    <personRoleSelectInfo>
-                        <container15>
-                            <child1>
-                                <keywordOfRole/>
-                            </child1>
-                            <child2>
-                                <SearchRole/>
-                            </child2>
-                        </container15>
-                        <PersonRoleSelectList/>
-                        <CreateNewPerson/>
-                    </personRoleSelectInfo>
-                </personRoleSelect>
+             		<personRoleSelectInfo>
+             			<container15>
+             				<child1>
+             					<keywordOfRole/>
+             				</child1>
+             				<child2>
+             					<SearchRole/>
+             				</child2>
+             			</container15>
+             			<PersonRoleSelectList/>
+             			<CreateNewPerson/>
+             		</personRoleSelectInfo>
+             	</personRoleSelect>
 
                 <person>     
                  <personInfoHide>
@@ -353,7 +353,7 @@
                         <intrSessionList/>
                     </introSssInfo>
                 </introSssList>
-                
+				
             </faims>
         </instance>
         <bind nodeset="/ldd_client/fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker" type="date"/>
@@ -396,7 +396,7 @@
           <group ref="child1" faims_style="even">
             <label></label>
              <input ref="user_keyword">
-                <label>User name</label>
+            	<label>User name</label>
             </input>
         </group>
        <group ref="child2" faims_style="even">
@@ -436,7 +436,7 @@
           <group ref="child1" faims_style="even">
             <label></label>
              <input ref="survey_keyword">
-                <label>session keyword</label>
+            	<label>session keyword</label>
             </input>
         </group>
        <group ref="child2" faims_style="even">
@@ -510,7 +510,7 @@
           <group ref="child1" faims_style="even">
             <label></label>
              <input ref="person_keyword">
-                <label>name keyword</label>
+            	<label>name keyword</label>
             </input>
          
           </group>
@@ -545,7 +545,7 @@
           <group ref="child1" faims_style="even">
             <label></label>
              <input ref="language_keyword">
-                <label>language keyword</label>
+            	<label>language keyword</label>
             </input>
          
           </group>
@@ -572,11 +572,11 @@
  
           <select1 ref="fileCategorySelect">
             <label>File Category:</label>
-                <item>
-                    <label>placeholder</label>
-                    <value>placeholder</value>
-                </item>
-            </select1>
+            	<item>
+                	<label>placeholder</label>
+                	<value>placeholder</value>
+            	</item>
+         	</select1>
             <trigger ref="New_File" faims_style_class="faims-blue">
                 <label>New File</label>
             </trigger>
@@ -587,7 +587,7 @@
           <group ref="child1" faims_style="even">
             <label></label>
              <input ref="file_keyword">
-                <label>filename keyword</label>
+            	<label>filename keyword</label>
             </input>
          
           </group>
@@ -645,7 +645,7 @@
           <group ref="child1" faims_style="even">
             <label></label>
              <input ref="quesnir_keyword">
-                <label>questionnaire keyword</label>
+            	<label>questionnaire keyword</label>
             </input>
          
           </group>
@@ -679,18 +679,18 @@
          <group ref="surveyQuestionnaire">
             <label>Questionnaire info</label>
             <input ref="surveyQuestionnaireID" faims_attribute_name="QuestionnaireID" faims_attribute_type="measure" faims_read_only="true" faims_certainty="false" faims_annotation="false">
-                <label>Selected questionnaire label</label>
+            	<label>Selected questionnaire label</label>
             </input>
             
              <input ref="surveyQuestionnaireName" faims_attribute_name="QuestionnaireName" faims_attribute_type="measure" faims_read_only="true" faims_certainty="false" faims_annotation="false">
-                <label>Selected questionnaire name</label>
+            	<label>Selected questionnaire name</label>
             </input>
             
             <input ref="surveyQuestionnaireType" faims_attribute_name="QuestionnaireType" faims_attribute_type="measure" faims_read_only="true" faims_certainty="false" faims_annotation="false">
-                <label>Selected questionnaire Type</label>
+            	<label>Selected questionnaire Type</label>
             </input>
              <input ref="surveyQuestionnaireDescription" faims_attribute_name="QuestionnaireDescription" faims_attribute_type="measure" faims_read_only="true" faims_certainty="false" faims_annotation="false">
-                <label>Selected questionnaire description</label>
+            	<label>Selected questionnaire description</label>
             </input>
 
              <group ref="container14" faims_style="orientation">
@@ -725,15 +725,15 @@
     
       <group ref="answerToQuestion">
           <label>Answer Info</label>
-            
+         	
           <group ref="answerInfoHidden" faims_hidden="true">
               <label></label>     
                <input ref="answerListQuestionnaireID" faims_read_only="true">
-                <label>Current questionnaire id</label>
+            	<label>Current questionnaire id</label>
             </input>
             
                <input ref="answerListQuestionID" faims_read_only="true">
-                <label>Current question id</label>
+            	<label>Current question id</label>
             </input> 
             
           </group>
@@ -743,17 +743,17 @@
             <label>Answer Info</label>           
             
              <input ref="answerListQuestionnaireName" faims_read_only="true">
-                <label>Current questionnaire name</label>
+            	<label>Current questionnaire name</label>
             </input>
             
               <input ref="answerListQuestionContent" faims_read_only="true">
-                <label>Current question</label>
+            	<label>Current question</label>
             </input>
             
             <trigger ref="Create_New_Answer" faims_style_class="faims-blue">
                 <label>New Answer</label>
-            </trigger>
-            
+        	</trigger>
+        	
              <select1 appearance="compact" ref="answerList" faims_style_class="answer-list">
                 <label>Answers</label>
                 <item>
@@ -798,7 +798,7 @@
                   <group ref="child1" faims_style="even">
                     <label></label>
                      <select1 ref="sssPersonRole" faims_annotation="false" faims_certainty="false">
-                    <label>Role in session</label>
+                    <label>Person Role</label>
                     <item>
                         <label>placeholder</label>
                         <value>placeholder</value>
@@ -827,7 +827,7 @@
                         <label>New Person</label>
                  </trigger>
                 
-                 <select1 appearance="compact" ref="sssPersonList" faims_certainty="false" faims_annotation="false" faims_style_class="session-list">
+                 <select1 appearance="compact" ref="sssPersonList" faims_certainty="false" faims_annotation="false" faims_style_class="session-file-list">
                     <label>Session person list</label>
                         <item>
                             <label>placeholder</label>
@@ -847,15 +847,15 @@
                     </trigger>
                     
                     <select1 appearance="compact" ref="sssAnsSelList" faims_certainty="false" faims_annotation="false" faims_style_class="session-file-list">
-                                <label>Selectable Answers</label>
+                                <label>Answers not in a session</label>
                                 <item>
                                     <label>placeholder</label>
                                     <value>placeholder</value>
                                 </item>
                     </select1>
                      <select1 appearance="compact" ref="sssAnswerList" faims_certainty="false" faims_annotation="false" faims_style_class="session-file-list">
-                        <label>Session answer list</label>
-                            <item>
+                      	<label>Session answer list</label>
+                      		<item>
                                 <label>placeholder</label>
                                 <value>placeholder</value>
                             </item>
@@ -885,13 +885,13 @@
         <group ref="answerBasic">
             <label>Answer Basic Info</label>
           <input ref="answerLabel" faims_attribute_name="AnswerLabel" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true" faims_style_class="required">
-                <label>Answer label</label>
-            </input>
-            
+          		<label>Answer label</label>
+        	</input>
+        	
             <input ref="answerText" faims_attribute_name="AnswerText" faims_attribute_type="measure" faims_certainty="false">
-                <label>Answer text</label>
-            </input>
-            
+          		<label>Answer text</label>
+        	</input>
+        	
              <input ref="answerStartTimestamp" faims_attribute_name="StartTimeStamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
           <label>Start timestamp</label>
         </input>
@@ -904,30 +904,30 @@
        
         <group ref="answerFile">
              <label>Answer file</label>
-        <trigger ref="Finish_New_Answer" faims_style_class="faims-blue">
+    	<trigger ref="Finish_New_Answer" faims_style_class="faims-blue">
                 <label>Save Answer</label>
-             </trigger>
-        
+       		 </trigger>
+    	
            <select1 ref="file_Category" faims_certainty="false" faims_annotation="false">
             <label>File Category</label>
-                <item>
-                    <label>placeholder</label>
-                    <value>placeholder</value>
-                </item>
-            </select1>
+            	<item>
+                	<label>placeholder</label>
+                	<value>placeholder</value>
+            	</item>
+         	</select1>
          
             <trigger ref="Add_New_File" faims_style_class="faims-blue">
                  <label>New File</label>
             </trigger>
             
             <select1 appearance="compact" ref="answerFileList" faims_attribute_name="AnswerFile" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="answerFile-list">
-                <label>Answer file</label>
-                <item>
+          		<label>Answer file</label>
+          		<item>
                     <label>placeholder</label>
                     <value>placeholder</value>
                 </item>
-            </select1>
-            </group>
+        	</select1>
+        	</group>
     </group>
     
      
@@ -967,31 +967,31 @@
         <group ref="fieldTripSession">
              <label>FieldTrip session</label>
               <group ref="container11" faims_style="orientation">
-                <label></label>
-                <group ref="child1" faims_style="even">
-                    <label></label>
-                     <select1 appearance="compact" ref="fieldTripFileList" faims_annotation="false" faims_certainty="false" faims_style_class="session-file-list">
-                        <label>Session</label>
-                        <item>
-                            <label>placeholder</label>
-                            <value>placeholder</value>
-                        </item>
-                    </select1>
-                </group>
-                
-                 <group ref="child2" faims_style="even">
-                   <label></label>
-                   <select1 appearance="compact" ref="fieldTripFileSelectionList" faims_certainty="false" faims_annotation="false" faims_style_class="session-file-list">
-                        <label>Select session</label>
-                        <item>
-                            <label>placeholder</label>
-                            <value>placeholder</value>
-                        </item>
-                 </select1>
-              </group>
-              
-            </group>
-                    
+         		<label></label>
+          		<group ref="child1" faims_style="even">
+            		<label></label>
+            		 <select1 appearance="compact" ref="fieldTripFileList" faims_annotation="false" faims_certainty="false" faims_style_class="session-file-list">
+                		<label>Session</label>
+                		<item>
+                    		<label>placeholder</label>
+                    		<value>placeholder</value>
+                		</item>
+        			</select1>
+            	</group>
+            	
+            	 <group ref="child2" faims_style="even">
+            	   <label></label>
+               	   <select1 appearance="compact" ref="fieldTripFileSelectionList" faims_certainty="false" faims_annotation="false" faims_style_class="session-file-list">
+          				<label>Select session</label>
+          				<item>
+                    		<label>placeholder</label>
+                    		<value>placeholder</value>
+                		</item>
+        		 </select1>
+        	  </group>
+        	  
+        	</group>
+            		
        
         <trigger ref="Finish_New_FieldTrip" faims_style_class="faims-blue">
                 <label>Save fieldTrip</label>
@@ -1018,12 +1018,12 @@
         </input>
           
           <select ref="audioFileContent" faims_attribute_name="FileContent" faims_attribute_type="measure" faims_annotation="true" faims_sync="true"  type="file">
-            <label>Audio</label>
-            <item>
-                <label>placeholder</label>
-                <value>placeholder</value>
-            </item>
-         </select>
+          	<label>Audio</label>
+          	<item>
+            	<label>placeholder</label>
+            	<value>placeholder</value>
+          	</item>
+       	 </select>
         
         <trigger ref="Take_Audio_File" faims_style_class="faims-blue">
                 <label>New Audio</label>
@@ -1057,12 +1057,12 @@
         </input>
           
           <select ref="videoFileContent" faims_attribute_name="FileContent" faims_attribute_type="measure" faims_annotation="true" faims_sync="true"  type="video">
-            <label>Video</label>
-            <item>
-                <label>placeholder</label>
-                <value>placeholder</value>
-            </item>
-         </select>
+          	<label>Video</label>
+          	<item>
+            	<label>placeholder</label>
+            	<value>placeholder</value>
+          	</item>
+       	 </select>
         
         <trigger ref="Take_Video_File" faims_style_class="faims-blue">
                 <label>New Video</label>
@@ -1095,12 +1095,12 @@
         </input>
           
           <select ref="photoFileContent" faims_attribute_name="FileContent" faims_attribute_type="measure" faims_annotation="true" faims_sync="true"  type="camera">
-            <label>Photo</label>
-            <item>
-                <label>placeholder</label>
-                <value>placeholder</value>
-            </item>
-         </select>
+          	<label>Photo</label>
+          	<item>
+            	<label>placeholder</label>
+            	<value>placeholder</value>
+          	</item>
+       	 </select>
         
         <trigger ref="Take_Photo_File" faims_style_class="faims-blue">
                 <label>New Photo</label>
@@ -1134,12 +1134,12 @@
         </input>
           
           <select ref="sketchFileContent" faims_attribute_name="FileContent" faims_attribute_type="measure" faims_annotation="true" faims_sync="true"  type="file">
-            <label>Sketch file</label>
-            <item>
-                <label>placeholder</label>
-                <value>placeholder</value>
-            </item>
-         </select>
+          	<label>Sketch file</label>
+          	<item>
+            	<label>placeholder</label>
+            	<value>placeholder</value>
+          	</item>
+       	 </select>
         
         <trigger ref="Take_Sketch_File" faims_style_class="faims-blue">
                 <label>New Sketch</label>
@@ -1157,13 +1157,13 @@
      <group ref="personRoleSelect">
         <label>Person Role</label>     
         <group ref="personRoleSelectInfo">
-          <label>{Person General Role}</label>
+          <label>{Person Role Information}</label>
           <group ref="container15" faims_style="orientation">
           <label></label>
           <group ref="child1" faims_style="even">
             <label></label>
            <input ref="keywordOfRole">
-                <label>role keyword</label>
+            	<label>role keyword</label>
             </input>
            </group>
           <group ref="child2" faims_style="even">
@@ -1175,7 +1175,7 @@
         </group>       
 
         <select1 ref="PersonRoleSelectList">
-            <label>Role List:(select the general role for person)</label>
+            <label>Role List:</label>
             <item>
                 <label>Item A</label>
                 <value>0</value>
@@ -1194,7 +1194,7 @@
       <group ref="person" faims_archent_type="Person">
         <label>Person</label>
 
-        <group ref="personInfoHide" faims_hidden="true">
+		<group ref="personInfoHide" faims_hidden="true">
           <label>{PersonInfoHide}</label>
           <input ref="personRoleId" faims_attribute_name="PersonRole" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
               <label>{Person role ID}</label>
@@ -1212,7 +1212,7 @@
             <input ref="personOtherNames" faims_attribute_name="PersonOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
               <label>Person Other Names</label>
             </input>
-            <input ref="personDOB" faims_attribute_name="PersonDOB" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
+			<input ref="personDOB" faims_attribute_name="PersonDOB" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
               <label>Person DOB</label>
             </input>
             <input ref="personRoleName" faims_certainty="false" faims_read_only="true">

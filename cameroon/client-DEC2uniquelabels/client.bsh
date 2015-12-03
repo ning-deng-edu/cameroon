@@ -486,6 +486,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 		//loadAllNonIntroAnsNotInSssQuery
 		fetchAll(loadAllNonIntroAnsNotInSssQuery, new FetchCallback() {
         onFetch(result) {
+        	candidate_files_session.clear();
         	candidate_files_session.addAll(result);
             populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
         }
@@ -499,6 +500,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	else{
 		fetchAll(loadAllIntroAnsNotInSssQuery, new FetchCallback() {
         onFetch(result) {
+        	candidate_files_session.clear();
         	candidate_files_session.addAll(result);
             populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
         }
