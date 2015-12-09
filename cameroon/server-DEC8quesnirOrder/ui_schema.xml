@@ -17,6 +17,7 @@
             <large>
               <layout_weight/>
             </large>
+            
           </style>
           <user>
             <usertab>
@@ -144,6 +145,20 @@
                  
                 </questionnaire_question>
                 
+                <quesnir_ques_order>
+                  <quesnir_ques_order_info>
+                  <container9>
+                    <child1>
+                    <quesOrder/>
+                  </child1>
+                  <child2>
+                    <quesLabel/>
+                  </child2>
+                  </container9>
+                  <Save_Order_Change/>
+                </quesnir_ques_order_info>
+                </quesnir_ques_order>
+
                <questionBank>
                    <questionInforHidden>   
                    <questionLanguageUuid/>    
@@ -273,6 +288,7 @@
         </input>
       </group>
     </group>
+
     <group ref="user">
       <label>{User_List}</label>
       <group ref="usertab">
@@ -596,6 +612,39 @@
           </trigger>
         </group>
     </group>
+
+
+     <group ref="quesnir_ques_order">
+        <label>Question Order</label>
+        
+        
+        <group ref="quesnir_ques_order_info" faims_scrollable="false">
+          <label>{Question Ordering}</label>
+
+        <group ref="container9" faims_style="orientation">
+          
+          <label></label>
+          <group ref="child1" faims_style="even">
+            <label></label>
+              <input ref="quesOrder" faims_attribute_name="QuesOrderLocal" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
+           <label>{Question Order}</label>
+         </input>
+          </group>
+          
+       <group ref="child2" faims_style="large">
+            <label></label>
+            <input ref="quesLabel" faims_certainty="false" faims_annotation="true" faims_read_only="true">
+           <label>{Question}</label>
+         </input>
+          </group>
+         </group>
+          
+          
+          <trigger ref="Save_Order_Change" faims_style_class="faims-blue">
+                <label>Save changes</label>
+          </trigger>
+        </group>
+    </group>   
     
     <group ref="questionBank" faims_archent_type="QuestionBank">
         <label>Question Bank</label>
