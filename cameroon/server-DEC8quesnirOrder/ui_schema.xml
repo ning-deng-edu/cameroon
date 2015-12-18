@@ -115,8 +115,11 @@
                             <keywordOfQuestion/>
                           </child1>
                           <child2>
-                            <Search_Question/>
+                            <category/>
                           </child2>
+                          <child3>
+                            <Search_Question/>
+                          </child3>
                         </container3>
                         <questionList/>
                         <container1>
@@ -517,11 +520,23 @@
               <label></label>
               <group ref="child1" faims_style="even">
                 <label></label>
+
                    <input ref="keywordOfQuestion" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-                    <label>Enter keyword here</label>
+                    <label>keyword</label>
                 </input>
               </group>
-           <group ref="child2" faims_style="even">
+
+              <group ref="child2" faims_style="even">
+                <label></label>
+                   <select1 ref="category">
+                    <label>category</label>
+                    <item>
+                        <label>placeholder</label>
+                        <value>placeholder</value>
+                    </item>
+                </select1>
+              </group>            
+           <group ref="child3" faims_style="even">
                 <label></label>
                  <trigger ref="Search_Question" faims_style_class="faims-blue-search">
                  <label>Search</label>
@@ -555,7 +570,7 @@
           </group>
          </group>
 
-          <select1 appearance="full" faims_annotation="false" ref="questionInQuestionnaire" faims_style_class="session-file-list">
+          <select1 appearance="full" faims_annotation="false" ref="questionInQuestionnaire">
                 <label>{Delete question}</label>
                 <item>
                     <label>placeholder</label>
