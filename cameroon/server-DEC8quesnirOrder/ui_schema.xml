@@ -110,17 +110,6 @@
 
                 <questionnaire_question>
                   <questionnaire_question_info>
-                       
-                        <questionnaireName/>
-                        <container1>
-                          <child1>
-                            <questionInQuestionnaire/>
-                          </child1>
-                          <child2>
-                            <questionList/>
-                          </child2>
-                        </container1>
-                        
                         <container3>
                           <child1>
                             <keywordOfQuestion/>
@@ -129,7 +118,17 @@
                             <Search_Question/>
                           </child2>
                         </container3>
-                        
+                        <questionList/>
+                        <container1>
+                          <child1>
+                            <MoveUp/>
+                          </child1>
+                          <child2>
+                            <MoveDown/>
+                          </child2>
+                        </container1>
+                        <questionInQuestionnaire/>
+                       
                          <container4>
                           <child1>
                             <Change_Questionnaire/>
@@ -138,27 +137,10 @@
                              <Finish_Questionnaire_Creation/>
                           </child2>                         
                          </container4>
-                       
-                        <New_Question/>                      
-                       
+                        <New_Question/>                       
                   </questionnaire_question_info>
-                 
                 </questionnaire_question>
-                
-                <quesnir_ques_order>
-                  <quesnir_ques_order_info>
-                  <container9>
-                    <child1>
-                    <quesOrder/>
-                  </child1>
-                  <child2>
-                    <quesLabel/>
-                  </child2>
-                  </container9>
-                  <Save_Order_Change/>
-                </quesnir_ques_order_info>
-                </quesnir_ques_order>
-
+               
                <questionBank>
                    <questionInforHidden>   
                    <questionLanguageUuid/>    
@@ -229,16 +211,6 @@
                   </personInfo>
                 </person>
 
-                <!--personWithoutIntro>
-                <personWithoutIntroInfo>
-                    <person_ID/>
-                    <person_Name/>
-                    <person_OtherNames/>
-                    <person_DOB/>
-                    <person_Role/>
-                    <FinishNewPerson/>
-                  </personWithoutIntroInfo>
-                </personWithoutIntro-->
 
                 <personRole>
                	  <personRoleInfo>
@@ -537,58 +509,59 @@
      <group ref="questionnaire_question">
         <label>Questionnaire</label>
         
-        
         <group ref="questionnaire_question_info" faims_scrollable="false">
           <label>{Questionnaire Question Selction}</label>
-         
-          <input ref="questionnaireName" faims_read_only="true">
-            <label>{Current Questionnaire Name}</label>
-          </input>
 
+            <group ref="container3" faims_style="orientation">
+        
+              <label></label>
+              <group ref="child1" faims_style="even">
+                <label></label>
+                   <input ref="keywordOfQuestion" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+                    <label>Enter keyword here</label>
+                </input>
+              </group>
+           <group ref="child2" faims_style="even">
+                <label></label>
+                 <trigger ref="Search_Question" faims_style_class="faims-blue-search">
+                 <label>Search</label>
+               </trigger>
+              </group>
+        
+        </group>
 
-        <group ref="container1" faims_style="orientation">
-          
-          <label></label>
-          <group ref="child1" faims_style="even">
-            <label></label>
-              <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionInQuestionnaire" faims_style_class="questionQuestionnaire-list">
-                <label>{Delete question}</label>
-                <item>
-                    <label>placeholder</label>
-                    <value>placeholder</value>
-                </item>
-          </select1>
-          </group>
-          
-       <group ref="child2" faims_style="even">
-            <label></label>
-            <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionList" faims_style_class="questionQuestionnaire-list">
+           <select1 appearance="compact" faims_annotation="false" ref="questionList" faims_style_class="session-file-list">
                 <label>{Add question}</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
                 </item>
           </select1>
-          </group>
-         </group>
-       <group ref="container3" faims_style="orientation">
-        
+           <group ref="container1" faims_style="orientation">
+          
           <label></label>
           <group ref="child1" faims_style="even">
             <label></label>
-               <input ref="keywordOfQuestion" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-                <label>Enter keyword here</label>
-            </input>
+              <trigger ref="MoveUp" faims_style_class="faims-blue">
+                <label>Move up</label>
+             </trigger>
           </group>
-       <group ref="child2" faims_style="even">
-            <label></label>
-             <trigger ref="Search_Question" faims_style_class="faims-blue-search">
-             <label>Search</label>
-           </trigger>
-          </group>
-        
-        </group>
           
+          <group ref="child2" faims_style="large">
+            <label></label>
+           <trigger ref="MoveDown" faims_style_class="faims-blue">
+                <label>Move down</label>
+             </trigger>
+          </group>
+         </group>
+
+          <select1 appearance="full" faims_annotation="false" ref="questionInQuestionnaire" faims_style_class="session-file-list">
+                <label>{Delete question}</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+          </select1>
           
           <group ref="container4" faims_style="orientation">
           <label></label>
@@ -607,45 +580,15 @@
           </group>
         
         </group>       
+
           <trigger ref="New_Question" faims_style_class="faims-blue">
                 <label>New Question</label>
           </trigger>
+     
         </group>
     </group>
 
-
-     <group ref="quesnir_ques_order">
-        <label>Question Order</label>
-        
-        
-        <group ref="quesnir_ques_order_info" faims_scrollable="false">
-          <label>{Question Ordering}</label>
-
-        <group ref="container9" faims_style="orientation">
-          
-          <label></label>
-          <group ref="child1" faims_style="even">
-            <label></label>
-              <input ref="quesOrder" faims_attribute_name="QuesOrderLocal" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
-           <label>{Question Order}</label>
-         </input>
-          </group>
-          
-       <group ref="child2" faims_style="large">
-            <label></label>
-            <input ref="quesLabel" faims_certainty="false" faims_annotation="true" faims_read_only="true">
-           <label>{Question}</label>
-         </input>
-          </group>
-         </group>
-          
-          
-          <trigger ref="Save_Order_Change" faims_style_class="faims-blue">
-                <label>Save changes</label>
-          </trigger>
-        </group>
-    </group>   
-    
+   
     <group ref="questionBank" faims_archent_type="QuestionBank">
         <label>Question Bank</label>
         
@@ -834,32 +777,6 @@
             </trigger>
         </group>
     </group>
-
-      <!--group ref="personWithoutIntro" faims_archent_type="Person">
-        <label>Person</label>
-        <group ref="personWithoutIntroInfo">
-          <label>{Person Information}</label>
-           <input ref="person_ID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
-              <label>{Person ID}</label>
-            </input>
-            <input ref="person_Name" faims_attribute_name="PersonName" faims_attribute_type="measure" faims_certainty="false" faims_style_class="required">
-              <label>{Person Name}</label>
-            </input>
-            <input ref="person_OtherNames" faims_attribute_name="PersonOtherNames" faims_attribute_type="measure" faims_certainty="false" >
-              <label>{Person Other Names}</label>
-            </input>
-      <input ref="person_DOB" faims_attribute_name="PersonDOB" faims_attribute_type="measure" faims_certainty="false" >
-              <label>{Person DOB}</label>
-            </input>
-            <input ref="person_Role" faims_attribute_name="PersonRole" faims_attribute_type="measure" faims_certainty="false" >
-              <label>{Person Role}</label>
-            </input>
-        
-            <trigger ref="FinishNewPerson" faims_style_class="faims-blue">
-                <label>Save Person</label>
-            </trigger>
-        </group>
-    </group-->
               
     <group ref="personRole" faims_archent_type="PersonRole">
         <label>Person Role</label>
@@ -890,13 +807,7 @@
             <value>No</value>
           </item>
         </select1>
-        <!--select1 ref="RoleDataOnServer" faims_attribute_name="RoleDataOnServer" faims_attribute_type="measure">
-          <label>Data collected on client module?</label>
-          <item>
-            <label>placeholder</label>
-            <value>placeholder</value>
-          </item>
-        </select1-->
+
         <select1 ref="RoleDataOnClient" faims_attribute_name="RoleDataOnClient" faims_attribute_type="measure" appearance="full">
           <label>Role shown on client module's list?</label>
           <item>
