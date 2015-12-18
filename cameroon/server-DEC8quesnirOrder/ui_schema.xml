@@ -484,7 +484,7 @@
         <label>Questionnaire Type</label>      
         
         <group ref="quesnirType_info">
-          <label>Questionnaire Type Basic Data</label>
+          <label>Questionnaire Type</label>
           
           <input ref="quesnirTypeName" faims_attribute_name="QuesnirTypeName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true" faims_style_class="required">
             <label>{Questionnaire Type Name}</label>
@@ -547,7 +547,7 @@
              </trigger>
           </group>
           
-          <group ref="child2" faims_style="large">
+          <group ref="child2" faims_style="even">
             <label></label>
            <trigger ref="MoveDown" faims_style_class="faims-blue">
                 <label>Move down</label>
@@ -568,13 +568,13 @@
           <group ref="child1" faims_style="even">
             <label></label>
           <trigger ref="Change_Questionnaire" faims_style_class="faims-blue-parallel">
-             <label>Save Changes</label>
+             <label>Change</label>
            </trigger>
            </group>
           <group ref="child2" faims_style="even">
             <label></label>
              <trigger ref="Finish_Questionnaire_Creation" faims_style_class="faims-blue-parallel">
-            <label>Create Questionnaire</label>
+            <label>Create</label>
           </trigger>
             
           </group>

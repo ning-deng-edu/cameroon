@@ -110,14 +110,6 @@
         <property name="QuesOrderLocal" type="measure"></property>
     </ArchaeologicalElement>
     
-    <ArchaeologicalElement name="QuesnirType">
-        <description> Entity Questionnaire type</description>
-        <!--property name="QuesnirTypeID" isIdentifier="true" type="freetext"-->
-        <!--/property-->
-        <property name="QuesnirTypeName" isIdentifier="true" type="measure">
-        </property>
-    </ArchaeologicalElement>
-    
     <ArchaeologicalElement name="Language">
         <description>Entity Language, stores code, language name of languages</description>
         <property name="LanguageID" isIdentifier="true" type="measure">
