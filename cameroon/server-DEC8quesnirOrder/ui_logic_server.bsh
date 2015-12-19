@@ -908,7 +908,15 @@ finishCreateQuestionnaire(){
 				//showWarning("questionnaire()",finished_questionnaire_id);
 				for (question : questionSelected){
 					//showWarning("question()",question.get(0).toString());
-				saveEntitiesToRel("Questionnaire and Question",finished_questionnaire_id,question.get(0));
+				//saveEntitiesToRel("Questionnaire and Question",finished_questionnaire_id,question.get(0));
+					String quesInQuesnirID=question.get(0);
+					String quesContnt=question.get(1);
+					String quesOrderNum=quesContnt.substring(0,quesContnt.indexOf("-"));
+					quesOrderAttributes= createAttributeList();
+					quesOrderAttributes.add(createEntityAttribute("QuesnirID", null, null, finished_questionnaire_id, null));
+					quesOrderAttributes.add(createEntityAttribute("QuesID", null, null,quesInQuesnirID, null));
+					quesOrderAttributes.add(createEntityAttribute("QuesOrderLocal", null, null, quesOrderNum, null));
+					saveArchEnt(null, "QuesnirQuesOrder", null, quesOrderAttributes);
 			//showWarning("savedrel()",question.get(0).toString());
 			}
 			saveEntitiesToRel("Questionnaire and QuesnirType",finished_questionnaire_id,quesnirTypeUuid);
