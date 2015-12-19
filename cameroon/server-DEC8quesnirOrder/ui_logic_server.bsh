@@ -222,15 +222,14 @@ onEvent("questionnaire/questionnaire_info/Start_Question_Selection","click","sta
 onEvent("questionnaire/questionnaire_info","show","loadQuesnirType(\"newQuesnir\")");
 onEvent("questionnaire_question/questionnaire_question_info","show","initializeQuestionSelect()");
 onEvent("questionnaire_question/questionnaire_question_info/questionList","click","questionSelection()");
-onEvent("questionnaire_question/questionnaire_question_info/questionInQuestionnaire","click","deleteSelectedQuestion()");
-onEvent("questionnaire_question/questionnaire_question_info/New_Question","click","newQuestionFromQuestionnaire()");
+//onEvent("questionnaire_question/questionnaire_question_info/New_Question","click","newQuestionFromQuestionnaire()");
 onEvent("questionnaire_question/questionnaire_question_info/Finish_Questionnaire_Creation","click","finishCreateQuestionnaire()");
 onEvent("questionnaire_question/questionnaire_question_info/Change_Questionnaire","click","finishChangeQuestionnaire()");
 onEvent("questionnaire_question/questionnaire_question_info/Search_Question","click","searchQuestion()");
 onEvent("questionnaire", "show", "showTab(\"questionnaire/questionnaire_info\")");
 onEvent("questionnaire/questionnaire_info/questionnaireTypeSelection", "click", "setQuesnirType()");
 onEvent("questionnaire/questionnaire_info/New_QuesnirType", "click", "newQuesnirType()");
-
+onEvent("questionnaire_question/questionnaire_question_info/DeleteQues","click","deleteSelectedQuestion()");
 finished_questionnaire_id=null;//flag for marking if any questionnaire is selected
 questionCandidates=new ArrayList();//original questions to be selected in questionnaire
 questionCandidatesContent=new ArrayList();//manipulatable question list to be selected in questionnaire
@@ -651,7 +650,7 @@ initializeQuestionSelect(){
 //after selected a question, add this question to questionSelected, and remove it from questionCandidatesContent
 questionSelection(){
 	questionnaire_question_id=getListItemValue();
-	int idx_question=-1;
+	//int idx_question=-1;
 	if(isNull(questionnaire_question_id)){
 		showToast("No Question selected");
 		return;
@@ -679,37 +678,67 @@ questionSelection(){
 
 //after unselected a question, add this question to questionCandidatesContent, and remove it from questionSelected
 deleteSelectedQuestion(){
-	question_in_questionnaire_id=getListItemValue();
-	int idx_question_in_questionnaire=-1;
+	question_in_questionnaire_id=getFieldValue("questionnaire_question/questionnaire_question_info/questionInQuestionnaire");
+	//showWarning("start",question_in_questionnaire_id);
+	//int idx_question_in_questionnaire=-1;
 	if(isNull(question_in_questionnaire_id)){
 		showToast("No Question selected");
 		return;
 	}
 	else{
 		//showWarning("start",questionCandidatesContent.size().toString());
-		for (int i=0; i<questionSelected.size();i++){
-			if (questionSelected.get(i).toString().contains(question_in_questionnaire_id)) {
-				idx_question_in_questionnaire=i;
-				//showWarning("get",questionCandidatesContent.get(idx_question).toString());
+		for(int i=0;i<questionSelected.size();i++){
+			String quesId=questionSelected.get(i).get(0);
+			//showWarning("quesId",quesId);
+			if (quesId.equals(question_in_questionnaire_id)){
+				//String quesId=questionSelected.get(i).get(0);
+				//showWarning("quesIdEqual",quesId);
+				String quesWithNumber=questionSelected.get(i).get(1);
+				//showWarning("quesWithNumber",quesWithNumber);
+				String quesContent=quesWithNumber.substring(quesWithNumber.indexOf("-")+1);
+				//showWarning("quesContent",quesContent);
+				quesDelete=new ArrayList();
+				quesDelete.add(quesId);
+				quesDelete.add(quesContent);
+				questionCandidatesContent.add(quesDelete);
+				//showWarning("questionCandidatesContent","add");
+				questionSelected.remove(i);
+				//showWarning("questionSelected","remove");
+				adjustQuesOrder("deletion",i,null);
+				//showWarning("adjustQuesOrder","adjustQuesOrder");
+				populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+				populateList("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
 				break;
 			}
-		}
-		if (idx_question_in_questionnaire>=0) {
-		//showWarning("get",questionCandidatesContent.get(idx_question).toString());
-		questionCandidatesContent.add(questionSelected.get(idx_question_in_questionnaire));
-		questionSelected.remove(idx_question_in_questionnaire);
-		//showWarning("questionSelectedadded",questionSelected.size().toString());
-		populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
-		populateList("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
-		}
-		else{
-			showWarning("Question Not Found","Oops! You can't manupulate this question,please contact the Admin");
 		}
 		
 	}
 }
 
+adjustQuesOrder(String typeFlag, int strtIndex, ArrayList toAdjustList){
+	switch(typeFlag){
+		case "deletion":
+			for(int i=strtIndex; i<questionSelected.size();i++){
+				String quesId=questionSelected.get(i).get(0);
+				//showWarning("quesId",quesId);
+				String quesCotntWithNumber=questionSelected.get(i).get(1);
+				//showWarning("quesCotntWithNumber",quesCotntWithNumber);
+				String quesCotnt=quesCotntWithNumber.substring(quesCotntWithNumber.indexOf("-")+1);
+				//showWarning("quesCotnt",quesCotnt);
+				String newQuesNum=(i+1).toString();
+				//showWarning("newQuesNum",newQuesNum);
+				quesCotnt=newQuesNum+"-"+quesCotnt;
+				//showWarning("quesCotnt",quesCotnt);
+				newQuesWithNum=new ArrayList();
+				newQuesWithNum.add(quesId);
+				newQuesWithNum.add(quesCotnt);
+				questionSelected.set(i,newQuesWithNum);
+				//showWarning("questionSelected","set"+i.toString());
+			}
+		break;
+	}
 
+}
 			
 //if there is selected questionnaire, then change the info, else create a new questionnaire
 finishCreateQuestionnaire(){

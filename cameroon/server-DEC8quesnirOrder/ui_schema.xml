@@ -129,6 +129,9 @@
                           <child2>
                             <MoveDown/>
                           </child2>
+                          <child3>
+                            <DeleteQues/>
+                          </child3>
                         </container1>
                         <questionInQuestionnaire/>
                        
@@ -558,20 +561,26 @@
           <group ref="child1" faims_style="even">
             <label></label>
               <trigger ref="MoveUp" faims_style_class="faims-blue">
-                <label>Move up</label>
+                <label>Up</label>
              </trigger>
           </group>
           
           <group ref="child2" faims_style="even">
             <label></label>
            <trigger ref="MoveDown" faims_style_class="faims-blue">
-                <label>Move down</label>
+                <label>Down</label>
+             </trigger>
+          </group>
+          <group ref="child3" faims_style="even">
+            <label></label>
+           <trigger ref="DeleteQues" faims_style_class="faims-blue">
+                <label>Remove</label>
              </trigger>
           </group>
          </group>
 
           <select1 appearance="full" ref="questionInQuestionnaire">
-                <label>{Delete question}</label>
+                <label>{Selected question}</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
