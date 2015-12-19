@@ -718,7 +718,7 @@ deleteSelectedQuestion(){
 }
 moveUpQues(){
 	question_in_questionnaire_id=getFieldValue("questionnaire_question/questionnaire_question_info/questionInQuestionnaire");
-	showWarning("question_in_questionnaire_id",question_in_questionnaire_id);
+	//showWarning("question_in_questionnaire_id",question_in_questionnaire_id);
 	if(isNull(question_in_questionnaire_id)){
 		showToast("No Question selected");
 		return;
@@ -740,11 +740,32 @@ moveUpQues(){
 				break;
 			}
 		}
-
-
 }
 moveDownQues(){
-
+question_in_questionnaire_id=getFieldValue("questionnaire_question/questionnaire_question_info/questionInQuestionnaire");
+	//showWarning("question_in_questionnaire_id",question_in_questionnaire_id);
+	if(isNull(question_in_questionnaire_id)){
+		showToast("No Question selected");
+		return;
+	}
+	int length=questionSelected.size();
+	for(int i=0;i<questionSelected.size();i++){
+			String toDownQuesId=questionSelected.get(i).get(0);
+			//showWarning("toUpQuesId",toUpQuesId);
+			if (toDownQuesId.equals(question_in_questionnaire_id)){
+				//String quesId=questionSelected.get(i).get(0);
+				//showWarning("quesIdEqual",toUpQuesId);
+				if(i==length-1){
+					showToast("This is the last question");
+					break;
+					//return;
+				}
+				adjustQuesOrder("moveDown",i,null);
+				//showWarning("adjustQuesOrder","moveUp");
+				populateRadioGroup("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
+				break;
+			}
+		}
 }
 adjustQuesOrder(String typeFlag, int strtIndex, ArrayList toAdjustList){
 	switch(typeFlag){
@@ -804,6 +825,45 @@ adjustQuesOrder(String typeFlag, int strtIndex, ArrayList toAdjustList){
 			//showWarning("questionSelected","2ndset(i,newQuesWithNum)");
 
 			Collections.swap(questionSelected,i,i-1);
+			//showWarning("Collections","Collections");
+		break;
+
+		case "moveDown":
+			i=strtIndex;
+			//Change toUpQues (ith) info
+			String toDnQuesId=questionSelected.get(i).get(0);
+			//showWarning("toUpQuesId",toUpQuesId);
+			String toDnQuesCotntNum=questionSelected.get(i).get(1);
+				//showWarning("toUpQuesCotntWithNumber",toUpQuesCotntWithNumber);
+			String toDnQuesCotnt=toDnQuesCotntNum.substring(toDnQuesCotntNum.indexOf("-")+1);
+				//showWarning("toUpQuesCotnt",toUpQuesCotnt);
+			String newtoDnQuesNum=(i+2).toString();
+				//showWarning("newQuesNum",newtoUpQuesNum);
+			toDnQuesCotnt=newtoDnQuesNum+"-"+toDnQuesCotnt;
+				//showWarning("toUpQuesCotnt",toUpQuesCotnt);
+			newToDnQuesWithNum=new ArrayList();
+			newToDnQuesWithNum.add(toDnQuesId);
+			newToDnQuesWithNum.add(toDnQuesCotnt);
+			questionSelected.set(i,newToDnQuesWithNum);
+			//showWarning("questionSelected","set(i,newQuesWithNum)");
+			//Change (i-1)th ques info
+			String toSwapQuesId=questionSelected.get(i+1).get(0);
+				//showWarning("toDownQuesId",toDownQuesId);
+			String toSwapQuesCotntNum=questionSelected.get(i+1).get(1);
+				//showWarning("toDownQuesCotntWithNumber",toDownQuesCotntWithNumber);
+			String toSwapQuesCotnt=toSwapQuesCotntNum.substring(toSwapQuesCotntNum.indexOf("-")+1);
+				//showWarning("toDownQuesCotnt",toDownQuesCotnt);
+			String newtoUpQuesNumber=(i+1).toString();
+			//showWarning("newtoDownQuesNum",newtoDownQuesNum);
+			toSwapQuesCotnt=newtoUpQuesNumber+"-"+toSwapQuesCotnt;
+				//showWarning("toDownQuesCotnt",toDownQuesCotnt);
+			newtoUpQuesNum=new ArrayList();
+			newtoUpQuesNum.add(toSwapQuesId);
+			newtoUpQuesNum.add(toSwapQuesCotnt);
+			questionSelected.set(i+1,newtoUpQuesNum);
+			//showWarning("questionSelected","2ndset(i,newQuesWithNum)");
+
+			Collections.swap(questionSelected,i,i+1);
 			//showWarning("Collections","Collections");
 		break;
 	}
