@@ -36,7 +36,9 @@
 .user-list{    
     height: 70%;   
 }
-
+.session-file-list{
+	height: 100px;
+}
 .list-label{
         margin-top:7%;
 }
