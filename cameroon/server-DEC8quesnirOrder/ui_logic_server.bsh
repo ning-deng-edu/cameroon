@@ -232,6 +232,7 @@ onEvent("questionnaire/questionnaire_info/New_QuesnirType", "click", "newQuesnir
 onEvent("questionnaire_question/questionnaire_question_info/DeleteQues","click","deleteSelectedQuestion()");
 onEvent("questionnaire_question/questionnaire_question_info/MoveUp","click","moveUpQues()");
 onEvent("questionnaire_question/questionnaire_question_info/MoveDown","click","moveDownQues()");
+onEvent("questionnaire_question/questionnaire_question_info/Search_Question","click","searchQuestion()");
 finished_questionnaire_id=null;//flag for marking if any questionnaire is selected
 questionCandidates=new ArrayList();//original questions to be selected in questionnaire
 questionCandidatesContent=new ArrayList();//manipulatable question list to be selected in questionnaire
@@ -1115,6 +1116,8 @@ finishChangeQuestionnaire(){
 //Search questions when selecting questions to questionnaire
 searchQuestion(){
 	String keywordForQuestion=getFieldValue("questionnaire_question/questionnaire_question_info/keywordOfQuestion").trim();
+	String ctgy=getFieldValue("questionnaire_question/questionnaire_question_info/category");
+	if(ctgy.equals("candidate")){
 	if((isNull(keywordForQuestion))||(keywordForQuestion.equals("*"))){
 		fetchAll(loadAllQuestionQuery,
 				new FetchCallback() {
@@ -1123,7 +1126,23 @@ searchQuestion(){
 					questionCandidates.clear();
 					questionCandidates.addAll(result);
 					questionCandidatesContent.addAll(result);
-					questionCandidatesContent.removeAll(questionSelected);
+					tempToDelQues=new ArrayList();
+					tempToDelQues.clear();
+					for(quesSel:questionSelected){
+						String toDelId=quesSel.get(0);
+						//showWarning("toDelId",toDelId);
+						for (quesDel:questionCandidatesContent){
+							String delId=quesDel.get(0);
+							//showWarning("quesDel",delId);
+							if(delId.equals(toDelId)){
+								tempToDelQues.add(quesDel);
+								//questionCandidatesContent.remove(quesDel);
+								//showWarning("questionCandidatesContent","questionCandidatesContent");
+							}
+						}
+					}
+					questionCandidatesContent.removeAll(tempToDelQues);
+					//questionCandidatesContent.removeAll(questionSelected);
 					populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
 				}  
 		});		
@@ -1147,11 +1166,37 @@ searchQuestion(){
 				questionCandidates.clear();
 				questionCandidates.addAll(result);
 				questionCandidatesContent.addAll(result);
-				questionCandidatesContent.removeAll(questionSelected);
+				tempToDelQues=new ArrayList();
+				tempToDelQues.clear();
+				for(quesSel:questionSelected){
+						String toDelId=quesSel.get(0);
+						for (quesDel:questionCandidatesContent){
+							if(quesDel.get(0).equals(toDelId)){
+								tempToDelQues.add(quesDel);
+							}
+						}
+					}
+				questionCandidatesContent.removeAll(tempToDelQues);
 				populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
 		
-		}  
-});
+			}  
+			});
+		}
+	}
+	else{//searching in the arraylist 
+		if((isNull(keywordForQuestion))||(keywordForQuestion.equals("*"))){
+			populateRadioGroup("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
+		}
+		else{
+			tempQuesQuery=new ArrayList();
+			tempQuesQuery.clear();
+			for (ques : questionSelected){
+				if(ques.get(1).contains(keywordForQuestion)){
+					tempQuesQuery.add(ques);
+				}
+			}
+			populateRadioGroup("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", tempQuesQuery);
+		}
 	}
 }
 
