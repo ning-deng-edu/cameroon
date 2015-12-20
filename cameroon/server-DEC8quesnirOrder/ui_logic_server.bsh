@@ -559,8 +559,8 @@ initializeQuestionSelect(){
 	
 	else{
 		current_questionnaire_id=finished_questionnaire_id;
-		tempPopulateQuestionList=new ArrayList();
-		tempPopulateQuestionList.clear();
+		tempQuestionList=new ArrayList();
+		tempQuestionList.clear();
 		if(isNull(current_questionnaire_id))
 			{
 				showWarning("Message","Something went wrong! please contact the Admin!");
@@ -602,7 +602,7 @@ initializeQuestionSelect(){
 											if (!isNull(quesResult)) {
 												tempQues=new ArrayList();
 												tempQues.addAll(quesResult);
-												tempPopulateQuestionList.addAll(quesResult);
+												//tempPopulateQuestionList.addAll(quesResult);
 												String tempQuesContent=tempQues.get(1);
 												tempQuesContent=tempQuesOrderNum+"-"+tempQuesContent;	
 												tempQues.set(1,tempQuesContent);
@@ -642,24 +642,48 @@ initializeQuestionSelect(){
 	        }
 	    });
 
-			fetchAll(loadAllQuestionQuery,
+		loadAllQuesInQuesnirQuery="select uuid, measure from latestNonDeletedAentValue "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
+		"and uuid in (select measure from latestNonDeletedArchEntIdentifiers "+
+			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+			"and uuid in (select uuid from latestNonDeletedArchEntIdentifiers "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+				"and measure='"+current_questionnaire_id+"'))";
+
+		fetchAll(loadAllQuesInQuesnirQuery,
 				new FetchCallback() {
-			//showWarning("fetched",finished_questionnaire_id);
 					onFetch(result) {
 						if (!isNull(result)) {
-						//showWarning("changing questionnaire",finished_questionnaire_id);
-						questionCandidates.addAll(result);
-						questionCandidatesContent.addAll(result);
-						questionCandidatesContent.removeAll(tempPopulateQuestionList);
-						populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+						tempQuestionList.addAll(result);
+
+						fetchAll(loadAllQuestionQuery,
+							new FetchCallback() {
+								onFetch(result) {
+									if (!isNull(result)) {
+									questionCandidates.addAll(result);
+									questionCandidatesContent.addAll(result);
+									questionCandidatesContent.removeAll(tempQuestionList);
+									populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+								}
+								else{
+									populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+								}
+						
+							}
+
+							onError(message) {
+							    showToast(message);
+							}
+							});	
+	
 					}
-			
 				}
 
 				onError(message) {
 				    showToast(message);
 				}
-				});
+				});	
+		
 		}
 
 	
