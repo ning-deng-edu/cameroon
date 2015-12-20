@@ -566,64 +566,81 @@ initializeQuestionSelect(){
 				showWarning("Message","Something went wrong! please contact the Admin!");
 				return;
 			}
-		quesnir_ques_reln_query="select RelationshipID from AentReln where AentReln.uuid="+current_questionnaire_id+" "+
-				"and RelationshipID in "+
-				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
-					"(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and Question') "+
-				"and latestNonDeletedRelationship.Deleted IS NULL)";
+		quesnir_ques_reln_query="select uuid from latestNonDeletedArchEntIdentifiers "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+		"and measure='"+current_questionnaire_id+"' ";
+
+		quesListRelnOrigin.clear();
+
 		fetchAll(quesnir_ques_reln_query, new FetchCallback() {
 	        onFetch(result) {
-	        	quesListRelnOrigin.clear();
-	        	quesListRelnOrigin.addAll(result);
+	        	if(!isNull(result)){
+	        		quesListRelnOrigin.addAll(result);
+
+	        		for(reln:quesListRelnOrigin){
+	        			String relnId=reln.get(0);
+
+						loadQuesOrderQuery="select measure from latestNonDeletedAentValue "+
+							"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesOrderLocal') "+
+							"and uuid='"+relnId+"'";
+
+						fetchOne(loadQuesOrderQuery,new FetchCallback() {
+							onFetch(orderResult) {
+								if (!isNull(orderResult)) {
+									tempQuesOrder=new ArrayList();
+									tempQuesOrder.addAll(orderResult);
+									String tempQuesOrderNum=tempQuesOrder.get(0);
+
+										loadQuesContentQuery="select uuid,measure from latestNonDeletedAentValue "+
+					                		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
+					                		"and uuid=(select measure from latestNonDeletedAentValue where AttributeID="+
+					                			"(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+					                			"and uuid='"+relnId+"')";
+
+										fetchOne(loadQuesContentQuery,new FetchCallback() {
+										onFetch(quesResult) {
+											if (!isNull(quesResult)) {
+												tempQues=new ArrayList();
+												tempQues.addAll(quesResult);
+												tempPopulateQuestionList.addAll(quesResult);
+												String tempQuesContent=tempQues.get(1);
+												tempQuesContent=tempQuesOrderNum+"-"+tempQuesContent;	
+												tempQues.set(1,tempQuesContent);
+												questionSelected.add(tempQues);
+												questionOriginal.add(tempQues);
+												populateRadioGroup("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
+												}
+											else{
+													showWarning("Out-of-date Data","Some questions may not be using anymore\n"+"Please contact the admin for further information");
+												}
+										}
+													       
+										onError(message) {
+											showToast(message);
+											}
+										});	
+									}
+								else{
+										showWarning("Out-of-date Data","Some questions may not be using anymore\n"+"Please contact the admin for further information");
+									}
+							}
+										       
+							onError(message) {
+								showToast(message);
+								}
+							});	
+					}	
+				}		
+	        	else{
+	        		populateRadioGroup("questionnaire_question/questionnaire_question_info/questionInQuestionnaire",questionSelected);
+					showWarning("Out-of-date Data","Some questions in this questionnaire may not be using anymore\n"+"Please contact the admin for further information");
+	        	}
 	        }
 
 	        onError(message) {
 	            showToast(message);
 	        }
 	    });
-		questionnaire_question_query="select uuid,measure from latestNonDeletedAentValue "+ 
-				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
-				"and uuid in "+
-	 			"(select uuid from AentReln where RelationshipID in "+
-				"(select RelationshipID from AEntReln where AEntReln.uuid="+current_questionnaire_id+" "+
-	 			"AND RelationshipID in "+
-				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
-	 			"(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and Question') "+
-				"and latestNonDeletedRelationship.Deleted IS NULL))) group by uuid";
-		/*
-		questionnaire_question_query="SELECT uuid, measure "+
-		"from latestNonDeletedAentValue "+
-		"where latestNonDeletedAentValue.AttributeID in "+
-		"(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
-		"and uuid in "+
-		"(select AEntReln.uuid from AEntReln where AEntReln.uuid<>"+current_questionnaire_id+" "+
-		"and AEntReln.RelationshipID IN "+
-		"(select  relationshipID from AEntReln aer "+
-		"inner join "+
-		"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+current_questionnaire_id+") tm "+
-		"on aer.AentRelnTimestamp=tm.maxtime group by relationshipID)) "+
-		"group by uuid;";
-		*/
-			fetchAll(questionnaire_question_query,
-				new FetchCallback() {
-			//showWarning("fetched corresponding questions",current_questionnaire_id);
-					onFetch(result) {
-						if (!isNull(result)) {
-				//showWarning("fetched result is not null",current_questionnaire_id);
-							questionSelected.addAll(result);
-							questionOriginal.addAll(result);
-							//showWarning("questionSelected",questionSelected.size());
-							//showWarning("questionOriginal",questionOriginal.size());
-							
-							populateList("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
-						}
-					}
-			       
-				onError(message) {
-					showToast(message);
-				}
-				});
-			
 
 			fetchAll(loadAllQuestionQuery,
 				new FetchCallback() {
@@ -633,8 +650,8 @@ initializeQuestionSelect(){
 						//showWarning("changing questionnaire",finished_questionnaire_id);
 						questionCandidates.addAll(result);
 						questionCandidatesContent.addAll(result);
-					questionCandidatesContent.removeAll(questionSelected);
-					populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+						questionCandidatesContent.removeAll(tempPopulateQuestionList);
+						populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
 					}
 			
 				}
