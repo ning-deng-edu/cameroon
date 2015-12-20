@@ -496,7 +496,7 @@ duplicateQuesnirTypeCheck(String qtypeName){
 */
 //preparation for the question selection
 startQuestionSelection(){   
-	/*
+	
     if((isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireName")))||(isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireID")))) {
             showWarning("Validation Error", "You must fill in the Questionnaire ID/Name before you can continue");
             return;
@@ -510,8 +510,8 @@ startQuestionSelection(){
 			questionnaireInfoNew.add(getFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid"));
             showTabGroup("questionnaire_question");
         }
-        */
-     showTabGroup("questionnaire_question");
+        
+     //showTabGroup("questionnaire_question");
 }
 
 
@@ -683,10 +683,7 @@ initializeQuestionSelect(){
 				    showToast(message);
 				}
 				});	
-		
 		}
-
-	
 }
 
 			
@@ -1015,59 +1012,94 @@ finishChangeQuestionnaire(){
 		//showWarning("questionListChanges","questionListChanges done");
 		if (!isNull(questionnaireInfoOriginal)){//change from the list
 			Hashtable questionnaireInfoChanges=listChange(questionnaireInfoNew,questionnaireInfoOriginal);
-		//showWarning("questionnaireInfoChanges","questionnaireInfoChanges done");
-		if(questionnaireInfoChanges.containsKey("EQUAL")){		//No basic info has been changed
-			if(questionListChanges.containsKey("EQUAL")){
+			//case 1: no data changed
+			if((questionnaireInfoChanges.containsKey("EQUAL"))&&(questionListChanges.containsKey("EQUAL"))){
 				showWarning("Questionnaire Modification","No data is changed");
 				return;
 			}
-			else{			
-				//showWarning("questionnaire()",finished_questionnaire_id);
-				//showWarning("basic info not changed (else)","not changed basic info");
-				for (questionDel : quesListRelnOrigin){
-					//showWarning("basic info not changed",question.get(0).toString());
-					deleteRel(questionDel.get(0));
-					}
-				for (question : questionSelected){
-					//showWarning("basic info not changed",question.get(0).toString());
-					//showWarning("question()",question.get(0));
-					saveEntitiesToRel("Questionnaire and Question",finished_questionnaire_id,question.get(0));
-					}
-				showToast("Questions in this questionnaire are changed");
-				cancelTabGroup("questionnaire_question",true);
-				cancelTabGroup("questionnaire",true);
-				showTab("control/questionnaire_control");
-				//showWarning("Attention!","Questions in quesitonnaire are not changeable, please create a new questionnaire!");
-				}
-		}
-		else{//basic info is changed
-			saveTabGroup("questionnaire", finished_questionnaire_id, null, null, new SaveCallback() {
-			//showWarning("saveTabGroup()","started");
-			onSave(uuid, newRecord) {
-				for (questionDel : quesListRelnOrigin){
-					//showWarning("basic info not changed",question.get(0).toString());
-					deleteRel(questionDel.get(0));
-					}
-				for (question : questionSelected){
-					//showWarning("basic info changed (else)",question.get(0).toString());
-					saveEntitiesToRel("Questionnaire and Question",finished_questionnaire_id,question.get(0));
-				}
-				for (quesTypeDel : quesnirTypeRelnOrigin){
-					//showWarning("basic info not changed",question.get(0).toString());
-						deleteRel(quesTypeDel.get(0));
-					}
-				saveEntitiesToRel("Questionnaire and QuesnirType",finished_questionnaire_id,quesnirTypeUuid);
+			//case 2: basic info changed, question list info does not change
+			else if ((!questionnaireInfoChanges.containsKey("EQUAL"))&&(questionListChanges.containsKey("EQUAL"))){
+				saveTabGroup("questionnaire", finished_questionnaire_id, null, null, new SaveCallback() {
+				//showWarning("saveTabGroup()","started");
+				onSave(uuid, newRecord) {
+					for (quesTypeDel : quesnirTypeRelnOrigin){
+							deleteRel(quesTypeDel.get(0));
+						}
+					saveEntitiesToRel("Questionnaire and QuesnirType",finished_questionnaire_id,quesnirTypeUuid);
 
-				showToast("Questionnaire data is changed");
+					showToast("Questionnaire data is changed");
+					cancelTabGroup("questionnaire_question",true);
+					cancelTabGroup("questionnaire",true);
+					showTab("control/questionnaire_control");
+				}
+				onError(message) {
+					showWarning("error",message);
+					}  
+				});
+
+			}
+			//case 3: basic info does not change, question list info changed
+			else if((questionnaireInfoChanges.containsKey("EQUAL"))&&(!questionListChanges.containsKey("EQUAL"))){
+				//First delete old relns
+				for (oldReln:quesListRelnOrigin){
+					String oldRelnId=oldReln.get(0);
+					deleteArchEnt(oldRelnId);
+				}
+				//Then add new relns
+				for (question : questionSelected){
+					String quesInQuesnirID=question.get(0);
+					String quesContnt=question.get(1);
+					String quesOrderNum=quesContnt.substring(0,quesContnt.indexOf("-"));
+					quesOrderAttributes= createAttributeList();
+					quesOrderAttributes.add(createEntityAttribute("QuesnirID", null, null, finished_questionnaire_id, null));
+					quesOrderAttributes.add(createEntityAttribute("QuesID", null, null,quesInQuesnirID, null));
+					quesOrderAttributes.add(createEntityAttribute("QuesOrderLocal", null, null, quesOrderNum, null));
+					saveArchEnt(null, "QuesnirQuesOrder", null, quesOrderAttributes);
+			//showWarning("savedrel()",question.get(0).toString());
+				}
+				showToast("question list data is changed");
 				cancelTabGroup("questionnaire_question",true);
 				cancelTabGroup("questionnaire",true);
 				showTab("control/questionnaire_control");
 			}
-			onError(message) {
-				showWarning("error",message);
-				}  
-			});
-			
+			//case 4: both basic info and question list changed
+			else{
+				saveTabGroup("questionnaire", finished_questionnaire_id, null, null, new SaveCallback() {
+				//showWarning("saveTabGroup()","started");
+				onSave(uuid, newRecord) {
+					for (quesTypeDel : quesnirTypeRelnOrigin){
+							deleteRel(quesTypeDel.get(0));
+						}
+					saveEntitiesToRel("Questionnaire and QuesnirType",finished_questionnaire_id,quesnirTypeUuid);
+					for (oldReln:quesListRelnOrigin){
+						String oldRelnId=oldReln.get(0);
+						deleteArchEnt(oldRelnId);
+					}
+					//Then add new relns
+					for (question : questionSelected){
+						//showWarning("question()",question.get(0).toString());
+						//saveEntitiesToRel("Questionnaire and Question",finished_questionnaire_id,question.get(0));
+						String quesInQuesnirID=question.get(0);
+						String quesContnt=question.get(1);
+						String quesOrderNum=quesContnt.substring(0,quesContnt.indexOf("-"));
+						quesOrderAttributes= createAttributeList();
+						quesOrderAttributes.add(createEntityAttribute("QuesnirID", null, null, finished_questionnaire_id, null));
+						quesOrderAttributes.add(createEntityAttribute("QuesID", null, null,quesInQuesnirID, null));
+						quesOrderAttributes.add(createEntityAttribute("QuesOrderLocal", null, null, quesOrderNum, null));
+						saveArchEnt(null, "QuesnirQuesOrder", null, quesOrderAttributes);
+				//showWarning("savedrel()",question.get(0).toString());
+					}
+
+					showToast("Data is changed");
+					cancelTabGroup("questionnaire_question",true);
+					cancelTabGroup("questionnaire",true);
+					showTab("control/questionnaire_control");
+				}
+				onError(message) {
+					showWarning("error",message);
+					}  
+				});
+
 			}
 		}
 		else{
