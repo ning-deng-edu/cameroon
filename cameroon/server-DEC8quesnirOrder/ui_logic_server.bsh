@@ -242,7 +242,9 @@ questionnaireInfoNew=new ArrayList();//Comparing whether or not the questionnair
 quesListRelnOrigin=new ArrayList();//Storing the existing reln between questions and questionnaire, used for deletion
 questionirType = new ArrayList();
 quesnirTypeRelnOrigin=new ArrayList();
-
+searchQuesType=new ArrayList();
+searchQuesType.add("candidate");
+searchQuesType.add("selected");
 //questionirType.add(new NameValuePair("{Regular}", "Regular"));
 //questionirType.add(new NameValuePair("{Introductory}", "Introductory"));
 //flag_return_questionnaire=false;
@@ -532,11 +534,14 @@ initializeQuestionSelect(){
 		questionSelected.clear();
 		questionOriginal.clear();
 		setFieldValue("questionnaire_question/questionnaire_question_info/keywordOfQuestion", "*");
+		populateDropDown("questionnaire_question/questionnaire_question_info/category",searchQuesType);
+		
 		//showWarning("All clear","clear done");
 	//the query result is an ArrayList, and each item in query result is an ArrayList too
 	if(isNull(finished_questionnaire_id)){
 		//showWarning("no id","new questionnaire");
 		populateList("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
+
 		fetchAll(loadAllQuestionQuery,
 		new FetchCallback() {
 			//showWarning("fetched",finished_questionnaire_id);
