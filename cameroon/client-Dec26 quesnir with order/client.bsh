@@ -653,7 +653,7 @@ checkRolesInSession(){
 }
 
 showQuestionnaireList(){
-	/*
+
 	sssRoleInfo=checkRolesInSession();
 	if(!sssRoleInfo.contains("consultant")){
 		showWarning("No consultant","No consultant selected, please add consultant");
@@ -665,7 +665,7 @@ showQuestionnaireList(){
 			return;
 		}
 	}
-	*/
+
 	survey_id=null;
 	current_quesnir_id=null;
 	current_question_id=null;
