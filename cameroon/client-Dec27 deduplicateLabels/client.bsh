@@ -1761,41 +1761,6 @@ newFile(String typeFlag){
 				break;
 			}
 		break;
-
-		case "file":
-			fileCategory=getFieldValue("control/file_control/fileCategorySelect");
-			answerFile=false;
-			file_id=null;
-			switch (fileCategory){
-				case "Audio":		
-					newTabGroup("audioFile");
-					setFieldValue("audioFile/audioFileInfo/audioFileID","Audio_"+username+"_"+getCurrentTime());
-					setFieldValue("audioFile/audioFileInfo/audioFileCreator",username);
-					setFieldValue("audioFile/audioFileInfo/audioFileType","Audio");
-					break;
-				case "Video":
-					newTabGroup("videoFile");
-					setFieldValue("videoFile/videoFileInfo/videoFileID","Video_"+username+"_"+getCurrentTime());
-					setFieldValue("videoFile/videoFileInfo/videoFileCreator",username);
-					setFieldValue("videoFile/videoFileInfo/videoFileType","Video");
-					break;
-				case "Photo":
-					newTabGroup("photoFile");
-					setFieldValue("photoFile/photoFileInfo/photoFileID","Photo_"+username+"_"+getCurrentTime());
-					setFieldValue("photoFile/photoFileInfo/photoFileCreator",username);
-					setFieldValue("photoFile/photoFileInfo/photoFileType","Photo");
-					break;
-				case "Other":
-					newTabGroup("sketchFile");
-					setFieldValue("sketchFile/sketchFileInfo/sketchFileID","Sketch_"+username+"_"+getCurrentTime());
-					setFieldValue("sketchFile/sketchFileInfo/sketchFileCreator",username);
-					setFieldValue("sketchFile/sketchFileInfo/sketchFileType","Sketch");
-					break;
-				default:
-					showWarning("Invalid category","Please select a valid file category");
-					break;
-			}
-		break;
 	}
 	
 }
@@ -2675,7 +2640,7 @@ language_id=getListItemValue();
 }
 /*** File ***/
 onEvent("control/file_control","show","loadFile()");
-onEvent("control/file_control/New_File","click","newFile(\"file\")");
+//onEvent("control/file_control/New_File","click","newFile(\"file\")");
 onEvent("control/file_control/fileList","click","loadAnswerFileInfo(\"fileView\")");
 file_id=null;
 fileCategory=new ArrayList();
