@@ -1034,7 +1034,8 @@ startNewAnswer(){
 	setFieldValue("survey/answerBasic/answerStartTimestamp", current_start_time);
 	setFieldValue("survey/answerBasic/answerEndTimestamp", "placeholder");
 	tempAnsLabel=ansLabelFstPart+ansLabelMidPart+ansLabelSndPart;
-	setFieldValue("survey/answerBasic/answerLabel", tempAnsLabel);
+	labelDeduplicate(tempAnsLabel,"AnswerLabel","survey/answerBasic/answerLabel");
+	//setFieldValue("survey/answerBasic/answerLabel", tempAnsLabel);
 	populateList("survey/answerFile/answerFileList",files_in_current_ques);
 	populateDropDown("survey/answerFile/file_Category",categoryTypes);
 	
