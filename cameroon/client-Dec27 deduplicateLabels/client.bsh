@@ -3602,41 +3602,64 @@ saveSession(String typeflag){
 					//change session label
 					if(sssLabelChange){
 						String tempNewSssLabel=newSssLabel;
-						//labelDeduplicate(tempNewSssLabel,"SessionID","sessionForAnswer/sssAnsBasicInfo/sssID");
-						setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",newSssLabel);
-						//showWarning("sssLabelChange",sssLabelChange.toString());
-						saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-					    	onSave(uuid, newRecord) {
-					    		if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
-					    			if(sssAnsChange.containsKey("PUREADD")){
-									sssNewAddedAns= sssAnsChange.get("PUREADD");
-									for(answer:sssNewAddedAns){
-								    	saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
-									}//for(answer:sss_answer_list)
-								}
-								else if (sssAnsChange.containsKey("PUREDELETE")){
-									sssDelAns=sssAnsChange.get("PUREDELETE");
-									for(ansDelete:sssDelAns){
-										deleteRel(ansDelete.get(0));
-								    }
+						tempDuplicateList=new ArrayList();
+						tempDuplicateList.clear();
+						int sizeOfDup=0;
+						sssDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+						"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+						"and measure like '"+tempNewSssLabel+"' or measure like '"+tempNewSssLabel+"(%)'";
+
+						fetchAll(sssDuplicateQuery,new FetchCallback() {
+							onFetch(result) {
+								if(!isNull(result)){
+									tempDuplicateList.addAll(result);
+									sizeOfDup=tempDuplicateList.size();
+									tempNewSssLabel=tempNewSssLabel+"("+sizeOfDup.toString()+")";
+									setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",tempNewSssLabel);
 								}
 								else{
-									sssAddChange=sssAnsChange.get("ADD");
-									sssDelChange=sssAnsChange.get("DELETE");
-									for(ansDelete:sssDelChange){
-										deleteRel(ansDelete.get(0));
-								    }
-								    	
-									for(answer:sssAddChange){
-									    saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
-									}//for(answer:sss_answer_list)
+									setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",tempNewSssLabel);
 								}
+								saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+						    		onSave(uuid, newRecord) {
+						    		if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
+						    			if(sssAnsChange.containsKey("PUREADD")){
+										sssNewAddedAns= sssAnsChange.get("PUREADD");
+										for(answer:sssNewAddedAns){
+									    	saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
+										}//for(answer:sss_answer_list)
+									}
+									else if (sssAnsChange.containsKey("PUREDELETE")){
+										sssDelAns=sssAnsChange.get("PUREDELETE");
+										for(ansDelete:sssDelAns){
+											deleteRel(ansDelete.get(0));
+									    }
+									}
+									else{
+										sssAddChange=sssAnsChange.get("ADD");
+										sssDelChange=sssAnsChange.get("DELETE");
+										for(ansDelete:sssDelChange){
+											deleteRel(ansDelete.get(0));
+									    }
+									    	
+										for(answer:sssAddChange){
+										    saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
+										}//for(answer:sss_answer_list)
+									}
 
-					    		}
-					    		
-					    	}//onSave(uuid, newRecord)
+						    		}
+						    		
+						    		}//onSave(uuid, newRecord)
+
+								});
+
+							}
 
 						});
+						//labelDeduplicate(tempNewSssLabel,"SessionID","sessionForAnswer/sssAnsBasicInfo/sssID");
+						//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",newSssLabel);
+						//showWarning("sssLabelChange",sssLabelChange.toString());
+						
 					}//if sssLabelChange
 					else{
 						if(sssInfoChange.containsKey("EQUAL")){
@@ -3740,7 +3763,7 @@ saveSession(String typeflag){
 						    	  		for(oldPs: sssPsInfoRelnOrigin){
 						    	  			if (toDelPsID.equals(oldPs.get(1))){
 						    	  				String toDelPsRelnID=oldPs.get(0);
-						    	  				showWarning("toDelPsRelnID",toDelPsRelnID);
+						    	  				//showWarning("toDelPsRelnID",toDelPsRelnID);
 						    	  				deleteArchEnt(toDelPsRelnID, new DeleteCallback() {
 												    onDelete(uuid) {
 												      //showWarning("Record deleted",toDelPsRelnID);
