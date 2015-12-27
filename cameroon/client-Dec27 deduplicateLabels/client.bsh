@@ -407,7 +407,9 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp",currentTime);           
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",currentDate+" 23:59:59");
     sssLabel="_"+currentPosition.get(1)+"_"+currentPosition.get(2)+"_"+currentDate;
-    setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",username+sssLabel);
+    String tempSssLabelNew=username+sssLabel;
+    labelDeduplicate(tempSssLabelNew,"SessionID","sessionForAnswer/sssAnsBasicInfo/sssID");
+    //setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",username+sssLabel);
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation",currentPosition.get(0));
     populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list); 
     populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
@@ -3200,113 +3202,133 @@ saveSession(String typeflag){
 					interviwerPrefix=interviwerPrefix+"EtAl";
 					//showWarning("interviwerPrefixEtal",interviwerPrefix);
 				}
+				String tempSssLabel=interviwerPrefix+sssLabel;
+				tempDuplicateList=new ArrayList();
+				tempDuplicateList.clear();
+				int sizeOfDup=0;
+				sssDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+				"and measure like '"+tempSssLabel+"' or measure like '"+tempSssLabel+"(%)'";
 
-				setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",interviwerPrefix+sssLabel);
-				//showWarning("labelSet",interviwerPrefix+sssLabel);
-				String endTimeAuto=getCurrentTime();
-				setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
-				String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
-				String endTimeStamp=endTimeAuto;
-				if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
-					saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-					    onSave(uuid, newRecord) {
-					    	sss_id = uuid;
-					      	if (newRecord) {
-					    	  for(answer:sss_answer_list){
-					    		  saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
-					    	  }
-					    	  //showWarning("answer","answer save done");
-					    	  //below is saving roles in Session
-					    	  for(personInSss: sssPersonRoleandNameList){
-					    	  		String psInfoId=personInSss.get(0);
-					    	  		String [] psInfoIdSplit=psInfoId.split("_");
-					    	  		sssPsRoleAttributes= createAttributeList();
-					    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionIDforPerson", null, null, sss_id, null));
-					    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, psInfoIdSplit[1], null));
-					    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, psInfoIdSplit[0], null));
-					    	  		saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
-					    	  }
-					    	  //showWarning("psInSssAll","All person role save Done");
-					    	  //below is updating answer label and file labels
-					    	  for(ans : sss_answer_list){
-					    	  	 String ansLabel=ans.get(1);
-					    	  	 String [] ansLabelSplit=ansLabel.split("_");
-					    	  	 String ansOldPs=ansLabelSplit[2];
-					    	  	 //showWarning("ansOldPs",ansOldPs);
-					    	  	 if(!ansOldPs.equals(ansConsultant)){
-					    	  	 	ansLabelSplit[2]=ansConsultant;
-					    	  	 	StringBuilder sb=new StringBuilder();
-									for (ansLabelComp : ansLabelSplit){
-										if (sb.length()>0)
-											{sb.append("_");}
-										sb.append(ansLabelComp);
-									}
+				fetchAll(sssDuplicateQuery,new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+								tempDuplicateList.addAll(result);
+								sizeOfDup=tempDuplicateList.size();
+								tempSssLabel=tempSssLabel+"("+sizeOfDup.toString()+")";
+								setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",tempSssLabel);
+							}
+							else{
+								setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",tempSssLabel);
+							}
+							//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",interviwerPrefix+sssLabel);
+							String endTimeAuto=getCurrentTime();
+							setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
+							String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+							String endTimeStamp=endTimeAuto;
+							if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+								saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+								    onSave(uuid, newRecord) {
+								    	sss_id = uuid;
+								      	if (newRecord) {
+								    	  for(answer:sss_answer_list){
+								    		  saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
+								    	  }
+								    	  //showWarning("answer","answer save done");
+								    	  //below is saving roles in Session
+								    	  for(personInSss: sssPersonRoleandNameList){
+								    	  		String psInfoId=personInSss.get(0);
+								    	  		String [] psInfoIdSplit=psInfoId.split("_");
+								    	  		sssPsRoleAttributes= createAttributeList();
+								    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionIDforPerson", null, null, sss_id, null));
+								    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, psInfoIdSplit[1], null));
+								    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, psInfoIdSplit[0], null));
+								    	  		saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
+								    	  }
+								    	  //showWarning("psInSssAll","All person role save Done");
+								    	  //below is updating answer label and file labels
+								    	  for(ans : sss_answer_list){
+								    	  	 String ansLabel=ans.get(1);
+								    	  	 String [] ansLabelSplit=ansLabel.split("_");
+								    	  	 String ansOldPs=ansLabelSplit[2];
+								    	  	 //showWarning("ansOldPs",ansOldPs);
+								    	  	 if(!ansOldPs.equals(ansConsultant)){
+								    	  	 	ansLabelSplit[2]=ansConsultant;
+								    	  	 	StringBuilder sb=new StringBuilder();
+												for (ansLabelComp : ansLabelSplit){
+													if (sb.length()>0)
+														{sb.append("_");}
+													sb.append(ansLabelComp);
+												}
 
-									String newAnsLabelSss=sb.toString();
-									//showWarning("newAnsLabelSss",newAnsLabelSss);
-									attributes = createAttributeList();
-		    						attributes.add(createEntityAttribute("AnswerLabel", null, null, newAnsLabelSss, null));
-									entityId=ans.get(0);
-									saveArchEnt(entityId, "AnswerToQuestionnaire", null, attributes, new SaveCallback() {
-		            					onSave(answerUuid,newRecord) {
-		            						//below is changing the filelabel
-		            						//showWarning("answerLabel change done",entityId+"answer label change done");
-		            						loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
-											"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileID') "+
-											"and uuid in "+
-	 										"(select uuid from AentReln where RelationshipID in "+
-											"(select RelationshipID from AEntReln where AEntReln.uuid="+entityId+" "+
-	 										"AND RelationshipID in "+
-											"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
-	 										"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
-											"and latestNonDeletedRelationship.Deleted IS NULL)))";
-											fetchAll(loadFileForAnswerQuery, new FetchCallback() {
-										        onFetch(result) {
-										        	fileListForAns=new ArrayList();
-										        	fileListForAns.clear();
-										        	fileListForAns.addAll(result);
-										        	//showWarning("answerFileFetchDone","answerFileFetchDone");
-										        	for (file: fileListForAns){
-										        		String fileEntityId=file.get(0);
-										        		String oldFileLabel=file.get(1);
-										        		String [] oldFileLabelSplit=oldFileLabel.split("_");
-										        		String oldFileLabelType=oldFileLabelSplit[oldFileLabelSplit.length-1];
-										        		//showWarning("oldFileLabelType",oldFileLabelType);
-										        		String newFileLabel=newAnsLabelSss+"_"+oldFileLabelType;
-										        		//showWarning("newFileLabel",newFileLabel);
-										        		attributesForFile = createAttributeList();
-		    											attributesForFile.add(createEntityAttribute("FileID", null, null, newFileLabel, null));
-		    											saveArchEnt(fileEntityId, "File", null, attributesForFile);
-										        	}
-										        }
+												String newAnsLabelSss=sb.toString();
+												//showWarning("newAnsLabelSss",newAnsLabelSss);
+												attributes = createAttributeList();
+					    						attributes.add(createEntityAttribute("AnswerLabel", null, null, newAnsLabelSss, null));
+												entityId=ans.get(0);
+												saveArchEnt(entityId, "AnswerToQuestionnaire", null, attributes, new SaveCallback() {
+					            					onSave(answerUuid,newRecord) {
+					            						//below is changing the filelabel
+					            						//showWarning("answerLabel change done",entityId+"answer label change done");
+					            						loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+														"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileID') "+
+														"and uuid in "+
+				 										"(select uuid from AentReln where RelationshipID in "+
+														"(select RelationshipID from AEntReln where AEntReln.uuid="+entityId+" "+
+				 										"AND RelationshipID in "+
+														"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+				 										"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
+														"and latestNonDeletedRelationship.Deleted IS NULL)))";
+														fetchAll(loadFileForAnswerQuery, new FetchCallback() {
+													        onFetch(result) {
+													        	fileListForAns=new ArrayList();
+													        	fileListForAns.clear();
+													        	fileListForAns.addAll(result);
+													        	//showWarning("answerFileFetchDone","answerFileFetchDone");
+													        	for (file: fileListForAns){
+													        		String fileEntityId=file.get(0);
+													        		String oldFileLabel=file.get(1);
+													        		String [] oldFileLabelSplit=oldFileLabel.split("_");
+													        		String oldFileLabelType=oldFileLabelSplit[oldFileLabelSplit.length-1];
+													        		//showWarning("oldFileLabelType",oldFileLabelType);
+													        		String newFileLabel=newAnsLabelSss+"_"+oldFileLabelType;
+													        		//showWarning("newFileLabel",newFileLabel);
+													        		attributesForFile = createAttributeList();
+					    											attributesForFile.add(createEntityAttribute("FileID", null, null, newFileLabel, null));
+					    											saveArchEnt(fileEntityId, "File", null, attributesForFile);
+													        	}
+													        }
 
-										        onError(message) {
-										            showToast(message);
-										        }
-										    });
-		            					}  
-		        					});    //saveArchEnt(entityId, "AnswerToQuestionnaire"
-								}//if(!ansOldPs.equals(ansConsultant))
-					    	  }// for(ans : sss_answer_list)
-					    
-					        showToast("New session contains answer(s) created");
-					        autoSaveSession("tail");
-					        //cancelTabGroup("sessionForAnswer",true);
-					        //showTab("control/survey_control");
-					      }
-					    }
-					    onError(message) {
-					        showWarning("error",message);
-					    }  
-					  });
-				}
-				else{
-					showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
-					+"2.Datetime input should be valid \n"+
-								"3.Start timestamp should be before end timestamp \n"+
-											"4.Two dates should be the same");
-						return;
-				}
+													        onError(message) {
+													            showToast(message);
+													        }
+													    });
+					            					}  
+					        						});    //saveArchEnt(entityId, "AnswerToQuestionnaire"
+												}//if(!ansOldPs.equals(ansConsultant))
+								    	  }// for(ans : sss_answer_list)
+								    
+								        showToast("New session contains answer(s) created");
+								        autoSaveSession("tail");
+								      }
+								    }
+								    onError(message) {
+								        showWarning("error",message);
+								    }  
+								  });
+							}
+							else{
+								showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
+								+"2.Datetime input should be valid \n"+
+											"3.Start timestamp should be before end timestamp \n"+
+														"4.Two dates should be the same");
+									return;
+							}
+
+						}  
+					});
+
+				
 			}//if(isNull(sss_id))
 
 			else{//Changing session Info
@@ -3579,6 +3601,8 @@ saveSession(String typeflag){
 				    //showWarning("newSssLabel",newSssLabel);
 					//change session label
 					if(sssLabelChange){
+						String tempNewSssLabel=newSssLabel;
+						//labelDeduplicate(tempNewSssLabel,"SessionID","sessionForAnswer/sssAnsBasicInfo/sssID");
 						setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",newSssLabel);
 						//showWarning("sssLabelChange",sssLabelChange.toString());
 						saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
@@ -4181,14 +4205,9 @@ labelDeduplicate(String originLabel, String attriName, String fieldRef){
 							sizeOfDup=tempDuplicateList.size();
 							originLabel=originLabel+"("+sizeOfDup.toString()+")";
 							setFieldValue(fieldRef,originLabel);
-							//showWarning("sizeOfDup",sizeOfDup.toString());
-							//return sizeOfDup;
 						}
 						else{
-							//sizeOfDup=0;
 							setFieldValue(fieldRef,originLabel);
-							//showWarning("elsesizeOfDup",sizeOfDup.toString());
-							//return sizeOfDup;
 						}
 					}  
 			});
