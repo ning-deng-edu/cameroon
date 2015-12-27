@@ -653,7 +653,6 @@ checkRolesInSession(){
 }
 
 showQuestionnaireList(){
-
 	sssRoleInfo=checkRolesInSession();
 	if(!sssRoleInfo.contains("consultant")){
 		showWarning("No consultant","No consultant selected, please add consultant");
@@ -1595,6 +1594,7 @@ saveNewAnswer(){
 				showToast("new answer created");
 				cancelTabGroup("survey", true);
 				cancelTabGroup("answerToQuestion", true);
+				autoSaveSession("head");
 			}
 		}
 		onError(message) {
@@ -2828,77 +2828,6 @@ newSession(){
 loadSessionInfo(String typeFlag){
 	switch (typeFlag){
 	case "session":
-	/*
-	session_id=getListItemValue();
-	if(isNull(session_id)){
-		showWarning("Invalid session","No session is selected or session is not available");
-		return;
-	}
-	
-	loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
-			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
-			"and uuid in "+
- 			"(select uuid from AentReln where RelationshipID in "+
-			"(select RelationshipID from AEntReln where AEntReln.uuid="+session_id+" "+
- 			"AND RelationshipID in "+
-			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
- 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
-			"and latestNonDeletedRelationship.Deleted IS NULL)))";
- 	//This query is for recording existing answer-session relationships
-	//which will later be used for delete reln when chaging the data
-	loadAnsSssRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+session_id+" "+
- 					"and RelationshipID in "+
- 					"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
- 					"and latestNonDeletedRelationship.Deleted IS NULL)";
-	
-	fetchAll(loadAnsSssRelnQuery, new FetchCallback() {
-        onFetch(result) {
-        	sessionAnswerRelnOrigin.clear();
-        	sessionAnswerRelnOrigin.addAll(result);
-        }
-        onError(message) {
-            showToast(message);
-        }
-    });
-	
-	showTabGroup("session", session_id, new FetchCallback() {
-        onFetch(result) {
-        	sessionInfoOrigin.add(getFieldValue("session/sessionBasicInfo/sessionID"));
-        	sessionInfoOrigin.add(getFieldValue("session/sessionBasicInfo/sessionName"));
-        	sessionInfoOrigin.add(getFieldValue("session/sessionBasicInfo/sessionStartTimetamp"));
-        	sessionInfoOrigin.add(getFieldValue("session/sessionBasicInfo/sessionEndTimestamp"));  
-        	fetchAll(loadAnswerForSessionQuery, new FetchCallback() {
-                onFetch(result) {
-                	selected_files_session.clear();
-                	selected_files_session.addAll(result);
-                	original_files_session.clear();
-                	original_files_session.addAll(result);
-                	checkSssQuesnirType("session");
-                	fetchAll(loadAllAnswerQuery, new FetchCallback() {
-                        onFetch(result) {
-                        	candidate_files_session.clear();
-                        	candidate_files_session.addAll(result);
-                        	candidate_files_session.removeAll(selected_files_session);
-                        	populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
-                            populateList("session/sessionFiles/sessionFileList", selected_files_session);
-                        }
-                        onError(message) {
-                            showToast(message);
-                        }
-                    });
-                }
-
-                onError(message) {
-                    showToast(message);
-                }
-            });
-        	
-            showToast("Loaded session"+result.getId());            
-        }
-        onError(message) {
-            showToast(message);
-        }
-    });*/
 	break;
 	//TODO:CHANGE THE QUERY FOR ANSWER AND SESSION RELN
 	case "answer":
@@ -3248,7 +3177,28 @@ loadSessionInterviewer(String typeflag){
 
 	}
 }
-        		
+//Boolean autoSssSave=false;
+autoSaveSession(String typeFlag){
+	switch(typeFlag){
+		case "head":
+			int listSize=sss_answer_list.size();
+			if(listSize%5==0){
+				//autoSssSave=true;
+				saveSession("answer");
+			}
+		break;
+		case "tail":
+			sssOriginInfo.clear();
+			sssOriginInfo.addAll(sssNewInfo);
+			original_sss_answer_list.clear();
+			original_sss_answer_list.addAll(sss_answer_list);
+			sssPersonRoleNameListOrigin.clear();
+			sssPersonRoleNameListOrigin.addAll(sssPersonRoleandNameList);
+		break;
+	}
+	
+}
+
 saveSession(String typeflag){
 	switch(typeflag){
 
@@ -3258,7 +3208,7 @@ saveSession(String typeflag){
 						(isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"))) || 
 						(isNull(sss_answer_list)))
 				{
-					showWarning("Incomplete Data","Please make sure that data is complete");
+					showWarning("Incomplete Data","Data can't be saved\n"+"Please make sure basic session data is complete");
 					return;
 				}
 
@@ -3382,8 +3332,9 @@ saveSession(String typeflag){
 					    	  }// for(ans : sss_answer_list)
 					    
 					        showToast("New session contains answer(s) created");
-					        cancelTabGroup("sessionForAnswer",true);
-					        showTab("control/survey_control");
+					        autoSaveSession("tail");
+					        //cancelTabGroup("sessionForAnswer",true);
+					        //showTab("control/survey_control");
 					      }
 					    }
 					    onError(message) {
@@ -3410,10 +3361,12 @@ saveSession(String typeflag){
 				}
 
 				String endTimeAuto=getCurrentTime();
+				sssNewInfo.clear();
 				sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
 				sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
 				sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
 				sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));
+				//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",);
 				Hashtable sssInfoChange=listChange(sssNewInfo,sssOriginInfo);
 				Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
 				Hashtable sssPsChange=listChange(sssPersonRoleandNameList,sssPersonRoleNameListOrigin);
@@ -3450,6 +3403,7 @@ saveSession(String typeflag){
 
 					}
 					//case 2: sssAns changed only PASS (prob: allow to add session that is not taken in the same day?)
+					//TODO:ADD time validation for new answer's time
 					else if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
 						for(ansDelete:sssAnsOrigin){
 							deleteRel(ansDelete.get(0));
@@ -3462,6 +3416,7 @@ saveSession(String typeflag){
 						showToast("Session answer data changed");
 					}
 					//case 3: both sssInfo and sssAns changed PASS
+					//TODO:ADD time validation for new answer's time
 					else{
 						String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
 						String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
@@ -3505,18 +3460,18 @@ saveSession(String typeflag){
 						Iterator itConsultant=sssConsultantList.iterator();
 						firstConsultant=itConsultant.next();
 						ansConsultant=firstConsultant;
-						showWarning("ansConsultant",ansConsultant);
+						//showWarning("ansConsultant",ansConsultant);
 
 						if(sssConsultantList.size()>1){
 							ansConsultant=ansConsultant+"EtAl";
-							showWarning("ansConsultantEtal",ansConsultant);
+							//showWarning("ansConsultantEtal",ansConsultant);
 						}
 
 						for(answer: sss_answer_list){
 					    	String ansLabel=answer.get(1);
 					    	String [] ansLabelSplit=ansLabel.split("_");
 					    	String ansOldPs=ansLabelSplit[2];
-					    	showWarning("ansOldPs",ansOldPs);
+					    	//showWarning("ansOldPs",ansOldPs);
 					    	if(!ansOldPs.equals(ansConsultant)){
 					    	  	ansLabelSplit[2]=ansConsultant;
 					    	  	StringBuilder sb=new StringBuilder();
@@ -3824,6 +3779,7 @@ saveSession(String typeflag){
 								}//if(!ansOldPs.equals(ansConsultant))
 					    	  }// for(ans : sss_answer_list)
 					showToast("Session info updated");
+					autoSaveSession("tail");
 					//cancelTabGroup("sessionForAnswer",true);
 					//showTab("control/survey_control");
 
