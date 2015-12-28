@@ -373,6 +373,7 @@ personList=new ArrayList();
 sssConsultantList=new LinkedHashSet();
 sssInterviewerList=new LinkedHashSet();
 String introPsMark=null;//use for check if an intro ps is deleted from his/her intro session
+currentPosition=new ArrayList();
 /***Starting from creating a session***/
 
 
@@ -400,9 +401,9 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	sssConsultantList.clear();
 	sssInterviewerList.clear();
 	sssPersonRoleandNameList.clear();
-	currentPosition=new ArrayList();
-	currentPosition.clear();
-	currentPosition=takePoint();
+	
+	//currentPosition.clear();
+	takePoint();
 
 	newTabGroup("sessionForAnswer");
 	String currentTime=getCurrentTime();
@@ -411,14 +412,17 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp",currentTime);           
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",currentDate+" 23:59:59");
     if (!isNull(currentPosition)){
-    	sssLabel="_"+currentPosition.get(1)+"_"+currentPosition.get(2)+"_"+currentDate;}
+    	sssLabel="_"+currentPosition.get(1)+"_"+currentPosition.get(2)+"_"+currentDate;
+    	setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation",currentPosition.get(0));
+    }
     else{
     	sssLabel="_"+"unknownLat"+"_"+"unknownLong"+"_"+currentDate;
+    	setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation","GPS not available");
     }
     String tempSssLabelNew=username+sssLabel;
     labelDeduplicate(tempSssLabelNew,"SessionID","sessionForAnswer/sssAnsBasicInfo/sssID");
     //setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",username+sssLabel);
-    setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation",currentPosition.get(0));
+    
     populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list); 
     populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
 
@@ -2699,31 +2703,32 @@ sessionLabel=null;
 
 /***session position***/
 takePoint() {
-
+	currentPosition.clear();
     Object position = getGPSPosition();
+    //showWarning("tempTest","position");
 
-    if (position == null) {
-        showWarning("Warning","{GPS_Not_Initialised}");
-        return null;
+    if (position != null ) {
+        latitude = position.getLatitude();
+        //showWarning("latitude","latitude");
+        longitude = position.getLongitude();
+        //showWarning("longitude","longitude"); 
+        //ArrayList currentPosition=new ArrayList();
+	    String latitudeString=latitude.toString();
+	    String longitudeString=longitude.toString();
+	    String currentPositionLong="lat:"+latitudeString+"long:"+longitudeString;
+	    String latitudeShort=latitudeString.substring(0,6);
+	    String longitudeShort=longitudeString.substring(0,6);
+	    currentPosition.clear();
+	    currentPosition.add(currentPositionLong);
+	    currentPosition.add(latitudeShort);
+	    currentPosition.add(longitudeShort);
+	    //return currentPosition;
+
+    } else {
+        showToast("GPS Not initialized");
+        //return null;
     }
-    //Object projPosition = getGPSPositionProjected();
-    Double latitude = position.getLatitude();
-    Double longitude = position.getLongitude();
-
-    //String northing = projPosition.getLatitude();
-    //String easting = projPosition.getLongitude();
-    ArrayList currentPosition=new ArrayList();
-    String latitudeString=latitude.toString();
-    String longitudeString=longitude.toString();
-    String currentPositionLong="lat:"+latitudeString+"long:"+longitudeString;
-    String latitudeShort=latitudeString.substring(0,6);
-    String longitudeShort=longitudeString.substring(0,6);
-    
-    currentPosition.add(currentPositionLong);
-    currentPosition.add(latitudeShort);
-    currentPosition.add(longitudeShort);
-    //showWarning("currentPosition",currentPosition);
-    return currentPosition;
+    //return null;
 }
 
 showSession(){
