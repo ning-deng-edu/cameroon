@@ -234,6 +234,7 @@ addActionBarItem("external_gps", new ToggleActionButtonCallback() {
         updateGPSStatus();
     }
 });
+
 startInternalGPS();
 onSyncEvent("onSyncStart()", "onSyncSuccess()", "onSyncFailure()");
 
@@ -399,14 +400,21 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	sssConsultantList.clear();
 	sssInterviewerList.clear();
 	sssPersonRoleandNameList.clear();
-	ArrayList currentPosition=takePoint();
+	currentPosition=new ArrayList();
+	currentPosition.clear();
+	currentPosition=takePoint();
+
 	newTabGroup("sessionForAnswer");
 	String currentTime=getCurrentTime();
     currentDateTimeArray=currentTime.toString().split("\\s+");
     String currentDate=currentDateTimeArray[0];
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp",currentTime);           
     setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",currentDate+" 23:59:59");
-    sssLabel="_"+currentPosition.get(1)+"_"+currentPosition.get(2)+"_"+currentDate;
+    if (!isNull(currentPosition)){
+    	sssLabel="_"+currentPosition.get(1)+"_"+currentPosition.get(2)+"_"+currentDate;}
+    else{
+    	sssLabel="_"+"unknownLat"+"_"+"unknownLong"+"_"+currentDate;
+    }
     String tempSssLabelNew=username+sssLabel;
     labelDeduplicate(tempSssLabelNew,"SessionID","sessionForAnswer/sssAnsBasicInfo/sssID");
     //setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",username+sssLabel);
@@ -433,8 +441,9 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 								introPs.add(psRole.get(1)+"_"+newPersonForIntro.get(0).get(1));
 								sssPersonRoleandNameList.add(introPs);
 								populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList); 
+								break;
 							}
-							break;
+							
 						}
 					}
 					fetchAll(loadAllPersonQuery,new FetchCallback() {
