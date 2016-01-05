@@ -401,6 +401,9 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	sssConsultantList.clear();
 	sssInterviewerList.clear();
 	sssPersonRoleandNameList.clear();
+	sssOldPsReln.clear();
+	sssOldCoslReln.clear();
+	sssOldIntvReln.clear();
 	
 	//currentPosition.clear();
 	takePoint();
@@ -2754,55 +2757,11 @@ loadSessionList(String typeflag){
         }
     });
 }
-/*
-newSession(){
-	session_id=null;
-	sessionLabel=null;
-	selected_files_session.clear();
-	candidate_files_session.clear();
-	original_files_session.clear();
-	sessionInfoOrigin.clear();
-	sessionInfoNew.clear();
-	sessionAnswerRelnOrigin.clear();
-	currentDateTimeArray=new ArrayList();
-	 //showWarning("clear","clear done");
-	ArrayList current_position=takePoint();
-
-	//showWarning("current_position",current_position);
-	newTabGroup("session");
-	fetchAll(loadAllAnswerQuery, new FetchCallback() {
-        onFetch(result) {
-        	candidate_files_session.addAll(result);
-        	String currentTime=getCurrentTime();
-            currentDateTimeArray=currentTime.toString().split("\\s+");
-            String currentDate=currentDateTimeArray[0];
-            String sssLabelTemp=null;
-            if(isNull(current_position)){
-            	sssLabelTemp=username+"_uncertainPlace_"+currentDate;
-            	sessionLabel="_uncertainPlace_"+currentDate;
-        	}
-            else{
-            	sssLabelTemp=username+"_"+current_position.get(1)+"_"+current_position.get(2)+"_"+currentDate;
-            	sessionLabel="_"+current_position.get(1)+"_"+current_position.get(2)+"_"+currentDate;
-            }
-            populateList("session/sessionFiles/sessionFileSelectionList", candidate_files_session);
-            populateList("session/sessionFiles/sessionFileList", selected_files_session);
-            setFieldValue("session/sessionBasicInfo/sessionStartTimetamp",currentDate+" 00:00:00");           
-            setFieldValue("session/sessionBasicInfo/sessionEndTimestamp",currentDate+" 23:59:59");
-            setFieldValue("session/sessionBasicInfo/sessionID",sssLabelTemp);
-            setFieldValue("session/sessionBasicInfo/sessionLocation",current_position.get(0));
-        }
-
-        onError(message) {
-            showToast(message);
-        }
-    });
-}
-*/
+sssOldIntvReln=new ArrayList();
+sssOldCoslReln=new ArrayList();
+sssOldPsReln=new ArrayList();
 loadSessionInfo(String typeFlag){
 	switch (typeFlag){
-	case "session":
-	break;
 	//TODO:CHANGE THE QUERY FOR ANSWER AND SESSION RELN
 	case "answer":
 		sss_id=getListItemValue();
@@ -2830,6 +2789,20 @@ loadSessionInfo(String typeFlag){
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
 		"and measure='"+sss_id+"' ";
 
+		loadSssConslRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+sss_id+" "+
+	 					"and RelationshipID in "+
+	 					"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Consultant') "+
+	 					"and latestNonDeletedRelationship.Deleted IS NULL)";
+
+		loadSssIntvRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+sss_id+" "+
+	 					"and RelationshipID in "+
+	 					"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Interviewer') "+
+	 					"and latestNonDeletedRelationship.Deleted IS NULL)";
+		loadSssPsRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+sss_id+" "+
+	 					"and RelationshipID in "+
+	 					"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Person') "+
+	 					"and latestNonDeletedRelationship.Deleted IS NULL)";
+
 
 
 		fetchAll(loadAnsSssRelnQuery, new FetchCallback() {
@@ -2841,7 +2814,33 @@ loadSessionInfo(String typeFlag){
 	            showToast(message);
 	        }
 	    });
-		
+		fetchAll(loadSssConslRelnQuery, new FetchCallback() {
+	        onFetch(result) {
+	        	sssOldCoslReln.clear();
+	        	sssOldCoslReln.addAll(result);
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+	    fetchAll(loadSssIntvRelnQuery, new FetchCallback() {
+	        onFetch(result) {
+	        	sssOldIntvReln.clear();
+	        	sssOldIntvReln.addAll(result);
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+	    fetchAll(loadSssPsRelnQuery, new FetchCallback() {
+	        onFetch(result) {
+	        	sssOldPsReln.clear();
+	        	sssOldPsReln.addAll(result);
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
 		showTabGroup("sessionForAnswer", sss_id, new FetchCallback() {
 	        onFetch(result) {
 	        	sssLabelOld=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID");
