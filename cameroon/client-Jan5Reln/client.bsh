@@ -2779,11 +2779,12 @@ loadSessionInfo(String typeFlag){
 				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
 	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
 				"and latestNonDeletedRelationship.Deleted IS NULL)))";
-	 	
+	 	/*
 		loadAnsSssRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+sss_id+" "+
 	 					"and RelationshipID in "+
 	 					"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
 	 					"and latestNonDeletedRelationship.Deleted IS NULL)";
+	 					*/
 		//Query out the reln id of person and person roles in a session
 		loadSssPersonRelnQuery="select uuid from latestNonDeletedArchEntIdentifiers "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
@@ -2804,7 +2805,7 @@ loadSessionInfo(String typeFlag){
 	 					"and latestNonDeletedRelationship.Deleted IS NULL)";
 
 
-
+	/*
 		fetchAll(loadAnsSssRelnQuery, new FetchCallback() {
 	        onFetch(result) {
 	        	sssAnsOrigin.clear();
@@ -2814,6 +2815,7 @@ loadSessionInfo(String typeFlag){
 	            showToast(message);
 	        }
 	    });
+	    */
 		fetchAll(loadSssConslRelnQuery, new FetchCallback() {
 	        onFetch(result) {
 	        	sssOldCoslReln.clear();
@@ -3776,17 +3778,39 @@ saveSession(String typeflag){
 					//below is answer and answer file label change
 					//showWarning("BEGIN ANSWER LABEL CHANGE","BEGIN ANSWER LABEL CHANGE");
 					//below is changing role info
+								tempCostntID=null;
+								tempIntverID=null;
+								for (tempRoleID:personRoleList){
+								   	if (tempRoleID.get(1).equals("consultant")){
+								    	  	tempCostntID=tempRoleID.get(0);
+								    	}
+								    else if(tempRoleID.get(1).equals("interviewer")){
+								    	  	tempIntverID=tempRoleID.get(0);
+								    	}
+								}
+
 					    		if (sssPsChange.containsKey("PUREADD")){
 					    			//showWarning("PUREADD","PUREADD");
 					    			sssNewAddedPs=sssPsChange.get("PUREADD");
 					    			for(personInSss: sssNewAddedPs){
 						    	  		String psInfoId=personInSss.get(0);
 						    	  		String [] psInfoIdSplit=psInfoId.split("_");
+						    	  		tempPsRoleID=psInfoIdSplit[0];
+						    	  		tempPsID=psInfoIdSplit[1];
 						    	  		sssPsRoleAttributes= createAttributeList();
 						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionIDforPerson", null, null, sss_id, null));
-						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, psInfoIdSplit[1], null));
-						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, psInfoIdSplit[0], null));
+						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, tempPsID, null));
+						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, tempPsRoleID, null));
 						    	  		saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
+						    	  		if(tempPsRoleID.equals(tempCostntID)){
+								    	  	saveEntitiesToRel("Session and Consultant",sss_id,tempPsID);
+								    	}
+								    	else if(tempPsRoleID.equals(tempIntverID)){
+								    	  	saveEntitiesToRel("Session and Interviewer",sss_id,tempPsID);
+								    	}
+								    	else{
+								    	  	saveEntitiesToRel("Session and Person",sss_id,tempPsID);
+								    	}	
 						    	  	}
 						    	  	//showWarning("PUREADD changing role info","PUREADD changing role info");
 
