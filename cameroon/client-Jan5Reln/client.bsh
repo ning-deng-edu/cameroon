@@ -2790,20 +2790,24 @@ loadSessionInfo(String typeFlag){
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
 		"and measure='"+sss_id+"' ";
 
-		loadSssConslRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+sss_id+" "+
-	 					"and RelationshipID in "+
-	 					"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Consultant') "+
-	 					"and latestNonDeletedRelationship.Deleted IS NULL)";
+		loadSssConslRelnQuery="select RelationshipID, uuid from latestNonDeletedAentReln where uuid <>'"+sss_id+"' "+
+		"and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='"+sss_id+
+			"' and RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Consultant') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL))";
 
-		loadSssIntvRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+sss_id+" "+
-	 					"and RelationshipID in "+
-	 					"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Interviewer') "+
-	 					"and latestNonDeletedRelationship.Deleted IS NULL)";
-		loadSssPsRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+sss_id+" "+
-	 					"and RelationshipID in "+
-	 					"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Person') "+
-	 					"and latestNonDeletedRelationship.Deleted IS NULL)";
+		loadSssIntvRelnQuery="select RelationshipID, uuid from latestNonDeletedAentReln where uuid <>'"+sss_id+"' "+
+		"and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='"+sss_id+
+			"' and RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Interviewer') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL))";
 
+
+		loadSssPsRelnQuery="select RelationshipID, uuid from latestNonDeletedAentReln where uuid <>'"+sss_id+"' "+
+		"and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='"+sss_id+
+			"' and RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Person') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL))";
 
 	/*
 		fetchAll(loadAnsSssRelnQuery, new FetchCallback() {
@@ -3820,18 +3824,44 @@ saveSession(String typeflag){
 					    			sssNewDelPs=sssPsChange.get("PUREDELETE");
 					    			for(personInSss: sssNewDelPs){
 						    	  		String toDelPsID=personInSss.get(0);
+						    	  		String [] psInfoIdSplit=toDelPsID.split("_");
+						    	  		tempPsRoleID=psInfoIdSplit[0];
+						    	  		tempPsID=psInfoIdSplit[1];
+						    	  		//delete person info and sessionPerson table
 						    	  		for(oldPs: sssPsInfoRelnOrigin){
 						    	  			if (toDelPsID.equals(oldPs.get(1))){
 						    	  				String toDelPsRelnID=oldPs.get(0);
 						    	  				//showWarning("toDelPsRelnID",toDelPsRelnID);
-						    	  				deleteArchEnt(toDelPsRelnID, new DeleteCallback() {
-												    onDelete(uuid) {
-												      //showWarning("Record deleted",toDelPsRelnID);
-												    }
-												  });
+						    	  				deleteArchEnt(toDelPsRelnID);
 						    	  				//deleteArchEnt(toDelPsRelnID);
 						    	  			}
 						    	  		}
+						    	  		if(tempPsRoleID.equals(tempCostntID)){
+								    	  	for(toDelConsul:sssOldCoslReln){
+								    	  		String oldConsulID=toDelConsul.get(1);
+								    	  		if(oldConsulID.equals(tempPsID)){
+								    	  			deleteRel(toDelConsul.get(0));
+								    	  		}
+								    	  	}
+								    	}
+								    	else if(tempPsRoleID.equals(tempIntverID)){
+								    	  	for(toDelConsul:sssOldIntvReln){
+								    	  		String oldConsulID=toDelConsul.get(1);
+								    	  		if(oldConsulID.equals(tempPsID)){
+								    	  			deleteRel(toDelConsul.get(0));
+								    	  		}
+								    	  	}
+								    	}
+								    	else{
+								    	  	for(toDelConsul:sssOldPsReln){
+								    	  		String oldConsulID=toDelConsul.get(1);
+								    	  		if(oldConsulID.equals(tempPsID)){
+								    	  			deleteRel(toDelConsul.get(0));
+								    	  		}
+								    	  	}
+								    	}	
+						    	  		
+
 						    	  	}
 						    	  	//showWarning("PUREDELETE changing role info","PUREDELETE changing role info");
 
@@ -3841,23 +3871,62 @@ saveSession(String typeflag){
 						    	  	sssToDelPs=sssPsChange.get("DELETE");
 						    	  	for(personInSss: sssToDelPs){
 						    	  		String toDelPsID=personInSss.get(0);
+						    	  		String [] psInfoIdSplit=toDelPsID.split("_");
+						    	  		tempPsRoleID=psInfoIdSplit[0];
+						    	  		tempPsID=psInfoIdSplit[1];
+
 						    	  		for(oldPs: sssPsInfoRelnOrigin){
 						    	  			if (toDelPsID.equals(oldPs.get(1))){
 						    	  				String toDelPsRelnID=oldPs.get(0);
 						    	  				deleteArchEnt(toDelPsRelnID);
 						    	  			}
 						    	  		}
+						    	  		if(tempPsRoleID.equals(tempCostntID)){
+								    	  	for(toDelConsul:sssOldCoslReln){
+								    	  		String oldConsulID=toDelConsul.get(1);
+								    	  		if(oldConsulID.equals(tempPsID)){
+								    	  			deleteRel(toDelConsul.get(0));
+								    	  		}
+								    	  	}
+								    	}
+								    	else if(tempPsRoleID.equals(tempIntverID)){
+								    	  	for(toDelConsul:sssOldIntvReln){
+								    	  		String oldConsulID=toDelConsul.get(1);
+								    	  		if(oldConsulID.equals(tempPsID)){
+								    	  			deleteRel(toDelConsul.get(0));
+								    	  		}
+								    	  	}
+								    	}
+								    	else{
+								    	  	for(toDelConsul:sssOldPsReln){
+								    	  		String oldConsulID=toDelConsul.get(1);
+								    	  		if(oldConsulID.equals(tempPsID)){
+								    	  			deleteRel(toDelConsul.get(0));
+								    	  		}
+								    	  	}
+								    	}	
 						    	  	}
 					    			sssToAddPs=sssPsChange.get("ADD");
 					    			//showWarning("ADD","ADD");
 					    			for(personInSss: sssToAddPs){
 						    	  		String psInfoId=personInSss.get(0);
 						    	  		String [] psInfoIdSplit=psInfoId.split("_");
+						    	  		tempPsRoleID=psInfoIdSplit[0];
+						    	  		tempPsID=psInfoIdSplit[1];
 						    	  		sssPsRoleAttributes= createAttributeList();
 						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionIDforPerson", null, null, sss_id, null));
-						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, psInfoIdSplit[1], null));
-						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, psInfoIdSplit[0], null));
+						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, tempPsID, null));
+						    	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, tempPsRoleID, null));
 						    	  		saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
+						    	  		if(tempPsRoleID.equals(tempCostntID)){
+								    	  	saveEntitiesToRel("Session and Consultant",sss_id,tempPsID);
+								    	}
+								    	else if(tempPsRoleID.equals(tempIntverID)){
+								    	  	saveEntitiesToRel("Session and Interviewer",sss_id,tempPsID);
+								    	}
+								    	else{
+								    	  	saveEntitiesToRel("Session and Person",sss_id,tempPsID);
+								    	}	
 						    	  	}
 									
 						    	  	//showWarning("ADD+DELETE","ADD+DELETE");
