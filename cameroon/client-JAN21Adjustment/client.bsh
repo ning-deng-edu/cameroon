@@ -423,7 +423,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
     	setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation","GPS not available");
     }
     String tempSssLabelNew=username+sssLabel;
-    labelDeduplicate(tempSssLabelNew,"SessionID","sessionForAnswer/sssAnsBasicInfo/sssID","Session");
+    labelDeduplicate(tempSssLabelNew,"SessionID","sessionForAnswer/sssAnsBasicInfo/sssID",null);
     //setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",username+sssLabel);
     
     populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list); 
@@ -1001,6 +1001,11 @@ ansLabelSndPart=null;//Date of interview
 
 tempAnsLabel=null;//tempAnsLabel, for trigger of changing answer label
 file_and_fileType=new ArrayList();//Keep track of file types, used for changing file labels
+//when the second answer/file with a duplicated label is added, change the first record to have the suffix (1)
+Boolean dupAnsLblChange=false;
+dupAnsLblInfo=new ArrayList();
+Boolean dupFileLblChange=false;
+dupFileLblInfo=new ArrayList();
 
 startNewAnswer(){
 
@@ -1031,6 +1036,11 @@ startNewAnswer(){
 	ansLabelMidPart=null;
 	tempAnsLabel=null;
 	
+	dupAnsLblChange=false;
+	dupFileLblChange=false;
+	dupAnsLblInfo.clear();
+	dupFileLblInfo.clear();
+
     currentDateTimeArray=current_start_time.toString().split("\\s+");
     String currentDate=currentDateTimeArray[0];
    
@@ -1052,7 +1062,7 @@ startNewAnswer(){
 	setFieldValue("survey/answerBasic/answerStartTimestamp", current_start_time);
 	setFieldValue("survey/answerBasic/answerEndTimestamp", "placeholder");
 	tempAnsLabel=ansLabelFstPart+ansLabelMidPart+ansLabelSndPart;
-	labelDeduplicate(tempAnsLabel,"AnswerLabel","survey/answerBasic/answerLabel","AnswerToQuestionnaire");
+	labelDeduplicate(tempAnsLabel,"AnswerLabel","survey/answerBasic/answerLabel","answer");
 	//setFieldValue("survey/answerBasic/answerLabel", tempAnsLabel);
 	populateList("survey/answerFile/answerFileList",files_in_current_ques);
 	populateDropDown("survey/answerFile/file_Category",categoryTypes);
@@ -1592,6 +1602,21 @@ saveNewAnswer(){
 				sss_answer_list.add(newAnswer);
 				//showWarning("sss_answer_list",sss_answer_list.size().toString());
 				populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+				//showWarning("dupAnsLblChange",dupAnsLblChange.toString());
+				if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
+					//showWarning("dupAnsLblChange",dupAnsLblChange.toString());
+					newLabel=dupAnsLblInfo.get(1);
+					//showWarning("newLabel",newLabel);
+					ansEntityId=dupAnsLblInfo.get(0);
+					//showWarning("dupAnsLblInfo",ansEntityId);
+					attributes = createAttributeList();
+					attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
+					//showWarning("attributes","attributes");
+					saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
+					//showWarning("saveArchEnt","saveArchEnt");
+					dupAnsLblChange=false;
+					dupAnsLblInfo.clear();
+				}
 				//showWarning("populateList","populateList done");
 				showToast("new answer created");
 				cancelTabGroup("survey", true);
@@ -1660,40 +1685,6 @@ saveNewAnswer(){
 
 }
 
-interviewerChangeNewSession(){
-	for(interviewerDelete:ansInterviewerOriginReln){
-		deleteRel(interviewerDelete.get(0));
-	}
-	for(interviewer : selected_answer_interviewer){
-		saveEntitiesToRel("Answer and Interviewer",current_answer_id,interviewer.get(0));	
-	}
-
-	tempInterviewerPrefix=null;
-	int interviewerSize=selected_answer_interviewer.size();
-	firstInterviewer=selected_answer_interviewer.get(0).get(1);
-	if (interviewerSize==1){
-		tempInterviewerPrefix=firstInterviewer;
-	}
-	else{
-		tempInterviewerPrefix=firstInterviewer+"EtAl";
-	}
-	//showWarning("tempInterviewerPrefix",tempInterviewerPrefix);
-	newInterviwer=new ArrayList();
-	newInterviwer.add(current_answer_id);
-	newInterviwer.add(tempInterviewerPrefix);
-	for (person: sss_interviewer_list){
-		String personUuid=person.get(0);
-		if (personUuid.equals(current_answer_id)) {
-			sss_interviewer_list.remove(person);
-			break;
-		}
-	}
-	sss_interviewer_list.add(newInterviwer);
-	//showWarning("sss_interviewer_list","sss_interviewer_list");
-	populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-	//showWarning("populateList",sss_answer_list.size().toString());
-}
-
 //measure whether two arraylists are identical, if not, recording what kinds of operation have been done
 listChange(ArrayList targetList,ArrayList sourceList){
 	Hashtable listChanges=new Hashtable();
@@ -1745,7 +1736,7 @@ newFile(String typeFlag){
 				case "Audio":		
 					newTabGroup("audioFile");
 					String tempAudioID=tempAnsID+"_Audio";
-					labelDeduplicate(tempAudioID,"FileID","audioFile/audioFileInfo/audioFileID","File");
+					labelDeduplicate(tempAudioID,"FileID","audioFile/audioFileInfo/audioFileID","file");
 					//setFieldValue("audioFile/audioFileInfo/audioFileID",tempAnsID+"_Audio");
 					setFieldValue("audioFile/audioFileInfo/audioFileCreator",username);
 					setFieldValue("audioFile/audioFileInfo/audioFileType","Audio");
@@ -1754,7 +1745,7 @@ newFile(String typeFlag){
 					newTabGroup("videoFile");
 					String tempVideoID=tempAnsID+"_Video";
 					//showWarning("tempVideoID",tempVideoID);
-					labelDeduplicate(tempVideoID,"FileID","videoFile/videoFileInfo/videoFileID","File");
+					labelDeduplicate(tempVideoID,"FileID","videoFile/videoFileInfo/videoFileID","file");
 					//showWarning("videoLabelIDNum",videoLabelIDNum.toString());	
 					setFieldValue("videoFile/videoFileInfo/videoFileCreator",username);
 					setFieldValue("videoFile/videoFileInfo/videoFileType","Video");
@@ -1762,7 +1753,7 @@ newFile(String typeFlag){
 				case "Photo":
 					newTabGroup("photoFile");
 					String tempPhotoID=tempAnsID+"_Photo";
-					labelDeduplicate(tempPhotoID,"FileID","photoFile/photoFileInfo/photoFileID","File");
+					labelDeduplicate(tempPhotoID,"FileID","photoFile/photoFileInfo/photoFileID","file");
 					//setFieldValue("photoFile/photoFileInfo/photoFileID",tempAnsID+"_Photo");
 					setFieldValue("photoFile/photoFileInfo/photoFileCreator",username);
 					setFieldValue("photoFile/photoFileInfo/photoFileType","Photo");
@@ -1770,7 +1761,7 @@ newFile(String typeFlag){
 				case "Other":
 					newTabGroup("sketchFile");
 					String tempSketchID=tempAnsID+"_Recording";
-					labelDeduplicate(tempSketchID,"FileID","sketchFile/sketchFileInfo/sketchFileID","File");
+					labelDeduplicate(tempSketchID,"FileID","sketchFile/sketchFileInfo/sketchFileID","file");
 					//setFieldValue("sketchFile/sketchFileInfo/sketchFileID",tempAnsID+"_Recording");
 					setFieldValue("sketchFile/sketchFileInfo/sketchFileCreator",username);
 					setFieldValue("sketchFile/sketchFileInfo/sketchFileType","Sketch");
@@ -1945,7 +1936,16 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 					newFileType.add(current_answer_file_id);
 					newFileType.add(fileType);
 					file_and_fileType.add(newFileType);
-					//saveEntitiesToRel("Answer and File",answer_id,current_answer_file_id);			
+					//saveEntitiesToRel("Answer and File",answer_id,current_answer_file_id);	
+					if(dupFileLblChange && !isNull(dupFileLblInfo)){
+						newLabel=dupFileLblInfo.get(1);
+						entityId=dupFileLblInfo.get(0);
+						attributes = createAttributeList();
+						attributes.add(createEntityAttribute("FileID", null, null, newLabel, null));
+						saveArchEnt(entityId, "File", null, attributes);
+						dupFileLblChange=false;
+						dupFileLblInfo.clear();
+					}		
 					showToast("New file record for answer created");
 					cancelTabGroup(tabGroupRef, true);
 					showTab("survey/answerFile");
@@ -4358,7 +4358,8 @@ delQuery(){
 }
 */
 /***Duplicate label checker***/
-labelDeduplicate(String originLabel, String attriName, String fieldRef, String tableName){
+//generating non-duplicate label for now 
+labelDeduplicate(String originLabel, String attriName, String fieldRef, String typeflag){
 	//Here we can't use regexp, so we use naive LIKE condition
 	tempDuplicateList=new ArrayList();
 	tempDuplicateList.clear();
@@ -4373,32 +4374,53 @@ labelDeduplicate(String originLabel, String attriName, String fieldRef, String t
 						if(!isNull(result)){
 							tempDuplicateList.addAll(result);
 							sizeOfDup=tempDuplicateList.size();
+							/*
+							sizeOfDup=sizeOfDup+1;
+							originLabel=originLabel+"("+sizeOfDup.toString()+")";
+							setFieldValue(fieldRef,originLabel);
+							*/
 							if(sizeOfDup==1){
 								attributes = createAttributeList();
 								duplicateOldLabel=tempDuplicateList.get(0).get(1);
-								suffix=duplicateOldLabel.substring(duplicateOldLabel.length()-3);
-								if(!suffix.equals("(1)"))
-								{
-									newLabel=duplicateOldLabel+"(1)";
-									attributes.add(createEntityAttribute(attriName, null, null, newLabel, null));
-									entityId=tempDuplicateList.get(0).get(0);
-									//saveArchEnt(entityId, tableName, null, attributes);
+								//suffix=duplicateOldLabel.substring(duplicateOldLabel.length()-3);
+								//if(!suffix.equals("(1)"))
+								//{
+								newLabel=duplicateOldLabel+"(1)";
+									//attributes.add(createEntityAttribute(attriName, null, null, newLabel, null));
+								entityId=tempDuplicateList.get(0).get(0);
+								switch(typeflag){
+									case "answer":
+									dupAnsLblChange=true;
+									dupAnsLblInfo.add(entityId);
+									dupAnsLblInfo.add(newLabel);
+									break;
+									case "file":
+									dupFileLblChange=true;
+									dupFileLblInfo.add(entityId);
+									dupAnsLblInfo.add(newLabel);
+									break;
+
 								}
 								originLabel=originLabel+"(2)";
 					            setFieldValue(fieldRef,originLabel);
+									//saveArchEnt(entityId, tableName, null, attributes);
+								}
+								//}
+								else{
+								//showWarning("size>1","size>1");
+									sizeOfDup=sizeOfDup+1;
+									originLabel=originLabel+"("+sizeOfDup.toString()+")";
+									setFieldValue(fieldRef,originLabel);
+								}
+								
 							}
 							else{
-								//showWarning("size>1","size>1");
-								sizeOfDup=sizeOfDup+1;
-								originLabel=originLabel+"("+sizeOfDup.toString()+")";
 								setFieldValue(fieldRef,originLabel);
 							}
 							
 						}
-						else{
-							setFieldValue(fieldRef,originLabel);
-						}
-					}  
+						
+					//}  
 			});
 
 
