@@ -372,6 +372,7 @@ personRoleList=new ArrayList();
 personList=new ArrayList();
 sssConsultantList=new LinkedHashSet();
 sssInterviewerList=new LinkedHashSet();
+sssConsultantIdList=new ArrayList();
 String introPsMark=null;//use for check if an intro ps is deleted from his/her intro session
 currentPosition=new ArrayList();
 /***Starting from creating a session***/
@@ -399,6 +400,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	sssAnsOrigin.clear();
 	sss_interviewer_list.clear();
 	sssConsultantList.clear();
+	sssConsultantIdList.clear();
 	sssInterviewerList.clear();
 	sssPersonRoleandNameList.clear();
 	sssOldPsReln.clear();
@@ -644,6 +646,12 @@ checkRolesInSession(){
 		if(psInfo[0].equals("consultant")){
 			psRoleSum.add("consultant");
 			sssConsultantList.add(psInfo[1]);
+			String [] psInSssId=person.get(0).split("_");
+			tempPs=new ArrayList();
+			tempPs.clear();
+			tempPs.add(psInSssId[1]);
+			tempPs.add(psInfo[1]);
+			sssConsultantIdList.add(tempPs);
 		}
 		else if(psInfo[0].equals("interviewer")){
 			psRoleSum.add("interviewer");
@@ -1162,7 +1170,7 @@ loadAnswerListForQuesion(){
 	}
 }
 
-onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","loadAnswerFromQuesInQuesnir()");
+onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","checkPersonAns()");
 onEvent("questionnaireInfo/surveyQuestionnaire/ques_Search","click","searchQuesInCrtQuesnir()");
 
 searchQuesInCrtQuesnir(){
@@ -1457,45 +1465,109 @@ stayInCurrentPage()
 }
 
 checkPersonAns(){
-	ansListPerson=new ArrayList();
-	loadIntervieweeAnsQuery="select uuid,measure from latestNonDeletedAentValue "+ 
-			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
-			"and uuid in "+
- 			"(select uuid from AentReln where RelationshipID in "+
-			"(select RelationshipID from AEntReln where AEntReln.uuid="+toAddIntervieweeID+" "+
- 			"AND RelationshipID in "+
-			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
- 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewee') "+
-			"and latestNonDeletedRelationship.Deleted IS NULL)))";
-	fetchAll(loadIntervieweeAnsQuery,
-			new FetchCallback() {
+	quesId=getListItemValue();
+	//showWarning("quesId",quesId);
+	ansedPs=new ArrayList();
+	ansedPs.clear();
+	Boolean endOrNot=false;
+	//int t=sssConsultantIdList.size();
+	for(int i=0; i<sssConsultantIdList.size(); i++){// for most cases, there would be only one consultant
+		//Load all questionIDs that a person has answered
+		loadPersonAnswerQuery="select measure from latestNonDeletedAentValue "+
+		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionID') "+
+		"and uuid in (select uuid from AentReln where RelationshipID in (select RelationshipID from AEntReln where AEntReln.uuid in "+
+			"(select uuid from latestNonDeletedAentValue "+
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+				"and uuid in (select uuid from AentReln where RelationshipID "+
+					"in (select RelationshipID from AEntReln where AEntReln.uuid='"+sssConsultantIdList.get(i).get(0)+
+						"' AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+							"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Consultant') "+
+							"and latestNonDeletedRelationship.Deleted IS NULL)))) "+
+"AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+	"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+	"and latestNonDeletedRelationship.Deleted IS NULL)))";
+	tempAnsQues=new ArrayList();
+	tempAnsQues.clear();
+	tmp=sssConsultantIdList.get(i).get(1);
+	if(i==sssConsultantIdList.size()-1){
+		endOrNot=true;
+	}
+	fetchAll(loadPersonAnswerQuery,new FetchCallback() {
 		        onFetch(result) {
-		        	//showWarning("fetchAll","fetchAll");
-					//if (!isNull(result)) {
-						ansListPerson.clear();
-						ansListPerson.addAll(result);
-						//showWarning("ansListPerson","ansListPerson");
-						ansListPerson.retainAll(ansListForQues);
-						if(isNull(ansListPerson)){
-							//showWarning("not answered","not answered");
-							addItemToTargetList(candidate_answer_interviewee,"interviewee",toAddIntervieweeID);
+		        	tempAnsQues.addAll(result);
+		        	//showWarning("tempAnsQues","tempAnsQues");
+		        	if(!isNull(tempAnsQues)){
+		        		//showWarning("isNulltempAnsQues","isNulltempAnsQues");
+						for (ans:tempAnsQues){
+							if(ans.get(0).equals(quesId)){
+								ansedPs.add(tmp);
+								break;
+								}
 						}
-						else
-						{
-							
-							showAlert("alert", "This person has already answered this question \n"+"Do you still want to add this person?", "confirmAddInterviewee()", "stayInCurrentPage()");
-
-						}
-				
+					}
+					//showWarning("i",i.toString());
+					if(endOrNot){//can't be triggered 
+						//showWarning("endOrNot","endOrNot");
+						checkDuplicateAns(ansedPs);
+					}
 		        }
-
+		    });
+	//showWarning("tempAnsQues","tempAnsQues");
+	//tempAnsQues.addAll(fetchAll(loadPersonAnswerQuery,null));
+	//showWarning("tempAnsQues","fetchAllDone");
+				/*				
+		fetchAll(loadPersonAnswerQuery,new FetchCallback() {
+		        onFetch(result) {
+		        	tempAnsQues=new ArrayList();
+		        	//showWarning("tempAnsQues","tempAnsQues");
+		        	tempAnsQues.clear();
+					tempAnsQues.addAll(result);
+					showWarning("tempAnsQues+result","tempAnsQues+result");
+					String tempS=sssConsultantIdList.get(i).get(1);
+					showWarning("tempS",tempS);
+					for (ans:tempAnsQues){
+						if(ans.get(0).equals(quesId)){
+							ansedPs.add(sssConsultantIdList.get(i).get(1));
+							//showWarning("ansedPs",sssConsultantIdList.get(i).get(1));
+							break;
+						}
+					}
+					showWarning(i.toString(),(sssConsultantIdList.size()-1).toString());
+					if(i==(sssConsultantIdList.size()-1)){//the last consultant
+						showWarning("last",i.toString());
+						if(!isNull(ansedPs)){
+							if(ansedPs.size()==1){
+								showAlert("alert", ansedPs.get(0)+"has already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir()", "stayInCurrentPage()");
+							}
+							else{
+								showAlert("alert", ansedPs.get(0)+"EtAl have already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir()", "stayInCurrentPage()");
+							}
+						}
+						else{
+							loadAnswerFromQuesInQuesnir();
+						}
+					}				
+		        }
 		        onError(message) {
 		        	Log.e("error",message);
 		            showToast(message);
 		           
 		        }
-		    });
-
+		    });*/
+	}
+}
+checkDuplicateAns(ArrayList psList){
+	if(!isNull(psList)){
+		if(psList.size()==1){
+			showAlert("alert", psList.get(0)+"has already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir()", "stayInCurrentPage()");
+		}
+		else{
+			showAlert("alert", psList.get(0)+"EtAl have already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir()", "stayInCurrentPage()");
+		}
+	}
+	else{
+		loadAnswerFromQuesInQuesnir();
+	}
 }
 
 checkPersonIntro(String personID, ArrayList toAddPerson){
@@ -3178,7 +3250,7 @@ autoSaveSession(String typeFlag){
 	
 }
 
-saveSession(String typeflag){
+saveSession(String typeflag){//TODO:BUG FOR SAVING, RECONSIDER THE LOGICS
 	switch(typeflag){
 
 		case "answer":	
