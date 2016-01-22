@@ -1446,19 +1446,6 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag, String toDelId)
 	}
 }
 
-addInterviewee(){
-	toAddIntervieweeID=null;
-	toAddIntervieweeID=getListItemValue();
-	if(isNull(toAddIntervieweeID)){
-		showWarning("Invalid person","Invalid person, please choose another person");
-		return;
-	}
-	checkPersonIntro(toAddIntervieweeID);
-}
-confirmAddInterviewee(){
-	addItemToTargetList(candidate_answer_interviewee,"interviewee",toAddIntervieweeID);
-	//personCheckFlag="FAL";
-}
 stayInCurrentPage()
 {
 	return;
@@ -1505,55 +1492,11 @@ checkPersonAns(){
 								}
 						}
 					}
-					//showWarning("i",i.toString());
-					if(endOrNot){//can't be triggered 
-						//showWarning("endOrNot","endOrNot");
+					if(endOrNot){
 						checkDuplicateAns(ansedPs);
 					}
 		        }
 		    });
-	//showWarning("tempAnsQues","tempAnsQues");
-	//tempAnsQues.addAll(fetchAll(loadPersonAnswerQuery,null));
-	//showWarning("tempAnsQues","fetchAllDone");
-				/*				
-		fetchAll(loadPersonAnswerQuery,new FetchCallback() {
-		        onFetch(result) {
-		        	tempAnsQues=new ArrayList();
-		        	//showWarning("tempAnsQues","tempAnsQues");
-		        	tempAnsQues.clear();
-					tempAnsQues.addAll(result);
-					showWarning("tempAnsQues+result","tempAnsQues+result");
-					String tempS=sssConsultantIdList.get(i).get(1);
-					showWarning("tempS",tempS);
-					for (ans:tempAnsQues){
-						if(ans.get(0).equals(quesId)){
-							ansedPs.add(sssConsultantIdList.get(i).get(1));
-							//showWarning("ansedPs",sssConsultantIdList.get(i).get(1));
-							break;
-						}
-					}
-					showWarning(i.toString(),(sssConsultantIdList.size()-1).toString());
-					if(i==(sssConsultantIdList.size()-1)){//the last consultant
-						showWarning("last",i.toString());
-						if(!isNull(ansedPs)){
-							if(ansedPs.size()==1){
-								showAlert("alert", ansedPs.get(0)+"has already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir()", "stayInCurrentPage()");
-							}
-							else{
-								showAlert("alert", ansedPs.get(0)+"EtAl have already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir()", "stayInCurrentPage()");
-							}
-						}
-						else{
-							loadAnswerFromQuesInQuesnir();
-						}
-					}				
-		        }
-		        onError(message) {
-		        	Log.e("error",message);
-		            showToast(message);
-		           
-		        }
-		    });*/
 	}
 }
 checkDuplicateAns(ArrayList psList){
