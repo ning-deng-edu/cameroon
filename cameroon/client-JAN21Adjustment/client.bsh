@@ -3189,6 +3189,17 @@ autoSaveSession(String typeFlag){
 			sssPersonRoleNameListOrigin.clear();
 			sssPersonRoleNameListOrigin.addAll(sssPersonRoleandNameList);
 		break;
+		case "tailNew":
+			sssOriginInfo.clear();
+			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
+			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
+			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
+			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));
+			original_sss_answer_list.clear();
+			original_sss_answer_list.addAll(sss_answer_list);
+			sssPersonRoleNameListOrigin.clear();
+			sssPersonRoleNameListOrigin.addAll(sssPersonRoleandNameList);
+		break;
 	}
 	
 }
@@ -3383,8 +3394,9 @@ saveSession(String typeflag){//TODO:BUG FOR SAVING, RECONSIDER THE LOGICS
 												}//if(!ansOldPs.equals(ansConsultant))
 								    	  }// for(ans : sss_answer_list)
 								    
+								    	autoSaveSession("tailNew");
 								        showToast("New session contains answer(s) created");
-								        autoSaveSession("tail");
+								        
 								      }
 								    }
 								    onError(message) {
@@ -3457,7 +3469,7 @@ saveSession(String typeflag){//TODO:BUG FOR SAVING, RECONSIDER THE LOGICS
 						}
 
 					}
-					//case 2: sssAns changed only PASS (prob: allow to add session that is not taken in the same day?)
+					//case 2: sssAns changed only PASS
 					//TODO:ADD time validation for new answer's time
 					else if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
 						if(sssAnsChange.containsKey("PUREADD")){
