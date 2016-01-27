@@ -30,12 +30,16 @@
         <description>Implements a N:N relationship between Answer and Person</description>
     </RelationshipElement>
     
-    <RelationshipElement name="Answer and Interviewer" type="bidirectional">        
-        <description>Implements a N:N relationship between Answer and Interviewer</description>     
+    <RelationshipElement name="Session and Consultant" type="bidirectional">        
+        <description>Implements a N:N relationship between Session and Consultant</description>     
     </RelationshipElement>      
             
-    <RelationshipElement name="Answer and Interviewee" type="bidirectional">        
-        <description>Implements a N:N relationship between Answer and Interviewee</description>     
+    <RelationshipElement name="Session and Interviewer" type="bidirectional">        
+        <description>Implements a N:N relationship between Session and Interviewer</description>     
+    </RelationshipElement>
+
+    <RelationshipElement name="Session and Person" type="bidirectional">        
+        <description>Implements a N:N relationship between Session and Person</description>     
     </RelationshipElement>
     
     <RelationshipElement name="Answer and Session" type="bidirectional">
