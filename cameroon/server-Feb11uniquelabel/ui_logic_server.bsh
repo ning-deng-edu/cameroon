@@ -2262,25 +2262,58 @@ saveNewLanguage(){
         return;
 	}
 	//setFieldValue("person/personInfo/personID", getFieldValue("person/personInfo/personName")+getCurrentTime());
-	
-	saveTabGroup("language", language_id, null, null, new SaveCallback() {
-    onSave(uuid, newRecord) {
-      language_id = uuid;
-      if (newRecord) {
-    	 
-        showToast("New record created");
-        cancelTabGroup("language",true);
-        showTab("control/language_control");
-      }
-	  else{
-		//language_id=null;
-		showToast("Record changed");
-	  }
-    }
-    onError(message) {
-        showWarning("error",message);
-    }  
-  });
+	tempDuplicateList=new ArrayList();
+	tempDuplicateList.clear();
+	int sizeOfDup=0;
+	tempLangLabel=getFieldValue("language/languageInfo/languageID");
+	langDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID') "+
+				"and measure like '"+tempLangLabel+"' or measure like '"+tempLangLabel+"(%)'";
+    fetchAll(sssDuplicateQuery,new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+								tempDuplicateList.addAll(result);
+								sizeOfDup=tempDuplicateList.size();
+								if(sizeOfDup==1){
+									attributes = createAttributeList();
+									duplicateOldLabel=tempDuplicateList.get(0).get(1);
+									suffix=duplicateOldLabel.substring(duplicateOldLabel.length()-3);
+									if(!suffix.equals("(1)"))
+									{
+										newLabel=duplicateOldLabel+"(1)";
+										attributes.add(createEntityAttribute("LanguageID", null, null, newLabel, null));
+										entityId=tempDuplicateList.get(0).get(0);
+										saveArchEnt(entityId, "Language", null, attributes);
+									}
+									tempLangLabel=tempLangLabel+"(2)";
+						            setFieldValue("language/languageInfo/languageID",tempLangLabel);
+								}
+								else{
+									sizeOfDup=sizeOfDup+1;
+									tempLangLabel=tempLangLabel+"("+sizeOfDup.toString()+")";
+									setFieldValue("language/languageInfo/languageID",tempLangLabel);
+								}	
+							}
+							saveTabGroup("language", language_id, null, null, new SaveCallback() {
+							    onSave(uuid, newRecord) {
+							      language_id = uuid;
+							      if (newRecord) {
+							    	 
+							        showToast("New record created");
+							        cancelTabGroup("language",true);
+							        showTab("control/language_control");
+							      }
+								  else{
+									//language_id=null;
+									showToast("Record changed");
+								  }
+							    }
+							    onError(message) {
+							        showWarning("error",message);
+							    }  
+							  });
+						}
+					});
 }
 
 loadLanguage(){
