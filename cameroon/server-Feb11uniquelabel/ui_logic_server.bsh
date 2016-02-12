@@ -2305,7 +2305,7 @@ saveNewLanguage(){
 	langDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID') "+
 				"and measure like '"+tempLangLabel+"' or measure like '"+tempLangLabel+"(%)'";
-    fetchAll(sssDuplicateQuery,new FetchCallback() {
+    fetchAll(langDuplicateQuery,new FetchCallback() {
 						onFetch(result) {
 							if(!isNull(result)){
 								tempDuplicateList.addAll(result);
