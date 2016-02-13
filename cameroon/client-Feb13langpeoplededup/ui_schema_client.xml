@@ -1271,7 +1271,7 @@
         <label>Language</label>
         <group ref="languageInfo">
           <label>Language Info</label>
-            <input ref="languageID" faims_attribute_name="LanguageID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true" faims_read_only="true" faims_style_class="required">
+            <input ref="languageID" faims_attribute_name="LanguageID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true" faims_style_class="required">
               <label>Language id</label>
             </input>
             <input ref="languageName" faims_attribute_name="LanguageName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true" faims_style_class="required">
