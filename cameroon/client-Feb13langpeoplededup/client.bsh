@@ -2481,7 +2481,7 @@ saveNewPerson(String typeflag){
 	String personNameOrigin=getFieldValue("person/personInfo/personName");
 	String personNameCamCase=nameCamCaseConverter(personNameOrigin);
 	String personLabel=personNameCamCase+"_"+getFieldValue("person/personInfo/personDOB");
-	setFieldValue("person/personInfo/personID", personLabel);
+	//setFieldValue("person/personInfo/personID", personLabel);
 	String personDOB=getFieldValue("person/personInfo/personDOB");
 	changedPersonInfo.clear();
 	changedPersonInfo.add(personLabel);
@@ -2509,39 +2509,76 @@ saveNewPerson(String typeflag){
 		}
 
 		else{
+			tempDuplicateList=new ArrayList();
+			tempDuplicateList.clear();
+			int sizeOfDup=0;
+			psDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+						"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonID') "+
+						"and measure like '"+personLabel+"' or measure like '"+personLabel+"(%)'";
+			fetchAll(psDuplicateQuery,new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+								tempDuplicateList.addAll(result);
+								sizeOfDup=tempDuplicateList.size();
+								if(sizeOfDup==1){
+									attributes = createAttributeList();
+									duplicateOldLabel=tempDuplicateList.get(0).get(1);
+									suffix=duplicateOldLabel.substring(duplicateOldLabel.length()-3);
+									if(!suffix.equals("(1)"))
+									{
+										newLabel=duplicateOldLabel+"(1)";
+										attributes.add(createEntityAttribute("PersonID", null, null, newLabel, null));
+										entityId=tempDuplicateList.get(0).get(0);
+										saveArchEnt(entityId, "Person", null, attributes);
+									}
+									personLabel=personLabel+"(2)";
+						            setFieldValue("person/personInfo/personID",personLabel);
+								}
+								else{
+									sizeOfDup=sizeOfDup+1;
+									personLabel=personLabel+"("+sizeOfDup.toString()+")";
+									setFieldValue("person/personInfo/personID",personLabel);
+								}
+								
+							}
+							else{
+								setFieldValue("person/personInfo/personID", personLabel);
+							}
 
-		saveTabGroup("person", person_id, null, null, new SaveCallback() {
-	    onSave(uuid, newRecord) {
-	      person_id = uuid;
-	      if (newRecord) {
-	      	newPersonIntro=new ArrayList();
-	      	newPersonIntro.add(person_id);
-			newPersonIntro.add(personNameOrigin);
+						saveTabGroup("person", person_id, null, null, new SaveCallback() {
+					    onSave(uuid, newRecord) {
+					      person_id = uuid;
+					      if (newRecord) {
+					      	newPersonIntro=new ArrayList();
+					      	newPersonIntro.add(person_id);
+							newPersonIntro.add(personNameOrigin);
 
-	      	if(typeflag.equals("intro")){
-				newSessionForAnswer("intro",newPersonIntro);
-			}
-			else{
-	        	showToast("New record created");
-	        	cancelTabGroup("person",true);
-	     	    showTab("control/user_control");
-	    	}
-	      }
-		  else{
-			showToast("Record changed");	
-			if(typeflag.equals("intro")){
-				newPersonIntro=new ArrayList();
-	      		newPersonIntro.add(person_id);
-				newPersonIntro.add(personNameOrigin);
-				newSessionForAnswer("intro",newPersonIntro);
-			}
-		  }
-		  
-	    }
-	    onError(message) {
-	        showWarning("error",message);
-	    }  
-	  	});
+					      	if(typeflag.equals("intro")){
+								newSessionForAnswer("intro",newPersonIntro);
+							}
+							else{
+					        	showToast("New record created");
+					        	cancelTabGroup("person",true);
+					     	    showTab("control/user_control");
+					    	}
+					      }
+						  else{
+							showToast("Record changed");	
+							if(typeflag.equals("intro")){
+								newPersonIntro=new ArrayList();
+					      		newPersonIntro.add(person_id);
+								newPersonIntro.add(personNameOrigin);
+								newSessionForAnswer("intro",newPersonIntro);
+							}
+						  }
+						  
+					    }
+					    onError(message) {
+					        showWarning("error",message);
+					    }  
+					  	});
+					}
+				});
 		}
 		}
 		else{
