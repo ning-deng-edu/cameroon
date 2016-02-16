@@ -4359,7 +4359,6 @@ createFieldTripPage(){
 	        showTabGroup("fieldTrip_control");
 	        onEvent("fieldTrip_control/fieldTripInfo/fieldTrip_New_bn","click","createFieldTripInfoPage(\"new\")");
 	        onEvent("fieldTrip_control/fieldTripInfo/fieldTripList","click","loadFieldTripInfo()");
-
     	}
 		});
 	}
@@ -4381,10 +4380,13 @@ createFieldTripInfoPage(String typeflag){
 	    	setAnnotationEnabled(true).setReadOnly(true);
 	    	nameTextViewDef=createViewDef().createTextField().setLabel("FieldTrip Name").setAttributeName("FieldTripName").setAttributeType("measure").
 	    	setAnnotationEnabled(true);
+	    	descTextViewDef=createViewDef().createTextField().setLabel("Description").setAttributeName("FieldTripDescription").setAttributeType("measure").
+	    	setAnnotationEnabled(true);
 	    	startDateDef = createViewDef().createDatePicker().setLabel("Start Date");
 	    	endDateDef = createViewDef().createDatePicker().setLabel("End Date");
 	    	createView("fieldTrip/fieldTripBasicInfo/fieldTripID", idTextViewDef,"fieldTrip/fieldTripBasicInfo");
 	        createView("fieldTrip/fieldTripBasicInfo/fieldTripName", nameTextViewDef,"fieldTrip/fieldTripBasicInfo");
+	        createView("fieldTrip/fieldTripBasicInfo/fieldTripDesc", descTextViewDef,"fieldTrip/fieldTripBasicInfo");
 	        createView("fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker", startDateDef,"fieldTrip/fieldTripBasicInfo");
 	        createView("fieldTrip/fieldTripBasicInfo/fieldTripEndDatePicker", endDateDef,"fieldTrip/fieldTripBasicInfo");
 
@@ -4405,6 +4407,12 @@ createFieldTripInfoPage(String typeflag){
 	        //showTabGroup("fieldTrip");
 	        onEvent("fieldTrip/fieldTripSession/fieldTripFileSelectionList","click","addItemToTargetList(candidate_session_fieldTrip,\"fieldTripSession\",null)");
 	        onEvent("fieldTrip/fieldTripSession/fieldTripFileList","click","deleteItemFromTargetList(selected_session_fieldTrip,\"fieldTripSession\",null)");
+	        onEvent("fieldTrip/fieldTripSession/Finish_New_FieldTrip","click","saveFieldTrip()");
+	        //fieldTripBasicInfoHidden page
+	        startdateViewDef = createViewDef().createTextField().setLabel("startdate").setAttributeName("FieldTripStartTime").setAttributeType("measure");
+	        enddateViewDef = createViewDef().createTextField().setLabel("enddate").setAttributeName("FieldTripEndTime").setAttributeType("measure");
+	        createView("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp", startdateViewDef,"fieldTrip/fieldTripBasicInfoHidden");
+	        createView("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp", enddateViewDef,"fieldTrip/fieldTripBasicInfoHidden");
 	        startNewFieldTrip();
 	   		}
 			});
@@ -4455,6 +4463,138 @@ startNewFieldTrip(){
         }
     });
 	
+}
+
+
+saveFieldTrip(){
+	//showWarning("saveFieldTrip","saveFieldTrip");
+	String startDateToConvert=getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker");
+	//showWarning("startDateToConvert",startDateToConvert);
+	String startDate=dateParser(startDateToConvert);
+	//showWarning("startdate",startDate);
+	String endDateToConvert=getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripEndDatePicker");
+	String endDate=dateParser(endDateToConvert);
+	//showWarning("endDate",endDate);
+	if(isNull(fieldTrip_id)){//create new session
+		showWarning("new","new");
+		if(isNull(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripName"))){
+			showWarning("Incomplete Data","Please make sure that data is complete");
+			return;
+			}
+		else{
+			//duplicate check
+			tempFtLabel=username+"_FieldTrip_"+startDate;
+			showWarning("tempFtLabel",tempFtLabel);
+			tempDuplicateList=new ArrayList();
+			tempDuplicateList.clear();
+			int sizeOfDup=0;
+			ftDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripID') "+
+				"and measure like '"+tempFtLabel+"' or measure like '"+tempFtLabel+"(%)'";
+			showWarning("ftDuplicateQuery",ftDuplicateQuery);
+			fetchAll(ftDuplicateQuery,new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+								tempDuplicateList.addAll(result);
+								sizeOfDup=tempDuplicateList.size();
+								if(sizeOfDup==1){
+									attributes = createAttributeList();
+									duplicateOldLabel=tempDuplicateList.get(0).get(1);
+									suffix=duplicateOldLabel.substring(duplicateOldLabel.length()-3);
+									if(!suffix.equals("(1)"))//save changes to the older questionnaire
+									{
+										newLabel=duplicateOldLabel+"(1)";
+										attributes.add(createEntityAttribute("FieldTripID", null, null, newLabel, null));
+										entityId=tempDuplicateList.get(0).get(0);
+										saveArchEnt(entityId, "FieldTrip", null, attributes);
+									}
+									tempFtLabel=tempFtLabel+"(2)";
+						            setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID",tempFtLabel);
+								}
+								else{
+									sizeOfDup=sizeOfDup+1;
+									tempFtLabel=tempFtLabel+"("+sizeOfDup.toString()+")";
+									setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID",tempFtLabel);
+								}
+								
+							}
+							else{
+								showWarning("nodup","nodup");
+								setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID",tempFtLabel);
+							}
+						setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp",startDate);
+						setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp",endDate);
+						if(timeValidation(startDate,endDate,"fieldTripTime")){
+							saveTabGroup("fieldTrip", fieldTrip_id, null, null, new SaveCallback() {
+							    onSave(uuid, newRecord) {
+							    	fieldTrip_id = uuid;
+							      if (newRecord) {
+							    	  for(session:selected_session_fieldTrip){
+							    		  saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
+							    	  }
+							        showToast("New fieldtrip record created");
+							        cancelTabGroup("fieldTrip",true);
+							      }
+							    }
+							    onError(message) {
+							        showWarning("error",message);
+							    }  
+							  });
+						}
+							else{
+								showWarning("Invalid date","Start date should before end date");
+								return;
+							}
+						}
+					});	
+		}
+	}
+	else{//change session info
+		setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID",username+"_FieldTrip_"+startDate);
+		fieldTripInfoNew.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID"));
+		fieldTripInfoNew.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripName"));
+		fieldTripInfoNew.add(startDate);
+		fieldTripInfoNew.add(endDate);
+		Hashtable fieldTripInfoChange=listChange(fieldTripInfoNew,fieldTripInfoOrigin);
+		Hashtable fieldTripSessionChange=listChange(selected_session_fieldTrip,original_session_fieldTrip);
+		if(fieldTripInfoChange.containsKey("EQUAL")){
+			if(fieldTripSessionChange.containsKey("EQUAL")){
+				showWarning("No change","No data changed");
+				return;
+			}
+			else{
+				//showWarning("yes change","beginingchange file");
+				for(session:selected_session_fieldTrip){
+		    		  saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
+		    	  }
+				showToast("session in FieldTrip changed");
+				cancelTabGroup("fieldTrip",true);
+			}
+		}
+		else{
+			setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp",startDate);
+			setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp",endDate);
+			if(timeValidation(startDate,endDate,"fieldTripTime")){
+			saveTabGroup("fieldTrip", fieldTrip_id, null, null, new SaveCallback() {
+			    onSave(uuid, newRecord) {
+			    	for(session:selected_session_fieldTrip){
+			    		  saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
+			    	  }
+			        showToast("fieldTrip data changed");
+			        cancelTabGroup("fieldTrip",true);
+
+			    }
+			    onError(message) {
+			        showWarning("error",message);
+			    }  
+			  });
+		}
+			else{
+				showWarning("Invalid date","Start date should before end date");
+				return;
+			}
+		}
+	}
 }
 
 loadFieldTripInfo(){
@@ -4526,97 +4666,6 @@ loadFieldTripInfo(){
             showToast(message);
         }
     });
-}
-
-
-
-saveFieldTrip(){
-	
-	String startDateToConvert=getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker");
-	String startDate=dateParser(startDateToConvert);
-	
-	String endDateToConvert=getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripEndDatePicker");
-	String endDate=dateParser(endDateToConvert);
-	
-	if(isNull(fieldTrip_id)){//create new session
-		if(isNull(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripName")))
-		{
-			showWarning("Incomplete Data","Please make sure that data is complete");
-			return;
-		}
-		else{
-			setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID",username+"_FieldTrip_"+startDate);
-			setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp",startDate);
-			setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp",endDate);
-			if(timeValidation(startDate,endDate,"fieldTripTime")){
-			saveTabGroup("fieldTrip", fieldTrip_id, null, null, new SaveCallback() {
-			    onSave(uuid, newRecord) {
-			    	fieldTrip_id = uuid;
-			      if (newRecord) {
-			    	  for(session:selected_session_fieldTrip){
-			    		  saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
-			    	  }
-			        showToast("New fieldtrip record created");
-			        cancelTabGroup("fieldTrip",true);
-			      }
-			    }
-			    onError(message) {
-			        showWarning("error",message);
-			    }  
-			  });
-		}
-			else{
-				showWarning("Invalid date","Start date should before end date");
-				return;
-			}
-		}
-	}
-	else{//change session info
-		setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID",username+"_FieldTrip_"+startDate);
-		fieldTripInfoNew.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID"));
-		fieldTripInfoNew.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripName"));
-		fieldTripInfoNew.add(startDate);
-		fieldTripInfoNew.add(endDate);
-		Hashtable fieldTripInfoChange=listChange(fieldTripInfoNew,fieldTripInfoOrigin);
-		Hashtable fieldTripSessionChange=listChange(selected_session_fieldTrip,original_session_fieldTrip);
-		if(fieldTripInfoChange.containsKey("EQUAL")){
-			if(fieldTripSessionChange.containsKey("EQUAL")){
-				showWarning("No change","No data changed");
-				return;
-			}
-			else{
-				//showWarning("yes change","beginingchange file");
-				for(session:selected_session_fieldTrip){
-		    		  saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
-		    	  }
-				showToast("session in FieldTrip changed");
-				cancelTabGroup("fieldTrip",true);
-			}
-		}
-		else{
-			setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp",startDate);
-			setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp",endDate);
-			if(timeValidation(startDate,endDate,"fieldTripTime")){
-			saveTabGroup("fieldTrip", fieldTrip_id, null, null, new SaveCallback() {
-			    onSave(uuid, newRecord) {
-			    	for(session:selected_session_fieldTrip){
-			    		  saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
-			    	  }
-			        showToast("fieldTrip data changed");
-			        cancelTabGroup("fieldTrip",true);
-
-			    }
-			    onError(message) {
-			        showWarning("error",message);
-			    }  
-			  });
-		}
-			else{
-				showWarning("Invalid date","Start date should before end date");
-				return;
-			}
-		}
-	}
 }
 /***Search button ***/
 onEvent("control/survey_control/Survey_Search","click","entitySearch(\"session\",\"control/survey_control/survey_keyword\",\"control/survey_control/surveyList\",null)");

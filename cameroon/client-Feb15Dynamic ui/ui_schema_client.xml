@@ -328,6 +328,8 @@
                     </fieldTripBasicInfo>
                     <fieldTripSession>
                     </fieldTripSession>
+                    <fieldTripBasicInfoHidden>
+                    </fieldTripBasicInfoHidden>
                 </fieldTrip>
             </faims>
         </instance>
@@ -1177,6 +1179,9 @@
       </group>
       <group ref="fieldTripSession">
           <label>Sessions</label>
+      </group>
+      <group ref="fieldTripBasicInfoHidden" faims_hidden="true">
+          <label>Hidden</label>
       </group>
     </group>
  </h:body>
