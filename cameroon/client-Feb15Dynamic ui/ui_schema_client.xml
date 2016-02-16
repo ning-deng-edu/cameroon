@@ -322,10 +322,17 @@
                     <fieldTripInfo>
                     </fieldTripInfo>
                 </fieldTrip_control>
+
+                <fieldTrip>
+                    <fieldTripBasicInfo>
+                    </fieldTripBasicInfo>
+                    <fieldTripSession>
+                    </fieldTripSession>
+                </fieldTrip>
             </faims>
         </instance>
-        <bind nodeset="/ldd_client/fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker" type="date"/>
-        <bind nodeset="/ldd_client/fieldTrip/fieldTripBasicInfo/fieldTripEndDatePicker" type="date"/>
+        <!--bind nodeset="/ldd_client/fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker" type="date"/>
+        <bind nodeset="/ldd_client/fieldTrip/fieldTripBasicInfo/fieldTripEndDatePicker" type="date"/-->
    
     </model>
 </h:head>
@@ -1161,6 +1168,15 @@
         <label>FieldTrip</label>
         <group ref="fieldTripInfo">
           <label>FieldTrip Info</label>
+      </group>
+    </group>
+    <group ref="fieldTrip" faims_archent_type="FieldTrip">
+        <label>FieldTrip</label>
+        <group ref="fieldTripBasicInfo">
+          <label>Basic Info</label>
+      </group>
+      <group ref="fieldTripSession">
+          <label>Sessions</label>
       </group>
     </group>
  </h:body>
