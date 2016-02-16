@@ -1384,8 +1384,8 @@ addItemToTargetList(ArrayList sourceList, String type_flag, String intervieweeID
 			case "fieldTripSession":
 				selected_session_fieldTrip.add(sourceList.get(idx_item));
 				candidate_session_fieldTrip.remove(idx_item);
-				//populateList("fieldTrip/fieldTripSession/fieldTripFileList", selected_session_fieldTrip);
-				//populateList("fieldTrip/fieldTripSession/fieldTripFileSelectionList", candidate_session_fieldTrip);
+				populateList("fieldTrip/fieldTripSession/fieldTripFileList", selected_session_fieldTrip);
+				populateList("fieldTrip/fieldTripSession/fieldTripFileSelectionList", candidate_session_fieldTrip);
 				break;
 			
 			}
@@ -1435,8 +1435,8 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag, String toDelId)
 			case "fieldTripSession":
 				candidate_session_fieldTrip.add(targetList.get(idx_delete));
 				selected_session_fieldTrip.remove(idx_delete);
-				//populateList("fieldTrip/fieldTripSession/fieldTripFileList", selected_session_fieldTrip);
-				//populateList("fieldTrip/fieldTripSession/fieldTripFileSelectionList", candidate_session_fieldTrip);
+				populateList("fieldTrip/fieldTripSession/fieldTripFileList", selected_session_fieldTrip);
+				populateList("fieldTrip/fieldTripSession/fieldTripFileSelectionList", candidate_session_fieldTrip);
 				break;
 			}
 		}
@@ -4359,6 +4359,7 @@ createFieldTripPage(){
 	        showTabGroup("fieldTrip_control");
 	        onEvent("fieldTrip_control/fieldTripInfo/fieldTrip_New_bn","click","createFieldTripInfoPage(\"new\")");
 	        onEvent("fieldTrip_control/fieldTripInfo/fieldTripList","click","loadFieldTripInfo()");
+
     	}
 		});
 	}
@@ -4402,24 +4403,23 @@ createFieldTripInfoPage(String typeflag){
 	        createView("fieldTrip/fieldTripSession/Finish_New_FieldTrip", ftSaveBtnDef,"fieldTrip/fieldTripSession");
 	        refreshTabgroupCSS("fieldTrip_control");
 	        //showTabGroup("fieldTrip");
+	        onEvent("fieldTrip/fieldTripSession/fieldTripFileSelectionList","click","addItemToTargetList(candidate_session_fieldTrip,\"fieldTripSession\",null)");
+	        onEvent("fieldTrip/fieldTripSession/fieldTripFileList","click","deleteItemFromTargetList(selected_session_fieldTrip,\"fieldTripSession\",null)");
 	        startNewFieldTrip();
 	   		}
 			});
 
 		}
 	else{
-		showTabGroup("fieldTrip");
+		//showTabGroup("fieldTrip");
+		startNewFieldTrip();
 	}
 
 	}
 	
 
 }
-/*
-showFieldTrip(){
-	showTabGroup("fileGroup_control");
-}
-*/
+
 loadFieldTripList(){
 	fetchAll(loadAllFieldTripQuery, new FetchCallback() {
         onFetch(result) {
