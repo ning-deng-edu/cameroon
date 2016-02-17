@@ -736,7 +736,9 @@ questionSelection(){
 				style1 = "orientation";
             	style2 = "even";
             	style3 = "large";
-
+				if(hasView("questionnaire_question/questionnaire_question_info/Change_Questionnaire")){
+					rmQuesnirNewChangeBtn();
+				}
             	//if(!hasView("questionnaire_question/questionnaire_question_info/Check_ques_1")){
             		//createContainer("questionnaire_question/questionnaire_question_info/ques_container", "orientation", "questionnaire_question/questionnaire_question_info");
             	//}
@@ -757,7 +759,11 @@ questionSelection(){
 				//populateRadioGroup("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
 				setFieldValue("questionnaire_question/questionnaire_question_info/Ques_" + quesCount, quesContent);
 				onEvent("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCount,"click","deleteSelectedQuestion(\""+quesContent+"\")");
-				refreshTabgroupCSS("questionnaire_question");
+				//create and change questionnaire buttons
+				//createView("questionnaire_question/questionnaire_question_info/Change_Questionnaire", createViewDef().createButton().setLabel("Change").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info");
+                //createView("questionnaire_question/questionnaire_question_info/Finish_Questionnaire_Creation", createViewDef().createButton().setLabel("Create").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info");
+				//refreshTabgroupCSS("questionnaire_question");
+				createChangeBtnQuesnir();
 
 				break;
 			}
@@ -897,9 +903,10 @@ adjustQuesOrder(String typeFlag, int strtIndex, ArrayList toAdjustList){
 					setFieldValue("questionnaire_question/questionnaire_question_info/Ques_" + quesCountDel, quesContent);
 					onEvent("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCountDel,"click","deleteSelectedQuestion(\""+quesContent+"\")");
 					//quesCount++;
-					refreshTabgroupCSS("questionnaire_question");
+					//refreshTabgroupCSS("questionnaire_question");
 				}
-			
+				createChangeBtnQuesnir();
+				
 		break;
 
 		case "moveUp":
@@ -982,7 +989,23 @@ adjustQuesOrder(String typeFlag, int strtIndex, ArrayList toAdjustList){
 	}
 
 }
-			
+createChangeBtnQuesnir(){
+	createContainer("questionnaire_question/questionnaire_question_info/quesnirBtnC", "orientation", "questionnaire_question/questionnaire_question_info");
+	createContainer("questionnaire_question/questionnaire_question_info/child1", "even", "questionnaire_question/questionnaire_question_info/quesnirBtnC");
+	createContainer("questionnaire_question/questionnaire_question_info/child2", "even", "questionnaire_question/questionnaire_question_info/quesnirBtnC");
+	createView("questionnaire_question/questionnaire_question_info/Change_Questionnaire", createViewDef().createButton().setLabel("Change").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info/child1");
+    createView("questionnaire_question/questionnaire_question_info/Finish_Questionnaire_Creation", createViewDef().createButton().setLabel("Create").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info/child2");
+    onEvent("questionnaire_question/questionnaire_question_info/Change_Questionnaire","click","finishChangeQuestionnaire()");
+    onEvent("questionnaire_question/questionnaire_question_info/Finish_Questionnaire_Creation","click","finishCreateQuestionnaire()");
+	refreshTabgroupCSS("questionnaire_question");		
+}		
+rmQuesnirNewChangeBtn(){
+	removeContainer("questionnaire_question/questionnaire_question_info/quesnirBtnC");
+	removeContainer("questionnaire_question/questionnaire_question_info/child1");
+	removeContainer("questionnaire_question/questionnaire_question_info/child2");
+	removeView("questionnaire_question/questionnaire_question_info/Change_Questionnaire");
+	removeView("questionnaire_question/questionnaire_question_info/Finish_Questionnaire_Creation");
+}
 //if there is selected questionnaire, then change the info, else create a new questionnaire
 finishCreateQuestionnaire(){
 	if(questionSelected.isEmpty())
