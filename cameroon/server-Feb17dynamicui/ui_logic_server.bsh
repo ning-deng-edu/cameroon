@@ -563,6 +563,10 @@ initializeQuestionSelect(){
 					questionCandidates.addAll(result);
 					questionCandidatesContent.addAll(result);
 				populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+				if(hasView("questionnaire_question/questionnaire_question_info/Check_ques_0")){
+					removeAllViewsAndContainers("questionnaire_question");
+					createContainer("questionnaire_question/questionnaire_question_info/ques_container", "orientation", "questionnaire_question/questionnaire_question_info");
+				}
 			}
 			
         }
@@ -733,19 +737,23 @@ questionSelection(){
             	style2 = "even";
             	style3 = "large";
 
-            	//if(!hasView("questionnaire_question/questionnaire_question_info/Check_ques_0")){
-            	//	createContainer("questionnaire_question/questionnaire_question_info/ques_container", "orientation", "questionnaire_question/questionnaire_question_info");
+            	//if(!hasView("questionnaire_question/questionnaire_question_info/Check_ques_1")){
+            		//createContainer("questionnaire_question/questionnaire_question_info/ques_container", "orientation", "questionnaire_question/questionnaire_question_info");
             	//}
 				//createContainer("questionnaire_question/questionnaire_question_info/ques_container", "orientation", "questionnaire_question/questionnaire_question_info");
-				createContainer("questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCount, "orientation", "questionnaire_question/questionnaire_question_info");
-				createContainer("questionnaire_question/questionnaire_question_info/Check_quesc_" + quesCount, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCount);
+				createContainer("questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCount, "orientation", "questionnaire_question/questionnaire_question_info/ques_container");
+				//createContainer("questionnaire_question/questionnaire_question_info/Check_quesc_" + quesCount, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCount);
                 createContainer("questionnaire_question/questionnaire_question_info/quesc_" + quesCount, "even", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCount);
                 createContainer("questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCount, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCount);
+                createContainer("questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCount, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCount);
+                createContainer("questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCount, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCount);
 
                 //createView("questionnaire_question/questionnaire_question_info/Check_ques_" + quesCount, createViewDef().createRadioGroup().addChoice(quesContent,""), "questionnaire_question/questionnaire_question_info/Check_quesc_" + quesCount);
-                createView("questionnaire_question/questionnaire_question_info/Check_ques_" + quesCount, createViewDef().createRadioGroup().addChoice("",""), "questionnaire_question/questionnaire_question_info/Check_quesc_" + quesCount);
+                //createView("questionnaire_question/questionnaire_question_info/Check_ques_" + quesCount, createViewDef().createRadioGroup().addChoice("",""), "questionnaire_question/questionnaire_question_info/Check_quesc_" + quesCount);
                 createView("questionnaire_question/questionnaire_question_info/Ques_" + quesCount, createViewDef().createTextField("string").setReadOnly(true), "questionnaire_question/questionnaire_question_info/quesc_" + quesCount);
                 createView("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCount, createViewDef().createButton().setLabel("X").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCount);
+                createView("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCount, createViewDef().createButton().setLabel("↑").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCount);
+                createView("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCount, createViewDef().createButton().setLabel("↓").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCount);
 				//populateRadioGroup("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
 				setFieldValue("questionnaire_question/questionnaire_question_info/Ques_" + quesCount, quesContent);
 				refreshTabgroupCSS("questionnaire_question");
