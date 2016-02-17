@@ -4369,8 +4369,7 @@ createFieldTripPage(){
 }
 
 createFieldTripInfoPage(String typeflag){
-	if(typeflag.equals("new")){
-		if(!hasView("fieldTrip/fieldTripBasicInfo/fieldTripID")){
+	if(!hasView("fieldTrip/fieldTripBasicInfo/fieldTripID")){
 		removeAllViewsAndContainers("fieldTrip");
 		executeViewTask(new ViewTask() {
 	    doTask() {
@@ -4413,17 +4412,22 @@ createFieldTripInfoPage(String typeflag){
 	        enddateViewDef = createViewDef().createTextField().setLabel("enddate").setAttributeName("FieldTripEndTime").setAttributeType("measure");
 	        createView("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp", startdateViewDef,"fieldTrip/fieldTripBasicInfoHidden");
 	        createView("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp", enddateViewDef,"fieldTrip/fieldTripBasicInfoHidden");
-	        startNewFieldTrip();
+	        
 	   		}
 			});
 
+		if(typeflag.equals("new")){
+				startNewFieldTrip();
 		}
-	else{
-		//showTabGroup("fieldTrip");
-		startNewFieldTrip();
-	}
 
 	}
+	else{
+		//showTabGroup("fieldTrip");
+		if(typeflag.equals("new")){
+				startNewFieldTrip();
+		}
+	}
+
 	
 
 }
@@ -4476,7 +4480,7 @@ saveFieldTrip(){
 	String endDate=dateParser(endDateToConvert);
 	//showWarning("endDate",endDate);
 	if(isNull(fieldTrip_id)){//create new session
-		showWarning("new","new");
+		//showWarning("new","new");
 		if(isNull(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripName"))){
 			showWarning("Incomplete Data","Please make sure that data is complete");
 			return;
@@ -4484,14 +4488,14 @@ saveFieldTrip(){
 		else{
 			//duplicate check
 			tempFtLabel=username+"_FieldTrip_"+startDate;
-			showWarning("tempFtLabel",tempFtLabel);
+			//showWarning("tempFtLabel",tempFtLabel);
 			tempDuplicateList=new ArrayList();
 			tempDuplicateList.clear();
 			int sizeOfDup=0;
 			ftDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripID') "+
 				"and measure like '"+tempFtLabel+"' or measure like '"+tempFtLabel+"(%)'";
-			showWarning("ftDuplicateQuery",ftDuplicateQuery);
+			//showWarning("ftDuplicateQuery",ftDuplicateQuery);
 			fetchAll(ftDuplicateQuery,new FetchCallback() {
 						onFetch(result) {
 							if(!isNull(result)){
