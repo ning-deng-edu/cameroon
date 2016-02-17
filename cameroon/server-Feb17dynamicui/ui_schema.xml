@@ -530,7 +530,7 @@
      <group ref="questionnaire_question">
         <label>Questionnaire</label>
         
-        <group ref="questionnaire_question_info" faims_scrollable="false">
+        <group ref="questionnaire_question_info">
           <label>{Questionnaire Question Selction}</label>
 
             <group ref="container3" faims_style="orientation">
