@@ -564,7 +564,7 @@ initializeQuestionSelect(){
 					questionCandidatesContent.addAll(result);
 				populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
 				//if(hasView("questionnaire_question/questionnaire_question_info/Check_ques_1")){
-					removeAllViewsAndContainers("questionnaire_question");
+				removeAllViewsAndContainers("questionnaire_question");
 					//createContainer("questionnaire_question/questionnaire_question_info/ques_container", "orientation", "questionnaire_question/questionnaire_question_info");
 				//}
 			}
@@ -627,7 +627,8 @@ initializeQuestionSelect(){
 												String tempQuesContent=tempQues.get(1);
 												tempQuesContent=tempQuesOrderNum+"-"+tempQuesContent;	
 												tempQues.set(1,tempQuesContent);
-												questionSelected.add(tempQues);
+												questionSelected.add(tempQues);//order the questionSelected list in order
+												reConstructQuesOrder();
 												questionOriginal.add(tempQues);
 												//populateRadioGroup("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
 												}
@@ -704,6 +705,7 @@ initializeQuestionSelect(){
 				    showToast(message);
 				}
 				});	
+		
 		}
 }
 
