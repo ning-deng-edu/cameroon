@@ -1737,6 +1737,179 @@ listChange(ArrayList targetList,ArrayList sourceList){
 	}
 	return listChanges;
 }
+createAudioFilePage(String typeFlag){
+	if(!hasView("file/fileInfo/audioFileID"))
+	{
+		removeAllViewsAndContainers("file");
+	 	executeViewTask(new ViewTask() {
+			doTask() { 	
+		 	
+				idFileDef = createViewDef().createTextField().setLabel("Audio file label").setAttributeName("FileID").setAttributeType("measure").
+				setAnnotationEnabled(true).setReadOnly(true);
+
+				nameViewDef=createViewDef().createTextField().setLabel("Audio file name").setAttributeName("FileName").setAttributeType("measure").
+				setAnnotationEnabled(true).setStyleCss("required");
+
+				typeViewDef=createViewDef().createTextField().setLabel("File type").setAttributeName("FileType").setAttributeType("measure").
+				setAnnotationEnabled(true).setReadOnly(true);
+
+				creatorViewDef=createViewDef().createTextField().setLabel("File creator").setAttributeName("FileCreator").setAttributeType("measure").
+				setAnnotationEnabled(true).setReadOnly(true);
+
+				fileContentViewDef=createViewDef().createFileGroup(true).setLabel("Audio").setAttributeName("FileContent").setAttributeType("measure").
+				setAnnotationEnabled(true);
+
+				newBtnViewDef=createViewDef().createButton().setLabel("New Audio");
+
+				pathTextViewDef=createViewDef().createTextField().setLabel("Audio file path").setAttributeName("FilePath").setAttributeType("measure").
+				setAnnotationEnabled(true).setReadOnly(true);
+
+				saveBtnViewDef=createViewDef().createButton().setLabel("Save Audio");
+
+				createView("file/fileInfo/audioFileID", idFileDef,"file/fileInfo");
+				createView("file/fileInfo/audioFileName", nameViewDef,"file/fileInfo");
+				createView("file/fileInfo/audioFileType", typeViewDef,"file/fileInfo");
+				createView("file/fileInfo/audioFileCreator", creatorViewDef,"file/fileInfo");
+				createView("file/fileInfo/audioFileContent", fileContentViewDef,"file/fileInfo");
+				createView("file/fileInfo/Take_Audio_File", newBtnViewDef,"file/fileInfo");
+				createView("file/fileInfo/audioFilePath", pathTextViewDef,"file/fileInfo");
+				createView("file/fileInfo/Save_New_Audio", saveBtnViewDef,"file/fileInfo");
+			    onEvent("file/fileInfo/Take_Audio_File","click","attachAudioToField(\"file/fileInfo/audioFileContent\")");
+				onEvent("file/fileInfo/Save_New_Audio","click","saveFileFromAnswer(\"file/fileInfo/audioFileName\",\"file/fileInfo/audioFileContent\",\"file\",\"Audio\")");
+				}
+		});
+	}
+}
+
+createVideoPage(String typeFlag){
+if(!hasView("file/fileInfo/videoFileID"))
+	{
+		removeAllViewsAndContainers("file");
+	 	executeViewTask(new ViewTask() {
+			doTask() { 	
+		 	
+				idFileDef = createViewDef().createTextField().setLabel("Video file label").setAttributeName("FileID").setAttributeType("measure").
+		    	setAnnotationEnabled(true).setReadOnly(true);
+
+		    	nameViewDef=createViewDef().createTextField().setLabel("Video file name").setAttributeName("FileName").setAttributeType("measure").
+		    	setAnnotationEnabled(true).setStyleCss("required");
+
+		    	typeViewDef=createViewDef().createTextField().setLabel("File type").setAttributeName("FileType").setAttributeType("measure").
+		    	setAnnotationEnabled(true).setReadOnly(true);
+
+		    	creatorViewDef=createViewDef().createTextField().setLabel("File creator").setAttributeName("FileCreator").setAttributeType("measure").
+		    	setAnnotationEnabled(true).setReadOnly(true);
+
+		    	fileContentViewDef=createViewDef().createVideoGallery(true).setLabel("Video").setAttributeName("FileContent").setAttributeType("measure").
+		    	setAnnotationEnabled(true);
+
+		    	newBtnViewDef=createViewDef().createButton().setLabel("New Video");
+
+		    	pathTextViewDef=createViewDef().createTextField().setLabel("Video file path").setAttributeName("FilePath").setAttributeType("measure").
+		    	setAnnotationEnabled(true).setReadOnly(true);
+
+		    	saveBtnViewDef=createViewDef().createButton().setLabel("Save Video");
+
+		    	createView("file/fileInfo/videoFileID", idFileDef,"file/fileInfo");
+		    	createView("file/fileInfo/videoFileName", nameViewDef,"file/fileInfo");
+		    	createView("file/fileInfo/videoFileType", typeViewDef,"file/fileInfo");
+		    	createView("file/fileInfo/videoFileCreator", creatorViewDef,"file/fileInfo");
+		    	createView("file/fileInfo/videoFileContent", fileContentViewDef,"file/fileInfo");
+		    	createView("file/fileInfo/Take_Video_File", newBtnViewDef,"file/fileInfo");
+		    	createView("file/fileInfo/videoFilePath", pathTextViewDef,"file/fileInfo");
+		    	createView("file/fileInfo/Save_New_Video", saveBtnViewDef,"file/fileInfo");
+		        onEvent("file/fileInfo/Take_Video_File","click","attachVideoToField(\"file/fileInfo/videoFileContent\")");
+				onEvent("file/fileInfo/Save_New_Video","click","saveFileFromAnswer(\"file/fileInfo/videoFileName\",\"file/fileInfo/videoFileContent\",\"file\",\"Video\")");
+			}
+		});
+	}
+}
+createPhotoPage(String typeFlag){
+	if(!hasView("file/fileInfo/photoFileID"))
+	{
+		removeAllViewsAndContainers("file");
+	
+	 	executeViewTask(new ViewTask() {
+			doTask() { 	
+				idFileDef = createViewDef().createTextField().setLabel("Photo file label").setAttributeName("FileID").setAttributeType("measure").
+		    	setAnnotationEnabled(true).setReadOnly(true);
+			
+		    	nameViewDef=createViewDef().createTextField().setLabel("Photo file name").setAttributeName("FileName").setAttributeType("measure").
+		    	setAnnotationEnabled(true).setStyleCss("required");
+		    	
+		    	typeViewDef=createViewDef().createTextField().setLabel("File type").setAttributeName("FileType").setAttributeType("measure").
+		    	setAnnotationEnabled(true).setReadOnly(true);
+		    	
+		    	creatorViewDef=createViewDef().createTextField().setLabel("File creator").setAttributeName("FileCreator").setAttributeType("measure").
+		    	setAnnotationEnabled(true).setReadOnly(true);
+		    	
+		    	fileContentViewDef=createViewDef().createCameraGallery(true).setLabel("Photo").setAttributeName("FileContent").setAttributeType("measure").
+		    	setAnnotationEnabled(true);
+		    	
+		    	newBtnViewDef=createViewDef().createButton().setLabel("New Photo");
+		    	
+		    	pathTextViewDef=createViewDef().createTextField().setLabel("Photo file path").setAttributeName("FilePath").setAttributeType("measure").
+		    	setAnnotationEnabled(true).setReadOnly(true);
+		    	
+		    	saveBtnViewDef=createViewDef().createButton().setLabel("Save Photo");
+		    	
+		    	createView("file/fileInfo/photoFileID", idFileDef,"file/fileInfo");
+		    	createView("file/fileInfo/photoFileName", nameViewDef,"file/fileInfo");	    	
+		    	createView("file/fileInfo/photoFileType", typeViewDef,"file/fileInfo");	    
+		    	createView("file/fileInfo/photoFileCreator", creatorViewDef,"file/fileInfo");
+		    	createView("file/fileInfo/photoFileContent", fileContentViewDef,"file/fileInfo");
+		    	createView("file/fileInfo/Take_Photo_File", newBtnViewDef,"file/fileInfo");
+		    	createView("file/fileInfo/photoFilePath", pathTextViewDef,"file/fileInfo");
+		    	createView("file/fileInfo/Save_New_Photo", saveBtnViewDef,"file/fileInfo");
+		        onEvent("file/fileInfo/Take_Photo_File","click","attachPictureToField(\"file/fileInfo/photoFileContent\")");
+				onEvent("file/fileInfo/Save_New_Photo","click","saveFileFromAnswer(\"file/fileInfo/photoFileName\",\"file/fileInfo/photoFileContent\",\"file\",\"Photo\")");
+			}
+		});
+	}
+}
+createSketchPage(String typeFlag){
+	if(!hasView("file/fileInfo/sketchFileID"))
+	{
+		removeAllViewsAndContainers("file");
+
+	 	executeViewTask(new ViewTask() {
+			doTask() { 		 	
+				idFileDef = createViewDef().createTextField().setLabel("Sketch file label").setAttributeName("FileID").setAttributeType("measure").
+		    	setAnnotationEnabled(true).setReadOnly(true);
+			
+		    	nameViewDef=createViewDef().createTextField().setLabel("Sketch file name").setAttributeName("FileName").setAttributeType("measure").
+		    	setAnnotationEnabled(true).setStyleCss("required");
+		  
+		    	typeViewDef=createViewDef().createTextField().setLabel("File type").setAttributeName("FileType").setAttributeType("measure").
+		    	setAnnotationEnabled(true).setReadOnly(true);
+		 
+		    	creatorViewDef=createViewDef().createTextField().setLabel("File creator").setAttributeName("FileCreator").setAttributeType("measure").
+		    	setAnnotationEnabled(true).setReadOnly(true);
+
+		    	fileContentViewDef=createViewDef().createFileGroup(true).setLabel("Sketch").setAttributeName("FileContent").setAttributeType("measure").
+		    	setAnnotationEnabled(true);
+
+		    	newBtnViewDef=createViewDef().createButton().setLabel("Attach new file");
+
+		    	pathTextViewDef=createViewDef().createTextField().setLabel("Sketch file path").setAttributeName("FilePath").setAttributeType("measure").
+		    	setAnnotationEnabled(true).setReadOnly(true);
+		  
+		    	saveBtnViewDef=createViewDef().createButton().setLabel("Save File");
+
+		    	createView("file/fileInfo/sketchFileID", idFileDef,"file/fileInfo");
+		    	createView("file/fileInfo/sketchFileName", nameViewDef,"file/fileInfo");
+		    	createView("file/fileInfo/sketchFileType", typeViewDef,"file/fileInfo");
+		    	createView("file/fileInfo/sketchFileCreator", creatorViewDef,"file/fileInfo");
+		    	createView("file/fileInfo/sketchFileContent", fileContentViewDef,"file/fileInfo");
+		    	createView("file/fileInfo/Take_Sketch_File", newBtnViewDef,"file/fileInfo");
+		    	createView("file/fileInfo/sketchFilePath", pathTextViewDef,"file/fileInfo");
+		    	createView("file/fileInfo/Save_New_Sketch", saveBtnViewDef,"file/fileInfo");
+		        onEvent("file/fileInfo/Take_Sketch_File","click","attachFileToField(\"file/fileInfo/sketchFileContent\")");
+				onEvent("file/fileInfo/Save_New_Sketch","click","saveFileFromAnswer(\"file/fileInfo/sketchFileName\",\"file/fileInfo/sketchFileContent\",\"file\",\"Recording\")");
+			}
+	});
+	}
+}
 newFile(String typeFlag){
 	String fileCategory=null;
 	String tempAnsID=null;
@@ -1749,232 +1922,45 @@ newFile(String typeFlag){
 			switch (fileCategory){
 				case "Audio":		
 					//Generate audio file creation ui pages
-				 	removeAllViewsAndContainers("file");
-				 	executeViewTask(new ViewTask() {
-    				doTask() { 	
-				 	
-					idFileDef = createViewDef().createTextField().setLabel("Audio file label").setAttributeName("FileID").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setReadOnly(true);
-
-			    	nameViewDef=createViewDef().createTextField().setLabel("Audio file name").setAttributeName("FileName").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setStyleCss("required");
-
-			    	typeViewDef=createViewDef().createTextField().setLabel("File type").setAttributeName("FileType").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setReadOnly(true);
-
-			    	creatorViewDef=createViewDef().createTextField().setLabel("File creator").setAttributeName("FileCreator").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setReadOnly(true);
-
-			    	fileContentViewDef=createViewDef().createFileGroup(true).setLabel("Audio").setAttributeName("FileContent").setAttributeType("measure").
-			    	setAnnotationEnabled(true);
-
-			    	newBtnViewDef=createViewDef().createButton().setLabel("New Audio");
-
-			    	pathTextViewDef=createViewDef().createTextField().setLabel("Audio file path").setAttributeName("FilePath").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setReadOnly(true);
-
-			    	saveBtnViewDef=createViewDef().createButton().setLabel("Save Audio");
-
-			    	createView("file/fileInfo/audioFileID", idFileDef,"file/fileInfo");
-
-			    	createView("file/fileInfo/audioFileName", nameViewDef,"file/fileInfo");
-
-			    	createView("file/fileInfo/audioFileType", typeViewDef,"file/fileInfo");
-
-			    	createView("file/fileInfo/audioFileCreator", creatorViewDef,"file/fileInfo");
-
-			    	createView("file/fileInfo/audioFileContent", fileContentViewDef,"file/fileInfo");
-
-			    	createView("file/fileInfo/Take_Audio_File", newBtnViewDef,"file/fileInfo");
-	
-			    	createView("file/fileInfo/audioFilePath", pathTextViewDef,"file/fileInfo");
-
-			    	createView("file/fileInfo/Save_New_Audio", saveBtnViewDef,"file/fileInfo");
-
-			        onEvent("file/fileInfo/Take_Audio_File","click","attachAudioToField(\"file/fileInfo/audioFileContent\")");
-
-					onEvent("file/fileInfo/Save_New_Audio","click","saveFileFromAnswer(\"file/fileInfo/audioFileName\",\"file/fileInfo/audioFileContent\",\"file\",\"Audio\")");
-
+				 	createAudioFilePage("new");
 					newTabGroup("file");
 					String tempAudioID=tempAnsID+"_Audio";
 					labelDeduplicate(tempAudioID,"FileID","file/fileInfo/audioFileID","file");
 
 					setFieldValue("file/fileInfo/audioFileCreator",username);
 					setFieldValue("file/fileInfo/audioFileType","Audio");
-						}
-					});
-					
 				break;
 				case "Video":
-				removeAllViewsAndContainers("file");
-				 	executeViewTask(new ViewTask() {
-    				doTask() { 	
-				 	
-					idFileDef = createViewDef().createTextField().setLabel("Video file label").setAttributeName("FileID").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setReadOnly(true);
-			    	nameViewDef=createViewDef().createTextField().setLabel("Video file name").setAttributeName("FileName").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setStyleCss("required");
-			    	typeViewDef=createViewDef().createTextField().setLabel("File type").setAttributeName("FileType").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setReadOnly(true);
-			    	creatorViewDef=createViewDef().createTextField().setLabel("File creator").setAttributeName("FileCreator").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setReadOnly(true);
-			    	//showWarning("creatorAudioViewDef","creatorAudioViewDef");
-			    	fileContentViewDef=createViewDef().createVideoGallery(true).setLabel("Video").setAttributeName("FileContent").setAttributeType("measure").
-			    	setAnnotationEnabled(true);
-			    	//showWarning("fileContentViewDef","fileContentViewDef");
-			    	newBtnViewDef=createViewDef().createButton().setLabel("New Video");
-			    	//showWarning("newAudioBtnViewDef","newAudioBtnViewDef");
-			    	pathTextViewDef=createViewDef().createTextField().setLabel("Video file path").setAttributeName("FilePath").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setReadOnly(true);
-			    	//showWarning("pathTextViewDef","pathTextViewDef");
-			    	saveBtnViewDef=createViewDef().createButton().setLabel("Save Video");
-			    	//showWarning("saveAudioBtnViewDef","saveAudioBtnViewDef");
-			    	createView("file/fileInfo/videoFileID", idFileDef,"file/fileInfo");
-			    	//showWarning("createView","idAudioFileDef");
-			    	createView("file/fileInfo/videoFileName", nameViewDef,"file/fileInfo");
-			    	//showWarning("nameAudioViewDef","nameAudioViewDef");
-			    	createView("file/fileInfo/videoFileType", typeViewDef,"file/fileInfo");
-			    	//showWarning("typeAudioViewDef","typeAudioViewDef");
-			    	createView("file/fileInfo/videoFileCreator", creatorViewDef,"file/fileInfo");
-			    	//showWarning("creatorAudioViewDef","creatorAudioViewDef");
-			    	createView("file/fileInfo/videoFileContent", fileContentViewDef,"file/fileInfo");
-			    	//showWarning("fileContentViewDef","fileContentViewDef");
-			    	createView("file/fileInfo/Take_Video_File", newBtnViewDef,"file/fileInfo");
-			    	//showWarning("newAudioBtnViewDef","newAudioBtnViewDef");
-			    	createView("file/fileInfo/videoFilePath", pathTextViewDef,"file/fileInfo");
-			    	//showWarning("pathTextViewDef","pathTextViewDef");
-			    	createView("file/fileInfo/Save_New_Video", saveBtnViewDef,"file/fileInfo");
-			    	//showWarning("saveAudioBtnViewDef","saveAudioBtnViewDef");
-			        onEvent("file/fileInfo/Take_Video_File","click","attachVideoToField(\"file/fileInfo/videoFileContent\")");
-			        //showWarning("onEvent","onEvent");
-					onEvent("file/fileInfo/Save_New_Video","click","saveFileFromAnswer(\"file/fileInfo/videoFileName\",\"file/fileInfo/videoFileContent\",\"file\",\"Video\")");
-					//showWarning("onEvent","onEvent2");
+					createVideoPage("new");
+
 					newTabGroup("file");
 					String tempVideoID=tempAnsID+"_Video";
 					labelDeduplicate(tempVideoID,"FileID","file/fileInfo/videoFileID","file");
-					//showWarning("videoLabelIDNum",videoLabelIDNum.toString());	
+	
 					setFieldValue("file/fileInfo/videoFileCreator",username);
 					setFieldValue("file/fileInfo/videoFileType","Video");
-						}
-					});
-					
 				break;
 
 				case "Photo":
-					removeAllViewsAndContainers("file");
-				 	//showWarning("remove","removeAllViewsAndContainers");
-				 	executeViewTask(new ViewTask() {
-    				doTask() { 	
-				 	
-					idFileDef = createViewDef().createTextField().setLabel("Photo file label").setAttributeName("FileID").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setReadOnly(true);
-					//showWarning("idAudioFileDef","idAudioFileDef");
-			    	nameViewDef=createViewDef().createTextField().setLabel("Photo file name").setAttributeName("FileName").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setStyleCss("required");
-			    	//showWarning("nameAudioViewDef","nameAudioViewDef");
-			    	typeViewDef=createViewDef().createTextField().setLabel("File type").setAttributeName("FileType").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setReadOnly(true);
-			    	//showWarning("typeAudioViewDef","typeAudioViewDef");
-			    	creatoriewDef=createViewDef().createTextField().setLabel("File creator").setAttributeName("FileCreator").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setReadOnly(true);
-			    	//showWarning("creatorAudioViewDef","creatorAudioViewDef");
-			    	fileContentViewDef=createViewDef().createCameraGallery(true).setLabel("Photo").setAttributeName("FileContent").setAttributeType("measure").
-			    	setAnnotationEnabled(true);
-			    	//showWarning("fileContentViewDef","fileContentViewDef");
-			    	newBtnViewDef=createViewDef().createButton().setLabel("New Photo");
-			    	//showWarning("newAudioBtnViewDef","newAudioBtnViewDef");
-			    	pathTextViewDef=createViewDef().createTextField().setLabel("Photo file path").setAttributeName("FilePath").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setReadOnly(true);
-			    	//showWarning("pathTextViewDef","pathTextViewDef");
-			    	saveBtnViewDef=createViewDef().createButton().setLabel("Save Photo");
-			    	//showWarning("saveAudioBtnViewDef","saveAudioBtnViewDef");
-			    	createView("file/fileInfo/photoFileID", idFileDef,"file/fileInfo");
-			    	//showWarning("createView","idAudioFileDef");
-			    	createView("file/fileInfo/photoFileName", nameViewDef,"file/fileInfo");
-			    	//showWarning("nameAudioViewDef","nameAudioViewDef");
-			    	createView("file/fileInfo/photoFileType", typeViewDef,"file/fileInfo");
-			    	//showWarning("typeAudioViewDef","typeAudioViewDef");
-			    	createView("file/fileInfo/photoFileCreator", creatorViewDef,"file/fileInfo");
-			    	//showWarning("creatorAudioViewDef","creatorAudioViewDef");
-			    	createView("file/fileInfo/photoFileContent", fileContentViewDef,"file/fileInfo");
-			    	//showWarning("fileContentViewDef","fileContentViewDef");
-			    	createView("file/fileInfo/Take_Photo_File", newBtnViewDef,"file/fileInfo");
-			    	//showWarning("newAudioBtnViewDef","newAudioBtnViewDef");
-			    	createView("file/fileInfo/photoFilePath", pathTextViewDef,"file/fileInfo");
-			    	//showWarning("pathTextViewDef","pathTextViewDef");
-			    	createView("file/fileInfo/Save_New_Photo", saveBtnViewDef,"file/fileInfo");
-			    	//showWarning("saveAudioBtnViewDef","saveAudioBtnViewDef");
-			        onEvent("file/fileInfo/Take_Photo_File","click","attachPictureToField(\"file/fileInfo/photoFileContent\")");
-			        //showWarning("onEvent","onEvent");
-					onEvent("file/fileInfo/Save_New_Photo","click","saveFileFromAnswer(\"file/fileInfo/photoFileName\",\"file/fileInfo/photoFileContent\",\"file\",\"Photo\")");
-					//showWarning("onEvent","onEvent2");
+					createPhotoPage("new");
+
 					newTabGroup("file");
 					String tempPhotoID=tempAnsID+"_Photo";
 					labelDeduplicate(tempPhotoID,"FileID","file/fileInfo/photoFileID","file");
-					//setFieldValue("photoFile/photoFileInfo/photoFileID",tempAnsID+"_Photo");
+
 					setFieldValue("file/fileInfo/photoFileCreator",username);
 					setFieldValue("file/fileInfo/photoFileType","Photo");
-						}
-					});
 				
 				break;
 				case "Other":
-					removeAllViewsAndContainers("file");
-				 	//showWarning("remove","removeAllViewsAndContainers");
-				 	executeViewTask(new ViewTask() {
-    				doTask() { 	
-				 	
-					idFileDef = createViewDef().createTextField().setLabel("Sketch file label").setAttributeName("FileID").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setReadOnly(true);
-					//showWarning("idAudioFileDef","idAudioFileDef");
-			    	nameViewDef=createViewDef().createTextField().setLabel("Sketch file name").setAttributeName("FileName").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setStyleCss("required");
-			    	//showWarning("nameAudioViewDef","nameAudioViewDef");
-			    	typeViewDef=createViewDef().createTextField().setLabel("File type").setAttributeName("FileType").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setReadOnly(true);
-			    	//showWarning("typeAudioViewDef","typeAudioViewDef");
-			    	creatoriewDef=createViewDef().createTextField().setLabel("File creator").setAttributeName("FileCreator").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setReadOnly(true);
-			    	//showWarning("creatorAudioViewDef","creatorAudioViewDef");
-			    	fileContentViewDef=createViewDef().createFileGroup(true).setLabel("Sketch").setAttributeName("FileContent").setAttributeType("measure").
-			    	setAnnotationEnabled(true);
-			    	//showWarning("fileContentViewDef","fileContentViewDef");
-			    	newBtnViewDef=createViewDef().createButton().setLabel("Attach new file");
-			    	//showWarning("newAudioBtnViewDef","newAudioBtnViewDef");
-			    	pathTextViewDef=createViewDef().createTextField().setLabel("Sketch file path").setAttributeName("FilePath").setAttributeType("measure").
-			    	setAnnotationEnabled(true).setReadOnly(true);
-			    	//showWarning("pathTextViewDef","pathTextViewDef");
-			    	saveBtnViewDef=createViewDef().createButton().setLabel("Save File");
-			    	//showWarning("saveAudioBtnViewDef","saveAudioBtnViewDef");
-			    	createView("file/fileInfo/sketchFileID", idFileDef,"file/fileInfo");
-			    	//showWarning("createView","idAudioFileDef");
-			    	createView("file/fileInfo/sketchFileName", nameViewDef,"file/fileInfo");
-			    	//showWarning("nameAudioViewDef","nameAudioViewDef");
-			    	createView("file/fileInfo/sketchFileType", typeViewDef,"file/fileInfo");
-			    	//showWarning("typeAudioViewDef","typeAudioViewDef");
-			    	createView("file/fileInfo/sketchFileCreator", creatorViewDef,"file/fileInfo");
-			    	//showWarning("creatorAudioViewDef","creatorAudioViewDef");
-			    	createView("file/fileInfo/sketchFileContent", fileContentViewDef,"file/fileInfo");
-			    	//showWarning("fileContentViewDef","fileContentViewDef");
-			    	createView("file/fileInfo/Take_Sketch_File", newBtnViewDef,"file/fileInfo");
-			    	//showWarning("newAudioBtnViewDef","newAudioBtnViewDef");
-			    	createView("file/fileInfo/sketchFilePath", pathTextViewDef,"file/fileInfo");
-			    	//showWarning("pathTextViewDef","pathTextViewDef");
-			    	createView("file/fileInfo/Save_New_Sketch", saveBtnViewDef,"file/fileInfo");
-			    	//showWarning("saveAudioBtnViewDef","saveAudioBtnViewDef");
-			        onEvent("file/fileInfo/Take_Sketch_File","click","attachFileToField(\"file/fileInfo/photoFileContent\")");
-			        //showWarning("onEvent","onEvent");
-					onEvent("file/fileInfo/Save_New_Sketch","click","saveFileFromAnswer(\"file/fileInfo/sketchFileName\",\"file/fileInfo/sketchFileContent\",\"file\",\"Recording\")");
-					//showWarning("onEvent","onEvent2");
+					createSketchPage("new");
+					
 					newTabGroup("file");
 					String tempSketchID=tempAnsID+"_Recording";
 					labelDeduplicate(tempSketchID,"FileID","file/fileInfo/sketchFileID","file");
-					//setFieldValue("sketchFile/sketchFileInfo/sketchFileID",tempAnsID+"_Recording");
+
 					setFieldValue("file/fileInfo/sketchFileCreator",username);
 					setFieldValue("file/fileInfo/sketchFileType","Sketch");
-						}
-					});
-				
 					
 					break;
 				default:
@@ -3966,7 +3952,19 @@ saveSession(String typeflag){//TODO:BUG FOR SAVING, RECONSIDER THE LOGICS
 							onFetch(result) {
 								if(!isNull(result)){
 									tempDuplicateList.addAll(result);
-									sizeOfDup=tempDuplicateList.size();
+									Boolean self=false;
+									for(item : tempDuplicateList){
+										if(item.get(0).equals(sss_id)){
+											self=true;
+											break;
+										}
+									}
+									if(self){
+										sizeOfDup=tempDuplicateList.size()-1;
+									}
+									else{
+										sizeOfDup=tempDuplicateList.size();
+									}
 									tempNewSssLabel=tempNewSssLabel+"("+sizeOfDup.toString()+")";
 									setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",tempNewSssLabel);
 								}
@@ -4370,19 +4368,6 @@ timeValidation(String startDateTime, String endDateTime, String flag){
 		break;
 	}
 }
-/***fieldTrip***/
-
-//onEvent("control/fileGroup_control/fieldTripGroup","click","showFieldTrip()");
-/*
-onEvent("control/fieldTrip_control","show","loadFieldTripList()");
-onEvent("control/fieldTrip_control/fieldTripList","click","loadFieldTripInfo()");
-onEvent("control/fieldTrip_control/New_FieldTrip","click","startNewFieldTrip()");
-onEvent("fieldTrip/fieldTripSession/Finish_New_FieldTrip","click","saveFieldTrip()");
-onEvent("fieldTrip/fieldTripSession/fieldTripFileSelectionList","click","addItemToTargetList(candidate_session_fieldTrip,\"fieldTripSession\",null)");
-onEvent("fieldTrip/fieldTripSession/fieldTripFileList","click","deleteItemFromTargetList(selected_session_fieldTrip,\"fieldTripSession\",null)");
-*/
-
-
 
 
 dateParser(String sourceDate){
@@ -4520,7 +4505,7 @@ labelDeduplicate(String originLabel, String attriName, String fieldRef, String t
 
 
 }
-/***Dynamic ui***/
+/***Dynamic ui-FieldTrip***/
 onEvent("control/other_control/fieldTrip_page","click","createFieldTripPage()");
 onEvent("fieldTrip_control/fieldTripInfo","show","loadFieldTripList()");
 
@@ -4611,14 +4596,14 @@ createFieldTripInfoPage(String typeflag){
 			});
 
 		if(typeflag.equals("new")){
-				startNewFieldTrip();
+			startNewFieldTrip();
 		}
 
 	}
 	else{
 		//showTabGroup("fieldTrip");
 		if(typeflag.equals("new")){
-				startNewFieldTrip();
+			startNewFieldTrip();
 		}
 	}
 
