@@ -1954,7 +1954,7 @@ newFile(String typeFlag){
 				break;
 				case "Other":
 					createSketchPage("new");
-					
+
 					newTabGroup("file");
 					String tempSketchID=tempAnsID+"_Recording";
 					labelDeduplicate(tempSketchID,"FileID","file/fileInfo/sketchFileID","file");
@@ -2045,7 +2045,8 @@ loadAnswerFileInfo(String typeFlag){
 						//showWarning("fetchAll",currentType);
 						switch (currentType){
 						case "Audio":		
-							showTabGroup("audioFile", view_file_id, new FetchCallback() {
+							createAudioFilePage("show");
+							showTabGroup("file", view_file_id, new FetchCallback() {
 						        onFetch(result) {						  
 						            showToast("Loaded audio file"+result.getId());            
 						        }
@@ -2055,7 +2056,8 @@ loadAnswerFileInfo(String typeFlag){
 						    });
 							break;
 						case "Video":
-							showTabGroup("videoFile", view_file_id, new FetchCallback() {
+							createVideoPage("show");
+							showTabGroup("file", view_file_id, new FetchCallback() {
 						        onFetch(result) {						  
 						            showToast("Loaded video file"+result.getId());            
 						        }
@@ -2065,7 +2067,8 @@ loadAnswerFileInfo(String typeFlag){
 						    });
 							break;
 						case "Photo":
-							showTabGroup("photoFile", view_file_id, new FetchCallback() {
+							createPhotoPage("show");
+							showTabGroup("file", view_file_id, new FetchCallback() {
 						        onFetch(result) {						  
 						            showToast("Loaded photo file"+result.getId());            
 						        }
@@ -2075,7 +2078,8 @@ loadAnswerFileInfo(String typeFlag){
 						    });
 							break;
 						case "Sketch":
-							showTabGroup("sketchFile", view_file_id, new FetchCallback() {
+							createSketchPage("show");
+							showTabGroup("file", view_file_id, new FetchCallback() {
 						        onFetch(result) {						  
 						            showToast("Loaded sketch file"+result.getId());            
 						        }
