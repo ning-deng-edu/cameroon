@@ -2239,12 +2239,7 @@ loadSessionInfo(String typeFlag){
 				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
 	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
 				"and latestNonDeletedRelationship.Deleted IS NULL)))";
-	 	/*
-		loadAnsSssRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+sss_id+" "+
-	 					"and RelationshipID in "+
-	 					"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
-	 					"and latestNonDeletedRelationship.Deleted IS NULL)";
-	 					*/
+
 		//Query out the reln id of person and person roles in a session
 		loadSssPersonRelnQuery="select uuid from latestNonDeletedArchEntIdentifiers "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
@@ -2269,17 +2264,6 @@ loadSessionInfo(String typeFlag){
 				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Person') "+
 				"and latestNonDeletedRelationship.Deleted IS NULL))";
 
-	/*
-		fetchAll(loadAnsSssRelnQuery, new FetchCallback() {
-	        onFetch(result) {
-	        	sssAnsOrigin.clear();
-	        	sssAnsOrigin.addAll(result);
-	        }
-	        onError(message) {
-	            showToast(message);
-	        }
-	    });
-	    */
 		fetchAll(loadSssConslRelnQuery, new FetchCallback() {
 	        onFetch(result) {
 	        	sssOldCoslReln.clear();
@@ -2309,6 +2293,7 @@ loadSessionInfo(String typeFlag){
 	    });
 		showTabGroup("sessionForAnswer", sss_id, new FetchCallback() {
 	        onFetch(result) {
+				sssOriginInfo.clear();
 	        	sssLabelOld=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID");
 	        	sssOriginInfo.add(sssLabelOld);
 	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
@@ -2328,6 +2313,7 @@ loadSessionInfo(String typeFlag){
 	                    showToast(message);
 	                }
 	            });
+
 				sssPersonRoleNameListOrigin.clear();
 	            sssPersonRoleandNameList.clear();
 	            sssPsInfoRelnOrigin.clear();
@@ -3245,7 +3231,6 @@ changeSession(){
 
 saveSession(String typeflag){
 	switch(typeflag){
-
 		case "answer":	
 			if(isNull(sss_id)){//SAVING NEW SESSION
 				if((isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"))) || 
@@ -3348,7 +3333,6 @@ saveSession(String typeflag){
 				changeSession();
 			}//Changing session Info
 		break;
-		
 	}
 }
 timeValidation(String startDateTime, String endDateTime, String flag){
