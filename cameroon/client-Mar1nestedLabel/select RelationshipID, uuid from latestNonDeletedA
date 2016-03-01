@@ -1,0 +1,9 @@
+select RelationshipID, uuid from latestNonDeletedAentReln where uuid <> '1000011456862427105' and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='1000011456862427105' and RelationshipID in (select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') and latestNonDeletedRelationship.Deleted IS NULL))
+
+select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') and latestNonDeletedRelationship.Deleted IS NULL
+
+select RelationshipID from latestNonDeletedRelationship where RelnTypeID= (select RelnTypeID from RelnType where RelnTypeName='Answer and Session')and latestNonDeletedRelationship.Deleted IS NULL
+
+select RelationshipID from latestNonDeletedAentReln where uuid='1000011456862427105' and RelationshipID in(select RelationshipID from latestNonDeletedRelationship where RelnTypeID= (select RelnTypeID from RelnType where RelnTypeName='Answer and Session')and latestNonDeletedRelationship.Deleted IS NULL)
+
+select RelationshipID, uuid from latestNonDeletedAentReln where uuid <> '1000011456866242054' and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='1000011456866242054' and RelationshipID in(select RelationshipID from latestNonDeletedRelationship where RelnTypeID= (select RelnTypeID from RelnType where RelnTypeName='Answer and Session')and latestNonDeletedRelationship.Deleted IS NULL))

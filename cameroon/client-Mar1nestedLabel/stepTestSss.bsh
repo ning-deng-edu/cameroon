@@ -374,7 +374,7 @@ sss_interviewer_list=new ArrayList();//for recording interviewer list when creat
 sssOriginInfo=new ArrayList();
 sssNewInfo=new ArrayList();
 original_sss_answer_list=new ArrayList();
-sssAnsOrigin=new ArrayList();
+sssAnsRelnOrigin=new ArrayList();
 String sssLabel=null;//This is used for sssID interviewee changing
 sssAnswerInterviewerOrigin=new LinkedHashSet();
 sssAnswerInterviewerNew=new LinkedHashSet();//This is for generating sss label
@@ -394,6 +394,17 @@ sssInterviewerList=new LinkedHashSet();
 sssConsultantIdList=new ArrayList();
 String introPsMark=null;//use for check if an intro ps is deleted from his/her intro session
 currentPosition=new ArrayList();
+
+session_id=null;
+selected_files_session=new ArrayList();
+candidate_files_session=new ArrayList();
+original_files_session=new ArrayList();
+sessionInfoOrigin=new ArrayList();
+sessionInfoNew=new ArrayList();
+sessionAnswerRelnOrigin=new ArrayList();
+sessionInterviewerOrigin=new ArrayList();
+sessionInterviewerNew=new ArrayList();
+sessionLabel=null;
 /***Starting from creating a session***/
 
 
@@ -416,7 +427,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	sssOriginInfo.clear();
 	sssNewInfo.clear();	
 	original_sss_answer_list.clear();
-	sssAnsOrigin.clear();
+	sssAnsRelnOrigin.clear();
 	sss_interviewer_list.clear();
 	sssConsultantList.clear();
 	sssConsultantIdList.clear();
@@ -1404,6 +1415,7 @@ checkPersonAns(){
 	ansedPs.clear();
 	Boolean endOrNot=false;
 	//int t=sssConsultantIdList.size();
+	//showWarning("consultant size",sssConsultantIdList.size().toString());
 	for(int i=0; i<sssConsultantIdList.size(); i++){// for most cases, there would be only one consultant
 		//Load all questionIDs that a person has answered
 		loadPersonAnswerQuery="select measure from latestNonDeletedAentValue "+
@@ -1449,7 +1461,7 @@ checkPersonAns(){
 checkDuplicateAns(ArrayList psList){
 	if(!isNull(psList)){
 		if(psList.size()==1){
-			showAlert("alert", psList.get(0)+"has already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir()", "stayInCurrentPage()");
+			showAlert("alert", psList.get(0)+" has already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir()", "stayInCurrentPage()");
 		}
 		else{
 			showAlert("alert", psList.get(0)+"EtAl have already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir()", "stayInCurrentPage()");
@@ -1488,7 +1500,8 @@ checkPersonIntro(String personID, ArrayList toAddPerson){
 				"and measure ='"+person_id+"')));";
 	
 	fetchAll(checkPsIntrSssQuery,new FetchCallback() {
-						        	onFetch(result) {					        	
+						        	
+		onFetch(result) {					        	
 									if(isNull(result)){
 										String toAddPsIdInfo=toAddPerson.get(0);
 										String toAddPsInfo=toAddPerson.get(1);
@@ -2153,16 +2166,7 @@ setFileToField(String ref) {
 }
 
 
-session_id=null;
-selected_files_session=new ArrayList();
-candidate_files_session=new ArrayList();
-original_files_session=new ArrayList();
-sessionInfoOrigin=new ArrayList();
-sessionInfoNew=new ArrayList();
-sessionAnswerRelnOrigin=new ArrayList();
-sessionInterviewerOrigin=new ArrayList();
-sessionInterviewerNew=new ArrayList();
-sessionLabel=null;
+
 
 /***session position***/
 takePoint() {
@@ -2240,6 +2244,12 @@ loadSessionInfo(String typeFlag){
 	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
 				"and latestNonDeletedRelationship.Deleted IS NULL)))";
 
+		loadAnsSssRelnQuery="select RelationshipID, uuid from latestNonDeletedAentReln where uuid <> '"+sss_id+
+		"' and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='"+sss_id+
+			"' and RelationshipID in(select RelationshipID from latestNonDeletedRelationship "+
+				"where RelnTypeID= (select RelnTypeID from RelnType where RelnTypeName='Answer and Session')"+
+				"and latestNonDeletedRelationship.Deleted IS NULL))";
+
 		//Query out the reln id of person and person roles in a session
 		loadSssPersonRelnQuery="select uuid from latestNonDeletedArchEntIdentifiers "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
@@ -2263,6 +2273,16 @@ loadSessionInfo(String typeFlag){
 			"' and RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
 				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Person') "+
 				"and latestNonDeletedRelationship.Deleted IS NULL))";
+
+		fetchAll(loadAnsSssRelnQuery, new FetchCallback() {
+	        onFetch(result) {
+	        	sssAnsRelnOrigin.clear();
+	        	sssAnsRelnOrigin.addAll(result);
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
 
 		fetchAll(loadSssConslRelnQuery, new FetchCallback() {
 	        onFetch(result) {
@@ -2929,6 +2949,7 @@ sssPsUpdate(Hashtable sssPsChange){
 	  				deleteArchEnt(toDelPsRelnID);
 	  			}
 	  		}
+
 	  		if(tempPsRoleID.equals(tempCostntID)){
 	    	  	for(toDelConsul:sssOldCoslReln){
 	    	  		String oldConsulID=toDelConsul.get(1);
@@ -2937,6 +2958,7 @@ sssPsUpdate(Hashtable sssPsChange){
 	    	  		}
 	    	  	}
 	    	}
+
 	    	else if(tempPsRoleID.equals(tempIntverID)){
 	    	  	for(toDelConsul:sssOldIntvReln){
 	    	  		String oldConsulID=toDelConsul.get(1);
@@ -2945,6 +2967,7 @@ sssPsUpdate(Hashtable sssPsChange){
 	    	  		}
 	    	  	}
 	    	}
+
 	    	else{
 	    	  	for(toDelConsul:sssOldPsReln){
 	    	  		String oldConsulID=toDelConsul.get(1);
@@ -2991,14 +3014,29 @@ ansListChange(Hashtable sssAnsChange){
 	else if (sssAnsChange.containsKey("PUREDELETE")){
 		sssDelAns=sssAnsChange.get("PUREDELETE");
 		for(ansDelete:sssDelAns){
-			deleteRel(ansDelete.get(0));
+			toDelAns=ansDelete.get(0);
+			for (oldReln:sssAnsRelnOrigin){
+				relnId=oldReln.get(0);
+				ansId=oldReln.get(1);
+				if (ansId.equals(toDelAns)){
+					deleteRel(relnId);
+				}
+			}
 		}
 	}
 	else{
 		sssAddChange=sssAnsChange.get("ADD");
 		sssDelChange=sssAnsChange.get("DELETE");
+
 		for(ansDelete:sssDelChange){
-			deleteRel(ansDelete.get(0));
+			toDelAns=ansDelete.get(0);
+			for (oldReln:sssAnsRelnOrigin){
+				relnId=oldReln.get(0);
+				ansId=oldReln.get(1);
+				if (ansId.equals(toDelAns)){
+					deleteRel(relnId);
+				}
+			}
 		}
 		
 		for(answer:sssAddChange){
@@ -3141,7 +3179,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 		    		onSave(uuid, newRecord) {
 		    		if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
-		    			ansListChange(ansListChange);
+		    			ansListChange(sssAnsChange);
 		    			}
 		    		
 		    		}//onSave(uuid, newRecord)
@@ -3156,7 +3194,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 
 	else{
 		if((sssInfoChange.containsKey("EQUAL")) && !(sssAnsChange.containsKey("EQUAL"))){
-			ansListChange(ansListChange);
+			ansListChange(sssAnsChange);
 		}
 		else{
 			String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
@@ -3165,7 +3203,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
 			    	if(!sssAnsChange.containsKey("EQUAL")){
-			    		ansListChange(ansListChange);
+			    		ansListChange(sssAnsChange);
 			    	}
 			    }
 			    onError(message) {
@@ -3219,8 +3257,7 @@ changeSession(){
 	}
 
 	//when sssPsInfo changed
-	
-	else{// need to test case by case
+	else{
 		updateSssPsChange(sssInfoChange,sssAnsChange,sssPsChange);
 		showToast("Session info updated");
 		autoSaveSession("tail");
@@ -3474,4 +3511,35 @@ labelDeduplicate(String originLabel, String attriName, String fieldRef, String t
 				
 			}
 	});
+}
+
+/*** query ***/
+onEvent("control/querytest/Submit","click","testQuery()");
+
+testQuery(){
+	query=getFieldValue("control/querytest/query");
+	//fetchAll("SELECT sql FROM sqlite_master WHERE name='archentity';",
+	fetchAll(query.toString()+";",
+	new FetchCallback() {
+        onFetch(result) {
+			if (isNull(result)) {
+				//code
+				showWarning("no","no result");
+			}
+			else{
+			for (re : result) {
+				
+				showWarning("yes",re.toString());
+				//showWarning("me",re.toString());
+				
+			}		    
+            //populateList("control/question_control/questionList", result);
+        }
+		}
+        onError(message) {
+        	Log.e("query error",message);
+            showToast(message);
+        }
+    });
+	
 }

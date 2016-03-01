@@ -312,6 +312,7 @@ onEvent("sessionForAnswer/sssPersonInfo/sssPersonList","click","deletePersonInSe
 onEvent("sessionForAnswer/sssPersonInfo/Add_New_Person","click","newPerson()");
 onEvent("sessionForAnswer/sssPersonInfo","show","refreshPsAndRole()");
 onEvent("sessionForAnswer/sssAnsList/sssAnsSelList","click","addItemToTargetList(candidate_files_session,\"sessionFile\",null)");
+/***answer controlling***/
 onEvent("answerToQuestion/answerInfo/Create_New_Answer","click","startNewAnswer()");
 onEvent("answerToQuestion/answerInfo","show","loadAnswerListForQuesion()");
 onEvent("answerToQuestion/answerInfo/answerList","click","loadAnswerInfo()");
@@ -871,10 +872,6 @@ loadQuesnirInfo(){
 	}
 }
 
-//onEvent("answerToQuestionnaire/answerQuesnirInfo/answerInQuesnir","click","loadAnswerInfo()");
-//onEvent("answerToQuestionnaire/answerQuesnirInfo/quesInQuesnirList","click","ViewAnswersOfQuestion()");
-//onEvent("answerToQuestionnaire/answerQuesnirInfo/View_All_Answer","click","loadAnswersForQuestionnaire(\"Refresh\")");
-
 files_in_current_ques=new ArrayList();
 files_origin=new ArrayList();
 
@@ -1419,9 +1416,9 @@ checkPersonAns(){
 						"' AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
 							"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Consultant') "+
 							"and latestNonDeletedRelationship.Deleted IS NULL)))) "+
-"AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
-	"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
-	"and latestNonDeletedRelationship.Deleted IS NULL)))";
+		"AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+			"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)))";
 	tempAnsQues=new ArrayList();
 	tempAnsQues.clear();
 	tmp=sssConsultantIdList.get(i).get(1);
@@ -1448,6 +1445,7 @@ checkPersonAns(){
 		    });
 	}
 }
+
 checkDuplicateAns(ArrayList psList){
 	if(!isNull(psList)){
 		if(psList.size()==1){
@@ -2479,8 +2477,8 @@ checkSssQuesnirType(String typeflag){
 			"and uuid=(select measure from latestNonDeletedAentValue where uuid='"+checkAnsId+"' "+
 				"and AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID')))";
 
-		fetchAll(checkAnsQuesnirTypeQuery, new FetchCallback() {
-        onFetch(quesnirTypeResult) {
+	fetchAll(checkAnsQuesnirTypeQuery, new FetchCallback() {
+        	onFetch(quesnirTypeResult) {
               String quesnirType=quesnirTypeResult.get(0).get(1);
               if(quesnirType.equals("Introductory")){
               	introAns=true;
@@ -2650,6 +2648,7 @@ autoSaveSession(String typeFlag){
 	}
 	
 }
+
 extractCosul(){
 	ansConsultant=null;
 	interviwerPrefix=null;
@@ -2696,8 +2695,8 @@ saveAnsInSession(String sessionId){
 	}
 
 	for(answer:sss_answer_list){
-	  saveEntitiesToRel("Answer and Session",sessionId,answer.get(0));
-    }
+		saveEntitiesToRel("Answer and Session",sessionId,answer.get(0));
+	}
     ansConsultant=psInfo.get("consultant");
 	//below is updating answer label and file labels
 	for(ans : sss_answer_list){
@@ -2713,106 +2712,106 @@ saveAnsInSession(String sessionId){
 				if (sb.length()>0)
 					{sb.append("_");}
 				sb.append(ansLabelComp);
-		}
+			}
 
-		String newAnsLabelSss=sb.toString();
+			String newAnsLabelSss=sb.toString();
 
-		newAnsLabelSuffix=newAnsLabelSss.substring(newAnsLabelSss.length()-3);
-		if(newAnsLabelSuffix.contains(")")){//a label with number as suffix
-			newAnsLabelSss=newAnsLabelSss.substring(0,newAnsLabelSss.indexOf("("));
-		}
-		//here we need to check if the new generated answer label is duplicate label or not
-		tempAnsDuplicateList=new ArrayList();
-		tempAnsDuplicateList.clear();
-		int sizeOfAnsDup=0;
-		ansDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
-			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
-			"and measure like '"+newAnsLabelSss+"' or measure like '"+newAnsLabelSss+"(%)'";
-		fetchAll(ansDuplicateQuery,new FetchCallback() {
-			onFetch(result) {
-				if(!isNull(result)){
-					tempAnsDuplicateList.addAll(result);
-					sizeOfAnsDup=tempAnsDuplicateList.size();
-					if (sizeOfAnsDup==1 && !tempAnsDuplicateList.get(0).get(0).equals(entityId)){
-						attributes = createAttributeList();
-						duplicateOldLabel=tempAnsDuplicateList.get(0).get(1);
-						suffix=duplicateOldLabel.substring(duplicateOldLabel.length()-3);
-						if(!suffix.equals("(1)"))
-						{
-							newLabel=duplicateOldLabel+"(1)";
-							attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
-							dupEntityId=tempAnsDuplicateList.get(0).get(0);
-							saveArchEnt(entityId, "AnswerToQuestionnaire", null, attributes);
-						}
-						newAnsLabelSss=newAnsLabelSss+"(2)";
-					}
-					else{
-						Boolean self=false;
-						for (dupAns:tempAnsDuplicateList){
-							if(dupAns.get(0).equals(entityId)){
-								self=true;
-								break;
+			newAnsLabelSuffix=newAnsLabelSss.substring(newAnsLabelSss.length()-3);
+			if(newAnsLabelSuffix.contains(")")){//a label with number as suffix
+				newAnsLabelSss=newAnsLabelSss.substring(0,newAnsLabelSss.indexOf("("));
+			}
+			//here we need to check if the new generated answer label is duplicate label or not
+			tempAnsDuplicateList=new ArrayList();
+			tempAnsDuplicateList.clear();
+			int sizeOfAnsDup=0;
+			ansDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+				"and measure like '"+newAnsLabelSss+"' or measure like '"+newAnsLabelSss+"(%)'";
+			fetchAll(ansDuplicateQuery,new FetchCallback() {
+				onFetch(result) {
+					if(!isNull(result)){
+						tempAnsDuplicateList.addAll(result);
+						sizeOfAnsDup=tempAnsDuplicateList.size();
+						if (sizeOfAnsDup==1 && !tempAnsDuplicateList.get(0).get(0).equals(entityId)){
+							attributes = createAttributeList();
+							duplicateOldLabel=tempAnsDuplicateList.get(0).get(1);
+							suffix=duplicateOldLabel.substring(duplicateOldLabel.length()-3);
+							if(!suffix.equals("(1)"))
+							{
+								newLabel=duplicateOldLabel+"(1)";
+								attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
+								dupEntityId=tempAnsDuplicateList.get(0).get(0);
+								saveArchEnt(entityId, "AnswerToQuestionnaire", null, attributes);
 							}
-						}
-						if (!self){
-							sizeOfAnsDup=sizeOfAnsDup+1;
-							newAnsLabelSss=newAnsLabelSss+"("+sizeOfAnsDup+")";
+							newAnsLabelSss=newAnsLabelSss+"(2)";
 						}
 						else{
-							newAnsLabelSss=newAnsLabelSss+"("+sizeOfAnsDup+")";
+							Boolean self=false;
+							for (dupAns:tempAnsDuplicateList){
+								if(dupAns.get(0).equals(entityId)){
+									self=true;
+									break;
+								}
+							}
+							if (!self){
+								sizeOfAnsDup=sizeOfAnsDup+1;
+								newAnsLabelSss=newAnsLabelSss+"("+sizeOfAnsDup+")";
+							}
+							else{
+								newAnsLabelSss=newAnsLabelSss+"("+sizeOfAnsDup+")";
+							}
 						}
 					}
-				}
 
-				attributes = createAttributeList();
-				attributes.add(createEntityAttribute("AnswerLabel", null, null, newAnsLabelSss, null));
-				
-				saveArchEnt(entityId, "AnswerToQuestionnaire", null, attributes, new SaveCallback() {
-					onSave(answerUuid,newRecord) {
-						//below is changing the filelabel
-						//showWarning("answerLabel change done",entityId+"answer label change done");
-						loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
-						"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileID') "+
-						"and uuid in "+
-							"(select uuid from AentReln where RelationshipID in "+
-						"(select RelationshipID from AEntReln where AEntReln.uuid="+entityId+" "+
-							"AND RelationshipID in "+
-						"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
-							"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
-						"and latestNonDeletedRelationship.Deleted IS NULL)))";
-						fetchAll(loadFileForAnswerQuery, new FetchCallback() {
-					        onFetch(result) {
-					        	fileListForAns=new ArrayList();
-					        	fileListForAns.clear();
-					        	fileListForAns.addAll(result);
-					        	//showWarning("answerFileFetchDone","answerFileFetchDone");
-					        	for (file: fileListForAns){
-					        		String fileEntityId=file.get(0);
-					        		String oldFileLabel=file.get(1);
-					        		String [] oldFileLabelSplit=oldFileLabel.split("_");
-					        		String oldFileLabelType=oldFileLabelSplit[oldFileLabelSplit.length-1];
-					        		//showWarning("oldFileLabelType",oldFileLabelType);
-					        		String newFileLabel=newAnsLabelSss+"_"+oldFileLabelType;
-					        		//showWarning("newFileLabel",newFileLabel);
-					        		attributesForFile = createAttributeList();
-									attributesForFile.add(createEntityAttribute("FileID", null, null, newFileLabel, null));
-									saveArchEnt(fileEntityId, "File", null, attributesForFile);
-					        	}
-					        }
+					attributes = createAttributeList();
+					attributes.add(createEntityAttribute("AnswerLabel", null, null, newAnsLabelSss, null));
+					
+					saveArchEnt(entityId, "AnswerToQuestionnaire", null, attributes, new SaveCallback() {
+						onSave(answerUuid,newRecord) {
+							//below is changing the filelabel
+							//showWarning("answerLabel change done",entityId+"answer label change done");
+							loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+							"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileID') "+
+							"and uuid in "+
+								"(select uuid from AentReln where RelationshipID in "+
+							"(select RelationshipID from AEntReln where AEntReln.uuid="+entityId+" "+
+								"AND RelationshipID in "+
+							"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+								"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
+							"and latestNonDeletedRelationship.Deleted IS NULL)))";
+							fetchAll(loadFileForAnswerQuery, new FetchCallback() {
+						        onFetch(result) {
+						        	fileListForAns=new ArrayList();
+						        	fileListForAns.clear();
+						        	fileListForAns.addAll(result);
+						        	//showWarning("answerFileFetchDone","answerFileFetchDone");
+						        	for (file: fileListForAns){
+						        		String fileEntityId=file.get(0);
+						        		String oldFileLabel=file.get(1);
+						        		String [] oldFileLabelSplit=oldFileLabel.split("_");
+						        		String oldFileLabelType=oldFileLabelSplit[oldFileLabelSplit.length-1];
+						        		//showWarning("oldFileLabelType",oldFileLabelType);
+						        		String newFileLabel=newAnsLabelSss+"_"+oldFileLabelType;
+						        		//showWarning("newFileLabel",newFileLabel);
+						        		attributesForFile = createAttributeList();
+										attributesForFile.add(createEntityAttribute("FileID", null, null, newFileLabel, null));
+										saveArchEnt(fileEntityId, "File", null, attributesForFile);
+						        	}
+						        }
 
-					        onError(message) {
-					            showToast(message);
-					        }
-					    });
-					}  
-					});    //saveArchEnt(entityId, "AnswerToQuestionnaire"
-				
-				}
-			});//anslabel duplicate check
-
+						        onError(message) {
+						            showToast(message);
+						        }
+						    });
+						}  
+						});    //saveArchEnt(entityId, "AnswerToQuestionnaire"
+					
+					}
+				});//anslabel duplicate check
 		}//if(!ansOldPs.equals(ansConsultant))
 	}// for(ans : sss_answer_list)
 }
+
 savePsInSession(String sessionId){
 	 //below is saving roles in Session
 	tempCostntID=null;
@@ -3194,8 +3193,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 
 		}//if sssInfo changed 
 		}
-		
-	}
+
 	updateSssPsChange(sssPsChange);
 	saveAnsInSession(sss_id);
 }
@@ -3420,4 +3418,34 @@ dateParser(String sourceDate){
 		return targetDate;
 	}
 	//convert yyyy-mm-dd to dd/mm/yy
+}
+/*** query ***/
+onEvent("control/querytest/Submit","click","testQuery()");
+
+testQuery(){
+	query=getFieldValue("control/querytest/query");
+	//fetchAll("SELECT sql FROM sqlite_master WHERE name='archentity';",
+	fetchAll(query.toString()+";",
+	new FetchCallback() {
+        onFetch(result) {
+			if (isNull(result)) {
+				//code
+				showWarning("no","no result");
+			}
+			else{
+			for (re : result) {
+				
+				showWarning("yes",re.toString());
+				//showWarning("me",re.toString());
+				
+			}		    
+            //populateList("control/question_control/questionList", result);
+        }
+		}
+        onError(message) {
+        	Log.e("query error",message);
+            showToast(message);
+        }
+    });
+	
 }

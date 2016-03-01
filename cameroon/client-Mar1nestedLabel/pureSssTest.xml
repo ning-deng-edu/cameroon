@@ -59,10 +59,6 @@
                         <query/>
                         <Submit/>
                     </querytest>
-                     <!--deleteTest>
-                        <delQuery/>
-                        <delSubmit/>
-                    </deleteTest-->
                 </control>
                 
                 <questionnaireListAll>
