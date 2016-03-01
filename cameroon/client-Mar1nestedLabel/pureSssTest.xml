@@ -1,0 +1,644 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms"
+        xmlns:h="http://www.w3.org/1999/xhtml"
+        xmlns:ev="http://www.w3.org/2001/xml-events"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:jr="http://openrosa.org/javarosa">
+
+
+<h:head>
+    <h:title>Linguistic data documentation</h:title>
+    <model>
+        <instance>
+            <faims id="ldd_client">
+
+               <style>
+                <orientation>
+                    <orientation/>
+                </orientation>
+            <even>
+                <layout_weight/>
+            </even>
+            <large>
+              <layout_weight/>
+            </large>
+          </style>
+      
+                <user>
+                    <usertab>
+                         <container12>
+                            <child1>
+                                <user_keyword/>
+                            </child1>
+                            <child2>
+                                <user_Search/>
+                            </child2>
+                        </container12>
+                        <users/>
+                        <login/>
+                    </usertab>
+                </user>
+                 
+                 
+                <control>         
+                    <survey_control>
+                        <New_Survey/>
+                         <container7>
+                            <child1>
+                                <survey_keyword/>
+                            </child1>
+                            <child2>
+                                <Survey_Search/>
+                            </child2>
+                        </container7>
+                        <surveyList/>                      
+                    </survey_control>
+
+                    
+                    <querytest>
+                        <query/>
+                        <Submit/>
+                    </querytest>
+                     <!--deleteTest>
+                        <delQuery/>
+                        <delSubmit/>
+                    </deleteTest-->
+                </control>
+                
+                <questionnaireListAll>
+                   <questionnaireListInfo>
+                       <container13>
+                            <child1>
+                                <quesnir_keyword/>
+                            </child1>
+                            <child2>
+                                <quesnir_Search/>
+                            </child2>
+                        </container13>
+                       <questionnaireListInDB/>
+                   </questionnaireListInfo> 
+                </questionnaireListAll>
+               
+                <questionnaireInfo>
+                    <surveyQuesnirHidden>
+                        <currentQuesnirID/>
+                    </surveyQuesnirHidden>
+                    <surveyQuestionnaire>
+                        <surveyQuestionnaireID/>
+                        <surveyQuestionnaireName/>
+                        <surveyQuestionnaireType/>
+                        <surveyQuestionnaireDescription/>
+                        <container14>
+                            <child1>
+                                <ques_keyword/>
+                            </child1>
+                            <child2>
+                                <ques_Search/>
+                            </child2>
+                        </container14>
+                        <surveyQuestionInQuestionnaire/>
+                    </surveyQuestionnaire>
+                </questionnaireInfo>
+                
+                <answerToQuestion>
+                    <answerInfoHidden>
+                        <answerListQuestionnaireID/>
+                        <answerListQuestionID/>
+                    </answerInfoHidden>
+                    
+                    <answerInfo>                        
+                        <answerListQuestionnaireName/>
+                        <answerListQuestionContent/>
+                        <answerList/>
+                        <Create_New_Answer/>
+                    </answerInfo>
+                </answerToQuestion>
+                
+                <sessionForAnswer>
+                    <sssAnsBasicInfo>
+                        <sssID/>
+                        <sssName/>
+                        <sssLocation/>
+                        <sssStartTimetamp/>
+                        <sssEndTimestamp/>
+                        <sssDescription/>
+                    </sssAnsBasicInfo>
+
+                    <sssPersonInfo>
+                        <container16>
+                            <child1>
+                                <sssPersonRole/>
+                            </child1>
+                            <child2>
+                                <sssPersonName/>
+                            </child2>
+                        </container16>
+                        <Add_Person/>
+                        <Add_New_Person/>
+                        <sssPersonList/>
+                    </sssPersonInfo>
+
+                    <sssAnsList>
+                        <Save_Session/>
+                        <New_Answer_In_Session/>
+                        <sssAnsSelList/>
+                        <sssAnswerList/>
+                    </sssAnsList>
+                </sessionForAnswer>
+                
+                <survey>
+                    <answerHidden>
+                        <answerQuestionnaireID/>
+                        <answerQuestionID/>
+                        <answerChoice/>
+                    </answerHidden>
+                    
+                    <answerBasic>      
+                        <answerLabel/>
+                        <answerText/>
+                         <answerStartTimestamp/>
+                        <answerEndTimestamp/>
+                   </answerBasic>   
+                                         
+                   <answerFile>
+                       <file_Category/>
+                        <Add_New_File/>
+                        <answerFileList/>
+                        <Finish_New_Answer/>
+                   </answerFile>                                              
+                </survey>                
+                
+                <file>
+                    <fileInfo>
+                    </fileInfo>
+                </file>
+
+
+
+
+                <introSssList>
+                    <introSssInfo>
+                        <new_intro_sss/>
+                        <intrSessionList/>
+                    </introSssInfo>
+                </introSssList>
+            </faims>
+        </instance>
+      
+    </model>
+</h:head>
+
+
+<h:body>
+    <group ref="style">
+      <label/>
+      <group ref="orientation">
+        <label/>
+        <input ref="orientation">
+          <label>horizontal</label>
+        </input>
+      </group>
+      <group ref="even">
+        <label/>
+        <input ref="layout_weight">
+          <label>1</label>
+        </input>
+      </group>
+      <group ref="large">
+        <label/>
+        <input ref="layout_weight">
+          <label>3</label>
+        </input>
+      </group>
+    </group>
+   
+     <group ref="user">
+      <label>User List</label>
+      <group ref="usertab">
+        <label>User List</label>
+         <group ref="container12" faims_style="orientation">
+        
+          <label></label>
+          <group ref="child1" faims_style="even">
+            <label></label>
+             <input ref="user_keyword">
+                <label>User name</label>
+            </input>
+        </group>
+       <group ref="child2" faims_style="even">
+            <label></label>
+             <trigger ref="user_Search" faims_style_class="faims-blue">
+                <label>Search</label>
+            </trigger>
+          </group>
+        
+        </group>
+        
+        <select1 appearance="compact" ref="users" faims_style_class="user-list">
+          <label>Users:</label>
+          <item>
+            <label>placeholder</label>
+            <value>placeholder</value>
+          </item>
+        </select1>
+      </group>
+    </group>
+    
+    <group ref="control">
+        
+        <label>{Control}</label>
+        
+        
+        <group ref="survey_control">
+            <label>Session</label>
+            <!--No input here-->
+            <trigger ref="New_Survey" faims_style_class="faims-blue">
+                <label>New Session</label>
+            </trigger>
+            
+            <group ref="container7" faims_style="orientation">
+        
+          <label></label>
+          <group ref="child1" faims_style="even">
+            <label></label>
+             <input ref="survey_keyword">
+                <label>session keyword</label>
+            </input>
+        </group>
+       <group ref="child2" faims_style="even">
+            <label></label>
+             <trigger ref="Survey_Search" faims_style_class="faims-blue">
+                <label>Search</label>
+            </trigger>
+          </group>
+        
+        </group>
+        
+            
+            <select1  ref="surveyList" appearance="compact" faims_annotation="false" faims_certainty="false" faims_style_class="survey-list">
+                <label>Tap to view session</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
+            
+            
+        </group>
+        
+        
+
+        
+        <group ref="querytest">
+        <label>{query}</label>
+        
+            <input ref="query" faims_attribute_type="freetext" faims_certainty="false" faims_annotation="false">
+              <label>{query}</label>
+            </input>
+    
+            <trigger ref="Submit" faims_style_class="faims-blue">
+                <label>New {submit}</label>
+            </trigger>
+   
+        </group>
+       
+         <!--group ref="deleteTest">
+        <label>{del}</label>
+        
+            <input ref="delQuery" faims_attribute_type="freetext" faims_certainty="false" faims_annotation="false">
+              <label>{del}</label>
+            </input>
+    
+            <trigger ref="delSubmit" faims_style_class="faims-blue">
+                <label>New {submit}</label>
+            </trigger>
+   
+        </group-->
+    </group>
+    
+    <group ref="questionnaireListAll" faims_scrollable="false">
+          <label>Questionnaire list</label>
+           <group ref="questionnaireListInfo" faims_scrollable="false">
+            <label>Questionnaire list</label>
+             <group ref="container13" faims_style="orientation">
+        
+          <label></label>
+          <group ref="child1" faims_style="even">
+            <label></label>
+             <input ref="quesnir_keyword">
+                <label>questionnaire keyword</label>
+            </input>
+         
+          </group>
+       <group ref="child2" faims_style="even">
+            <label></label>
+             <trigger ref="quesnir_Search" faims_style_class="faims-blue">
+                <label>Search</label>
+            </trigger>
+          </group>
+        </group>
+            <select1 appearance="compact" ref="questionnaireListInDB" faims_style_class="questionnaire-list">
+                <label>Questionnaire list</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+             </select1>
+            </group>
+    </group>
+    
+    
+    <group ref="questionnaireInfo" faims_archent_type="Questionnaire">
+          <label>Questionnaire info</label>
+        <group ref="surveyQuesnirHidden" faims_hidden="true">
+            <label>currentQuesnirHiddenInfo</label>
+            <input ref="currentQuesnirID" faims_read_only="true">
+                <label>Current questionnaire id</label>
+            </input>
+        </group>
+
+         <group ref="surveyQuestionnaire">
+            <label>Questionnaire info</label>
+            <input ref="surveyQuestionnaireID" faims_attribute_name="QuestionnaireID" faims_attribute_type="measure" faims_read_only="true" faims_certainty="false" faims_annotation="false">
+                <label>Selected questionnaire label</label>
+            </input>
+            
+             <input ref="surveyQuestionnaireName" faims_attribute_name="QuestionnaireName" faims_attribute_type="measure" faims_read_only="true" faims_certainty="false" faims_annotation="false">
+                <label>Selected questionnaire name</label>
+            </input>
+            
+            <input ref="surveyQuestionnaireType" faims_attribute_name="QuestionnaireType" faims_attribute_type="measure" faims_read_only="true" faims_certainty="false" faims_annotation="false">
+                <label>Selected questionnaire Type</label>
+            </input>
+             <input ref="surveyQuestionnaireDescription" faims_attribute_name="QuestionnaireDescription" faims_attribute_type="measure" faims_read_only="true" faims_certainty="false" faims_annotation="false">
+                <label>Selected questionnaire description</label>
+            </input>
+
+             <group ref="container14" faims_style="orientation">
+        
+          <label></label>
+          <group ref="child1" faims_style="even">
+            <label></label>
+             <input ref="ques_keyword" faims_annotation="false" faims_certainty="false">
+                <label>question keyword</label>
+            </input>
+         
+          </group>
+       <group ref="child2" faims_style="even">
+            <label></label>
+             <trigger ref="ques_Search" faims_style_class="faims-blue">
+                <label>Search</label>
+            </trigger>
+          </group>
+        </group>
+
+             <select1 appearance="compact" ref="surveyQuestionInQuestionnaire" faims_style_class="questionQuestionnaire-list">
+                <label>Questions</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+             </select1>
+        </group>
+      </group>
+      
+    
+    
+      <group ref="answerToQuestion">
+          <label>Answer Info</label>
+            
+          <group ref="answerInfoHidden" faims_hidden="true">
+              <label></label>     
+               <input ref="answerListQuestionnaireID" faims_read_only="true">
+                <label>Current questionnaire id</label>
+            </input>
+            
+               <input ref="answerListQuestionID" faims_read_only="true">
+                <label>Current question id</label>
+            </input> 
+            
+          </group>
+          
+          
+         <group ref="answerInfo">
+            <label>Answer Info</label>           
+            
+             <input ref="answerListQuestionnaireName" faims_read_only="true">
+                <label>Current questionnaire name</label>
+            </input>
+            
+              <input ref="answerListQuestionContent" faims_read_only="true">
+                <label>Current question</label>
+            </input>
+            
+            <trigger ref="Create_New_Answer" faims_style_class="faims-blue">
+                <label>New Answer</label>
+            </trigger>
+            
+             <select1 appearance="compact" ref="answerList" faims_style_class="answer-list">
+                <label>Answers</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+             </select1>
+        </group>
+      </group>
+      
+
+    <group ref="sessionForAnswer" faims_archent_type="Session">
+            <label>Session</label>
+            <group ref="sssAnsBasicInfo">
+                <label>Session info</label>
+                <input ref="sssID" faims_attribute_name="SessionID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true" faims_annotation="true">
+                    <label>Session label</label>
+                </input>
+                 <input ref="sssName" faims_attribute_name="SessionName" faims_attribute_type="measure" faims_certainty="false">
+                    <label>Session name</label>
+                </input>
+           
+                  <input ref="sssLocation" faims_attribute_name="SessionLocation" faims_attribute_type="measure" faims_certainty="false">
+                    <label>Session Location</label>
+                </input>
+                <input ref="sssStartTimetamp" faims_attribute_name="SessionStartTimestamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+                  <label>Start timestamp</label>
+                </input>
+                <input ref="sssEndTimestamp" faims_attribute_name="SessionEndTimestamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+                  <label>End timestamp</label>
+                </input>  
+                <input ref="sssDescription" faims_attribute_name="SessionDescription" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
+                  <label>Session description</label>
+                </input>             
+            </group>
+         
+             <group ref="sssPersonInfo">
+                 <label>Session Person</label>
+                 <group ref="container16" faims_style="orientation">
+            
+                  <label></label>
+                  <group ref="child1" faims_style="even">
+                    <label></label>
+                     <select1 ref="sssPersonRole" faims_annotation="false" faims_certainty="false">
+                    <label>Role in session</label>
+                    <item>
+                        <label>placeholder</label>
+                        <value>placeholder</value>
+                    </item>
+                 
+                    </select1>
+                  </group>
+                  <group ref="child2" faims_style="even">
+                    <label></label>
+                    <select1 ref="sssPersonName" faims_annotation="false" faims_certainty="false">
+                    <label>Person Name</label>
+                    <item>
+                        <label>placeholder</label>
+                        <value>placeholder</value>
+                    </item>
+                    </select1>
+                  </group>
+            
+                 </group>
+
+                 <trigger ref="Add_Person" faims_style_class="faims-blue">
+                        <label>Add Person</label>
+                 </trigger>
+                
+                 <trigger ref="Add_New_Person" faims_style_class="faims-blue">
+                        <label>New Person</label>
+                 </trigger>
+                
+                 <select1 appearance="compact" ref="sssPersonList" faims_certainty="false" faims_annotation="false" faims_style_class="session-list">
+                    <label>Session person list</label>
+                        <item>
+                            <label>placeholder</label>
+                            <value>placeholder</value>
+                        </item>
+                 </select1>
+             </group>
+
+            <group ref="sssAnsList">
+                 <label>Session Answers</label>
+                   <trigger ref="Save_Session" faims_style_class="faims-blue">
+                     <label>Save Session</label>
+                    </trigger>
+                    
+                    <trigger ref="New_Answer_In_Session" faims_style_class="faims-blue">
+                            <label>New Answer</label>
+                    </trigger>
+                    
+                    <select1 appearance="compact" ref="sssAnsSelList" faims_certainty="false" faims_annotation="false" faims_style_class="session-file-list">
+                                <label>Selectable Answers</label>
+                                <item>
+                                    <label>placeholder</label>
+                                    <value>placeholder</value>
+                                </item>
+                    </select1>
+                     <select1 appearance="compact" ref="sssAnswerList" faims_certainty="false" faims_annotation="false" faims_style_class="session-file-list">
+                        <label>Session answer list</label>
+                            <item>
+                                <label>placeholder</label>
+                                <value>placeholder</value>
+                            </item>
+                    </select1>
+            </group>
+    </group>    
+      
+     <group ref="survey" faims_archent_type="AnswerToQuestionnaire">
+        <label>Survey/Answer</label>
+        
+        
+        <group ref="answerHidden" faims_hidden="true">
+            <label></label>
+             <input ref="answerQuestionnaireID" faims_attribute_name="AnswerQuestionnaireID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
+                <label>Questionnaire id</label>
+            </input>
+            
+            <input ref="answerQuestionID" faims_attribute_name="AnswerQuestionID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
+                <label>Question id</label>
+            </input>
+            
+               <input ref="answerChoice" faims_certainty="false" faims_read_only="true">
+                <label>answerChoice</label>
+            </input>
+        </group>
+        
+        <group ref="answerBasic">
+            <label>Answer Basic Info</label>
+          <input ref="answerLabel" faims_attribute_name="AnswerLabel" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true" faims_style_class="required">
+                <label>Answer label</label>
+            </input>
+            
+            <input ref="answerText" faims_attribute_name="AnswerText" faims_attribute_type="measure" faims_certainty="false">
+                <label>Answer text</label>
+            </input>
+            
+             <input ref="answerStartTimestamp" faims_attribute_name="StartTimeStamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
+          <label>Start timestamp</label>
+        </input>
+        <input ref="answerEndTimestamp" faims_attribute_name="EndTimeStamp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="true">
+          <label>End timestamp</label>
+        </input>
+        </group>
+           
+      
+       
+        <group ref="answerFile">
+             <label>Answer file</label>
+        <trigger ref="Finish_New_Answer" faims_style_class="faims-blue">
+                <label>Save Answer</label>
+             </trigger>
+        
+           <select1 ref="file_Category" faims_certainty="false" faims_annotation="false">
+            <label>File Category</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
+         
+            <trigger ref="Add_New_File" faims_style_class="faims-blue">
+                 <label>New File</label>
+            </trigger>
+            
+            <select1 appearance="compact" ref="answerFileList" faims_attribute_name="AnswerFile" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="answerFile-list">
+                <label>Answer file</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
+            </group>
+    </group>
+    
+    <group ref="file" faims_archent_type="File">
+        <label>File</label>
+        <group ref="fileInfo">
+            <label>File info</label>
+        </group>
+    </group>
+
+
+
+
+     <group ref="introSssList">
+        <label>Intro session</label>
+        <group ref="introSssInfo" >
+            <label>Intro session List</label>
+            <trigger ref="new_intro_sss" faims_style_class="faims-blue">
+                <label>New session</label>
+            </trigger>
+    
+            <select1 appearance="compact" ref="intrSessionList" faims_style_class="survey-list" faims_annotation="true">
+                <label>Tap to view session</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
+        </group>
+     </group>
+
+
+ </h:body>
+</h:html>
