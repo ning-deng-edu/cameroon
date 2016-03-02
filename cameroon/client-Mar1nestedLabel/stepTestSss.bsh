@@ -3179,7 +3179,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 		    		onSave(uuid, newRecord) {
 		    		if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
-		    			ansListChange(sssAnsChange);
+		    				ansListChange(sssAnsChange);
 		    			}
 		    		
 		    		}//onSave(uuid, newRecord)
@@ -3221,8 +3221,9 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 
 			}//if sssInfo changed 
 		}
-	updateSssPsChange(sssPsChange);
-	saveAnsInSession(sss_id);
+	sssPsUpdate(sssPsChange);
+	//updateSssPsChange(sssPsChange);
+	//saveAnsInSession(sss_id);
 }
 
 changeSession(){
