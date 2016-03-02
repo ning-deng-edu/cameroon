@@ -1569,30 +1569,21 @@ saveNewAnswer(){
 				for(file : files_in_current_ques){
 					saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
 				}
-				//showWarning("file saving","file ans reln save done");
 				newAnswer=new ArrayList();
 				newAnswer.add(answer_id);
 				newAnswer.add(newAnsLabel);
-				//showWarning("newAnswer","newAnswer array created");
 				sss_answer_list.add(newAnswer);
-				//showWarning("sss_answer_list",sss_answer_list.size().toString());
 				populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-				//showWarning("dupAnsLblChange",dupAnsLblChange.toString());
+
 				if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
-					//showWarning("dupAnsLblChange",dupAnsLblChange.toString());
 					newLabel=dupAnsLblInfo.get(1);
-					//showWarning("newLabel",newLabel);
 					ansEntityId=dupAnsLblInfo.get(0);
-					//showWarning("dupAnsLblInfo",ansEntityId);
 					attributes = createAttributeList();
 					attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
-					//showWarning("attributes","attributes");
 					saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
-					//showWarning("saveArchEnt","saveArchEnt");
 					dupAnsLblChange=false;
 					dupAnsLblInfo.clear();
 				}
-				//showWarning("populateList","populateList done");
 				showToast("new answer created");
 				cancelTabGroup("survey", true);
 				cancelTabGroup("answerToQuestion", true);
@@ -2226,7 +2217,6 @@ sssOldCoslReln=new ArrayList();
 sssOldPsReln=new ArrayList();
 loadSessionInfo(String typeFlag){
 	switch (typeFlag){
-	//TODO:CHANGE THE QUERY FOR ANSWER AND SESSION RELN
 	case "answer":
 		sss_id=getListItemValue();
 		if(isNull(sss_id)){
@@ -2470,7 +2460,6 @@ loadSessionInfo(String typeFlag){
 
 //check if a session is for intro quesnir or regular quesnir
 checkSssQuesnirType(String typeflag){
-	 //showWarning("checkSssQuesnirType","checkSssQuesnirType");
 	String checkAnsId=null;
 	if(typeflag.equals("answer")){
 		checkAnsId=original_sss_answer_list.get(0).get(0);
@@ -2523,7 +2512,6 @@ checkSssQuesnirType(String typeflag){
 }
 
 loadSessionInterviewer(String typeflag){
-	//For session for answer page, TODO: add session group page entry
 	switch(typeflag){
 	case "answer":
 	tempAnsList=new ArrayList();
@@ -2584,6 +2572,7 @@ loadSessionInterviewer(String typeflag){
         }
     });
 	break;
+	/*
 	case "session":
 			if(isNull(selected_files_session)){
 				showWarning("invalid data","No answer selected");
@@ -2619,6 +2608,7 @@ loadSessionInterviewer(String typeflag){
             			});
 			}
 	break;
+	*/
 
 	}
 }
@@ -2866,7 +2856,6 @@ sssPsUpdate(Hashtable sssPsChange){
 	}
 
 	if (sssPsChange.containsKey("PUREADD")){
-		//showWarning("PUREADD","PUREADD");
 		sssNewAddedPs=sssPsChange.get("PUREADD");
 		for(personInSss: sssNewAddedPs){
 	  		String psInfoId=personInSss.get(0);
@@ -2891,7 +2880,6 @@ sssPsUpdate(Hashtable sssPsChange){
 	}//if (sssPsChange.containsKey("PUREADD"))
 
 	else if (sssPsChange.containsKey("PUREDELETE")){
-		//showWarning("PUREDELETE","PUREDELETE");
 		sssNewDelPs=sssPsChange.get("PUREDELETE");
 		for(personInSss: sssNewDelPs){
 	  		String toDelPsID=personInSss.get(0);
