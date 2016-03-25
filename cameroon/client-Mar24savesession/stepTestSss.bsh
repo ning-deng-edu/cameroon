@@ -693,6 +693,14 @@ checkRolesInSession(){
 }
 
 showQuestionnaireList(){
+	if(isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"))){
+		showWarning("No session name","Please input session name");
+		return;
+	}
+	if(isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"))){
+		showWarning("No session time","Please input session start time");
+		return;
+	}
 	sssRoleInfo=checkRolesInSession();
 	if(!sssRoleInfo.contains("consultant")){
 		showWarning("No consultant","No consultant selected, please add consultant");
@@ -1579,6 +1587,7 @@ saveNewAnswer(){
 				cancelTabGroup("survey", true);
 				//cancelTabGroup("answerToQuestion", true);
 				autoSaveSession("head");
+				//saveSession("answer");
 			}
 		}
 		onError(message) {
@@ -2570,10 +2579,18 @@ autoSaveSession(String typeFlag){
 	switch(typeFlag){
 		case "head":
 			int listSize=sss_answer_list.size();
+			if(listSize==1){
+				saveSession("answer");
+			}
+			else
+			{
+				saveSession("newAns");
+			}
+			/*
 			if(listSize%5==0){
 				//autoSssSave=true;
 				saveSession("answer");
-			}
+			}*/
 		break;
 		case "tail":
 			sssOriginInfo.clear();
@@ -2628,7 +2645,7 @@ extractPsSum(){
 	return extractedPsRole;
 }
 
-saveAnsInSession(String sessionId){
+saveAnsInSession(String sessionId, String typeflag){
 	Hashtable psInfo=extractPsSum();
 	if(psInfo.isEmpty()){
 		showWarning("No person info","No person in this session");
@@ -2642,10 +2659,13 @@ saveAnsInSession(String sessionId){
 		showWarning("No interviewer","No interviewer selected, please add interviewer");
 		return;
 	}
-
-	for(answer:sss_answer_list){
-		saveEntitiesToRel("Answer and Session",sessionId,answer.get(0));
+	//if this is for saving new session, then we need to save the relns
+	if(typeFlag=="newSss"){
+		for(answer:sss_answer_list){
+			saveEntitiesToRel("Answer and Session",sessionId,answer.get(0));
+		}
 	}
+	//else we just need to check the labels
     ansConsultant=psInfo.get("consultant");
 	//below is updating answer label and file labels
 	for(ans : sss_answer_list){
@@ -2990,8 +3010,10 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 	//case 1: sssInfoChanged only PASS
 	if((!sssInfoChange.containsKey("EQUAL")) && (sssAnsChange.containsKey("EQUAL"))){
 		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+		//String endTimeStamp=getCurrentTime();
 		String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
 		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+			//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
 		saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 		    onSave(uuid, newRecord) {
 		        showToast("Session basic info changed");
@@ -3013,26 +3035,59 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 	//case 2: sssAns changed only PASS
 	//TODO:ADD time validation for new answer's time
 	else if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
-		ansListChange(sssAnsChange);
-		showToast("Session answer data changed");
+		Boolean newAns=false;
+		if(sssAnsChange.containsKey("ADD") ||(sssAnsChange.containsKey("PUREADD"))){
+			String endTimeStamp=getCurrentTime();
+			newAns=true;
+		}
+		else{
+			String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+		}
+		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+			if(newAns){
+				setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
+			}
+			ansListChange(sssAnsChange);
+			showToast("Session answer data changed");
+		}
+		else{
+			showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
+					+"2.Datetime input should be valid \n"+
+								"3.Start timestamp should be before end timestamp \n"+
+											"4.Two dates should be the same");
+			return;
+		}
+		
 	}
 
 	//case 3: both sssInfo and sssAns changed PASS
 	//TODO:ADD time validation for new answer's time
 	else{
 		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
-		String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+		Boolean newAns=false;
+		if(sssAnsChange.containsKey("ADD") ||(sssAnsChange.containsKey("PUREADD"))){
+			String endTimeStamp=getCurrentTime();
+			newAns=true;
+		}
+		else{
+			String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+		}
 		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
-		saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-		    onSave(uuid, newRecord) {
-		    	ansListChange(sssAnsChange);
-		        showToast("Session data changed");
+			if(newAns){
+				setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
+			}
+			
+			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+			    onSave(uuid, newRecord) {
+			    	ansListChange(sssAnsChange);
+			        showToast("Session data changed");
 
-		    }
-		    onError(message) {
-		        showWarning("error",message);
-		    }  
-		  });
+			    }
+			    onError(message) {
+			        showWarning("error",message);
+			    }  
+			  });
 		}
 		else{
 			showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
@@ -3042,8 +3097,9 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 			return;
 		}
 	}
+	//This is for checking duplicate labels and generating new labels
 	if (!sssAnsChange.containsKey("EQUAL")){
-		saveAnsInSession(sss_id);
+		saveAnsInSession(sss_id,"dupLabel");
 	}
 
 }
@@ -3116,16 +3172,36 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 				else{
 					setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",tempNewSssLabel);
 				}
+				Boolean newAns=false;
+				String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+				if(sssAnsChange.containsKey("ADD")||sssAnsChange.containsKey("PUREADD")){
+					String endTimeStamp=getCurrentTime();
+					newAns=true;
+				}
+				else{
+					String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+				}
+				if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+					if(newAns){
+						setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+					}
+					saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+			    		onSave(uuid, newRecord) {
+			    		if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
+			    				ansListChange(sssAnsChange);
+			    			}
+			    		
+			    		}//onSave(uuid, newRecord)
 
-				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-		    		onSave(uuid, newRecord) {
-		    		if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
-		    				ansListChange(sssAnsChange);
-		    			}
-		    		
-		    		}//onSave(uuid, newRecord)
-
-				});
+					});
+				}
+				else{
+					showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
+							+"2.Datetime input should be valid \n"+
+										"3.Start timestamp should be before end timestamp \n"+
+													"4.Two dates should be the same");
+					return;
+				}
 
 			}
 
@@ -3134,13 +3210,23 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 	}//if sssLabelChange
 
 	else{
-		if((sssInfoChange.containsKey("EQUAL")) && !(sssAnsChange.containsKey("EQUAL"))){
+		if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
 			ansListChange(sssAnsChange);
 		}
 		else{
+			Boolean newAns=false;
 			String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
-			String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+			if(sssAnsChange.containsKey("ADD")||sssAnsChange.containsKey("PUREADD")){
+					String endTimeStamp=getCurrentTime();
+					newAns=true;
+				}
+				else{
+					String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+				}
 			if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+				if(newAns){
+						setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+					}
 			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
 			    	if(!sssAnsChange.containsKey("EQUAL")){
@@ -3176,7 +3262,7 @@ changeSession(){
 			return;
 		}
 
-	String endTimeAuto=getCurrentTime();
+	//String endTimeAuto=getCurrentTime();
 	sssNewInfo.clear();
 	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
 	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
@@ -3285,7 +3371,7 @@ saveSession(String typeflag){
 								    	sss_id = uuid;
 								      	if (newRecord) {
 								      	  //saving answer list for this session
-											saveAnsInSession(sss_id);
+											saveAnsInSession(sss_id,"newSss");
 											savePsInSession(sss_id);
 											autoSaveSession("tailNew");
 											showToast("New session contains answer(s) created");
@@ -3311,6 +3397,10 @@ saveSession(String typeflag){
 			else{//Changing session Info
 				changeSession();
 			}//Changing session Info
+		break;
+		case "newAns"://this is for saving the new added answer
+		//this case only do one thing, that is, saving the new answer to a session while checking if the answer labels are correct
+			
 		break;
 	}
 }
