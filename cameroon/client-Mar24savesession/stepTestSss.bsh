@@ -2578,6 +2578,8 @@ loadSessionInterviewer(String typeflag){
 autoSaveSession(String typeFlag){
 	switch(typeFlag){
 		case "head":
+			saveSession("answer");
+			/*
 			int listSize=sss_answer_list.size();
 			if(listSize==1){
 				saveSession("answer");
@@ -2586,6 +2588,7 @@ autoSaveSession(String typeFlag){
 			{
 				saveSession("newAns");
 			}
+			*/
 			/*
 			if(listSize%5==0){
 				//autoSssSave=true;
