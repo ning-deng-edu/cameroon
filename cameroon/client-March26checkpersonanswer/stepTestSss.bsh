@@ -2374,10 +2374,10 @@ loadSessionInfo(String typeFlag){
 //check if a session is for intro quesnir or regular quesnir
 checkSssQuesnirType(String typeflag){
 		String checkAnsId=null;
-		if(typeflag.equals("answer")){		
+		if((!isNull(original_sss_answer_list)) && (typeflag.equals("answer"))){		
 			checkAnsId=original_sss_answer_list.get(0).get(0);
-		}
-		
+		//}
+
 		checkAnsQuesnirTypeQuery="select uuid,measure from latestNonDeletedAentValue "+
 			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
 			"and uuid=(select measure from latestNonDeletedAentValue "+
@@ -2422,6 +2422,23 @@ checkSssQuesnirType(String typeflag){
 	              }
 	       		 }
 	   		 });
+	}
+	else{
+		introAns=false;
+      	fetchAll(loadAllNonIntroAnsNotInSssQuery, new FetchCallback() {
+                onFetch(result) {
+                	candidate_files_session.clear();
+                	candidate_files_session.addAll(result);
+                	candidate_files_session.removeAll(original_sss_answer_list);
+                	populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
+                }
+                
+
+                onError(message) {
+                    showToast(message);
+                	}
+    			});
+	}
 }
 
 loadSessionInterviewer(String typeflag){
