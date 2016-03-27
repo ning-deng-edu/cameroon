@@ -3038,7 +3038,7 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 	}
 
 }
-
+//TODO: adding nested label change check
 updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPsChange){
 	Hashtable psInfo=extractPsSum();
 	if(psInfo.isEmpty()){
@@ -3110,7 +3110,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 				Boolean newAns=false;
 				String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
 				String endTimeStamp=null;
-				if((sssAnsChange.containsKey("ADD"))||sssAnsChange.containsKey("PUREADD")){
+				if((sssAnsChange.containsKey("ADD"))||(sssAnsChange.containsKey("PUREADD"))){
 					endTimeStamp=getCurrentTime();
 					newAns=true;
 				}
@@ -3119,7 +3119,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 				}
 				if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 					if(newAns){
-						setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+						setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
 					}
 					saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 			    		onSave(uuid, newRecord) {
@@ -3153,28 +3153,28 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 			Boolean newAns=false;
 			String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
 			String endTimeStamp=null;
-			if((sssAnsChange.containsKey("ADD"))||sssAnsChange.containsKey("PUREADD")){
-					endTimeStamp=getCurrentTime();
-					newAns=true;
-				}
-				else{
-					endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
-				}
+			if((sssAnsChange.containsKey("ADD"))||(sssAnsChange.containsKey("PUREADD"))){
+				endTimeStamp=getCurrentTime();
+				newAns=true;
+			}
+			else{
+				endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+			}
 			if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 				if(newAns){
-						setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+						setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
 					}
-			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-			    onSave(uuid, newRecord) {
-			    	if(!sssAnsChange.containsKey("EQUAL")){
-			    		ansListChange(sssAnsChange);
-			    	}
-			    }
-			    onError(message) {
-			        showWarning("error",message);
-			    }  
-			  });
-			}
+				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+				    onSave(uuid, newRecord) {
+				    	if(!sssAnsChange.containsKey("EQUAL")){
+				    		ansListChange(sssAnsChange);
+				    	}
+				    }
+				    onError(message) {
+				        showWarning("error",message);
+				    }  
+				  });
+				}
 			else{
 				showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
 						+"2.Datetime input should be valid \n"+
@@ -3186,6 +3186,9 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 			}//if sssInfo changed 
 		}
 	sssPsUpdate(sssPsChange);
+	if (!sssAnsChange.containsKey("EQUAL")){
+		saveAnsInSession(sss_id,"dupLabel");
+	}
 	//updateSssPsChange(sssPsChange);
 	//saveAnsInSession(sss_id);
 }
