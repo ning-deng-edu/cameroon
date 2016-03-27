@@ -1321,7 +1321,6 @@ checkPersonAns(){
 	String [] consultantList =new String [sssConsultantIdList.size()];
 	for (i=0;i<sssConsultantIdList.size();i++){	
 		consultantList[i]=sssConsultantIdList.get(i).get(0);
-		//showWarning("consultantList",consultantList[i].toString());
 	}
 	StringBuilder sb=new StringBuilder();
 	sb.append("(");
@@ -2226,9 +2225,9 @@ loadSessionInfo(String typeFlag){
 	        	fetchAll(loadAnswerForSessionQuery, new FetchCallback() {
 	                onFetch(answers) {
 	                	original_sss_answer_list.clear();
-	                	original_sss_answer_list.addAll(answers);
 	                	sss_answer_list.clear();
-	                	sss_answer_list.addAll(answers);
+	               		original_sss_answer_list.addAll(answers);
+	               		sss_answer_list.addAll(answers);
 	                	populateList("sessionForAnswer/sssAnsList/sssAnswerList",original_sss_answer_list);
 	                	checkSssQuesnirType("answer");
 	                }
@@ -2374,55 +2373,55 @@ loadSessionInfo(String typeFlag){
 
 //check if a session is for intro quesnir or regular quesnir
 checkSssQuesnirType(String typeflag){
-	String checkAnsId=null;
-	if(typeflag.equals("answer")){
-		checkAnsId=original_sss_answer_list.get(0).get(0);
-	}
-	
-	checkAnsQuesnirTypeQuery="select uuid,measure from latestNonDeletedAentValue "+
-		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
-		"and uuid=(select measure from latestNonDeletedAentValue "+
-			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
-			"and uuid=(select measure from latestNonDeletedAentValue where uuid='"+checkAnsId+"' "+
-				"and AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID')))";
+		String checkAnsId=null;
+		if(typeflag.equals("answer")){		
+			checkAnsId=original_sss_answer_list.get(0).get(0);
+		}
+		
+		checkAnsQuesnirTypeQuery="select uuid,measure from latestNonDeletedAentValue "+
+			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+			"and uuid=(select measure from latestNonDeletedAentValue "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+				"and uuid=(select measure from latestNonDeletedAentValue where uuid='"+checkAnsId+"' "+
+					"and AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID')))";
 
-	fetchAll(checkAnsQuesnirTypeQuery, new FetchCallback() {
-        	onFetch(quesnirTypeResult) {
-              String quesnirType=quesnirTypeResult.get(0).get(1);
-              if(quesnirType.equals("Introductory")){
-              	introAns=true;
-              	fetchAll(loadAllIntroAnsNotInSssQuery, new FetchCallback() {
-    	                onFetch(result) {
-    	                	candidate_files_session.clear();
-    	                	candidate_files_session.addAll(result);
-    	                	candidate_files_session.removeAll(original_sss_answer_list);
-    	                	populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
-    	                }
-    	                
+		fetchAll(checkAnsQuesnirTypeQuery, new FetchCallback() {
+	        	onFetch(quesnirTypeResult) {
+	              String quesnirType=quesnirTypeResult.get(0).get(1);
+	              if(quesnirType.equals("Introductory")){
+	              	introAns=true;
+	              	fetchAll(loadAllIntroAnsNotInSssQuery, new FetchCallback() {
+	    	                onFetch(result) {
+	    	                	candidate_files_session.clear();
+	    	                	candidate_files_session.addAll(result);
+	    	                	candidate_files_session.removeAll(original_sss_answer_list);
+	    	                	populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
+	    	                }
+	    	                
 
-    	                onError(message) {
-    	                    showToast(message);
-    	                	}
-            			});
-              }
-              else{
-              	introAns=false;
-              	fetchAll(loadAllNonIntroAnsNotInSssQuery, new FetchCallback() {
-    	                onFetch(result) {
-    	                	candidate_files_session.clear();
-    	                	candidate_files_session.addAll(result);
-    	                	candidate_files_session.removeAll(original_sss_answer_list);
-    	                	populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
-    	                }
-    	                
+	    	                onError(message) {
+	    	                    showToast(message);
+	    	                	}
+	            			});
+	              }
+	              else{
+	              	introAns=false;
+	              	fetchAll(loadAllNonIntroAnsNotInSssQuery, new FetchCallback() {
+	    	                onFetch(result) {
+	    	                	candidate_files_session.clear();
+	    	                	candidate_files_session.addAll(result);
+	    	                	candidate_files_session.removeAll(original_sss_answer_list);
+	    	                	populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
+	    	                }
+	    	                
 
-    	                onError(message) {
-    	                    showToast(message);
-    	                	}
-            			});
-              }
-       		 }
-   		 });
+	    	                onError(message) {
+	    	                    showToast(message);
+	    	                	}
+	            			});
+	              }
+	       		 }
+	   		 });
 }
 
 loadSessionInterviewer(String typeflag){
@@ -2577,7 +2576,7 @@ saveAnsInSession(String sessionId, String typeflag){
 		return;
 	}
 	//if this is for saving new session, then we need to save the relns
-	if(typeFlag=="newSss"){
+	if(typeflag.equals("newSss")){
 		for(answer:sss_answer_list){
 			saveEntitiesToRel("Answer and Session",sessionId,answer.get(0));
 		}
@@ -2953,12 +2952,13 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 	//TODO:ADD time validation for new answer's time
 	else if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
 		Boolean newAns=false;
-		if(sssAnsChange.containsKey("ADD") ||(sssAnsChange.containsKey("PUREADD"))){
-			String endTimeStamp=getCurrentTime();
+		String endTimeStamp=null;
+		if((sssAnsChange.containsKey("ADD"))||(sssAnsChange.containsKey("PUREADD"))){
+			endTimeStamp=getCurrentTime();
 			newAns=true;
 		}
 		else{
-			String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+			endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
 		}
 		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
 		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
@@ -2983,12 +2983,13 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 	else{
 		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
 		Boolean newAns=false;
-		if(sssAnsChange.containsKey("ADD") ||(sssAnsChange.containsKey("PUREADD"))){
-			String endTimeStamp=getCurrentTime();
+		String endTimeStamp=null;
+		if((sssAnsChange.containsKey("ADD")) ||(sssAnsChange.containsKey("PUREADD"))){
+			endTimeStamp=getCurrentTime();
 			newAns=true;
 		}
 		else{
-			String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+			endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
 		}
 		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 			if(newAns){
@@ -3091,12 +3092,13 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 				}
 				Boolean newAns=false;
 				String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
-				if(sssAnsChange.containsKey("ADD")||sssAnsChange.containsKey("PUREADD")){
-					String endTimeStamp=getCurrentTime();
+				String endTimeStamp=null;
+				if((sssAnsChange.containsKey("ADD"))||sssAnsChange.containsKey("PUREADD")){
+					endTimeStamp=getCurrentTime();
 					newAns=true;
 				}
 				else{
-					String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+					endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
 				}
 				if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 					if(newAns){
@@ -3133,12 +3135,13 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 		else{
 			Boolean newAns=false;
 			String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
-			if(sssAnsChange.containsKey("ADD")||sssAnsChange.containsKey("PUREADD")){
-					String endTimeStamp=getCurrentTime();
+			String endTimeStamp=null;
+			if((sssAnsChange.containsKey("ADD"))||sssAnsChange.containsKey("PUREADD")){
+					endTimeStamp=getCurrentTime();
 					newAns=true;
 				}
 				else{
-					String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+					endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
 				}
 			if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 				if(newAns){
