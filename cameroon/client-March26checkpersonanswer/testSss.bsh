@@ -312,7 +312,10 @@ onEvent("sessionForAnswer/sssPersonInfo/sssPersonList","click","deletePersonInSe
 onEvent("sessionForAnswer/sssPersonInfo/Add_New_Person","click","newPerson()");
 onEvent("sessionForAnswer/sssPersonInfo","show","refreshPsAndRole()");
 onEvent("sessionForAnswer/sssAnsList/sssAnsSelList","click","addItemToTargetList(candidate_files_session,\"sessionFile\",null)");
-
+/***answer controlling***/
+onEvent("answerToQuestion/answerInfo/Create_New_Answer","click","startNewAnswer()");
+onEvent("answerToQuestion/answerInfo","show","loadAnswerListForQuesion()");
+onEvent("answerToQuestion/answerInfo/answerList","click","loadAnswerInfo()");
 
 origin_selected_interviewer=new ArrayList();
 selected_answer_interviewer=new ArrayList();
@@ -371,7 +374,7 @@ sss_interviewer_list=new ArrayList();//for recording interviewer list when creat
 sssOriginInfo=new ArrayList();
 sssNewInfo=new ArrayList();
 original_sss_answer_list=new ArrayList();
-sssAnsRelnOrigin=new ArrayList();
+sssAnsOrigin=new ArrayList();
 String sssLabel=null;//This is used for sssID interviewee changing
 sssAnswerInterviewerOrigin=new LinkedHashSet();
 sssAnswerInterviewerNew=new LinkedHashSet();//This is for generating sss label
@@ -391,17 +394,6 @@ sssInterviewerList=new LinkedHashSet();
 sssConsultantIdList=new ArrayList();
 String introPsMark=null;//use for check if an intro ps is deleted from his/her intro session
 currentPosition=new ArrayList();
-
-session_id=null;
-selected_files_session=new ArrayList();
-candidate_files_session=new ArrayList();
-original_files_session=new ArrayList();
-sessionInfoOrigin=new ArrayList();
-sessionInfoNew=new ArrayList();
-sessionAnswerRelnOrigin=new ArrayList();
-sessionInterviewerOrigin=new ArrayList();
-sessionInterviewerNew=new ArrayList();
-sessionLabel=null;
 /***Starting from creating a session***/
 
 
@@ -424,7 +416,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	sssOriginInfo.clear();
 	sssNewInfo.clear();	
 	original_sss_answer_list.clear();
-	sssAnsRelnOrigin.clear();
+	sssAnsOrigin.clear();
 	sss_interviewer_list.clear();
 	sssConsultantList.clear();
 	sssConsultantIdList.clear();
@@ -690,14 +682,6 @@ checkRolesInSession(){
 }
 
 showQuestionnaireList(){
-	if(isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"))){
-		showWarning("No session name","Please input session name");
-		return;
-	}
-	if(isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"))){
-		showWarning("No session time","Please input session start time");
-		return;
-	}
 	sssRoleInfo=checkRolesInSession();
 	if(!sssRoleInfo.contains("consultant")){
 		showWarning("No consultant","No consultant selected, please add consultant");
@@ -1039,6 +1023,99 @@ startNewAnswer(){
 	
 }
 
+loadAnswerListForQuesion(){
+	
+	loadAnswersForQuesion="SELECT uuid, measure FROM latestNonDeletedAentValue "+
+			"WHERE latestNonDeletedAentValue.AttributeID = "+
+			"(SELECT AttributeID FROM AttributeKey WHERE AttributeKey.AttributeName='AnswerLabel') "+
+			"AND latestNonDeletedAentValue.uuid IN "+
+			"(select uuid from "+
+				"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+					"(select AttributeKey.AttributeID from AttributeKey "+
+					"where AttributeKey.AttributeName='AnswerQuestionnaireID') "+
+					"and latestNonDeletedAentValue.measure="+current_quesnir_id+") t1 "+
+			 "inner join "+
+			 	"(SELECT uuid FROM latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+			 		"(select AttributeKey.AttributeID from AttributeKey "+
+			 		"where AttributeKey.AttributeName='AnswerQuestionID') "+
+			 		"and latestNonDeletedAentValue.measure="+current_question_id+") t2 "+
+			 		"using(uuid))";
+	if(!isNull(sss_id)){
+		answerForSessionTemp=new ArrayList();
+		answerForQuestionTemp=new ArrayList();
+		
+	loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+			"(select RelationshipID from AEntReln where AEntReln.uuid="+sss_id+" "+
+ 			"AND RelationshipID in "+
+			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+ 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)))";
+	
+	fetchAll(loadAnswerForSessionQuery,
+			new FetchCallback() {
+		        onFetch(result) {
+					if (!isNull(result)) {
+		        	answerForSessionTemp.clear();
+		        	answerForSessionTemp.addAll(result);
+		        	
+		        	fetchAll(loadAnswersForQuesion,
+		        			new FetchCallback() {
+		        		        onFetch(result) {
+		        					if (!isNull(result)) {
+		        						answerForQuestionTemp.clear();
+		        						answerForQuestionTemp.addAll(result);
+		        						answerForSessionTemp.retainAll(answerForQuestionTemp);
+		        						ansListForQues.clear();
+		        						ansListForQues.addAll(result);//Answer list for a question in a questionnaire stored
+		        						
+		        						populateList("answerToQuestion/answerInfo/answerList", answerForSessionTemp);	
+		        					}
+		        					
+		        		        }
+
+		        		        onError(message) {
+		        		        	Log.e("error",message);
+		        		            showToast(message);
+		        		        }
+		        		    });
+		        	
+						//populateList("answerToQuestion/answerInfo/answerList", result);	
+					}
+					
+		        }
+
+		        onError(message) {
+		        	Log.e("error",message);
+		            showToast(message);
+		        }
+		    });
+	
+	
+	}
+	else{
+	
+	fetchAll(loadAnswersForQuesion,
+			new FetchCallback() {
+		        onFetch(result) {
+					//if (!isNull(result)) {
+						populateList("answerToQuestion/answerInfo/answerList", result);	
+						ansListForQues.clear();
+						ansListForQues.addAll(result);
+					//}
+					
+		        }
+
+		        onError(message) {
+		        	Log.e("error",message);
+		            showToast(message);
+		        }
+		    });
+	}
+}
+
 onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","checkPersonAns()");
 onEvent("questionnaireInfo/surveyQuestionnaire/ques_Search","click","searchQuesInCrtQuesnir()");
 
@@ -1140,7 +1217,11 @@ loadAnswerFromQuesInQuesnir(){
 		}
 	}
 	if(quesLabelRead){
-		startNewAnswer();
+		newTabGroup("answerToQuestion");
+		setFieldValue("answerToQuestion/answerInfoHidden/answerListQuestionnaireID", current_quesnir_id);
+		setFieldValue("answerToQuestion/answerInfoHidden/answerListQuestionID", current_question_id);
+		setFieldValue("answerToQuestion/answerInfo/answerListQuestionnaireName", current_quesnir_name);
+		setFieldValue("answerToQuestion/answerInfo/answerListQuestionContent", current_question_content);
 	}
 	
 	else{
@@ -1170,7 +1251,11 @@ loadAnswerFromQuesInQuesnir(){
 									}
 
 									if(quesLabelRead){
-										startNewAnswer();
+										newTabGroup("answerToQuestion");
+										setFieldValue("answerToQuestion/answerInfoHidden/answerListQuestionnaireID", current_quesnir_id);
+										setFieldValue("answerToQuestion/answerInfoHidden/answerListQuestionID", current_question_id);
+										setFieldValue("answerToQuestion/answerInfo/answerListQuestionnaireName", current_quesnir_name);
+										setFieldValue("answerToQuestion/answerInfo/answerListQuestionContent", current_question_content);
 									}
 									else{
 											showWarning("The data is outdated","Please exit the module and retry");
@@ -1186,6 +1271,7 @@ loadAnswerFromQuesInQuesnir(){
         					showToast(message);
         				}
         				});
+	
 
 	}
 }
@@ -1316,68 +1402,57 @@ checkPersonAns(){
 	//showWarning("quesId",quesId);
 	ansedPs=new ArrayList();
 	ansedPs.clear();
-	tempAnsQues=new ArrayList();
-	tempAnsQues.clear();
-	String [] consultantList =new String [sssConsultantIdList.size()];
-	for (i=0;i<sssConsultantIdList.size();i++){	
-		consultantList[i]=sssConsultantIdList.get(i).get(0);
-		//showWarning("consultantList",consultantList[i].toString());
-	}
-	StringBuilder sb=new StringBuilder();
-	sb.append("(");
-	for (String s: consultantList){
-		String str="'"+s+"'";
-		if(sb.length()>1){
-			sb.append(",");
-		}
-		sb.append(str);
-	}
-	sb.append(")");
-	String consultantListClause=sb.toString();
-	loadPersonAnswerQuery="select measure from latestNonDeletedAentValue "+
+	Boolean endOrNot=false;
+	//int t=sssConsultantIdList.size();
+	for(int i=0; i<sssConsultantIdList.size(); i++){// for most cases, there would be only one consultant
+		//Load all questionIDs that a person has answered
+		loadPersonAnswerQuery="select measure from latestNonDeletedAentValue "+
 		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionID') "+
 		"and uuid in (select uuid from AentReln where RelationshipID in (select RelationshipID from AEntReln where AEntReln.uuid in "+
 			"(select uuid from latestNonDeletedAentValue "+
 				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
 				"and uuid in (select uuid from AentReln where RelationshipID "+
-					"in (select RelationshipID from AEntReln where AEntReln.uuid IN "+consultantListClause+
-						" AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+					"in (select RelationshipID from AEntReln where AEntReln.uuid='"+sssConsultantIdList.get(i).get(0)+
+						"' AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
 							"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Consultant') "+
 							"and latestNonDeletedRelationship.Deleted IS NULL)))) "+
 		"AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
 			"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
 			"and latestNonDeletedRelationship.Deleted IS NULL)))";
-			fetchAll(loadPersonAnswerQuery,new FetchCallback() {
+	tempAnsQues=new ArrayList();
+	tempAnsQues.clear();
+	tmp=sssConsultantIdList.get(i).get(1);
+	if(i==sssConsultantIdList.size()-1){
+		endOrNot=true;
+	}
+	fetchAll(loadPersonAnswerQuery,new FetchCallback() {
 		        onFetch(result) {
-		        	Boolean rep=false;
 		        	tempAnsQues.addAll(result);
-		        	if(!isNull(tempAnsQues)){	 
-		        		for (ansQues :tempAnsQues){
-		        			if (ansQues.get(0).equals(quesId))
-		        			{	
-		        				rep=true;
-		        				checkDuplicateAns(true);
-		        				break;
-		        			}
-		        		}
-		        		if(!rep){
-		        			loadAnswerFromQuesInQuesnir();
-		        		}       		
+		        	//showWarning("tempAnsQues","tempAnsQues");
+		        	if(!isNull(tempAnsQues)){
+		        		//showWarning("isNulltempAnsQues","isNulltempAnsQues");
+						for (ans:tempAnsQues){
+							if(ans.get(0).equals(quesId)){
+								ansedPs.add(tmp);
+								break;
+								}
+						}
 					}
-					else{
-						loadAnswerFromQuesInQuesnir();
+					if(endOrNot){
+						checkDuplicateAns(ansedPs);
 					}
 		        }
 		    });
+	}
 }
 
-checkDuplicateAns(Boolean dupOrNot){
-	if(dupOrNot){
-		if(sssConsultantIdList.size()==1){
-			showAlert("alert", sssConsultantIdList.get(0).get(1)+" has already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir()", "stayInCurrentPage()");
+checkDuplicateAns(ArrayList psList){
+	if(!isNull(psList)){
+		if(psList.size()==1){
+			showAlert("alert", psList.get(0)+"has already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir()", "stayInCurrentPage()");
 		}
 		else{
-			showAlert("alert", "Some consultants have already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir()", "stayInCurrentPage()");
+			showAlert("alert", psList.get(0)+"EtAl have already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir()", "stayInCurrentPage()");
 		}
 	}
 	else{
@@ -1413,8 +1488,7 @@ checkPersonIntro(String personID, ArrayList toAddPerson){
 				"and measure ='"+person_id+"')));";
 	
 	fetchAll(checkPsIntrSssQuery,new FetchCallback() {
-						        	
-		onFetch(result) {					        	
+						        	onFetch(result) {					        	
 									if(isNull(result)){
 										String toAddPsIdInfo=toAddPerson.get(0);
 										String toAddPsInfo=toAddPerson.get(1);
@@ -1482,26 +1556,34 @@ saveNewAnswer(){
 				for(file : files_in_current_ques){
 					saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
 				}
+				//showWarning("file saving","file ans reln save done");
 				newAnswer=new ArrayList();
 				newAnswer.add(answer_id);
 				newAnswer.add(newAnsLabel);
+				//showWarning("newAnswer","newAnswer array created");
 				sss_answer_list.add(newAnswer);
+				//showWarning("sss_answer_list",sss_answer_list.size().toString());
 				populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-
+				//showWarning("dupAnsLblChange",dupAnsLblChange.toString());
 				if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
+					//showWarning("dupAnsLblChange",dupAnsLblChange.toString());
 					newLabel=dupAnsLblInfo.get(1);
+					//showWarning("newLabel",newLabel);
 					ansEntityId=dupAnsLblInfo.get(0);
+					//showWarning("dupAnsLblInfo",ansEntityId);
 					attributes = createAttributeList();
 					attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
+					//showWarning("attributes","attributes");
 					saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
+					//showWarning("saveArchEnt","saveArchEnt");
 					dupAnsLblChange=false;
 					dupAnsLblInfo.clear();
 				}
+				//showWarning("populateList","populateList done");
 				showToast("new answer created");
 				cancelTabGroup("survey", true);
-				//cancelTabGroup("answerToQuestion", true);
+				cancelTabGroup("answerToQuestion", true);
 				autoSaveSession("head");
-				//saveSession("answer");
 			}
 		}
 		onError(message) {
@@ -2071,7 +2153,16 @@ setFileToField(String ref) {
 }
 
 
-
+session_id=null;
+selected_files_session=new ArrayList();
+candidate_files_session=new ArrayList();
+original_files_session=new ArrayList();
+sessionInfoOrigin=new ArrayList();
+sessionInfoNew=new ArrayList();
+sessionAnswerRelnOrigin=new ArrayList();
+sessionInterviewerOrigin=new ArrayList();
+sessionInterviewerNew=new ArrayList();
+sessionLabel=null;
 
 /***session position***/
 takePoint() {
@@ -2131,6 +2222,7 @@ sssOldCoslReln=new ArrayList();
 sssOldPsReln=new ArrayList();
 loadSessionInfo(String typeFlag){
 	switch (typeFlag){
+	//TODO:CHANGE THE QUERY FOR ANSWER AND SESSION RELN
 	case "answer":
 		sss_id=getListItemValue();
 		if(isNull(sss_id)){
@@ -2147,13 +2239,12 @@ loadSessionInfo(String typeFlag){
 				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
 	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
 				"and latestNonDeletedRelationship.Deleted IS NULL)))";
-
-		loadAnsSssRelnQuery="select RelationshipID, uuid from latestNonDeletedAentReln where uuid <> '"+sss_id+
-		"' and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='"+sss_id+
-			"' and RelationshipID in(select RelationshipID from latestNonDeletedRelationship "+
-				"where RelnTypeID= (select RelnTypeID from RelnType where RelnTypeName='Answer and Session')"+
-				"and latestNonDeletedRelationship.Deleted IS NULL))";
-
+	 	/*
+		loadAnsSssRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+sss_id+" "+
+	 					"and RelationshipID in "+
+	 					"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+	 					"and latestNonDeletedRelationship.Deleted IS NULL)";
+	 					*/
 		//Query out the reln id of person and person roles in a session
 		loadSssPersonRelnQuery="select uuid from latestNonDeletedArchEntIdentifiers "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
@@ -2178,16 +2269,17 @@ loadSessionInfo(String typeFlag){
 				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Person') "+
 				"and latestNonDeletedRelationship.Deleted IS NULL))";
 
+	/*
 		fetchAll(loadAnsSssRelnQuery, new FetchCallback() {
 	        onFetch(result) {
-	        	sssAnsRelnOrigin.clear();
-	        	sssAnsRelnOrigin.addAll(result);
+	        	sssAnsOrigin.clear();
+	        	sssAnsOrigin.addAll(result);
 	        }
 	        onError(message) {
 	            showToast(message);
 	        }
 	    });
-
+	    */
 		fetchAll(loadSssConslRelnQuery, new FetchCallback() {
 	        onFetch(result) {
 	        	sssOldCoslReln.clear();
@@ -2217,7 +2309,6 @@ loadSessionInfo(String typeFlag){
 	    });
 		showTabGroup("sessionForAnswer", sss_id, new FetchCallback() {
 	        onFetch(result) {
-				sssOriginInfo.clear();
 	        	sssLabelOld=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID");
 	        	sssOriginInfo.add(sssLabelOld);
 	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
@@ -2237,7 +2328,6 @@ loadSessionInfo(String typeFlag){
 	                    showToast(message);
 	                }
 	            });
-
 				sssPersonRoleNameListOrigin.clear();
 	            sssPersonRoleandNameList.clear();
 	            sssPsInfoRelnOrigin.clear();
@@ -2374,6 +2464,7 @@ loadSessionInfo(String typeFlag){
 
 //check if a session is for intro quesnir or regular quesnir
 checkSssQuesnirType(String typeflag){
+	 //showWarning("checkSssQuesnirType","checkSssQuesnirType");
 	String checkAnsId=null;
 	if(typeflag.equals("answer")){
 		checkAnsId=original_sss_answer_list.get(0).get(0);
@@ -2426,6 +2517,7 @@ checkSssQuesnirType(String typeflag){
 }
 
 loadSessionInterviewer(String typeflag){
+	//For session for answer page, TODO: add session group page entry
 	switch(typeflag){
 	case "answer":
 	tempAnsList=new ArrayList();
@@ -2486,28 +2578,53 @@ loadSessionInterviewer(String typeflag){
         }
     });
 	break;
+	case "session":
+			if(isNull(selected_files_session)){
+				showWarning("invalid data","No answer selected");
+				return;
+			}	
+			sessionAnswerInterviewer.clear();
+			for (ans : selected_files_session){
+				String tempAnsID=ans.get(0);
+				//showWarning("loadSessionInterviewer tempAnsID",tempAnsID);
+				loadInterviewerForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+            				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+            				"and uuid in "+
+            	 			"(select uuid from AentReln where RelationshipID in "+
+            				"(select RelationshipID from AEntReln where AEntReln.uuid="+tempAnsID+" "+
+            	 			"AND RelationshipID in "+
+            				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+            	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Interviewer') "+
+            				"and latestNonDeletedRelationship.Deleted IS NULL)))";
+				fetchAll(loadInterviewerForAnswerQuery, new FetchCallback() {
+    	                onFetch(result) {
+    	                	for(res:result){
+    	                		//newInterviewer=new ArrayList();
+    	                		//newInterviewer.add(tempAnsID);
+    	                		//newInterviewer.add(res.get(1));
+    	                		sessionAnswerInterviewer.add(res.get(1));
+
+    	                	}
+    	                	//showWarning("sessionAnswerInterviewer",sessionAnswerInterviewer.size().toString());
+    	                }
+    	                onError(message) {
+    	                    showToast(message);
+    	                	}
+            			});
+			}
+	break;
+
 	}
 }
 //Boolean autoSssSave=false;
 autoSaveSession(String typeFlag){
 	switch(typeFlag){
 		case "head":
-			saveSession("answer");
-			/*
 			int listSize=sss_answer_list.size();
-			if(listSize==1){
-				saveSession("answer");
-			}
-			else
-			{
-				saveSession("newAns");
-			}
-			*/
-			/*
 			if(listSize%5==0){
 				//autoSssSave=true;
 				saveSession("answer");
-			}*/
+			}
 		break;
 		case "tail":
 			sssOriginInfo.clear();
@@ -2532,7 +2649,7 @@ autoSaveSession(String typeFlag){
 	
 }
 
-extractPsSum(){
+extractCosul(){
 	ansConsultant=null;
 	interviwerPrefix=null;
 	Hashtable extractedPsRole=new Hashtable();
@@ -2562,8 +2679,8 @@ extractPsSum(){
 	return extractedPsRole;
 }
 
-saveAnsInSession(String sessionId, String typeflag){
-	Hashtable psInfo=extractPsSum();
+saveAnsInSession(String sessionId){
+	Hashtable psInfo=extractCosul();
 	if(psInfo.isEmpty()){
 		showWarning("No person info","No person in this session");
 		return;
@@ -2576,13 +2693,10 @@ saveAnsInSession(String sessionId, String typeflag){
 		showWarning("No interviewer","No interviewer selected, please add interviewer");
 		return;
 	}
-	//if this is for saving new session, then we need to save the relns
-	if(typeFlag=="newSss"){
-		for(answer:sss_answer_list){
-			saveEntitiesToRel("Answer and Session",sessionId,answer.get(0));
-		}
+
+	for(answer:sss_answer_list){
+		saveEntitiesToRel("Answer and Session",sessionId,answer.get(0));
 	}
-	//else we just need to check the labels
     ansConsultant=psInfo.get("consultant");
 	//below is updating answer label and file labels
 	for(ans : sss_answer_list){
@@ -2699,6 +2813,7 @@ saveAnsInSession(String sessionId, String typeflag){
 }
 
 savePsInSession(String sessionId){
+	 //below is saving roles in Session
 	tempCostntID=null;
 	tempIntverID=null;
 	for (tempRoleID:personRoleList){
@@ -2732,7 +2847,6 @@ savePsInSession(String sessionId){
 			}	
 	}
 }
-
 sssPsUpdate(Hashtable sssPsChange){
 	tempCostntID=null;
 	tempIntverID=null;
@@ -2746,6 +2860,7 @@ sssPsUpdate(Hashtable sssPsChange){
 	}
 
 	if (sssPsChange.containsKey("PUREADD")){
+		//showWarning("PUREADD","PUREADD");
 		sssNewAddedPs=sssPsChange.get("PUREADD");
 		for(personInSss: sssNewAddedPs){
 	  		String psInfoId=personInSss.get(0);
@@ -2770,6 +2885,7 @@ sssPsUpdate(Hashtable sssPsChange){
 	}//if (sssPsChange.containsKey("PUREADD"))
 
 	else if (sssPsChange.containsKey("PUREDELETE")){
+		//showWarning("PUREDELETE","PUREDELETE");
 		sssNewDelPs=sssPsChange.get("PUREDELETE");
 		for(personInSss: sssNewDelPs){
 	  		String toDelPsID=personInSss.get(0);
@@ -2827,7 +2943,6 @@ sssPsUpdate(Hashtable sssPsChange){
 	  				deleteArchEnt(toDelPsRelnID);
 	  			}
 	  		}
-
 	  		if(tempPsRoleID.equals(tempCostntID)){
 	    	  	for(toDelConsul:sssOldCoslReln){
 	    	  		String oldConsulID=toDelConsul.get(1);
@@ -2836,7 +2951,6 @@ sssPsUpdate(Hashtable sssPsChange){
 	    	  		}
 	    	  	}
 	    	}
-
 	    	else if(tempPsRoleID.equals(tempIntverID)){
 	    	  	for(toDelConsul:sssOldIntvReln){
 	    	  		String oldConsulID=toDelConsul.get(1);
@@ -2845,7 +2959,6 @@ sssPsUpdate(Hashtable sssPsChange){
 	    	  		}
 	    	  	}
 	    	}
-
 	    	else{
 	    	  	for(toDelConsul:sssOldPsReln){
 	    	  		String oldConsulID=toDelConsul.get(1);
@@ -2881,7 +2994,6 @@ sssPsUpdate(Hashtable sssPsChange){
 	  	//showWarning("ADD+DELETE","ADD+DELETE");
 	}//sssPsChange containsKey("ADD") and "DELETE"
 }
-
 ansListChange(Hashtable sssAnsChange){
 	if(sssAnsChange.containsKey("PUREADD")){
 		sssNewAddedAns= sssAnsChange.get("PUREADD");
@@ -2892,29 +3004,14 @@ ansListChange(Hashtable sssAnsChange){
 	else if (sssAnsChange.containsKey("PUREDELETE")){
 		sssDelAns=sssAnsChange.get("PUREDELETE");
 		for(ansDelete:sssDelAns){
-			toDelAns=ansDelete.get(0);
-			for (oldReln:sssAnsRelnOrigin){
-				relnId=oldReln.get(0);
-				ansId=oldReln.get(1);
-				if (ansId.equals(toDelAns)){
-					deleteRel(relnId);
-				}
-			}
+			deleteRel(ansDelete.get(0));
 		}
 	}
 	else{
 		sssAddChange=sssAnsChange.get("ADD");
 		sssDelChange=sssAnsChange.get("DELETE");
-
 		for(ansDelete:sssDelChange){
-			toDelAns=ansDelete.get(0);
-			for (oldReln:sssAnsRelnOrigin){
-				relnId=oldReln.get(0);
-				ansId=oldReln.get(1);
-				if (ansId.equals(toDelAns)){
-					deleteRel(relnId);
-				}
-			}
+			deleteRel(ansDelete.get(0));
 		}
 		
 		for(answer:sssAddChange){
@@ -2927,10 +3024,8 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 	//case 1: sssInfoChanged only PASS
 	if((!sssInfoChange.containsKey("EQUAL")) && (sssAnsChange.containsKey("EQUAL"))){
 		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
-		//String endTimeStamp=getCurrentTime();
 		String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
 		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
-			//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
 		saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 		    onSave(uuid, newRecord) {
 		        showToast("Session basic info changed");
@@ -2952,59 +3047,26 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 	//case 2: sssAns changed only PASS
 	//TODO:ADD time validation for new answer's time
 	else if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
-		Boolean newAns=false;
-		if(sssAnsChange.containsKey("ADD") ||(sssAnsChange.containsKey("PUREADD"))){
-			String endTimeStamp=getCurrentTime();
-			newAns=true;
-		}
-		else{
-			String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
-		}
-		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
-		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
-			if(newAns){
-				setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
-			}
-			ansListChange(sssAnsChange);
-			showToast("Session answer data changed");
-		}
-		else{
-			showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
-					+"2.Datetime input should be valid \n"+
-								"3.Start timestamp should be before end timestamp \n"+
-											"4.Two dates should be the same");
-			return;
-		}
-		
+		ansListChange(sssAnsChange);
+		showToast("Session answer data changed");
 	}
 
 	//case 3: both sssInfo and sssAns changed PASS
 	//TODO:ADD time validation for new answer's time
 	else{
 		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
-		Boolean newAns=false;
-		if(sssAnsChange.containsKey("ADD") ||(sssAnsChange.containsKey("PUREADD"))){
-			String endTimeStamp=getCurrentTime();
-			newAns=true;
-		}
-		else{
-			String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
-		}
+		String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
 		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
-			if(newAns){
-				setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
-			}
-			
-			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-			    onSave(uuid, newRecord) {
-			    	ansListChange(sssAnsChange);
-			        showToast("Session data changed");
+		saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+		    onSave(uuid, newRecord) {
+		    	ansListChange(sssAnsChange);
+		        showToast("Session data changed");
 
-			    }
-			    onError(message) {
-			        showWarning("error",message);
-			    }  
-			  });
+		    }
+		    onError(message) {
+		        showWarning("error",message);
+		    }  
+		  });
 		}
 		else{
 			showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
@@ -3014,15 +3076,13 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 			return;
 		}
 	}
-	//This is for checking duplicate labels and generating new labels
 	if (!sssAnsChange.containsKey("EQUAL")){
-		saveAnsInSession(sss_id,"dupLabel");
+		saveAnsInSession(sss_id);
 	}
 
 }
-
 updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPsChange){
-	Hashtable psInfo=extractPsSum();
+	Hashtable psInfo=extractCosul();
 	if(psInfo.isEmpty()){
 		showWarning("No person info","No person in this session");
 		return;
@@ -3089,65 +3149,33 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 				else{
 					setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",tempNewSssLabel);
 				}
-				Boolean newAns=false;
-				String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
-				if(sssAnsChange.containsKey("ADD")||sssAnsChange.containsKey("PUREADD")){
-					String endTimeStamp=getCurrentTime();
-					newAns=true;
-				}
-				else{
-					String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
-				}
-				if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
-					if(newAns){
-						setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
-					}
-					saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-			    		onSave(uuid, newRecord) {
-			    		if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
-			    				ansListChange(sssAnsChange);
-			    			}
-			    		
-			    		}//onSave(uuid, newRecord)
+				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+		    		onSave(uuid, newRecord) {
+		    		if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
+		    			ansListChange(ansListChange);
+		    		}
+		    		
+		    		}//onSave(uuid, newRecord)
 
-					});
-				}
-				else{
-					showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
-							+"2.Datetime input should be valid \n"+
-										"3.Start timestamp should be before end timestamp \n"+
-													"4.Two dates should be the same");
-					return;
-				}
+				});
 
 			}
 
 		});
 		//showWarning("sssLabelChange",sssLabelChange.toString());
 	}//if sssLabelChange
-
 	else{
-		if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
-			ansListChange(sssAnsChange);
+		if((sssInfoChange.containsKey("EQUAL")) && !(sssAnsChange.containsKey("EQUAL"))){
+			ansListChange(ansListChange);
 		}
 		else{
-			Boolean newAns=false;
 			String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
-			if(sssAnsChange.containsKey("ADD")||sssAnsChange.containsKey("PUREADD")){
-					String endTimeStamp=getCurrentTime();
-					newAns=true;
-				}
-				else{
-					String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
-				}
+			String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
 			if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
-				if(newAns){
-						setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
-					}
 			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
 			    	if(!sssAnsChange.containsKey("EQUAL")){
-			    		ansListChange(sssAnsChange);
+			    		ansListChange(ansListChange);
 			    	}
 			    }
 			    onError(message) {
@@ -3163,56 +3191,59 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 				return;
 			}
 
-			}//if sssInfo changed 
+		}//if sssInfo changed 
 		}
-	sssPsUpdate(sssPsChange);
-	//updateSssPsChange(sssPsChange);
-	//saveAnsInSession(sss_id);
+
+	updateSssPsChange(sssPsChange);
+	saveAnsInSession(sss_id);
 }
+
 
 changeSession(){
 	if((isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"))) || 
-				(isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"))) || 
-				(isNull(sss_answer_list)))
-		{
-			showWarning("Incomplete Data","Please make sure that data is complete");
-			return;
-		}
+						(isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"))) || 
+						(isNull(sss_answer_list)))
+				{
+					showWarning("Incomplete Data","Please make sure that data is complete");
+					return;
+				}
 
-	//String endTimeAuto=getCurrentTime();
-	sssNewInfo.clear();
-	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
-	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
-	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
-	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));
-	//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",);
-	Hashtable sssInfoChange=listChange(sssNewInfo,sssOriginInfo);
-	Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
-	Hashtable sssPsChange=listChange(sssPersonRoleandNameList,sssPersonRoleNameListOrigin);
-	//showWarning("listChange done","listChange check done");
-	//case 0: nothing changed PASS
-	if((sssInfoChange.containsKey("EQUAL")) && (sssAnsChange.containsKey("EQUAL")) && (sssPsChange.containsKey("EQUAL"))){
-		showWarning("No change","No data changed");
-		return;				
-	}
-	//when sssPsInfo does not change
-	
-	else if (sssPsChange.containsKey("EQUAL")){
-		updateSssNoPsChange(sssInfoChange,sssAnsChange,sssPsChange);
-	}
+				String endTimeAuto=getCurrentTime();
+				sssNewInfo.clear();
+				sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
+				sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
+				sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
+				sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));
+				//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",);
+				Hashtable sssInfoChange=listChange(sssNewInfo,sssOriginInfo);
+				Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
+				Hashtable sssPsChange=listChange(sssPersonRoleandNameList,sssPersonRoleNameListOrigin);
+				//showWarning("listChange done","listChange check done");
+				//case 0: nothing changed PASS
+				if((sssInfoChange.containsKey("EQUAL")) && (sssAnsChange.containsKey("EQUAL")) && (sssPsChange.containsKey("EQUAL"))){
+					showWarning("No change","No data changed");
+					return;				
+				}
+				//when sssPsInfo does not change
+				
+				else if (sssPsChange.containsKey("EQUAL")){
+					updateSssNoPsChange(sssInfoChange,sssAnsChange,sssPsChange);
+				}
 
-	//when sssPsInfo changed
-	else{
-		updateSssPsChange(sssInfoChange,sssAnsChange,sssPsChange);
-		showToast("Session info updated");
-		autoSaveSession("tail");
+				//when sssPsInfo changed
+				
+				else{// need to test case by case
+					updateSssPsChange(sssInfoChange,sssAnsChange,sssPsChange);
+					showToast("Session info updated");
+					autoSaveSession("tail");
 
-	}//when sssPsInfo changed
+				}//when sssPsInfo changed
 
 }
 
 saveSession(String typeflag){
 	switch(typeflag){
+
 		case "answer":	
 			if(isNull(sss_id)){//SAVING NEW SESSION
 				if((isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"))) || 
@@ -3224,22 +3255,13 @@ saveSession(String typeflag){
 				}
 
 			    //generate session label
-				Hashtable psInfo=extractPsSum();
-				if(psInfo.isEmpty()){
-					showWarning("No person info","No person in this session");
-					return;
+				interviwerPrefix=null;
+				Iterator inveIt=sssInterviewerList.iterator();
+				interviwerPrefix=inveIt.next();
+				
+				if (sssInterviewerList.size()>1){
+					interviwerPrefix=interviwerPrefix+"EtAl";
 				}
-				else if(!psInfo.containsKey("consultant")){
-					showWarning("No consultant","No consultant selected, please add consultant");
-					return;
-				}
-				else if(!psInfo.containsKey("interviewer")){
-					showWarning("No interviewer","No interviewer selected, please add interviewer");
-					return;
-				}
-				ansConsultant=psInfo.get("consultant");
-				interviwerPrefix=psInfo.get("interviewer");
-
 				String tempSssLabel=interviwerPrefix+sssLabel;
 				tempDuplicateList=new ArrayList();
 				tempDuplicateList.clear();
@@ -3288,8 +3310,8 @@ saveSession(String typeflag){
 								    	sss_id = uuid;
 								      	if (newRecord) {
 								      	  //saving answer list for this session
-											saveAnsInSession(sss_id,"newSss");
-											savePsInSession(sss_id);
+											saveAnsInSession(sss_id);
+											savePsInSession(ss_id);
 											autoSaveSession("tailNew");
 											showToast("New session contains answer(s) created");
 								      }
@@ -3315,8 +3337,10 @@ saveSession(String typeflag){
 				changeSession();
 			}//Changing session Info
 		break;
+		
 	}
 }
+
 timeValidation(String startDateTime, String endDateTime, String flag){
 	switch(flag){
 	case ("sessionTime"):
@@ -3395,69 +3419,6 @@ dateParser(String sourceDate){
 	}
 	//convert yyyy-mm-dd to dd/mm/yy
 }
-
-labelDeduplicate(String originLabel, String attriName, String fieldRef, String typeflag){
-	//Here we can't use regexp, so we use naive LIKE condition
-	tempDuplicateList=new ArrayList();
-	tempDuplicateList.clear();
-	int sizeOfDup=0;
-	duplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
-	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='"+attriName+"') "+
-	"and measure like '"+originLabel+"' or measure like '"+originLabel+"(%)'";
-
-	fetchAll(duplicateQuery,new FetchCallback() {
-		onFetch(result) {
-			if(!isNull(result)){
-				tempDuplicateList.addAll(result);
-				sizeOfDup=tempDuplicateList.size();
-				/*
-				sizeOfDup=sizeOfDup+1;
-				originLabel=originLabel+"("+sizeOfDup.toString()+")";
-				setFieldValue(fieldRef,originLabel);
-				*/
-				if(sizeOfDup==1){
-					attributes = createAttributeList();
-					duplicateOldLabel=tempDuplicateList.get(0).get(1);
-					//suffix=duplicateOldLabel.substring(duplicateOldLabel.length()-3);
-					//if(!suffix.equals("(1)"))
-					//{
-					newLabel=duplicateOldLabel+"(1)";
-						//attributes.add(createEntityAttribute(attriName, null, null, newLabel, null));
-					entityId=tempDuplicateList.get(0).get(0);
-					switch(typeflag){
-						case "answer":
-						dupAnsLblChange=true;
-						dupAnsLblInfo.add(entityId);
-						dupAnsLblInfo.add(newLabel);
-						break;
-						case "file":
-						dupFileLblChange=true;
-						dupFileLblInfo.add(entityId);
-						dupAnsLblInfo.add(newLabel);
-						break;
-
-					}
-					originLabel=originLabel+"(2)";
-		            setFieldValue(fieldRef,originLabel);
-						//saveArchEnt(entityId, tableName, null, attributes);
-					}
-					//}
-					else{
-					//showWarning("size>1","size>1");
-						sizeOfDup=sizeOfDup+1;
-						originLabel=originLabel+"("+sizeOfDup.toString()+")";
-						setFieldValue(fieldRef,originLabel);
-					}
-					
-				}
-				else{
-					setFieldValue(fieldRef,originLabel);
-				}
-				
-			}
-	});
-}
-
 /*** query ***/
 onEvent("control/querytest/Submit","click","testQuery()");
 
