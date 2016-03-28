@@ -2509,21 +2509,6 @@ autoSaveSession(String typeFlag){
 	switch(typeFlag){
 		case "head":
 			saveSession("answer");
-			/*
-			int listSize=sss_answer_list.size();
-			if(listSize==1){
-				saveSession("answer");
-			}
-			else
-			{
-				saveSession("newAns");
-			}
-			*/
-			/*
-			if(listSize%5==0){
-				//autoSssSave=true;
-				saveSession("answer");
-			}*/
 		break;
 		case "tail":
 			sssOriginInfo.clear();
@@ -2588,7 +2573,7 @@ extractOriginAnsLbl(ArrayList ansList){
 		tempAnsLblId=ans.get(0);
 		//showWarning("tempAnsLblId",tempAnsLblId);
 		tempAnsLbl=ans.get(1);
-		//showWarning("tempAnsLbl",tempAnsLbl);
+		//showWarning("tempAnsLbl",tempAnsLblId+tempAnsLbl);
 		Matcher numMatcher = numberPat.matcher(tempAnsLbl);
 		//showWarning("numMatcher","numMatcher");
 		Boolean suffixFind=numMatcher.find();
@@ -2611,7 +2596,6 @@ extractOriginAnsLbl(ArrayList ansList){
 }
 
 saveAnsInSession(String sessionId, String typeflag){
-	showWarning("saveAnsInSession","saveAnsInSession");
 	Hashtable psInfo=extractPsSum();
 	if(psInfo.isEmpty()){
 		showWarning("No person info","No person in this session");
@@ -2633,16 +2617,19 @@ saveAnsInSession(String sessionId, String typeflag){
 	}
 	//else we just need to check the labels
     ansConsultant=psInfo.get("consultant");
-    showWarning("ansConsultant",ansConsultant);
 	//below is updating answer label and file labels
-	sssOrgnAnsLblList= extractOriginAnsLbl(sss_answer_list);
+	sssOrgnAnsLblList=extractOriginAnsLbl(sss_answer_list);
 
 	for(ans : sssOrgnAnsLblList){
-		entityId=ans.get(0);
+		ansLblMng(ans,ansConsultant);
+	}// for(ans : sss_answer_list)
+}
+ansLblMng(ArrayList ans, String ansConsultant){
 		String ansLabel=ans.get(1);
+		showWarning("ansOldlabel",ansLabel);
 		String [] ansLabelSplit=ansLabel.split("_");
 		String ansOldPs=ansLabelSplit[2];
-
+		//showWarning("ansOldPs",ansOldPs);
 		if(!ansOldPs.equals(ansConsultant)){
 			ansLabelSplit[2]=ansConsultant;
 			StringBuilder sb=new StringBuilder();
@@ -2653,18 +2640,22 @@ saveAnsInSession(String sessionId, String typeflag){
 			}
 
 			String newAnsLabelSss=sb.toString();
-			showWarning("newAnsLabelSss",newAnsLabelSss);
+			showWarning("newAnsLabelSss1",newAnsLabelSss);
 
 			//here we need to check if the new generated answer label is duplicate label or not
 			tempAnsDuplicateList=new ArrayList();
 			tempAnsDuplicateList.clear();
 			int sizeOfAnsDup=0;
+
 			ansDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
 				"and measure like '"+newAnsLabelSss+"' or measure like '"+newAnsLabelSss+"(%)'";
-			showWarning("ansDuplicateQuery",ansDuplicateQuery);
+
 			fetchAll(ansDuplicateQuery,new FetchCallback() {
 				onFetch(result) {
+
+					entityId=ans.get(0);
+				
 					if(!isNull(result)){
 						tempAnsDuplicateList.addAll(result);
 						sizeOfAnsDup=tempAnsDuplicateList.size();
@@ -2687,7 +2678,6 @@ saveAnsInSession(String sessionId, String typeflag){
 							for (dupAns:tempAnsDuplicateList){
 								if(dupAns.get(0).equals(entityId)){
 									self=true;
-									break;
 								}
 							}
 							if (!self){
@@ -2702,7 +2692,7 @@ saveAnsInSession(String sessionId, String typeflag){
 
 					attributes = createAttributeList();
 					attributes.add(createEntityAttribute("AnswerLabel", null, null, newAnsLabelSss, null));
-					showWarning("newAnsLabelSss",newAnsLabelSss);
+					showWarning("newAnsLabelSss2",entityId+newAnsLabelSss);
 					saveArchEnt(entityId, "AnswerToQuestionnaire", null, attributes, new SaveCallback() {
 						onSave(answerUuid,newRecord) {
 							//below is changing the filelabel
@@ -2744,9 +2734,8 @@ saveAnsInSession(String sessionId, String typeflag){
 						});    //saveArchEnt(entityId, "AnswerToQuestionnaire"
 					
 					}
-				});//anslabel duplicate check
+				});//fetch all anslabel duplicate check
 		}//if(!ansOldPs.equals(ansConsultant))
-	}// for(ans : sss_answer_list)
 }
 
 savePsInSession(String sessionId){
