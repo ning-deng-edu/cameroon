@@ -2578,7 +2578,40 @@ extractPsSum(){
 	return extractedPsRole;
 }
 
+extractOriginAnsLbl(ArrayList ansList){
+	extrAnsList=new ArrayList();
+	extrAnsList.clear();
+	//showWarning("extrAnsList","extrAnsList");
+	Pattern numberPat = Pattern.compile("\\(\\d+\\)");
+	//showWarning("numberPat","numberPat");
+	for (ans: ansList){
+		tempAnsLblId=ans.get(0);
+		//showWarning("tempAnsLblId",tempAnsLblId);
+		tempAnsLbl=ans.get(1);
+		//showWarning("tempAnsLbl",tempAnsLbl);
+		Matcher numMatcher = numberPat.matcher(tempAnsLbl);
+		//showWarning("numMatcher","numMatcher");
+		Boolean suffixFind=numMatcher.find();
+		//showWarning("suffixFind",suffixFind.toString());
+		//if there's no number suffix of the current label, then it can be directly added to exrAnsList
+		if(!suffixFind){
+			extrAnsList.add(ans);
+		}
+		//else take the substring to the "("
+		else{
+			String orgnSub=tempAnsLbl.substring(0,tempAnsLbl.indexOf("("));
+			//showWarning("orgnSub",orgnSub);
+			orgnAns=new ArrayList();
+			orgnAns.add(tempAnsLblId);
+			orgnAns.add(orgnSub);
+			extrAnsList.add(orgnAns);
+		}
+	}
+	return extrAnsList;
+}
+
 saveAnsInSession(String sessionId, String typeflag){
+	showWarning("saveAnsInSession","saveAnsInSession");
 	Hashtable psInfo=extractPsSum();
 	if(psInfo.isEmpty()){
 		showWarning("No person info","No person in this session");
@@ -2600,8 +2633,11 @@ saveAnsInSession(String sessionId, String typeflag){
 	}
 	//else we just need to check the labels
     ansConsultant=psInfo.get("consultant");
+    showWarning("ansConsultant",ansConsultant);
 	//below is updating answer label and file labels
-	for(ans : sss_answer_list){
+	sssOrgnAnsLblList= extractOriginAnsLbl(sss_answer_list);
+
+	for(ans : sssOrgnAnsLblList){
 		entityId=ans.get(0);
 		String ansLabel=ans.get(1);
 		String [] ansLabelSplit=ansLabel.split("_");
@@ -2617,11 +2653,8 @@ saveAnsInSession(String sessionId, String typeflag){
 			}
 
 			String newAnsLabelSss=sb.toString();
+			showWarning("newAnsLabelSss",newAnsLabelSss);
 
-			newAnsLabelSuffix=newAnsLabelSss.substring(newAnsLabelSss.length()-3);
-			if(newAnsLabelSuffix.contains(")")){//a label with number as suffix
-				newAnsLabelSss=newAnsLabelSss.substring(0,newAnsLabelSss.indexOf("("));
-			}
 			//here we need to check if the new generated answer label is duplicate label or not
 			tempAnsDuplicateList=new ArrayList();
 			tempAnsDuplicateList.clear();
@@ -2629,11 +2662,13 @@ saveAnsInSession(String sessionId, String typeflag){
 			ansDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
 				"and measure like '"+newAnsLabelSss+"' or measure like '"+newAnsLabelSss+"(%)'";
+			showWarning("ansDuplicateQuery",ansDuplicateQuery);
 			fetchAll(ansDuplicateQuery,new FetchCallback() {
 				onFetch(result) {
 					if(!isNull(result)){
 						tempAnsDuplicateList.addAll(result);
 						sizeOfAnsDup=tempAnsDuplicateList.size();
+						//the found ans is the the one we are updating itself
 						if (sizeOfAnsDup==1 && !tempAnsDuplicateList.get(0).get(0).equals(entityId)){
 							attributes = createAttributeList();
 							duplicateOldLabel=tempAnsDuplicateList.get(0).get(1);
@@ -2667,7 +2702,7 @@ saveAnsInSession(String sessionId, String typeflag){
 
 					attributes = createAttributeList();
 					attributes.add(createEntityAttribute("AnswerLabel", null, null, newAnsLabelSss, null));
-					
+					showWarning("newAnsLabelSss",newAnsLabelSss);
 					saveArchEnt(entityId, "AnswerToQuestionnaire", null, attributes, new SaveCallback() {
 						onSave(answerUuid,newRecord) {
 							//below is changing the filelabel
@@ -3032,11 +3067,6 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 			return;
 		}
 	}
-	//This is for checking duplicate labels and generating new labels
-	if (!sssAnsChange.containsKey("EQUAL")){
-		saveAnsInSession(sss_id,"dupLabel");
-	}
-
 }
 //TODO: adding nested label change check
 updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPsChange){
@@ -3146,10 +3176,6 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 	}//if sssLabelChange
 
 	else{
-		if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
-			ansListChange(sssAnsChange);
-		}
-		else{
 			Boolean newAns=false;
 			String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
 			String endTimeStamp=null;
@@ -3161,20 +3187,38 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 				endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
 			}
 			if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+				//New added answers
 				if(newAns){
-						setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
-					}
-				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-				    onSave(uuid, newRecord) {
-				    	if(!sssAnsChange.containsKey("EQUAL")){
-				    		ansListChange(sssAnsChange);
-				    	}
-				    }
-				    onError(message) {
-				        showWarning("error",message);
-				    }  
-				  });
+					setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
+					saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+					    onSave(uuid, newRecord) {
+					    	if(!sssAnsChange.containsKey("EQUAL")){
+					    		ansListChange(sssAnsChange);
+					    	}
+					    }
+					    onError(message) {
+					        showWarning("error",message);
+					    }  
+					  });
 				}
+				//new deleted answers
+				else if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
+					ansListChange(sssAnsChange);
+				}
+				//only sssInfoChange
+				else if(!sssInfoChange.containsKey("EQUAL")){	
+					saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+					    onSave(uuid, newRecord) {
+					    	if(!sssAnsChange.containsKey("EQUAL")){
+					    		ansListChange(sssAnsChange);
+					    	}
+					    }
+					    onError(message) {
+					        showWarning("error",message);
+					    }  
+					  });
+				}
+			}
 			else{
 				showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
 						+"2.Datetime input should be valid \n"+
@@ -3182,15 +3226,9 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 												"4.Two dates should be the same");
 				return;
 			}
-
-			}//if sssInfo changed 
 		}
 	sssPsUpdate(sssPsChange);
-	if (!sssAnsChange.containsKey("EQUAL")){
-		saveAnsInSession(sss_id,"dupLabel");
-	}
-	//updateSssPsChange(sssPsChange);
-	//saveAnsInSession(sss_id);
+	saveAnsInSession(sss_id,"dupLabel");
 }
 
 changeSession(){
