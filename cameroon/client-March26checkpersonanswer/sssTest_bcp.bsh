@@ -2595,16 +2595,6 @@ extractOriginLbl(ArrayList inputList){
 	return extrList;
 }
 
-extractOriginLbl(String inputLabel){
-	String rtnLabel=inputLabel;
-	Pattern numberPat = Pattern.compile("\\(\\d+\\)");
-	Matcher numMatcher = numberPat.matcher(inputLabel);
-	if(numMatcher.find()){
-		rtnLabel=rtnLabel.substring(0,rtnLabel.indexOf("("));
-	}
-	return rtnLabel;
-}
-
 saveAnsInSession(String sessionId, String typeflag){
 	Hashtable psInfo=extractPsSum();
 	if(psInfo.isEmpty()){
@@ -3081,57 +3071,6 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 		}
 	}
 }
-
-makeSssLabel(ArrayList result, String tempLbl){
-	String rtnLbl=tempLbl;
-	tempDuplicateList=new ArrayList();
-	tempDuplicateList.clear();
-	tempDuplicateList.addAll(result);
-	int sizeOfDup=0;
-	Pattern numberPat = Pattern.compile("\\(\\d+\\)");
-
-	if(sizeOfAnsDup==1){
-		attributes = createAttributeList();
-		duplicateOldLabel=tempDuplicateList.get(0).get(1);
-		Matcher numMatcher = numberPat.matcher(duplicateOldLabel);
-
-		if(numMatcher.find()){
-			suffix=duplicateOldLabel.substring(duplicateOldLabel.indexOf("("),duplicateOldLabel.length());
-			if(!suffix.equals("(1)"))
-			{
-				newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.indexOf("("))+"(1)";
-				attributes.add(createEntityAttribute("SessionID", null, null, newLabel, null));
-				entityId=tempDuplicateList.get(0).get(0);
-				saveArchEnt(entityId, "Session", null, attributes);
-			}
-		}
-		else{
-			newLabel=duplicateOldLabel+"(1)";
-			attributes.add(createEntityAttribute("SessionID", null, null, newLabel, null));
-			entityId=tempDuplicateList.get(0).get(0);
-			saveArchEnt(entityId, "Session", null, attributes);
-		}
-		rtnLbl=rtnLbl+"(2)";
-	}
-	else{
-		int maxSuffix=0;
-		for(temp: tempDuplicateList){
-			tempLabel=temp.get(1);
-			Matcher numMatcher = numberPat.matcher(tempLabel);
-			if(numMatcher.find()){
-				tempSuffixStr=tempLabel.substring(tempLabel.indexOf("(")+1, tempLabel.length()-1);
-				int tempSuffixNum=Integer.parseInt(tempSuffixStr);
-				if(tempSuffixNum>maxSuffix){
-					maxSuffix=tempSuffixNum;
-				}
-			}
-		}
-		maxSuffix=maxSuffix+1;
-		rtnLbl=rtnLbl+"("+maxSuffix+")";
-	}
-	return rtnLbl;
-
-}
 //TODO: adding nested label change check
 updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPsChange){
 	Hashtable psInfo=extractPsSum();
@@ -3166,24 +3105,40 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 			sb.append(sssLabelComp);
 		}
 		newSssLabel=sb.toString();
-		newSssLabel=extractOriginLbl(newSssLabel);
 		sssLabelChange=true;
 	}
 	//change session label
 	if(sssLabelChange){
+		String tempNewSssLabel=newSssLabel;
+		tempDuplicateList=new ArrayList();
+		tempDuplicateList.clear();
+		int sizeOfDup=0;
 		sssDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
-		"and uuid<>"+sss_id+" "+
-		"and measure like '"+newSssLabel+"' or measure like '"+newSssLabel+"(%)'";
+		"and measure like '"+tempNewSssLabel+"' or measure like '"+tempNewSssLabel+"(%)'";
 
 		fetchAll(sssDuplicateQuery,new FetchCallback() {
 			onFetch(result) {
 				if(!isNull(result)){
-					newSssLabel=makeSssLabel(result,newSssLabel);
-					setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",newSssLabel);
+					tempDuplicateList.addAll(result);
+					Boolean self=false;
+					for(item : tempDuplicateList){
+						if(item.get(0).equals(sss_id)){
+							self=true;
+							break;
+						}
+					}
+					if(self){
+						sizeOfDup=tempDuplicateList.size()-1;
+					}
+					else{
+						sizeOfDup=tempDuplicateList.size();
+					}
+					tempNewSssLabel=tempNewSssLabel+"("+sizeOfDup.toString()+")";
+					setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",tempNewSssLabel);
 				}
 				else{
-					setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",newSssLabel);
+					setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",tempNewSssLabel);
 				}
 				Boolean newAns=false;
 				String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
@@ -3348,8 +3303,11 @@ saveSession(String typeflag){
 				}
 				ansConsultant=psInfo.get("consultant");
 				interviwerPrefix=psInfo.get("interviewer");
-				
+
 				String tempSssLabel=interviwerPrefix+sssLabel;
+				tempDuplicateList=new ArrayList();
+				tempDuplicateList.clear();
+				int sizeOfDup=0;
 				sssDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
 				"and measure like '"+tempSssLabel+"' or measure like '"+tempSssLabel+"(%)'";
@@ -3357,9 +3315,28 @@ saveSession(String typeflag){
 				fetchAll(sssDuplicateQuery,new FetchCallback() {
 						onFetch(result) {
 							if(!isNull(result)){
-								tempSssLabel = makeSssLabel(result, tempSssLabel);
-
-								setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",tempSssLabel);
+								tempDuplicateList.addAll(result);
+								sizeOfDup=tempDuplicateList.size();
+								if(sizeOfDup==1){
+									attributes = createAttributeList();
+									duplicateOldLabel=tempDuplicateList.get(0).get(1);
+									suffix=duplicateOldLabel.substring(duplicateOldLabel.length()-3);
+									if(!suffix.equals("(1)"))
+									{
+										newLabel=duplicateOldLabel+"(1)";
+										attributes.add(createEntityAttribute("SessionID", null, null, newLabel, null));
+										entityId=tempDuplicateList.get(0).get(0);
+										saveArchEnt(entityId, "Session", null, attributes);
+									}
+									tempSssLabel=tempSssLabel+"(2)";
+						            setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",tempSssLabel);
+								}
+								else{
+									sizeOfDup=sizeOfDup+1;
+									tempSssLabel=tempSssLabel+"("+sizeOfDup.toString()+")";
+									setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",tempSssLabel);
+								}
+								
 							}
 							else{
 								setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",tempSssLabel);

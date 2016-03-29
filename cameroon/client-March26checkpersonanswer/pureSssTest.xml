@@ -96,20 +96,6 @@
                     </surveyQuestionnaire>
                 </questionnaireInfo>
                 
-                <!--answerToQuestion>
-                    <answerInfoHidden>
-                        <answerListQuestionnaireID/>
-                        <answerListQuestionID/>
-                    </answerInfoHidden>
-                    
-                    <answerInfo>                        
-                        <answerListQuestionnaireName/>
-                        <answerListQuestionContent/>
-                        <answerList/>
-                        <Create_New_Answer/>
-                    </answerInfo>
-                </answerToQuestion-->
-                
                 <sessionForAnswer>
                     <sssAnsBasicInfo>
                         <sssID/>
