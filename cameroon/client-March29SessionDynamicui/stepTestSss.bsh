@@ -329,6 +329,49 @@ createQuesnirList(){
 		});
 	}
 }
+
+createQuesSel(){
+	if(!hasView("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireID")){
+		removeAllViewsAndContainers("questionnaireInfo");
+		executeViewTask(new ViewTask() {
+	    doTask() {
+	    	hideQuesnirId=createViewDef().createTextField().setLabel("currentQuesnirID").setReadOnly(true);
+	    	idTextViewDef = createViewDef().createTextField().setLabel("Questionnaire label").setAttributeName("QuestionnaireID").setAttributeType("measure").setAnnotationEnabled(false).setReadOnly(true);
+	    	nameTextViewDef=createViewDef().createTextField().setLabel("Questionnaire name").setAttributeName("QuestionnaireName").setAttributeType("measure").setAnnotationEnabled(false).setReadOnly(true);
+	    	typeTextViewDef=createViewDef().createTextField().setLabel("Questionnaire type").setAnnotationEnabled(false).setReadOnly(true);
+	    	descTextViewDef=createViewDef().createTextField().setLabel("Questionnaire description").setAttributeName("QuestionnaireDescription").setAttributeType("measure").setAnnotationEnabled(false).setReadOnly(true);
+	    	
+
+	        quesSelListDef=createViewDef().createList().setLabel("Questions").setStyleCss("questionQuestionnaire-list");
+
+	        createView("questionnaireInfo/surveyQuesnirHidden/currentQuesnirID",hideQuesnirId,"questionnaireInfo/surveyQuesnirHidden");
+
+	    	createView("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireID",idTextViewDef,"questionnaireInfo/surveyQuestionnaire");
+	        createView("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireName",nameTextViewDef,"questionnaireInfo/surveyQuestionnaire");
+	        createView("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireType",typeTextViewDef,"questionnaireInfo/surveyQuestionnaire");
+	        createView("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireDescription", descTextViewDef,"questionnaireInfo/surveyQuestionnaire");
+
+	        style1 = "orientation";
+	        style2 = "even";
+	        createContainer("questionnaireInfo/surveyQuestionnaire/quesSelCt", "orientation");
+	    	createContainer("questionnaireInfo/surveyQuestionnaire/child1", "even", "questionnaireInfo/surveyQuestionnaire/quesSelCt");
+	        createContainer("questionnaireInfo/surveyQuestionnaire/child2", "even", "questionnaireInfo/surveyQuestionnaire/quesSelCt");
+
+	    	searchTextViewDef = createViewDef().createTextField().setLabel("keyword").setInfoEnabled(true);
+	        searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
+
+			createView("questionnaireInfo/surveyQuestionnaire/ques_keyword", searchTextViewDef,"questionnaireInfo/surveyQuestionnaire/child1");
+	        createView("questionnaireInfo/surveyQuestionnaire/ques_Search", searchButtonDef,"questionnaireInfo/surveyQuestionnaire/child2");
+	        createView("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", quesSelListDef,"questionnaireInfo/surveyQuestionnaire");
+	    	 
+	        refreshTabgroupCSS("questionnaireInfo");
+	        //showTabGroup("fieldTrip");
+	        onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","checkPersonAns()");
+	        onEvent("questionnaireInfo/surveyQuestionnaire/ques_Search","click","searchQuesInCrtQuesnir()");
+	   		}
+			});
+	}
+}
 /***Survey Control***/
 onEvent("control/survey_control/New_Survey","click","newSessionForAnswer(\"answer\",null)");
 onEvent("control/survey_control","show","loadSessionList(\"answer\")");
@@ -838,6 +881,8 @@ loadQuesnirInfo(){
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
 		"and measure='"+current_quesnir_id+"' ";
 
+		createQuesSel();
+
 		showTabGroup("questionnaireInfo", current_quesnir_id, new FetchCallback() {
         	onFetch(result) {
 	        		setFieldValue("questionnaireInfo/surveyQuesnirHidden/currentQuesnirID",current_quesnir_id);
@@ -1087,14 +1132,10 @@ startNewAnswer(){
 	
 }
 
-onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","checkPersonAns()");
-onEvent("questionnaireInfo/surveyQuestionnaire/ques_Search","click","searchQuesInCrtQuesnir()");
-
 searchQuesInCrtQuesnir(){
 	String toSearchQuesnirID=null;
-	
 	toSearchQuesnirID=getFieldValue("questionnaireInfo/surveyQuesnirHidden/currentQuesnirID");
-
+	//showWarning("toSearchQuesnirID",toSearchQuesnirID);
 	String quesKeyword=null;
 
 	quesKeyword=getFieldValue("questionnaireInfo/surveyQuestionnaire/ques_keyword");
