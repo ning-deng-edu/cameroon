@@ -2627,7 +2627,7 @@ saveAnsInSession(String sessionId, String typeflag){
 
 ansLblMng(ArrayList ans, String ansConsultant){
 	String ansLabel=ans.get(1);
-	showWarning("ansOldlabel",ansLabel);
+	//showWarning("ansOldlabel",ansLabel);
 	String [] ansLabelSplit=ansLabel.split("_");
 	String ansOldPs=ansLabelSplit[2];
 	//showWarning("ansOldPs",ansOldPs);
@@ -2641,7 +2641,7 @@ ansLblMng(ArrayList ans, String ansConsultant){
 		}
 
 		String newAnsLabelSss=sb.toString();
-		showWarning("newAnsLabelSss1",newAnsLabelSss);
+		//showWarning("newAnsLabelSss1",newAnsLabelSss);
 
 		//here we need to check if the new generated answer label is duplicate label or not
 		tempAnsDuplicateList=new ArrayList();
@@ -2706,7 +2706,7 @@ ansLblMng(ArrayList ans, String ansConsultant){
 
 				attributes = createAttributeList();
 				attributes.add(createEntityAttribute("AnswerLabel", null, null, newAnsLabelSss, null));
-				showWarning("newAnsLabelSss2",entityId+newAnsLabelSss);
+				//showWarning("newAnsLabelSss2",entityId+newAnsLabelSss);
 				saveArchEnt(entityId, "AnswerToQuestionnaire", null, attributes, new SaveCallback() {
 					onSave(answerUuid,newRecord) {
 						//below is changing the filelabel
