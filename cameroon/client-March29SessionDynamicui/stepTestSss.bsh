@@ -298,7 +298,37 @@ userSearch(){
 	    });
 	}
 }
+/***Dynamic ui page generation***/
+createQuesnirList(){
+	if(!hasView("questionnaireListAll/questionnaireListInfo/questionnaireListInDB")){
+		removeAllViewsAndContainers("questionnaireListAll");
+		executeViewTask(new ViewTask() {
+    	doTask() { 	
+	        style1 = "orientation";
+	        style2 = "even";
+	    	createContainer("questionnaireListAll/questionnaireListInfo/quesnirLsCt", "orientation");
+	    	createContainer("questionnaireListAll/questionnaireListInfo/child1", "even", "questionnaireListAll/questionnaireListInfo/quesnirLsCt");
+	        createContainer("questionnaireListAll/questionnaireListInfo/child2", "even", "questionnaireListAll/questionnaireListInfo/quesnirLsCt");
 
+	        searchTextViewDef = createViewDef().createTextField().setLabel("keyword").setInfoEnabled(true);
+	        searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
+	        
+	        quesnirListDef=createViewDef().createList().setLabel("Questionnaires").setStyleCss("questionnaire-list");
+
+	        createView("questionnaireListAll/questionnaireListInfo/quesnir_keyword", searchTextViewDef,"questionnaireListAll/questionnaireListInfo/child1");
+	        createView("questionnaireListAll/questionnaireListInfo/quesnir_Search", searchButtonDef,"questionnaireListAll/questionnaireListInfo/child2");
+	   
+	        createView("questionnaireListAll/questionnaireListInfo/questionnaireListInDB", quesnirListDef,"questionnaireListAll/questionnaireListInfo/");
+
+	        refreshTabgroupCSS("questionnaireListAll");
+
+	        onEvent("questionnaireListAll","show","loadAllQuesnir()");
+
+	        onEvent("questionnaireListAll/questionnaireListInfo/questionnaireListInDB","click","loadQuesnirInfo()");
+	            	}
+		});
+	}
+}
 /***Survey Control***/
 onEvent("control/survey_control/New_Survey","click","newSessionForAnswer(\"answer\",null)");
 onEvent("control/survey_control","show","loadSessionList(\"answer\")");
@@ -725,9 +755,8 @@ showQuestionnaireList(){
 	questionnaire_list.clear();
 	queslabel_current_quesnir.clear();
 	
+	createQuesnirList();
 	newTabGroup("questionnaireListAll");
-	onEvent("questionnaireListAll","show","loadAllQuesnir()");
-
 }
 
 loadAllQuesnir(){
@@ -792,7 +821,7 @@ loadExistSurvey(){
 	    	});
 }
 
-onEvent("questionnaireListAll/questionnaireListInfo/questionnaireListInDB","click","loadQuesnirInfo()");
+
 loadQuesnirInfo(){
 	current_quesnir_id=getListItemValue();
 	if(isNull(current_quesnir_id)){
@@ -818,7 +847,7 @@ loadQuesnirInfo(){
                 		"and uuid=(select measure from latestNonDeletedAentValue where AttributeID="+
                 			"(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
                 			"and uuid='"+current_quesnir_id+"')";
-                			
+
                 	fetchOne(loadQuesnirTypeQuery,new FetchCallback() {
 							onFetch(typeResult) {
 								if (!isNull(typeResult)) {	

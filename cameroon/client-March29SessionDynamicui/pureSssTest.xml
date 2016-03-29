@@ -302,30 +302,6 @@
           <label>Questionnaire list</label>
            <group ref="questionnaireListInfo" faims_scrollable="false">
             <label>Questionnaire list</label>
-             <group ref="container13" faims_style="orientation">
-        
-          <label></label>
-          <group ref="child1" faims_style="even">
-            <label></label>
-             <input ref="quesnir_keyword">
-                <label>questionnaire keyword</label>
-            </input>
-         
-          </group>
-       <group ref="child2" faims_style="even">
-            <label></label>
-             <trigger ref="quesnir_Search" faims_style_class="faims-blue">
-                <label>Search</label>
-            </trigger>
-          </group>
-        </group>
-            <select1 appearance="compact" ref="questionnaireListInDB" faims_style_class="questionnaire-list">
-                <label>Questionnaire list</label>
-                <item>
-                    <label>placeholder</label>
-                    <value>placeholder</value>
-                </item>
-             </select1>
             </group>
     </group>
     
