@@ -867,6 +867,7 @@ loadExistSurvey(){
 
 loadQuesnirInfo(){
 	current_quesnir_id=getListItemValue();
+	
 	if(isNull(current_quesnir_id)){
 		showWarning("No questionnaire selected","No questionnaire is selected, please select a questionnaire");
 		return;
@@ -876,100 +877,14 @@ loadQuesnirInfo(){
 		return;
 	}
 	else{
-
-		quesnir_ques_reln_query="select uuid from latestNonDeletedArchEntIdentifiers "+
-		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
-		"and measure='"+current_quesnir_id+"' ";
-
 		createQuesSel();
-
 		showTabGroup("questionnaireInfo", current_quesnir_id, new FetchCallback() {
         	onFetch(result) {
-	        		setFieldValue("questionnaireInfo/surveyQuesnirHidden/currentQuesnirID",current_quesnir_id);
+	        	setFieldValue("questionnaireInfo/surveyQuesnirHidden/currentQuesnirID",current_quesnir_id);
+	        	refreshQuesnirInfo();
+				current_quesnir_name=getFieldValue("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireName");
+				showToast("Loaded questionnaire"+result.getId());  
 
-	        		loadQuesnirTypeQuery="select measure from latestNonDeletedAentValue "+
-                		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
-                		"and uuid=(select measure from latestNonDeletedAentValue where AttributeID="+
-                			"(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
-                			"and uuid='"+current_quesnir_id+"')";
-
-                	fetchOne(loadQuesnirTypeQuery,new FetchCallback() {
-							onFetch(typeResult) {
-								if (!isNull(typeResult)) {	
-									setFieldValue("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireType",typeResult.get(0));
-								}
-							}	       
-							onError(message) {
-								showToast(message);
-							}
-						});
-     
-
-	        		//showWarning("setFieldValue","setFieldValue");
-	        		fetchAll(quesnir_ques_reln_query, new FetchCallback() {
-						onFetch(relnResult) {
-							if(!isNull(relnResult)){
-								//showWarning("relnResult","relnResult");
-								quesListRelnOrigin=new ArrayList();
-								quesListRelnOrigin.clear();
-								quesListRelnOrigin.addAll(relnResult);
-
-								queslabel_current_quesnir.clear();
-								ques_in_current_quesnir.clear();
-								for(reln:quesListRelnOrigin){
-				        			String relnId=reln.get(0);
-
-									loadQuesContentQuery="select uuid,measure from latestNonDeletedAentValue "+
-								                		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
-								                		"and uuid=(select measure from latestNonDeletedAentValue where AttributeID="+
-								                			"(select AttributeID from AttributeKey where AttributeName='QuesID') "+
-								                			"and uuid='"+relnId+"')";
-
-			        				fetchOne(loadQuesContentQuery,new FetchCallback() {
-													onFetch(quesResult) {
-														if (!isNull(quesResult)) {			
-															//showWarning("quesResult","quesResult");
-			        						   				ques_in_current_quesnir.add(quesResult);
-															populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
-
-															loadQuesLabelQuery="select uuid,measure from latestNonDeletedAentValue "+
-									                		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
-									                		"and uuid=(select measure from latestNonDeletedAentValue where AttributeID="+
-									                			"(select AttributeID from AttributeKey where AttributeName='QuesID') "+
-									                			"and uuid='"+relnId+"')";
-
-									        				fetchOne(loadQuesLabelQuery,new FetchCallback() {
-																	onFetch(labelResult) {
-																		if (!isNull(labelResult)) {	
-																			//showWarning("labelResult","labelResult");
-																			queslabel_current_quesnir.add(labelResult);
-																		}
-																	}
-															       
-																	onError(message) {
-																		showToast(message);
-																	}
-																});
-															}
-														else{
-																showWarning("Out-of-date Data","Some questions may not be using anymore\n"+"Please contact the admin for further information");
-															}
-													}
-																       
-													onError(message) {
-														showToast(message);
-														}
-													});	
-								}
-								current_quesnir_name=getFieldValue("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireName");
-	            				showToast("Loaded questionnaire"+result.getId());   
-							}
-							else{
-								showWarning("Out-of-date Data","Some questions in this questionnaire may not be using anymore\n"+"Please contact the admin for further information");
-		        			}
-							
-						}
-					});
         	}
         	onError(message) {
             	showToast(message);
@@ -979,6 +894,92 @@ loadQuesnirInfo(){
 		
 		
 	}
+}
+
+refreshQuesnirInfo(){
+loadQuesnirTypeQuery="select measure from latestNonDeletedAentValue "+
+	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+	"and uuid=(select measure from latestNonDeletedAentValue where AttributeID="+
+		"(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+		"and uuid='"+current_quesnir_id+"')";
+
+fetchOne(loadQuesnirTypeQuery,new FetchCallback() {
+		onFetch(typeResult) {
+			if (!isNull(typeResult)) {	
+				setFieldValue("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireType",typeResult.get(0));
+			}
+		}	       
+		onError(message) {
+			showToast(message);
+		}
+	});
+
+quesnir_ques_reln_query="select uuid from latestNonDeletedArchEntIdentifiers "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+		"and measure='"+current_quesnir_id+"' ";
+
+fetchAll(quesnir_ques_reln_query, new FetchCallback() {
+	onFetch(relnResult) {
+		if(!isNull(relnResult)){
+			//showWarning("relnResult","relnResult");
+			quesListRelnOrigin=new ArrayList();
+			quesListRelnOrigin.clear();
+			quesListRelnOrigin.addAll(relnResult);
+
+			queslabel_current_quesnir.clear();
+			ques_in_current_quesnir.clear();
+			for(reln:quesListRelnOrigin){
+    			String relnId=reln.get(0);
+
+				loadQuesContentQuery="select uuid,measure from latestNonDeletedAentValue "+
+			                		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
+			                		"and uuid=(select measure from latestNonDeletedAentValue where AttributeID="+
+			                			"(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+			                			"and uuid='"+relnId+"')";
+
+				fetchOne(loadQuesContentQuery,new FetchCallback() {
+								onFetch(quesResult) {
+									if (!isNull(quesResult)) {			
+										//showWarning("quesResult","quesResult");
+						   				ques_in_current_quesnir.add(quesResult);
+										populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
+
+										loadQuesLabelQuery="select uuid,measure from latestNonDeletedAentValue "+
+				                		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
+				                		"and uuid=(select measure from latestNonDeletedAentValue where AttributeID="+
+				                			"(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+				                			"and uuid='"+relnId+"')";
+
+				        				fetchOne(loadQuesLabelQuery,new FetchCallback() {
+												onFetch(labelResult) {
+													if (!isNull(labelResult)) {	
+														//showWarning("labelResult","labelResult");
+														queslabel_current_quesnir.add(labelResult);
+													}
+												}
+										       
+												onError(message) {
+													showToast(message);
+												}
+											});
+										}
+									else{
+											showWarning("Out-of-date Data","Some questions may not be using anymore\n"+"Please contact the admin for further information");
+										}
+								}
+											       
+								onError(message) {
+									showToast(message);
+									}
+								});	
+							}
+						}
+		else{
+			showWarning("Out-of-date Data","Some questions in this questionnaire may not be using anymore\n"+"Please contact the admin for further information");
+		}
+		
+	}
+});
 }
 
 files_in_current_ques=new ArrayList();
@@ -1133,71 +1134,33 @@ startNewAnswer(){
 }
 
 searchQuesInCrtQuesnir(){
-	String toSearchQuesnirID=null;
-	toSearchQuesnirID=getFieldValue("questionnaireInfo/surveyQuesnirHidden/currentQuesnirID");
-	//showWarning("toSearchQuesnirID",toSearchQuesnirID);
 	String quesKeyword=null;
 
 	quesKeyword=getFieldValue("questionnaireInfo/surveyQuestionnaire/ques_keyword");
+	//for this search, we first check if the database updated, then search the result in the local arraylist
+	//step 1: get the latest db record
+	quesKeyword.trim();
 
-
-	if(isNull(quesKeyword) || quesKeyword.equals("*")){
-	
-		quesnir_question_all_query="select uuid,measure from latestNonDeletedAentValue "+ 
-				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
-				"and uuid in "+
-	 			"(select uuid from AentReln where RelationshipID in "+
-				"(select RelationshipID from AEntReln where AEntReln.uuid="+toSearchQuesnirID+" "+
-	 			"AND RelationshipID in "+
-				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
-	 			"(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and Question') "+
-				"and latestNonDeletedRelationship.Deleted IS NULL))) group by uuid";
-
-		fetchAll(quesnir_question_all_query,new FetchCallback() {
-        					onFetch(result) {
-        						if (!isNull(result)) {	
-        							ques_in_current_quesnir.clear();	
-        						    ques_in_current_quesnir.addAll(result);
-        						    populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
-
-        						}
-        						else{
-        							showWarning("No question in this questionnaire","This questionnaire is not ready yet");
-        							return;
-        						}
-        
-        					}
-        			       
-        				onError(message) {
-        					showToast(message);
-        				}
-        				});
+	//refreshQuesnirInfo();
+	//step 2: search in the local arraylist
+	if(!(isNull(quesKeyword) || quesKeyword.equals("*"))){
+		//showWarning("quesSearch","\\b*"+quesKeyword+"\\b*");
+		Pattern quesSearch = Pattern.compile(quesKeyword);
+		//showWarning("quesSearch","quesSearch");
+		tempMatchQues=new ArrayList();
+		tempMatchQues.clear();
+		//showWarning("tempMatchQues","tempMatchQues");
+		for(tempQues: ques_in_current_quesnir){
+			String tempQuesCntnt= tempQues.get(1);
+			Matcher quesSearchMatcher=quesSearch.matcher(tempQuesCntnt);
+			if(quesSearchMatcher.find()){
+				tempMatchQues.add(tempQues);
+			}
+		}
+		populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", tempMatchQues);
 	}
-	
 	else{
-
-	quesnir_question_search_query="select uuid,measure from latestNonDeletedAentValue "+ 
-				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionContent') "+
-				"and measure like '%"+quesKeyword+"%' "+
-				"and uuid in "+
-	 			"(select uuid from AentReln where RelationshipID in "+
-				"(select RelationshipID from AEntReln where AEntReln.uuid="+toSearchQuesnirID+" "+
-	 			"AND RelationshipID in "+
-				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
-	 			"(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and Question') "+
-				"and latestNonDeletedRelationship.Deleted IS NULL))) group by uuid";
-
-	fetchAll(quesnir_question_search_query,new FetchCallback() {
-        					onFetch(result) {
-        						populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire",result);
-        						//showWarning("populateList done","populateList done");
-        					}
-        			       
-        				onError(message) {
-        					showToast(message);
-        				}
-        				});
-
+		populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
 	}
 	
 }
