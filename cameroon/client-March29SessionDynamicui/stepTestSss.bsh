@@ -3141,8 +3141,8 @@ makeSssLabel(ArrayList result, String tempLbl){
 	tempDuplicateList.addAll(result);
 	int sizeOfDup=0;
 	Pattern numberPat = Pattern.compile("\\(\\d+\\)");
-
-	if(sizeOfAnsDup==1){
+	sizeOfDup=tempDuplicateList.size();
+	if(sizeOfDup==1){
 		attributes = createAttributeList();
 		duplicateOldLabel=tempDuplicateList.get(0).get(1);
 		Matcher numMatcher = numberPat.matcher(duplicateOldLabel);
