@@ -2455,6 +2455,7 @@ survey_list=new ArrayList();
 files_in_current_ques=new ArrayList();
 files_origin=new ArrayList();
 
+ansTimeMng=new ArrayList();
 /**Events for answer**/
 onEvent("survey/answerFile/Finish_New_Answer","click","saveNewAnswer()");
 onEvent("survey/answerFile/Add_New_File","click","newFile(\"answer\")");
@@ -2538,6 +2539,8 @@ loadAnswerInfo(){
         	populateDropDown("survey/answerFile/file_Category",categoryTypes);
         	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerLabel"));
         	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerText"));
+        	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerStartTimestamp"));
+        	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerEndTimestamp"));
             showToast("Loaded answer"+result.getId());            
         }
         onError(message) {
@@ -2579,6 +2582,7 @@ startNewAnswer(){
 	dupFileLblChange=false;
 	dupAnsLblInfo.clear();
 	dupFileLblInfo.clear();
+	ansTimeMng.clear();
 
     currentDateTimeArray=current_start_time.toString().split("\\s+");
     String currentDate=currentDateTimeArray[0];
@@ -2699,44 +2703,58 @@ saveNewAnswer(){
 		}
 		
 	}
-	
+	ansTimeList=new ArrayList();
+	for(time : ansTimeMng){
+		ansTimeList.add(time.get(2));
+	}
+	ansEndTime=extractLatestTime(ansTimeList);
 	if(isNull(current_answer_id)){//create new answer
-	setFieldValue("survey/answerBasic/answerEndTimestamp",getCurrentTime());
-	String newAnsLabel=getFieldValue("survey/answerBasic/answerLabel");
-	saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
-		onSave(uuid, newRecord) {
-			answer_id = uuid;
-			current_answer_id=answer_id;
-			if (newRecord) {
-				for(file : files_in_current_ques){
-					saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
-				}
-				newAnswer=new ArrayList();
-				newAnswer.add(answer_id);
-				newAnswer.add(newAnsLabel);
-				sss_answer_list.add(newAnswer);
-				populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+		setFieldValue("survey/answerBasic/answerEndTimestamp",ansEndTime);
 
-				if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
-					newLabel=dupAnsLblInfo.get(1);
-					ansEntityId=dupAnsLblInfo.get(0);
-					attributes = createAttributeList();
-					attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
-					saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
-					dupAnsLblChange=false;
-					dupAnsLblInfo.clear();
+		String newAnsLabel=getFieldValue("survey/answerBasic/answerLabel");
+		
+		saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
+			onSave(uuid, newRecord) {
+				answer_id = uuid;
+				//showWarning("answer_id",answer_id);
+				current_answer_id=answer_id;
+				//showWarning("current_answer_id",current_answer_id);
+
+				if (newRecord) {
+
+					for(file : files_in_current_ques){
+						saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
+					}
+					
+					newAnswer=new ArrayList();
+					newAnswer.add(answer_id);
+					newAnswer.add(newAnsLabel);
+					sss_answer_list.add(newAnswer);
+
+					
+					populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+					//if this is the second answer with a duplicate label
+					//the other answer label will be changed with a suffix (1)
+					if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
+						newLabel=dupAnsLblInfo.get(1);
+						ansEntityId=dupAnsLblInfo.get(0);
+						attributes = createAttributeList();
+						attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
+						saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
+						dupAnsLblChange=false;
+						dupAnsLblInfo.clear();
+					}
+					showToast("new answer created");
+					cancelTabGroup("survey", true);
+					//cancelTabGroup("answerToQuestion", true);
+					autoSaveSession("head");
+					//saveSession("answer");
 				}
-				showToast("new answer created");
-				cancelTabGroup("survey", true);
-				//cancelTabGroup("answerToQuestion", true);
-				autoSaveSession("head");
-				//saveSession("answer");
 			}
-		}
-		onError(message) {
-			showWarning("error",message);
-		}  
-		});
+			onError(message) {
+				showWarning("error",message);
+			}  
+			});
 	}
 
 	else{//this is changing answerInfo		
@@ -2744,6 +2762,9 @@ saveNewAnswer(){
 		answerInfoNew.clear();
 		answerInfoNew.add(getFieldValue("survey/answerBasic/answerLabel"));
 		answerInfoNew.add(getFieldValue("survey/answerBasic/answerText"));
+		setFieldValue("survey/answerBasic/answerEndTimestamp",ansEndTime);
+		answerInfoNew.add(getFieldValue("survey/answerBasic/answerStartTimestamp"));
+		answerInfoNew.add(getFieldValue("survey/answerBasic/answerEndTimestamp"));	
 		Hashtable fileListChange=listChange(files_in_current_ques,files_origin);
 		Hashtable answerBasicInfoChange=listChange(answerInfoNew,answerInfoOriginal);
 		//case1: Nothing changed
@@ -2793,6 +2814,7 @@ saveNewAnswer(){
 	}
 
 }
+
 viewOrDeleteFileReln(){
 	select_file_id=getListItemValue();
 	if(isNull(select_file_id) || select_file_id.equals("0000")){
@@ -2829,6 +2851,11 @@ deleteFileRelation(){
 		{
 			file_and_fileType.remove(deleteFile);
 			break;
+		}
+	}
+	for(delFile : ansTimeMng){
+		if(delFile.get(0).equals(delete_file_id)){
+			ansTimeMng.remove(delFile);
 		}
 	}
 
@@ -3009,7 +3036,6 @@ createFilePage(String fileType, String attachFunc, String saveFunc){
 				createView("file/fileInfo/Take_"+uiLabelPrefix+"_File", newBtnViewDef,"file/fileInfo");
 				createView("file/fileInfo/"+uiNamePrefix+"FilePath", pathTextViewDef,"file/fileInfo");
 				createView("file/fileInfo/Save_New_"+uiLabelPrefix, saveBtnViewDef,"file/fileInfo");
-				setFieldValue("file/fileInfo/"+uiNamePrefix+"FileStartTime", getCurrentTime());
 			    onEvent("file/fileInfo/Take_"+uiLabelPrefix+"_File","click",attachFunc);
 				//onEvent("file/fileInfo/Save_New_"+uiLabelPrefix,"click","saveFileFromAnswer(\"file/fileInfo/"+uiNamePrefix+"FileName\",\"file/fileInfo/"+uiNamePrefix+"FileContent\",\"file\",uiLabelPrefix)");
 				onEvent("file/fileInfo/Save_New_"+uiLabelPrefix,"click",saveFunc);
@@ -3035,11 +3061,13 @@ newFile(String typeFlag){
 					createFilePage("audio","attachAudioToField(\"file/fileInfo/audioFileContent\")",
 						"saveFileFromAnswer(\"file/fileInfo/audioFileName\",\"file/fileInfo/audioFileContent\",\"file\",\"Audio\")");
 					newTabGroup("file");
+
 					String tempAudioID=tempAnsID+"_Audio";
 					labelDeduplicate(tempAudioID,"FileID","file/fileInfo/audioFileID","file");
 
 					setFieldValue("file/fileInfo/audioFileCreator",username);
 					setFieldValue("file/fileInfo/audioFileType","Audio");
+					setFieldValue("file/fileInfo/audioFileStartTime", getCurrentTime());
 				break;
 				case "Video":
 					//createVideoPage("new");
@@ -3051,6 +3079,7 @@ newFile(String typeFlag){
 	
 					setFieldValue("file/fileInfo/videoFileCreator",username);
 					setFieldValue("file/fileInfo/videoFileType","Video");
+					setFieldValue("file/fileInfo/videoFileStartTime", getCurrentTime());
 				break;
 
 				case "Photo":
@@ -3063,6 +3092,7 @@ newFile(String typeFlag){
 
 					setFieldValue("file/fileInfo/photoFileCreator",username);
 					setFieldValue("file/fileInfo/photoFileType","Photo");
+					setFieldValue("file/fileInfo/photoFileStartTime", getCurrentTime());
 				
 				break;
 				case "Other":
@@ -3075,6 +3105,7 @@ newFile(String typeFlag){
 
 					setFieldValue("file/fileInfo/sketchFileCreator",username);
 					setFieldValue("file/fileInfo/sketchFileType","Sketch");
+					setFieldValue("file/fileInfo/sketchFileStartTime", getCurrentTime());
 					
 					break;
 				default:
@@ -3084,7 +3115,7 @@ newFile(String typeFlag){
 		break;
 	}
 }
-
+//TODO: find the bug 
 saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, String fileType){
 	if(isNull(getFieldValue(ref))){
 		showWarning("Warning","File name can not be null");
@@ -3118,6 +3149,20 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 					newFileType.add(current_answer_file_id);
 					newFileType.add(fileType);
 					file_and_fileType.add(newFileType);
+					newFileTime=new ArrayList();
+					newFileTime.add(current_answer_file_id);
+					if(!fileType.equals("Recording")){
+						//showWarning("startTime","file/fileInfo/"+fileType.toLowerCase()+"FileStartTime");
+						newFileTime.add(getFieldValue("file/fileInfo/"+fileType.toLowerCase()+"FileStartTime"));
+						//showWarning("startTime",getFieldValue("file/fileInfo/"+fileType.toLowerCase()+"FileStartTime"));
+						newFileTime.add(getFieldValue("file/fileInfo/"+fileType.toLowerCase()+"FileEndTime"));
+					}
+					else{
+						newFileTime.add(getFieldValue("file/fileInfo/sketchFileStartTime"));
+						newFileTime.add(getFieldValue("file/fileInfo/sketchFileEndTime"));
+					}
+					ansTimeMng.add(newFileTime);
+					//showWarning("ansTimeMng","ansTimeMng added");
 					//saveEntitiesToRel("Answer and File",answer_id,current_answer_file_id);	
 					if(dupFileLblChange && !isNull(dupFileLblInfo)){
 						newLabel=dupFileLblInfo.get(1);
@@ -3158,6 +3203,23 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 			saveTabGroup(tabGroupRef,file_id, null, null, new SaveCallback() {
 				onSave(uuid, newRecord) {
 					file_id = uuid;
+					newFileTime=new ArrayList();
+					newFileTime.add(current_answer_file_id);
+					if(!fileType.equals("Recording")){
+						newFileTime.add(getFieldValue("file/fileInfo/"+fileType.toLowerCase()+"FileStartTime"));
+						newFileTime.add(getFieldValue("file/fileInfo/"+fileType.toLowerCase()+"FileEndTime"));
+					}
+					else{
+						newFileTime.add(getFieldValue("file/fileInfo/sketchFileStartTime"));
+						newFileTime.add(getFieldValue("file/fileInfo/sketchFileEndTime"));
+					}
+
+					for(int i=0; i<ansTimeMng.size();i++){
+						if(ansTimeMng.get(i).get(0).equals(file_id)){
+							ansTimeMng.set(i,newFileTime);
+							break;
+						}
+					}
 					if (newRecord) {				
 						showToast("New file record created");
 					}
@@ -3198,7 +3260,7 @@ setAudioToField(String ref) {
     }
     setFieldValue(ref, _convertListToPairs(selectedFiles));
     setFieldValue("file/fileInfo/audioFilePath",filePath);
-    setFieldValue("file/fileInfo/audioFileEndTime".getCurrentTime());
+    setFieldValue("file/fileInfo/audioFileEndTime",getCurrentTime());
 }
 
 
@@ -3224,7 +3286,7 @@ setVideoToField(String ref) {
     }
     setFieldValue(ref, _convertListToPairs(selectedFiles));
     setFieldValue("file/fileInfo/videoFilePath",filePath);
-    setFieldValue("file/fileInfo/videoFileEndTime".getCurrentTime());
+    setFieldValue("file/fileInfo/videoFileEndTime",getCurrentTime());
 }
 
 
@@ -3251,7 +3313,7 @@ setPictureToField(String ref) {
     }
     setFieldValue(ref, _convertListToPairs(selectedFiles));
     setFieldValue("file/fileInfo/photoFilePath",filePath);
-    setFieldValue("file/fileInfo/photoFileEndTime".getCurrentTime());
+    setFieldValue("file/fileInfo/photoFileEndTime",getCurrentTime());
 }
 
 
@@ -3277,7 +3339,7 @@ setFileToField(String ref) {
     }
     setFieldValue(ref, _convertListToPairs(selectedFiles));
     setFieldValue("file/fileInfo/sketchFilePath",filePath);
-    setFieldValue("file/fileInfo/sketchFileEndTime".getCurrentTime());
+    setFieldValue("file/fileInfo/sketchFileEndTime",getCurrentTime());
 }
 
 /**common methods**/
@@ -3507,6 +3569,11 @@ dateParser(String sourceDate){
 	//convert yyyy-mm-dd to dd/mm/yy
 }
 
+extractLatestTime(ArrayList timeList){
+	Collections.sort(timeList);
+	return timeList.get(timeList.size()-1);
+}
+
 labelDeduplicate(String originLabel, String attriName, String fieldRef, String typeflag){
 	//Here we can't use regexp, so we use naive LIKE condition
 	tempDuplicateList=new ArrayList();
@@ -3521,19 +3588,25 @@ labelDeduplicate(String originLabel, String attriName, String fieldRef, String t
 			if(!isNull(result)){
 				tempDuplicateList.addAll(result);
 				sizeOfDup=tempDuplicateList.size();
-				/*
-				sizeOfDup=sizeOfDup+1;
-				originLabel=originLabel+"("+sizeOfDup.toString()+")";
-				setFieldValue(fieldRef,originLabel);
-				*/
+				Pattern numberPat = Pattern.compile("\\(\\d+\\)");
 				if(sizeOfDup==1){
 					attributes = createAttributeList();
 					duplicateOldLabel=tempDuplicateList.get(0).get(1);
-					//suffix=duplicateOldLabel.substring(duplicateOldLabel.length()-3);
-					//if(!suffix.equals("(1)"))
-					//{
-					newLabel=duplicateOldLabel+"(1)";
-						//attributes.add(createEntityAttribute(attriName, null, null, newLabel, null));
+					Matcher numMatcher = numberPat.matcher(duplicateOldLabel);
+					if(numMatcher.find()){
+						suffix=duplicateOldLabel.substring(duplicateOldLabel.indexOf("("),duplicateOldLabel.length());
+						if(!suffix.equals("(1)"))
+						{
+							newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.indexOf("("))+"(1)";
+							//attributes.add(createEntityAttribute(attrName, null, null, newLabel, null));
+							//entityId=tempDuplicateList.get(0).get(0);
+							//saveArchEnt(entityId, relnName, null, attributes);
+						}
+					}
+					else{
+						newLabel=duplicateOldLabel+"(1)";
+					}
+					
 					entityId=tempDuplicateList.get(0).get(0);
 					switch(typeflag){
 						case "answer":
@@ -3555,8 +3628,20 @@ labelDeduplicate(String originLabel, String attriName, String fieldRef, String t
 					//}
 					else{
 					//showWarning("size>1","size>1");
-						sizeOfDup=sizeOfDup+1;
-						originLabel=originLabel+"("+sizeOfDup.toString()+")";
+						int maxSuffix=0;
+						for(temp: tempDuplicateList){
+							tempLabel=temp.get(1);
+							Matcher numMatcher = numberPat.matcher(tempLabel);
+							if(numMatcher.find()){
+								tempSuffixStr=tempLabel.substring(tempLabel.indexOf("(")+1, tempLabel.length()-1);
+								int tempSuffixNum=Integer.parseInt(tempSuffixStr);
+								if(tempSuffixNum>maxSuffix){
+									maxSuffix=tempSuffixNum;
+								}
+							}
+						}
+						maxSuffix=maxSuffix+1;
+						originLabel=originLabel+"("+maxSuffix+")";
 						setFieldValue(fieldRef,originLabel);
 					}
 					
