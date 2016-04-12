@@ -2494,6 +2494,8 @@ saveSession(String typeflag){
 		break;
 	}
 }
+
+
 /**Variables for answer**/
 selected_answer_interviewer=new ArrayList();
 selected_answer_interviewee=new ArrayList();
@@ -2534,10 +2536,47 @@ files_in_current_ques=new ArrayList();
 files_origin=new ArrayList();
 
 ansTimeMng=new ArrayList();
-/**Events for answer**/
-onEvent("survey/answerFile/Finish_New_Answer","click","saveNewAnswer()");
-onEvent("survey/answerFile/Add_New_File","click","newFile(\"answer\")");
-onEvent("survey/answerFile/answerFileList","click","viewOrDeleteFileReln()");
+/**Answer dynamic ui generating**/
+createAnswerPage(){
+	if(!hasView("survey/answerBasic/answerLabel")){
+		removeAllViewsAndContainers("survey");
+		executeViewTask(new ViewTask() {
+	    doTask() {
+	  		//answerHidden page
+	    	hideQuesnirId=createViewDef().createTextField().setLabel("Questionnaire id").setAttributeName("AnswerQuestionnaireID").setAttributeType("measure").setReadOnly(true);
+	    	hideQuesId=createViewDef().createTextField().setLabel("Question id").setAttributeName("AnswerQuestionID").setAttributeType("measure").setReadOnly(true);
+	    	createView("survey/answerHidden/answerQuestionnaireID",hideQuesnirId,"survey/answerHidden");
+	    	createView("survey/answerHidden/answerQuestionID",hideQuesId,"survey/answerHidden");
+
+	    	//answerBasic page
+	    	ansLabelViewDef = createViewDef().createTextField().setLabel("Answer label").setAttributeName("AnswerLabel").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true).setStyleCss("required");
+	    	ansTextViewDef=createViewDef().createTextField().setLabel("Answer text").setAttributeName("AnswerText").setAttributeType("measure").setAnnotationEnabled(true);
+	    	ansStartTimeViewDef=createViewDef().createTextField().setLabel("Start timestamp").setAttributeName("AnswerStartTime").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+	    	ansEndTimeViewDef=createViewDef().createTextField().setLabel("End timestamp").setAttributeName("AnswerEndTime").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+	    	createView("survey/answerBasic/answerLabel",ansLabelViewDef,"survey/answerBasic");
+	    	createView("survey/answerBasic/answerText",ansTextViewDef,"survey/answerBasic");
+	        createView("survey/answerBasic/answerStartTimestamp",ansStartTimeViewDef,"survey/answerBasic");
+	        createView("survey/answerBasic/answerEndTimestamp",ansEndTimeViewDef,"survey/answerBasic");
+	        
+	        //answerFile page
+			newAnsBtnDef = createViewDef().createButton().setLabel("Save Answer").setStyleCss("faims-blue");
+			fileCateDef = createViewDef().createDropDown().setLabel("File Category");
+			newFileBtnDef = createViewDef().createButton().setLabel("New File").setStyleCss("faims-blue");
+			fileListDef=createViewDef().createList().setLabel("Answer file").setStyleCss("answerFile-list");
+			createView("survey/answerFile/Finish_New_Answer",newAnsBtnDef,"survey/answerFile");
+	    	createView("survey/answerFile/file_Category",fileCateDef,"survey/answerFile");
+	        createView("survey/answerFile/Add_New_File",newFileBtnDef,"survey/answerFile");
+	        createView("survey/answerFile/answerFileList",fileListDef,"survey/answerFile");
+	        refreshTabgroupCSS("survey");
+			/**Events for answer**/
+			onEvent("survey/answerFile/Finish_New_Answer","click","saveNewAnswer()");
+			onEvent("survey/answerFile/Add_New_File","click","newFile(\"answer\")");
+			onEvent("survey/answerFile/answerFileList","click","viewOrDeleteFileReln()");
+	   		}
+			});
+	}
+}
+
 
 /**Functions for answer**/
 loadAnswerInfo(){
@@ -2665,7 +2704,7 @@ loadAnswerInfo(){
             showToast(message);
         }
     });
-
+    createAnswerPage();
 	showTabGroup("survey", current_answer_id, new FetchCallback() {
         onFetch(result) {
 			answerInfoOriginal.clear();
@@ -2731,11 +2770,11 @@ startNewAnswer(){
     if(sssConsultantList.size()>1){
 		ansLabelMidPart=ansLabelMidPart+"EtAl";
     }
-
+    createAnswerPage();
 	newTabGroup("survey");
 	setFieldValue("survey/answerHidden/answerQuestionnaireID", current_quesnir_id);
 	setFieldValue("survey/answerHidden/answerQuestionID", current_question_id);
-	setFieldValue("survey/answerHidden/answerChoice", "N/A");
+	//setFieldValue("survey/answerHidden/answerChoice", "N/A");
 	setFieldValue("survey/answerBasic/answerStartTimestamp", current_start_time);
 	setFieldValue("survey/answerBasic/answerEndTimestamp", "placeholder");
 	tempAnsLabel=ansLabelFstPart+ansLabelMidPart+ansLabelSndPart;
