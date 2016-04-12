@@ -339,6 +339,7 @@ sssOldIntvReln=new ArrayList();
 sssOldCoslReln=new ArrayList();
 sssOldPsReln=new ArrayList();
 
+
 /***session dynamic ui page generation***/
 createQuesnirList(){
 	if(!hasView("questionnaireListAll/questionnaireListInfo/questionnaireListInDB")){
@@ -2472,7 +2473,7 @@ loadAnswerInfo(){
 		return;
 	}
 	else{
-	
+	ansTimeMng.clear();
 	loadFileAnsRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+current_answer_id+" "+
 				"and RelationshipID in "+
 				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
@@ -2508,6 +2509,26 @@ loadAnswerInfo(){
 			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
  			"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
 			"and latestNonDeletedRelationship.Deleted IS NULL)))";
+
+	loadFileStartTimeQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileStartTime') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+			"(select RelationshipID from AEntReln where AEntReln.uuid="+current_answer_id+" "+
+ 			"AND RelationshipID in "+
+			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+ 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)))";
+
+	loadFileEndTimeQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileEndTime') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+			"(select RelationshipID from AEntReln where AEntReln.uuid="+current_answer_id+" "+
+ 			"AND RelationshipID in "+
+			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+ 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)))";
 	
 	fetchAll(loadFileForAnswerQuery, new FetchCallback() {
         onFetch(result) {
@@ -2526,6 +2547,42 @@ loadAnswerInfo(){
         onFetch(result) {
         	file_and_fileType.clear();     	
         	file_and_fileType.addAll(result);
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+
+    fetchAll(loadFileStartTimeQuery, new FetchCallback() {
+        onFetch(result) {
+        	tempFileStartTime=new ArrayList();
+        	tempFileStartTime.clear();
+        	if(!isNull(result)){
+        		tempFileStartTime.addAll(result);
+        		fetchAll(loadFileEndTimeQuery, new FetchCallback() {
+			        onFetch(endTimeResult) {
+			        	tempFileEndTime=new ArrayList();
+        				tempFileEndTime.clear();
+        				if(!isNull(endTimeResult)){
+        					tempFileEndTime.addAll(endTimeResult);
+        					for(startTime:tempFileStartTime){
+        						for(endTime:tempFileEndTime){
+        							if(startTime.get(0).equals(endTime.get(0))){
+        								tempTime=new ArrayList();
+        								tempTime.add(startTime.get(0));
+        								tempTime.add(startTime.get(1));
+        								tempTime.add(endTime.get(1));
+        								ansTimeMng.add(tempTime);
+        							}
+        						}
+        					}
+        				}
+			        }
+			        onError(message) {
+			            showToast(message);
+			        }
+			    });
+        	}
         }
         onError(message) {
             showToast(message);
@@ -2703,11 +2760,17 @@ saveNewAnswer(){
 		}
 		
 	}
-	ansTimeList=new ArrayList();
-	for(time : ansTimeMng){
-		ansTimeList.add(time.get(2));
+	//dealing with the situation when the answer does not have a file attached
+	ansEndTime=getCurrentTime();
+	if(!isNull(ansTimeMng)){
+		ansTimeList=new ArrayList();
+		for(time : ansTimeMng){
+			ansTimeList.add(time.get(2));
+		}
+		ansEndTime=extractLatestTime(ansTimeList);
 	}
-	ansEndTime=extractLatestTime(ansTimeList);
+	
+	
 	if(isNull(current_answer_id)){//create new answer
 		setFieldValue("survey/answerBasic/answerEndTimestamp",ansEndTime);
 
@@ -3104,7 +3167,7 @@ newFile(String typeFlag){
 					labelDeduplicate(tempSketchID,"FileID","file/fileInfo/sketchFileID","file");
 
 					setFieldValue("file/fileInfo/sketchFileCreator",username);
-					setFieldValue("file/fileInfo/sketchFileType","Sketch");
+					setFieldValue("file/fileInfo/sketchFileType","Recording");
 					setFieldValue("file/fileInfo/sketchFileStartTime", getCurrentTime());
 					
 					break;
@@ -3126,7 +3189,6 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 		return;
 	}
 	else{
-		//showWarning("answerfile",answerFile.toString());
 		if(answerFile){
 		saveTabGroup(tabGroupRef,current_answer_file_id, null, null, new SaveCallback() {
 			onSave(uuid, newRecord) {
