@@ -339,6 +339,8 @@ sssOldIntvReln=new ArrayList();
 sssOldCoslReln=new ArrayList();
 sssOldPsReln=new ArrayList();
 
+sssTimeMng=new ArrayList();
+
 
 /***session dynamic ui page generation***/
 createMainSessionPage(){
@@ -534,6 +536,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	sssOldPsReln.clear();
 	sssOldCoslReln.clear();
 	sssOldIntvReln.clear();
+	sssTimeMng.clear();
 	
 	takePoint();
 	
@@ -2082,7 +2085,15 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 	if((!sssInfoChange.containsKey("EQUAL")) && (sssAnsChange.containsKey("EQUAL"))){
 		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
 		//String endTimeStamp=getCurrentTime();
-		String endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+		endTimeStamp=null;
+		endTimeAuto=generateSssEndTime(sssTimeMng);
+		if(!isNull(endTimeAuto)){
+			setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
+			endTimeStamp=endTimeAuto;
+		}
+		else{
+			endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+		}
 		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 			//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
 		saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
@@ -2107,14 +2118,20 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 	//TODO:ADD time validation for new answer's time
 	else if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
 		Boolean newAns=false;
-		String endTimeStamp=null;
+		endTimeStamp=null;
+		endTimeStamp=generateSssEndTime(sssTimeMng);
+		if(isNull(endTimeStamp)){
+			endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+		}
 		if((sssAnsChange.containsKey("ADD"))||(sssAnsChange.containsKey("PUREADD"))){
-			endTimeStamp=getCurrentTime();
+			//endTimeStamp=generateSssEndTime(sssTimeMng);
 			newAns=true;
 		}
+		/*
 		else{
 			endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
 		}
+		*/
 		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
 		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 			if(newAns){
@@ -2138,14 +2155,18 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 	else{
 		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
 		Boolean newAns=false;
-		String endTimeStamp=null;
-		if((sssAnsChange.containsKey("ADD")) ||(sssAnsChange.containsKey("PUREADD"))){
-			endTimeStamp=getCurrentTime();
-			newAns=true;
-		}
-		else{
+		endTimeStamp=null;
+		endTimeStamp=generateSssEndTime(sssTimeMng);
+		if(isNull(endTimeStamp)){
 			endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
 		}
+		if((sssAnsChange.containsKey("ADD")) ||(sssAnsChange.containsKey("PUREADD"))){
+			//endTimeStamp=getCurrentTime();
+			newAns=true;
+		}
+		//else{
+			//endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+		//}
 		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 			if(newAns){
 				setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
@@ -2222,7 +2243,20 @@ makeSssLabel(ArrayList result, String tempLbl){
 	return rtnLbl;
 
 }
+//TODO: add this function to all session saving functions
 
+generateSssEndTime(ArrayList sssTimeList){
+	sssEndTime=null;
+	if(!isNull(sssTimeList)){
+		sssEndTimeList=new ArrayList();
+		sssEndTimeList.clear();
+		for(time : sssTimeList){
+			sssEndTimeList.add(time.get(2));
+		}
+		sssEndTime=extractLatestTime(sssEndTimeList);
+	}
+	return sssEndTime;
+}
 updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPsChange){
 	Hashtable psInfo=extractPsSum();
 	if(psInfo.isEmpty()){
@@ -2277,14 +2311,18 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 				}
 				Boolean newAns=false;
 				String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
-				String endTimeStamp=null;
-				if((sssAnsChange.containsKey("ADD"))||(sssAnsChange.containsKey("PUREADD"))){
-					endTimeStamp=getCurrentTime();
-					newAns=true;
-				}
-				else{
+				endTimeStamp=null;
+				endTimeStamp=generateSssEndTime(sssTimeMng);
+				if(isNull(endTimeStamp)){
 					endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
 				}
+				if((sssAnsChange.containsKey("ADD"))||(sssAnsChange.containsKey("PUREADD"))){
+					//endTimeStamp=getCurrentTime();
+					newAns=true;
+				}
+				//else{
+					//endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+				//}
 				if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 					if(newAns){
 						setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
@@ -2316,14 +2354,18 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 	else{
 			Boolean newAns=false;
 			String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
-			String endTimeStamp=null;
-			if((sssAnsChange.containsKey("ADD"))||(sssAnsChange.containsKey("PUREADD"))){
-				endTimeStamp=getCurrentTime();
-				newAns=true;
-			}
-			else{
+			endTimeStamp=null;
+			endTimeStamp=generateSssEndTime(sssTimeMng);
+			if(isNull(endTimeStamp)){
 				endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
 			}
+			if((sssAnsChange.containsKey("ADD"))||(sssAnsChange.containsKey("PUREADD"))){
+				//endTimeStamp=getCurrentTime();
+				newAns=true;
+			}
+			//else{
+			//	endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+			//}
 			if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 				//New added answers
 				if(newAns){
@@ -2378,7 +2420,6 @@ changeSession(){
 			return;
 		}
 
-	//String endTimeAuto=getCurrentTime();
 	sssNewInfo.clear();
 	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
 	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
@@ -2455,7 +2496,10 @@ saveSession(String typeflag){
 								setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",tempSssLabel);
 							}
 							
-							String endTimeAuto=getCurrentTime();
+							endTimeAuto=generateSssEndTime(sssTimeMng);
+							if(isNull(endTimeAuto)){
+								endTimeAuto=getCurrentTime();
+							}
 							setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
 							String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
 							String endTimeStamp=endTimeAuto;
@@ -2909,8 +2953,12 @@ saveNewAnswer(){
 					newAnswer.add(answer_id);
 					newAnswer.add(newAnsLabel);
 					sss_answer_list.add(newAnswer);
+					newAnsTime=new ArrayList();
+					newAnsTime.add(answer_id);
+					newAnsTime.add(getFieldValue("survey/answerBasic/answerStartTimestamp"));
+					newAnsTime.add(ansEndTime);
+					sssTimeMng.add(newAnsTime);
 
-					
 					populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
 					//if this is the second answer with a duplicate label
 					//the other answer label will be changed with a suffix (1)
@@ -2943,7 +2991,7 @@ saveNewAnswer(){
 		answerInfoNew.add(getFieldValue("survey/answerBasic/answerText"));
 		setFieldValue("survey/answerBasic/answerEndTimestamp",ansEndTime);
 		answerInfoNew.add(getFieldValue("survey/answerBasic/answerStartTimestamp"));
-		answerInfoNew.add(getFieldValue("survey/answerBasic/answerEndTimestamp"));	
+		answerInfoNew.add(ansEndTime);	
 		Hashtable fileListChange=listChange(files_in_current_ques,files_origin);
 		Hashtable answerBasicInfoChange=listChange(answerInfoNew,answerInfoOriginal);
 		//case1: Nothing changed
@@ -2979,7 +3027,15 @@ saveNewAnswer(){
 							for(file : files_in_current_ques){
 								saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
 							}
-		
+							for(int i =0; i<sssTimeMng.size();i++){
+								if(sssTimeMng.get(i).get(0).equals(answer_id)){
+									newAnsTime=new ArrayList();
+									newAnsTime.add(answer_id);
+									newAnsTime.add(getFieldValue("survey/answerBasic/answerStartTimestamp"));
+									newAnsTime.add(getFieldValue("survey/answerBasic/answerEndTimestamp"));
+									sssTimeMng.set(i,newAnsTime);
+								}
+							}
 							showToast("Answer Info Changed");
 							cancelTabGroup("survey", true);
 							
@@ -3294,7 +3350,7 @@ newFile(String typeFlag){
 		break;
 	}
 }
-//TODO: find the bug 
+//TODO: find the bug : save audio then save another audio error
 saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, String fileType){
 	if(isNull(getFieldValue(ref))){
 		showWarning("Warning","File name can not be null");
@@ -3327,6 +3383,7 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 					newFileType.add(current_answer_file_id);
 					newFileType.add(fileType);
 					file_and_fileType.add(newFileType);
+
 					newFileTime=new ArrayList();
 					newFileTime.add(current_answer_file_id);
 					if(!fileType.equals("Recording")){
@@ -3608,6 +3665,11 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag, String toDelId)
 			case "sessionFile":
 				candidate_files_session.add(targetList.get(idx_delete));
 				sss_answer_list.remove(idx_delete);
+				for(ansTime:sssTimeMng){
+					if(ansTime.get(0).equals(toDelId)){
+						sssTimeMng.remove(ansTime);
+					}
+				}
 				//loadSessionInterviewer("session");
 				populateList("sessionForAnswer/sssAnsList/sssAnswerList", sss_answer_list);
 				populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
@@ -3792,10 +3854,12 @@ labelDeduplicate(String originLabel, String attriName, String fieldRef, String t
 						dupAnsLblInfo.add(entityId);
 						dupAnsLblInfo.add(newLabel);
 						break;
+
 						case "file":
 						dupFileLblChange=true;
+						//showWarning("dupFileLblChange","dupFileLblChange");
 						dupFileLblInfo.add(entityId);
-						dupAnsLblInfo.add(newLabel);
+						dupFileLblInfo.add(newLabel);
 						break;
 
 					}
@@ -3805,13 +3869,18 @@ labelDeduplicate(String originLabel, String attriName, String fieldRef, String t
 					}
 					//}
 					else{
-					//showWarning("size>1","size>1");
+					showWarning("size>1","size>1");
 						int maxSuffix=0;
+						showWarning("maxSuffix",maxSuffix.toString());
 						for(temp: tempDuplicateList){
 							tempLabel=temp.get(1);
+							showWarning("tempLabel",tempLabel);
 							Matcher numMatcher = numberPat.matcher(tempLabel);
+							showWarning("numMatcher","numMatcher");
 							if(numMatcher.find()){
+								showWarning("find","find");
 								tempSuffixStr=tempLabel.substring(tempLabel.indexOf("(")+1, tempLabel.length()-1);
+								showWarning("tempSuffixStr",tempSuffixStr);
 								int tempSuffixNum=Integer.parseInt(tempSuffixStr);
 								if(tempSuffixNum>maxSuffix){
 									maxSuffix=tempSuffixNum;
