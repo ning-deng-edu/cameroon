@@ -155,21 +155,9 @@
 
                 <person>     
                  <personInfoHide>
-                  <personRoleId/>
                 </personInfoHide>
 
                   <personInfo>
-                    <personID/>
-                    <personName/>
-                    <personOtherNames/>
-                    <personDOB/>
-                    <personRoleName/>
-                    <personPhoto/>
-                    <Take_Photo/>
-                    <personPhotoDesc/>
-                    <Take_Intro_Quesnir/>
-                    <personIntroDesc/>
-                    <Finish_New_Person/>
                   </personInfo>
                 </person>
                 
@@ -528,55 +516,10 @@
 
         <group ref="personInfoHide" faims_hidden="true">
           <label>{PersonInfoHide}</label>
-          <input ref="personRoleId" faims_attribute_name="PersonRole" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
-              <label>{Person role ID}</label>
-            </input>
         </group>
         
         <group ref="personInfo">
           <label>Person Info</label>
-           <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true" faims_annotation="true" >
-              <label>Person label</label>
-            </input>
-            <input ref="personName" faims_attribute_name="PersonName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true" faims_style_class="required">
-              <label>Person Name</label>
-            </input>
-            <input ref="personOtherNames" faims_attribute_name="PersonOtherNames" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
-              <label>Person Other Names</label>
-            </input>
-            <input ref="personDOB" faims_attribute_name="PersonDOB" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
-              <label>Person DOB</label>
-            </input>
-            <input ref="personRoleName" faims_certainty="false" faims_read_only="true">
-              <label>{Person Role}</label>
-            </input>
-            <select type="camera" faims_sync="true" ref="personPhoto" faims_attribute_name="PersonPhoto" faims_attribute_type="measure" faims_annotation="true" faims_read_only="false">
-            <label>Photo</label>
-              <item>
-                  <label>placeholder</label>
-                  <value>placeholder</value>
-              </item>
-            </select>
-
-            <trigger ref="Take_Photo" faims_style_class="faims-blue">
-                <label>Take Photo</label>
-            </trigger>
-
-            <input ref="personPhotoDesc" faims_attribute_name="PersonPhotoDescription" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
-              <label>Photo decription</label>
-            </input>
-
-            <trigger ref="Take_Intro_Quesnir" faims_style_class="faims-blue">
-                <label>Intro Questionnaire</label>
-            </trigger>
-
-            <input ref="personIntroDesc" faims_attribute_name="PersonIntroQuenirDesp" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
-              <label>Intro quesnir description</label>
-            </input>
-
-            <trigger ref="Finish_New_Person" faims_style_class="faims-blue">
-                <label>Save Person</label>
-            </trigger>
         </group>
     </group>
 

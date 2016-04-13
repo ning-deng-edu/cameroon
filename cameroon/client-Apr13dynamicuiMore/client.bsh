@@ -4012,15 +4012,71 @@ createPersonRolePage(){
 
 	}
 	showTabGroup("personRoleSelect");
-
 }
 
+createPersonPage(){
+	if(!hasView("person/personInfo/personID")){
+		removeAllViewsAndContainers("person");
+	
+		executeViewTask(new ViewTask() {
+    	doTask() { 	
+
+    		//personInfoHide page
+    		psRoleIdViewDef = createViewDef().createTextField().setLabel("psRole").setAttributeName("PersonRole").setAttributeType("measure");
+    		createView("person/personInfoHide/personRoleId", psRoleIdViewDef,"person/personInfoHide");
+    		
+    		//personInfo page
+    		personIDViewDef= createViewDef().createTextField().setLabel("Person label").setAttributeName("PersonID").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+    		
+    		personNameViewDef=createViewDef().createTextField().setLabel("Person name").setAttributeName("PersonName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+  			
+    		personOtherNamesViewDef=createViewDef().createTextField().setLabel("Person Other Names").setAttributeName("PersonOtherNames").setAttributeType("measure").setAnnotationEnabled(true);
+   
+    		personDOBViewDef=createViewDef().createTextField().setLabel("Person DOB").setAttributeName("PersonDOB").setAttributeType("measure").setAnnotationEnabled(true);
+    	
+    		personRoleViewDef=createViewDef().createTextField().setLabel("Person Role").setReadOnly(true);
+   		
+   			personPhotoViewDef=createViewDef().createCameraGallery(true).setAttributeName("PersonPhoto").setAttributeType("measure").setAnnotationEnabled(true);
+   		
+   			takePhotoViewDef=createViewDef().createButton().setLabel("Take Photo").setStyleCss("faims-blue");
+    
+    		psPhotoDescViewDef=createViewDef().createTextField().setLabel("Photo decription").setAttributeName("PersonPhotoDescription").setAttributeType("measure").setAnnotationEnabled(true);
+
+    		takeIntroQuesnirViewDef=createViewDef().createButton().setLabel("Intro Questionnaire").setStyleCss("faims-blue");
+
+    		introDescViewDef=createViewDef().createTextField().setLabel("Intro quesnir description").setAttributeName("PersonIntroQuenirDesp").setAttributeType("measure").setAnnotationEnabled(true);
+
+	        finishNewPsViewDef=createViewDef().createButton().setLabel("Save Person").setStyleCss("faims-blue");
+
+		
+			createView("person/personInfo/personID", personIDViewDef,"person/personInfo");
+			createView("person/personInfo/personName", personNameViewDef,"person/personInfo");
+			createView("person/personInfo/personOtherNames", personOtherNamesViewDef,"person/personInfo");
+			createView("person/personInfo/personDOB", personDOBViewDef,"person/personInfo");
+			createView("person/personInfo/personRoleName", personRoleViewDef,"person/personInfo");
+			createView("person/personInfo/personPhoto", personPhotoViewDef,"person/personInfo");
+			createView("person/personInfo/Take_Photo", takePhotoViewDef,"person/personInfo");
+			createView("person/personInfo/personPhotoDesc", psPhotoDescViewDef,"person/personInfo");
+			createView("person/personInfo/Take_Intro_Quesnir", takeIntroQuesnirViewDef,"person/personInfo");
+			createView("person/personInfo/personIntroDesc", introDescViewDef,"person/personInfo");
+			createView("person/personInfo/Finish_New_Person", finishNewPsViewDef,"person/personInfo");
+
+	        refreshTabgroupCSS("person");
+
+	        onEvent("person/personInfo/Finish_New_Person","click","saveNewPerson(\"save\")");
+			onEvent("person/personInfo/Take_Intro_Quesnir","click","checkPersonIntroSession()");
+			onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
+	        }
+		});
+
+	}
+}
 onEvent("control/user_control/New_User","click","createPersonRolePage()");
 onEvent("control/user_control","show","loadPerson()");
 onEvent("control/user_control/userList","click","loadPersonInfo(\"person\",null)");
-onEvent("person/personInfo/Finish_New_Person","click","saveNewPerson(\"save\")");
-onEvent("person/personInfo/Take_Intro_Quesnir","click","checkPersonIntroSession()");
-onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
+//onEvent("person/personInfo/Finish_New_Person","click","saveNewPerson(\"save\")");
+//onEvent("person/personInfo/Take_Intro_Quesnir","click","checkPersonIntroSession()");
+//onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
 onEvent("introSssList/introSssInfo/intrSessionList","click","loadSessionInfo(\"answer\")");
 onEvent("introSssList/introSssInfo/new_intro_sss","click","newSessionForAnswer(\"intro\",currentPersonInfo)");
 
@@ -4040,6 +4096,7 @@ loadRoles(String typeFlag, String populateRef){
 		});
 
 }
+
 newPersonByRole(){
 	role_id=getFieldValue("personRoleSelect/personRoleSelectInfo/PersonRoleSelectList");
 	roleInfo=new ArrayList();
@@ -4133,6 +4190,7 @@ newPersonByRole(){
 }
 
 newPersonWithIntro(ArrayList roleflag, ArrayList propertyFlag){
+	createPersonPage();
 	person_id=null;
 	newTabGroup("person");
 	onEvent("person", "show", "showTab(\"person/personInfo\");");  
@@ -4165,6 +4223,7 @@ else{
 		showToast("No Person selected");
 		return;
 	}
+	createPersonPage();
 	showTabGroup("person", person_id, new FetchCallback() {
         onFetch(result) {
       
@@ -4391,20 +4450,39 @@ saveNewPerson(String typeflag){
 			tempDuplicateList=new ArrayList();
 			tempDuplicateList.clear();
 			int sizeOfDup=0;
-			psDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+			if(person_id==null){
+				psDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 						"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonID') "+
-						"and measure like '"+personLabel+"' or measure like '"+personLabel+"(%)'";
+						"and (measure = '"+personLabel+"' or measure like '"+personLabel+"(%)')";
+			}
+			else{
+				psDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+						"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonID') "+
+						"and uuid<>"+person_id+" "+
+						"and (measure = '"+personLabel+"' or measure like '"+personLabel+"(%)')";
+			}
 			fetchAll(psDuplicateQuery,new FetchCallback() {
 						onFetch(result) {
 							if(!isNull(result)){
 								tempDuplicateList.addAll(result);
 								sizeOfDup=tempDuplicateList.size();
+								Pattern numberPat = Pattern.compile("\\(\\d+\\)");
 								if(sizeOfDup==1){
 									attributes = createAttributeList();
 									duplicateOldLabel=tempDuplicateList.get(0).get(1);
-									suffix=duplicateOldLabel.substring(duplicateOldLabel.length()-3);
-									if(!suffix.equals("(1)"))
-									{
+									//suffix=duplicateOldLabel.substring(duplicateOldLabel.length()-3);
+									Matcher numMatcher = numberPat.matcher(duplicateOldLabel);
+									if(numMatcher.find()){
+										suffix=duplicateOldLabel.substring(duplicateOldLabel.indexOf("("),duplicateOldLabel.length());
+										if(!suffix.equals("(1)"))
+										{
+											newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.indexOf("("))+"(1)";
+											attributes.add(createEntityAttribute("PersonID", null, null, newLabel, null));
+											entityId=tempDuplicateList.get(0).get(0);
+											saveArchEnt(entityId, "Person", null, attributes);
+										}
+									}
+									else{
 										newLabel=duplicateOldLabel+"(1)";
 										attributes.add(createEntityAttribute("PersonID", null, null, newLabel, null));
 										entityId=tempDuplicateList.get(0).get(0);
@@ -4414,8 +4492,20 @@ saveNewPerson(String typeflag){
 						            setFieldValue("person/personInfo/personID",personLabel);
 								}
 								else{
-									sizeOfDup=sizeOfDup+1;
-									personLabel=personLabel+"("+sizeOfDup.toString()+")";
+									int maxSuffix=0;
+									for(temp: tempDuplicateList){
+										tempLabel=temp.get(1);
+										Matcher numMatcher = numberPat.matcher(tempLabel);
+										if(numMatcher.find()){
+											tempSuffixStr=tempLabel.substring(tempLabel.indexOf("(")+1, tempLabel.length()-1);
+											int tempSuffixNum=Integer.parseInt(tempSuffixStr);
+											if(tempSuffixNum>maxSuffix){
+												maxSuffix=tempSuffixNum;
+											}
+										}
+									}
+									maxSuffix=maxSuffix+1;
+									personLabel=personLabel+"("+maxSuffix+")";
 									setFieldValue("person/personInfo/personID",personLabel);
 								}
 								
