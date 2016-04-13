@@ -281,17 +281,13 @@
         
         
         <group ref="answerHidden" faims_hidden="true">
-            <label></label>
-        
+            <label></label>        
         </group>
         
         <group ref="answerBasic">
             <label>Answer Basic Info</label>
-          
         </group>
-           
-      
-       
+
         <group ref="answerFile">
              <label>Answer file</label>
             </group>
