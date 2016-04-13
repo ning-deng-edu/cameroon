@@ -1754,7 +1754,7 @@ ansLblMng(ArrayList ans, String ansConsultant){
 		ansDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
 			"and uuid <>"+ans.get(0)+" "+
-			"and measure ='"+newAnsLabelSss+"' or measure like '"+newAnsLabelSss+"(%)'";
+			"and (measure ='"+newAnsLabelSss+"' or measure like '"+newAnsLabelSss+"(%)')";
 
 		fetchAll(ansDuplicateQuery,new FetchCallback() {
 			onFetch(result) {
@@ -2298,7 +2298,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 		sssDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
 		"and uuid<>"+sss_id+" "+
-		"and measure like '"+newSssLabel+"' or measure like '"+newSssLabel+"(%)'";
+		"and (measure = '"+newSssLabel+"' or measure like '"+newSssLabel+"(%)')";
 
 		fetchAll(sssDuplicateQuery,new FetchCallback() {
 			onFetch(result) {
@@ -2483,7 +2483,7 @@ saveSession(String typeflag){
 				String tempSssLabel=interviwerPrefix+sssLabel;
 				sssDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
-				"and measure like '"+tempSssLabel+"' or measure like '"+tempSssLabel+"(%)'";
+				"and (measure = '"+tempSssLabel+"' or measure like '"+tempSssLabel+"(%)')";
 
 				fetchAll(sssDuplicateQuery,new FetchCallback() {
 						onFetch(result) {
@@ -3821,7 +3821,7 @@ labelDeduplicate(String originLabel, String attriName, String fieldRef, String t
 	int sizeOfDup=0;
 	duplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='"+attriName+"') "+
-	"and measure like '"+originLabel+"' or measure like '"+originLabel+"(%)'";
+	"and (measure = '"+originLabel+"' or measure like '"+originLabel+"(%)')";
 
 	fetchAll(duplicateQuery,new FetchCallback() {
 		onFetch(result) {
@@ -3869,18 +3869,18 @@ labelDeduplicate(String originLabel, String attriName, String fieldRef, String t
 					}
 					//}
 					else{
-					showWarning("size>1","size>1");
+					//showWarning("size>1","size>1");
 						int maxSuffix=0;
-						showWarning("maxSuffix",maxSuffix.toString());
+						//showWarning("maxSuffix",maxSuffix.toString());
 						for(temp: tempDuplicateList){
 							tempLabel=temp.get(1);
-							showWarning("tempLabel",tempLabel);
+							//showWarning("tempLabel",tempLabel);
 							Matcher numMatcher = numberPat.matcher(tempLabel);
-							showWarning("numMatcher","numMatcher");
+							//showWarning("numMatcher","numMatcher");
 							if(numMatcher.find()){
-								showWarning("find","find");
+								//showWarning("find","find");
 								tempSuffixStr=tempLabel.substring(tempLabel.indexOf("(")+1, tempLabel.length()-1);
-								showWarning("tempSuffixStr",tempSuffixStr);
+								//showWarning("tempSuffixStr",tempSuffixStr);
 								int tempSuffixNum=Integer.parseInt(tempSuffixStr);
 								if(tempSuffixNum>maxSuffix){
 									maxSuffix=tempSuffixNum;
