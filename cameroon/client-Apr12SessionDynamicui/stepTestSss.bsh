@@ -1239,6 +1239,26 @@ loadSessionInfo(String typeFlag){
 	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
 				"and latestNonDeletedRelationship.Deleted IS NULL)))";
 
+		loadAnsStartTimeForSssQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerStartTime') "+
+				"and uuid in "+
+	 			"(select uuid from AentReln where RelationshipID in "+
+				"(select RelationshipID from AEntReln where AEntReln.uuid="+sss_id+" "+
+	 			"AND RelationshipID in "+
+				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL)))";
+
+		loadAnsEndTimeForSssQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerEndTime') "+
+				"and uuid in "+
+	 			"(select uuid from AentReln where RelationshipID in "+
+				"(select RelationshipID from AEntReln where AEntReln.uuid="+sss_id+" "+
+	 			"AND RelationshipID in "+
+				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL)))";
+
 		loadAnsSssRelnQuery="select RelationshipID, uuid from latestNonDeletedAentReln where uuid <> '"+sss_id+
 		"' and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='"+sss_id+
 			"' and RelationshipID in(select RelationshipID from latestNonDeletedRelationship "+
@@ -1268,6 +1288,42 @@ loadSessionInfo(String typeFlag){
 			"' and RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
 				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Person') "+
 				"and latestNonDeletedRelationship.Deleted IS NULL))";
+
+		fetchAll(loadAnsStartTimeForSssQuery, new FetchCallback() {
+	        onFetch(result) {
+	        	tempAnsStartTime=new ArrayList();
+	        	tempAnsStartTime.clear();
+	        	if(!isNull(result)){
+	        		tempAnsStartTime.addAll(result);
+	        		fetchAll(loadAnsEndTimeForSssQuery, new FetchCallback() {
+				        onFetch(endTimeResult) {
+				        	tempAnsEndTime=new ArrayList();
+	        				tempAnsEndTime.clear();
+	        				if(!isNull(endTimeResult)){
+	        					tempAnsEndTime.addAll(endTimeResult);
+	        					for(startTime:tempAnsStartTime){
+	        						for(endTime:tempAnsEndTime){
+	        							if(startTime.get(0).equals(endTime.get(0))){
+	        								tempAnsTime=new ArrayList();
+	        								tempAnsTime.add(startTime.get(0));
+	        								tempAnsTime.add(startTime.get(1));
+	        								tempAnsTime.add(endTime.get(1));
+	        								sssTimeMng.add(tempAnsTime);
+	        							}
+	        						}
+	        					}
+	        				}
+				        }
+				        onError(message) {
+				            showToast(message);
+				        }
+				    });
+	        	}
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
 
 		fetchAll(loadAnsSssRelnQuery, new FetchCallback() {
 	        onFetch(result) {
@@ -2419,12 +2475,16 @@ changeSession(){
 			showWarning("Incomplete Data","Please make sure that data is complete");
 			return;
 		}
-
+	endTimeAuto=generateSssEndTime(sssTimeMng);
+	if(isNull(endTimeAuto)){
+		endTimeAuto=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+	}
+	setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
 	sssNewInfo.clear();
 	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
 	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
 	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
-	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));
+	sssNewInfo.add(endTimeAuto);
 	//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",);
 	Hashtable sssInfoChange=listChange(sssNewInfo,sssOriginInfo);
 	Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
@@ -3032,12 +3092,13 @@ saveNewAnswer(){
 									newAnsTime=new ArrayList();
 									newAnsTime.add(answer_id);
 									newAnsTime.add(getFieldValue("survey/answerBasic/answerStartTimestamp"));
-									newAnsTime.add(getFieldValue("survey/answerBasic/answerEndTimestamp"));
+									newAnsTime.add(ansEndTime);
 									sssTimeMng.set(i,newAnsTime);
 								}
 							}
 							showToast("Answer Info Changed");
 							cancelTabGroup("survey", true);
+							autoSaveSession("head");
 							
 					}
 					onError(message) {
@@ -3838,9 +3899,6 @@ labelDeduplicate(String originLabel, String attriName, String fieldRef, String t
 						if(!suffix.equals("(1)"))
 						{
 							newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.indexOf("("))+"(1)";
-							//attributes.add(createEntityAttribute(attrName, null, null, newLabel, null));
-							//entityId=tempDuplicateList.get(0).get(0);
-							//saveArchEnt(entityId, relnName, null, attributes);
 						}
 					}
 					else{
