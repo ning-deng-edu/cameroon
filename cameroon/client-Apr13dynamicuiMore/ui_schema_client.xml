@@ -150,16 +150,6 @@
 
                 <personRoleSelect>
                     <personRoleSelectInfo>
-                        <container15>
-                            <child1>
-                                <keywordOfRole/>
-                            </child1>
-                            <child2>
-                                <SearchRole/>
-                            </child2>
-                        </container15>
-                        <PersonRoleSelectList/>
-                        <CreateNewPerson/>
                     </personRoleSelectInfo>
                 </personRoleSelect>
 
@@ -526,34 +516,7 @@
      <group ref="personRoleSelect">
         <label>Person Role</label>     
         <group ref="personRoleSelectInfo">
-          <label>{Person General Role}</label>
-          <group ref="container15" faims_style="orientation">
-          <label></label>
-          <group ref="child1" faims_style="even">
-            <label></label>
-           <input ref="keywordOfRole">
-                <label>role keyword</label>
-            </input>
-           </group>
-          <group ref="child2" faims_style="even">
-            <label></label>
-             <trigger ref="SearchRole" faims_style_class="faims-blue-parallel">
-            <label>Search Role</label>
-          </trigger>            
-          </group>
-        </group>       
-
-        <select1 ref="PersonRoleSelectList">
-            <label>Role List:(select the general role for person)</label>
-            <item>
-                <label>Item A</label>
-                <value>0</value>
-            </item>
-         </select1>
-
-            <trigger ref="CreateNewPerson" faims_style_class="faims-blue">
-                <label>New Person</label>
-            </trigger>
+          <label>Person General Role</label>
         </group>
 
     </group>

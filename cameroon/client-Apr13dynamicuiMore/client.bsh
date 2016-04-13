@@ -3974,17 +3974,6 @@ labelDeduplicate(String originLabel, String attriName, String fieldRef, String t
 
 
 /*******Person********/
-onEvent("control/user_control/New_User","click","newPerson()");
-onEvent("control/user_control","show","loadPerson()");
-onEvent("control/user_control/userList","click","loadPersonInfo(\"person\",null)");
-onEvent("person/personInfo/Finish_New_Person","click","saveNewPerson(\"save\")");
-onEvent("person/personInfo/Take_Intro_Quesnir","click","checkPersonIntroSession()");
-onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
-onEvent("introSssList/introSssInfo/intrSessionList","click","loadSessionInfo(\"answer\")");
-onEvent("introSssList/introSssInfo/new_intro_sss","click","newSessionForAnswer(\"intro\",currentPersonInfo)");
-onEvent("personRoleSelect/personRoleSelectInfo/","show","loadRoles(\"newPerson\",\"personRoleSelect/personRoleSelectInfo/PersonRoleSelectList\")");
-onEvent("personRoleSelect/personRoleSelectInfo/CreateNewPerson","click","newPersonByRole()");
-
 personIntroSss=new ArrayList();
 currentPersonInfo=new ArrayList();//for creating intro session for a new added person or existing person
 originPersonInfo =new ArrayList();//for recording original loaded person info so that we can tell if a person's info has changed
@@ -3992,12 +3981,48 @@ changedPersonInfo=new ArrayList();//for recording newest edited person info so t
 role_list=new ArrayList();
 savePersonWfProperty=new ArrayList();
 role_id=null;
-
 person_id=null;
 
-newPerson(){
+/**person dynamic ui generation**/
+createPersonRolePage(){
+	if(!hasView("personRoleSelect/personRoleSelectInfo/SearchRole")){
+		removeAllViewsAndContainers("personRoleSelect");
+	
+		executeViewTask(new ViewTask() {
+    	doTask() { 	
+	        style1 = "orientation";
+	        style2 = "even";
+	    	createContainer("personRoleSelect/personRoleSelectInfo/psRoleSelCtn", "orientation");
+	    	createContainer("personRoleSelect/personRoleSelectInfo/child1", "even", "personRoleSelect/personRoleSelectInfo/psRoleSelCtn");
+	        createContainer("personRoleSelect/personRoleSelectInfo/child2", "even", "personRoleSelect/personRoleSelectInfo/psRoleSelCtn");
+		
+			searchTextViewDef = createViewDef().createTextField().setLabel("keyword");
+			searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
+			psRoleListDef=createViewDef().createDropDown().setLabel("Role List");
+			newPsBtnDef=createViewDef().createButton().setLabel("New Person").setStyleCss("faims-blue");
+			createView("personRoleSelect/personRoleSelectInfo/keywordOfRole", searchTextViewDef,"personRoleSelect/personRoleSelectInfo/child1");
+			createView("personRoleSelect/personRoleSelectInfo/SearchRole", searchButtonDef,"personRoleSelect/personRoleSelectInfo/child2");
+			createView("personRoleSelect/personRoleSelectInfo/PersonRoleSelectList", psRoleListDef,"personRoleSelect/personRoleSelectInfo");
+			createView("personRoleSelect/personRoleSelectInfo/CreateNewPerson", newPsBtnDef,"personRoleSelect/personRoleSelectInfo");
+	        refreshTabgroupCSS("personRoleSelect");
+	        onEvent("personRoleSelect/personRoleSelectInfo","show","loadRoles(\"newPerson\",\"personRoleSelect/personRoleSelectInfo/PersonRoleSelectList\")");
+			onEvent("personRoleSelect/personRoleSelectInfo/CreateNewPerson","click","newPersonByRole()");
+	        }
+		});
+
+	}
 	showTabGroup("personRoleSelect");
+
 }
+
+onEvent("control/user_control/New_User","click","createPersonRolePage()");
+onEvent("control/user_control","show","loadPerson()");
+onEvent("control/user_control/userList","click","loadPersonInfo(\"person\",null)");
+onEvent("person/personInfo/Finish_New_Person","click","saveNewPerson(\"save\")");
+onEvent("person/personInfo/Take_Intro_Quesnir","click","checkPersonIntroSession()");
+onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
+onEvent("introSssList/introSssInfo/intrSessionList","click","loadSessionInfo(\"answer\")");
+onEvent("introSssList/introSssInfo/new_intro_sss","click","newSessionForAnswer(\"intro\",currentPersonInfo)");
 
 loadRoles(String typeFlag, String populateRef){
 	fetchAll(loadAllRoleQuery,new FetchCallback() {
