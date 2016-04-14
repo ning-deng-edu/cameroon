@@ -2169,6 +2169,7 @@ ansListChange(Hashtable sssAnsChange){
 updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPsChange){
 	//case 1: sssInfoChanged only PASS
 	if((!sssInfoChange.containsKey("EQUAL")) && (sssAnsChange.containsKey("EQUAL"))){
+		//showWarning("updateSssNoPsChange","case1");
 		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
 		//String endTimeStamp=getCurrentTime();
 		endTimeStamp=null;
@@ -2184,6 +2185,7 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 			//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
 		saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 		    onSave(uuid, newRecord) {
+				autoSaveSession("tail");
 		        showToast("Session basic info changed");
 		    }
 		    onError(message) {
@@ -2203,6 +2205,7 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 	//case 2: sssAns changed only PASS
 	//TODO:ADD time validation for new answer's time
 	else if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
+		//showWarning("updateSssNoPsChange","case2");
 		Boolean newAns=false;
 		endTimeStamp=null;
 		endTimeStamp=generateSssEndTime(sssTimeMng);
@@ -2224,6 +2227,7 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 				setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
 			}
 			ansListChange(sssAnsChange);
+			autoSaveSession("tail");
 			showToast("Session answer data changed");
 		}
 		else{
@@ -2239,6 +2243,7 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 	//case 3: both sssInfo and sssAns changed PASS
 	//TODO:ADD time validation for new answer's time
 	else{
+		//showWarning("updateSssNoPsChange","case3");
 		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
 		Boolean newAns=false;
 		endTimeStamp=null;
@@ -2261,6 +2266,7 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 			    onSave(uuid, newRecord) {
 			    	ansListChange(sssAnsChange);
+			    	autoSaveSession("tail");
 			        showToast("Session data changed");
 
 			    }
@@ -2416,6 +2422,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 			    		onSave(uuid, newRecord) {
 			    		if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
 			    				ansListChange(sssAnsChange);
+			    				autoSaveSession("tail");
 			    			}
 			    		
 			    		}//onSave(uuid, newRecord)
@@ -2459,6 +2466,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 					    onSave(uuid, newRecord) {
 					    	if(!sssAnsChange.containsKey("EQUAL")){
 					    		ansListChange(sssAnsChange);
+					    		autoSaveSession("tail");
 					    	}
 					    }
 					    onError(message) {
@@ -2476,6 +2484,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 					    onSave(uuid, newRecord) {
 					    	if(!sssAnsChange.containsKey("EQUAL")){
 					    		ansListChange(sssAnsChange);
+					    		autoSaveSession("tail");
 					    	}
 					    }
 					    onError(message) {
