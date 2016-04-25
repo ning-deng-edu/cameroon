@@ -344,29 +344,24 @@ sssTimeMng=new ArrayList();
 
 /***session dynamic ui page generation***/
 createMainSessionPage(){
-	if(!hasView("sessionForAnswer/sssAnsBasicInfo/sssID")){
+	if(!hasView("sessionForAnswer/sssHidden/sssID")){
 		removeAllViewsAndContainers("sessionForAnswer");
 		executeViewTask(new ViewTask() {
     	doTask() { 
-    		//sssAnsBasicInfo page
-    		
+    		//sssHidden page
     		sssIdViewDef= createViewDef().createTextField().setLabel("Session label").setAttributeName("SessionID").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
-    
-    		sssNameViewDef=createViewDef().createTextField().setLabel("Session name").setAttributeName("SessionName").setAttributeType("measure").setAnnotationEnabled(true);
-  
-    		sssLocViewDef=createViewDef().createTextField().setLabel("Session location").setAttributeName("SessionLocation").setAttributeType("measure").setAnnotationEnabled(true);
-    
     		sssStartTimeViewDef=createViewDef().createTextField().setLabel("Session start time").setAttributeName("SessionStartTimestamp").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
-   
     		sssEndTimeViewDef=createViewDef().createTextField().setLabel("Session end time").setAttributeName("SessionEndTimestamp").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
-    	
+    		createView("sessionForAnswer/sssHidden/sssID",sssIdViewDef,"sessionForAnswer/sssHidden"); 
+    		createView("sessionForAnswer/sssHidden/sssStartTimetamp",sssStartTimeViewDef,"sessionForAnswer/sssHidden");
+    		createView("sessionForAnswer/sssHidden/sssEndTimestamp",sssEndTimeViewDef,"sessionForAnswer/sssHidden");
+    		//sssAnsBasicInfo page   
+    		sssNameViewDef=createViewDef().createTextField().setLabel("Session name").setAttributeName("SessionName").setAttributeType("measure").setAnnotationEnabled(true);
+    		sssLocViewDef=createViewDef().createTextField().setLabel("Session location").setAttributeName("SessionLocation").setAttributeType("measure").setAnnotationEnabled(true);
     		sssDescViewDef=createViewDef().createTextField().setLabel("Session description").setAttributeName("SessionDescription").setAttributeType("measure").setAnnotationEnabled(true);
-    	
-    		createView("sessionForAnswer/sssAnsBasicInfo/sssID",sssIdViewDef,"sessionForAnswer/sssAnsBasicInfo");
-    		createView("sessionForAnswer/sssAnsBasicInfo/sssName",sssNameViewDef,"sessionForAnswer/sssAnsBasicInfo");
-    		createView("sessionForAnswer/sssAnsBasicInfo/sssLocation",sssLocViewDef,"sessionForAnswer/sssAnsBasicInfo");
-    		createView("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp",sssStartTimeViewDef,"sessionForAnswer/sssAnsBasicInfo");
-    		createView("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",sssEndTimeViewDef,"sessionForAnswer/sssAnsBasicInfo");
+    		  
+    		createView("sessionForAnswer/sssAnsBasicInfo/sssName",sssNameViewDef,"sessionForAnswer/sssAnsBasicInfo");		
+    		createView("sessionForAnswer/sssAnsBasicInfo/sssLocation",sssLocViewDef,"sessionForAnswer/sssAnsBasicInfo");	
     		createView("sessionForAnswer/sssAnsBasicInfo/sssDescription",sssDescViewDef,"sessionForAnswer/sssAnsBasicInfo");
     	
     		//sssPersonInfo page
@@ -544,8 +539,8 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	String currentTime=getCurrentTime();
     currentDateTimeArray=currentTime.toString().split("\\s+");
     String currentDate=currentDateTimeArray[0];
-    setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp",currentTime);           
-    setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",currentDate+" 23:59:59");
+    setFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp",currentTime);           
+    setFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp",currentDate+" 23:59:59");
     if (!isNull(currentPosition)){
     	sssLabel="_"+currentPosition.get(1)+"_"+currentPosition.get(2)+"_"+currentDate;
     	setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation",currentPosition.get(0));
@@ -555,7 +550,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
     	setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation","GPS not available");
     }
     String tempSssLabelNew=username+sssLabel;
-    labelDeduplicate(tempSssLabelNew,"SessionID","sessionForAnswer/sssAnsBasicInfo/sssID",null);
+    labelDeduplicate(tempSssLabelNew,"SessionID","sessionForAnswer/sssHidden/sssID",null);
     //setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",username+sssLabel);
     
     populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list); 
@@ -796,7 +791,7 @@ showQuestionnaireList(){
 		showWarning("No session name","Please input session name");
 		return;
 	}
-	if(isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"))){
+	if(isNull(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"))){
 		showWarning("No session time","Please input session start time");
 		return;
 	}
@@ -1366,11 +1361,11 @@ loadSessionInfo(String typeFlag){
 		showTabGroup("sessionForAnswer", sss_id, new FetchCallback() {
 	        onFetch(result) {
 				sssOriginInfo.clear();
-	        	sssLabelOld=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID");
+	        	sssLabelOld=getFieldValue("sessionForAnswer/sssHidden/sssID");
 	        	sssOriginInfo.add(sssLabelOld);
 	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
-	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
-	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));  
+	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"));
+	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp"));  
 	        	fetchAll(loadAnswerForSessionQuery, new FetchCallback() {
 	                onFetch(answers) {
 	                	original_sss_answer_list.clear();
@@ -1669,10 +1664,10 @@ autoSaveSession(String typeFlag){
 		break;
 		case "tailNew":
 			sssOriginInfo.clear();
-			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
+			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssID"));
 			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
-			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
-			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));
+			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"));
+			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp"));
 			original_sss_answer_list.clear();
 			original_sss_answer_list.addAll(sss_answer_list);
 			sssPersonRoleNameListOrigin.clear();
@@ -2139,16 +2134,16 @@ ansListChange(Hashtable sssAnsChange){
 updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPsChange){
 	//case 1: sssInfoChanged only PASS
 	if((!sssInfoChange.containsKey("EQUAL")) && (sssAnsChange.containsKey("EQUAL"))){
-		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+		String startTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp");
 		//String endTimeStamp=getCurrentTime();
 		endTimeStamp=null;
 		endTimeAuto=generateSssEndTime(sssTimeMng);
 		if(!isNull(endTimeAuto)){
-			setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
+			setFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp",endTimeAuto);
 			endTimeStamp=endTimeAuto;
 		}
 		else{
-			endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+			endTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp");
 		}
 		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 			//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
@@ -2178,7 +2173,7 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 		endTimeStamp=null;
 		endTimeStamp=generateSssEndTime(sssTimeMng);
 		if(isNull(endTimeStamp)){
-			endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+			endTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp");
 		}
 		if((sssAnsChange.containsKey("ADD"))||(sssAnsChange.containsKey("PUREADD"))){
 			//endTimeStamp=generateSssEndTime(sssTimeMng);
@@ -2189,10 +2184,10 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 			endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
 		}
 		*/
-		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+		String startTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp");
 		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 			if(newAns){
-				setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
+				setFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp",endTimeStamp);
 			}
 			ansListChange(sssAnsChange);
 			autoSaveSession("tail");
@@ -2211,12 +2206,12 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 	//case 3: both sssInfo and sssAns changed PASS
 	//TODO:ADD time validation for new answer's time
 	else{
-		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+		String startTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp");
 		Boolean newAns=false;
 		endTimeStamp=null;
 		endTimeStamp=generateSssEndTime(sssTimeMng);
 		if(isNull(endTimeStamp)){
-			endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+			endTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp");
 		}
 		if((sssAnsChange.containsKey("ADD")) ||(sssAnsChange.containsKey("PUREADD"))){
 			//endTimeStamp=getCurrentTime();
@@ -2227,7 +2222,7 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 		//}
 		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 			if(newAns){
-				setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
+				setFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp",endTimeStamp);
 			}
 			
 			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
@@ -2336,7 +2331,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 
 	//generate new sssLabel
 	Boolean sssLabelChange=false;
-    String oldSssLabel=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID");
+    String oldSssLabel=getFieldValue("sessionForAnswer/sssHidden/sssID");
 	String [] oldSssLabelSplit=oldSssLabel.split("_");
 	String sssOldInv=oldSssLabelSplit[0];
 	//showWarning("sssOldInv",sssOldInv);
@@ -2364,17 +2359,17 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 			onFetch(result) {
 				if(!isNull(result)){
 					newSssLabel=makeLabel(result,newSssLabel, "Session","SessionID");
-					setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",newSssLabel);
+					setFieldValue("sessionForAnswer/sssHidden/sssID",newSssLabel);
 				}
 				else{
-					setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",newSssLabel);
+					setFieldValue("sessionForAnswer/sssHidden/sssID",newSssLabel);
 				}
 				Boolean newAns=false;
-				String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+				String startTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp");
 				endTimeStamp=null;
 				endTimeStamp=generateSssEndTime(sssTimeMng);
 				if(isNull(endTimeStamp)){
-					endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+					endTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp");
 				}
 				if((sssAnsChange.containsKey("ADD"))||(sssAnsChange.containsKey("PUREADD"))){
 					//endTimeStamp=getCurrentTime();
@@ -2385,7 +2380,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 				//}
 				if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 					if(newAns){
-						setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
+						setFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp",endTimeStamp);
 					}
 					saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 			    		onSave(uuid, newRecord) {
@@ -2414,11 +2409,11 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 
 	else{
 			Boolean newAns=false;
-			String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+			String startTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp");
 			endTimeStamp=null;
 			endTimeStamp=generateSssEndTime(sssTimeMng);
 			if(isNull(endTimeStamp)){
-				endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+				endTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp");
 			}
 			if((sssAnsChange.containsKey("ADD"))||(sssAnsChange.containsKey("PUREADD"))){
 				//endTimeStamp=getCurrentTime();
@@ -2430,7 +2425,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 			if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 				//New added answers
 				if(newAns){
-					setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
+					setFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp",endTimeStamp);
 					saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 					    onSave(uuid, newRecord) {
 					    	if(!sssAnsChange.containsKey("EQUAL")){
@@ -2476,7 +2471,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 
 changeSession(){
 	if((isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"))) || 
-				(isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"))) || 
+				(isNull(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"))) || 
 				(isNull(sss_answer_list)))
 		{
 			showWarning("Incomplete Data","Please make sure that data is complete");
@@ -2484,13 +2479,13 @@ changeSession(){
 		}
 	endTimeAuto=generateSssEndTime(sssTimeMng);
 	if(isNull(endTimeAuto)){
-		endTimeAuto=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+		endTimeAuto=getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp");
 	}
-	setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
+	setFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp",endTimeAuto);
 	sssNewInfo.clear();
-	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
+	sssNewInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssID"));
 	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
-	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
+	sssNewInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"));
 	sssNewInfo.add(endTimeAuto);
 	//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",);
 	Hashtable sssInfoChange=listChange(sssNewInfo,sssOriginInfo);
@@ -2523,7 +2518,7 @@ saveSession(String typeflag){
 		case "answer":	
 			if(isNull(sss_id)){//SAVING NEW SESSION
 				if((isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"))) || 
-						(isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"))) || 
+						(isNull(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"))) || 
 						(isNull(sss_answer_list)))
 				{
 					showWarning("Incomplete Data","Data can't be saved\n"+"Please make sure basic session data is complete");
@@ -2557,18 +2552,18 @@ saveSession(String typeflag){
 							if(!isNull(result)){
 								tempSssLabel = makeLabel(result, tempSssLabel,"Session","SessionID");
 
-								setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",tempSssLabel);
+								setFieldValue("sessionForAnswer/sssHidden/sssID",tempSssLabel);
 							}
 							else{
-								setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",tempSssLabel);
+								setFieldValue("sessionForAnswer/sssHidden/sssID",tempSssLabel);
 							}
 							
 							endTimeAuto=generateSssEndTime(sssTimeMng);
 							if(isNull(endTimeAuto)){
 								endTimeAuto=getCurrentTime();
 							}
-							setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
-							String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+							setFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp",endTimeAuto);
+							String startTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp");
 							String endTimeStamp=endTimeAuto;
 							if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
 								saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
@@ -3352,11 +3347,11 @@ createFilePage(String fileType, String attachFunc, String saveFunc){
 				nameViewDef=createViewDef().createTextField().setLabel(uiLabelPrefix+" file name").setAttributeName("FileName").setAttributeType("measure").
 				setAnnotationEnabled(true).setStyleCss("required");
 
-				createView("file/fileHidden/"+uiNamePrefix+"FileID", idFileDef,"file/fileInfo");
-				createView("file/fileHidden/"+uiNamePrefix+"FileType", typeViewDef,"file/fileInfo");
-				createView("file/fileHidden/"+uiNamePrefix+"FileCreator", creatorViewDef,"file/fileInfo");
-				createView("file/fileHidden/"+uiNamePrefix+"FileStartTime", startTimeViewDef,"file/fileInfo");
-				createView("file/fileHidden/"+uiNamePrefix+"FileEndTime", endTimeViewDef,"file/fileInfo");
+				createView("file/fileHidden/"+uiNamePrefix+"FileID", idFileDef,"file/fileHidden");
+				createView("file/fileHidden/"+uiNamePrefix+"FileType", typeViewDef,"file/fileHidden");
+				createView("file/fileHidden/"+uiNamePrefix+"FileCreator", creatorViewDef,"file/fileHidden");
+				createView("file/fileHidden/"+uiNamePrefix+"FileStartTime", startTimeViewDef,"file/fileHidden");
+				createView("file/fileHidden/"+uiNamePrefix+"FileEndTime", endTimeViewDef,"file/fileHidden");
 
 				//non-hidden page
 				newBtnViewDef=createViewDef().createButton().setLabel("New "+ uiLabelPrefix);
