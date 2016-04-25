@@ -2647,6 +2647,8 @@ files_in_current_ques=new ArrayList();
 files_origin=new ArrayList();
 
 ansTimeMng=new ArrayList();
+
+Boolean ansOrNot=true;//denoting if the answer has the answer ui page
 /**Answer dynamic ui generating**/
 createAnswerPage(){
 	if(!hasView("survey/answerBasic/answerLabel")){
@@ -2895,6 +2897,7 @@ startNewAnswer(String typeflag){
 		//setFieldValue("survey/answerBasic/answerLabel", tempAnsLabel);
 		populateList("survey/answerFile/answerFileList",files_in_current_ques);
 		populateDropDown("survey/answerFile/file_Category",categoryTypes);
+		ansOrNot=true;
     }
     else{
     	hiddenAnsInfo=new HashMap();
@@ -2912,6 +2915,7 @@ startNewAnswer(String typeflag){
 			hiddenAnsInfo.put("label",tempAnsLabel);
 			newFile("answer","Video",hiddenAnsInfo);
 			attachVideoToField("file/fileInfo/videoFileContent");
+			ansOrNot=false;
 		}
 		});
     }
@@ -3312,16 +3316,17 @@ createFilePage(String fileType, String attachFunc, String saveFunc){
 		break;
 	}
 	//Generate ui
-	if(!hasView("file/fileInfo/"+uiNamePrefix+"FileID")){
+	if(!hasView("file/fileHidden/"+uiNamePrefix+"FileID")){
 		removeAllViewsAndContainers("file");
 	 	executeViewTask(new ViewTask() {
-			doTask() { 	
+			doTask() { 
+
+				//file hidden	
 		 	
 				idFileDef = createViewDef().createTextField().setLabel(uiLabelPrefix+" file label").setAttributeName("FileID").setAttributeType("measure").
 				setAnnotationEnabled(true).setReadOnly(true);
 
-				nameViewDef=createViewDef().createTextField().setLabel(uiLabelPrefix+" file name").setAttributeName("FileName").setAttributeType("measure").
-				setAnnotationEnabled(true).setStyleCss("required");
+				
 
 				typeViewDef=createViewDef().createTextField().setLabel("File type").setAttributeName("FileType").setAttributeType("measure").
 				setAnnotationEnabled(true).setReadOnly(true);
@@ -3344,24 +3349,30 @@ createFilePage(String fileType, String attachFunc, String saveFunc){
 				else{
 					fileContentViewDef=createViewDef().createCameraGallery(true).setLabel("Photo").setAttributeName("FileContent").setAttributeType("measure").setAnnotationEnabled(true);
 				}
-				
+				nameViewDef=createViewDef().createTextField().setLabel(uiLabelPrefix+" file name").setAttributeName("FileName").setAttributeType("measure").
+				setAnnotationEnabled(true).setStyleCss("required");
+
+				createView("file/fileHidden/"+uiNamePrefix+"FileID", idFileDef,"file/fileInfo");
+				createView("file/fileHidden/"+uiNamePrefix+"FileType", typeViewDef,"file/fileInfo");
+				createView("file/fileHidden/"+uiNamePrefix+"FileCreator", creatorViewDef,"file/fileInfo");
+				createView("file/fileHidden/"+uiNamePrefix+"FileStartTime", startTimeViewDef,"file/fileInfo");
+				createView("file/fileHidden/"+uiNamePrefix+"FileEndTime", endTimeViewDef,"file/fileInfo");
+
+				//non-hidden page
 				newBtnViewDef=createViewDef().createButton().setLabel("New "+ uiLabelPrefix);
 
 				pathTextViewDef=createViewDef().createTextField().setLabel(uiLabelPrefix+" file path").setAttributeName("FilePath").setAttributeType("measure").
 				setAnnotationEnabled(true).setReadOnly(true);
 
 				saveBtnViewDef=createViewDef().createButton().setLabel("Save "+ uiLabelPrefix);
-
-				createView("file/fileInfo/"+uiNamePrefix+"FileID", idFileDef,"file/fileInfo");
 				createView("file/fileInfo/"+uiNamePrefix+"FileName", nameViewDef,"file/fileInfo");
-				createView("file/fileInfo/"+uiNamePrefix+"FileType", typeViewDef,"file/fileInfo");
-				createView("file/fileInfo/"+uiNamePrefix+"FileCreator", creatorViewDef,"file/fileInfo");
-				createView("file/fileInfo/"+uiNamePrefix+"FileStartTime", startTimeViewDef,"file/fileInfo");
-				createView("file/fileInfo/"+uiNamePrefix+"FileEndTime", endTimeViewDef,"file/fileInfo");
+
+				
 				createView("file/fileInfo/"+uiNamePrefix+"FileContent", fileContentViewDef,"file/fileInfo");
 				createView("file/fileInfo/Take_"+uiLabelPrefix+"_File", newBtnViewDef,"file/fileInfo");
 				createView("file/fileInfo/"+uiNamePrefix+"FilePath", pathTextViewDef,"file/fileInfo");
 				createView("file/fileInfo/Save_New_"+uiLabelPrefix, saveBtnViewDef,"file/fileInfo");
+
 			    onEvent("file/fileInfo/Take_"+uiLabelPrefix+"_File","click",attachFunc);
 				//onEvent("file/fileInfo/Save_New_"+uiLabelPrefix,"click","saveFileFromAnswer(\"file/fileInfo/"+uiNamePrefix+"FileName\",\"file/fileInfo/"+uiNamePrefix+"FileContent\",\"file\",uiLabelPrefix)");
 				onEvent("file/fileInfo/Save_New_"+uiLabelPrefix,"click",saveFunc);
@@ -3393,11 +3404,11 @@ newFile(String typeFlag, String fileCategory, HashMap hiddenAnsInfo){
 					newTabGroup("file");
 
 					String tempAudioID=tempAnsID+"_Audio";
-					labelDeduplicate(tempAudioID,"FileID","file/fileInfo/audioFileID","file");
+					labelDeduplicate(tempAudioID,"FileID","file/fileHidden/audioFileID","file");
 
-					setFieldValue("file/fileInfo/audioFileCreator",username);
-					setFieldValue("file/fileInfo/audioFileType","Audio");
-					setFieldValue("file/fileInfo/audioFileStartTime", getCurrentTime());
+					setFieldValue("file/fileHidden/audioFileCreator",username);
+					setFieldValue("file/fileHidden/audioFileType","Audio");
+					setFieldValue("file/fileHidden/audioFileStartTime", getCurrentTime());
 				break;
 				case "Video":
 					//createVideoPage("new");
@@ -3405,11 +3416,11 @@ newFile(String typeFlag, String fileCategory, HashMap hiddenAnsInfo){
 						"saveFileFromAnswer(\"file/fileInfo/videoFileName\",\"file/fileInfo/videoFileContent\",\"file\",\"Video\")");
 					newTabGroup("file");
 					String tempVideoID=tempAnsID+"_Video";
-					labelDeduplicate(tempVideoID,"FileID","file/fileInfo/videoFileID","file");
+					labelDeduplicate(tempVideoID,"FileID","file/fileHidden/videoFileID","file");
 	
-					setFieldValue("file/fileInfo/videoFileCreator",username);
-					setFieldValue("file/fileInfo/videoFileType","Video");
-					setFieldValue("file/fileInfo/videoFileStartTime", getCurrentTime());
+					setFieldValue("file/fileHidden/videoFileCreator",username);
+					setFieldValue("file/fileHidden/videoFileType","Video");
+					setFieldValue("file/fileHidden/videoFileStartTime", getCurrentTime());
 				break;
 
 				case "Photo":
@@ -3418,11 +3429,11 @@ newFile(String typeFlag, String fileCategory, HashMap hiddenAnsInfo){
 						"saveFileFromAnswer(\"file/fileInfo/photoFileName\",\"file/fileInfo/photoFileContent\",\"file\",\"Photo\")");
 					newTabGroup("file");
 					String tempPhotoID=tempAnsID+"_Photo";
-					labelDeduplicate(tempPhotoID,"FileID","file/fileInfo/photoFileID","file");
+					labelDeduplicate(tempPhotoID,"FileID","file/fileHidden/photoFileID","file");
 
-					setFieldValue("file/fileInfo/photoFileCreator",username);
-					setFieldValue("file/fileInfo/photoFileType","Photo");
-					setFieldValue("file/fileInfo/photoFileStartTime", getCurrentTime());
+					setFieldValue("file/fileHidden/photoFileCreator",username);
+					setFieldValue("file/fileHidden/photoFileType","Photo");
+					setFieldValue("file/fileHidden/photoFileStartTime", getCurrentTime());
 				
 				break;
 				case "Other":
@@ -3431,11 +3442,11 @@ newFile(String typeFlag, String fileCategory, HashMap hiddenAnsInfo){
 						"saveFileFromAnswer(\"file/fileInfo/sketchFileName\",\"file/fileInfo/sketchFileContent\",\"file\",\"Recording\")");
 					newTabGroup("file");
 					String tempSketchID=tempAnsID+"_Recording";
-					labelDeduplicate(tempSketchID,"FileID","file/fileInfo/sketchFileID","file");
+					labelDeduplicate(tempSketchID,"FileID","file/fileHidden/sketchFileID","file");
 
-					setFieldValue("file/fileInfo/sketchFileCreator",username);
-					setFieldValue("file/fileInfo/sketchFileType","Recording");
-					setFieldValue("file/fileInfo/sketchFileStartTime", getCurrentTime());
+					setFieldValue("file/fileHidden/sketchFileCreator",username);
+					setFieldValue("file/fileHidden/sketchFileType","Recording");
+					setFieldValue("file/fileHidden/sketchFileStartTime", getCurrentTime());
 					
 					break;
 				default:
@@ -3445,7 +3456,7 @@ newFile(String typeFlag, String fileCategory, HashMap hiddenAnsInfo){
 		break;
 	}
 }
-//TODO: find the bug : save audio then save another audio error
+
 saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, String fileType){
 	if(isNull(getFieldValue(ref))){
 		showWarning("Warning","File name can not be null");
@@ -3483,13 +3494,13 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 					newFileTime.add(current_answer_file_id);
 					if(!fileType.equals("Recording")){
 						//showWarning("startTime","file/fileInfo/"+fileType.toLowerCase()+"FileStartTime");
-						newFileTime.add(getFieldValue("file/fileInfo/"+fileType.toLowerCase()+"FileStartTime"));
+						newFileTime.add(getFieldValue("file/fileHidden/"+fileType.toLowerCase()+"FileStartTime"));
 						//showWarning("startTime",getFieldValue("file/fileInfo/"+fileType.toLowerCase()+"FileStartTime"));
-						newFileTime.add(getFieldValue("file/fileInfo/"+fileType.toLowerCase()+"FileEndTime"));
+						newFileTime.add(getFieldValue("file/fileHidden/"+fileType.toLowerCase()+"FileEndTime"));
 					}
 					else{
-						newFileTime.add(getFieldValue("file/fileInfo/sketchFileStartTime"));
-						newFileTime.add(getFieldValue("file/fileInfo/sketchFileEndTime"));
+						newFileTime.add(getFieldValue("file/fileHidden/sketchFileStartTime"));
+						newFileTime.add(getFieldValue("file/fileHidden/sketchFileEndTime"));
 					}
 					ansTimeMng.add(newFileTime);
 					//showWarning("ansTimeMng","ansTimeMng added");
@@ -3536,12 +3547,12 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 					newFileTime=new ArrayList();
 					newFileTime.add(current_answer_file_id);
 					if(!fileType.equals("Recording")){
-						newFileTime.add(getFieldValue("file/fileInfo/"+fileType.toLowerCase()+"FileStartTime"));
-						newFileTime.add(getFieldValue("file/fileInfo/"+fileType.toLowerCase()+"FileEndTime"));
+						newFileTime.add(getFieldValue("file/fileHidden/"+fileType.toLowerCase()+"FileStartTime"));
+						newFileTime.add(getFieldValue("file/fileHidden/"+fileType.toLowerCase()+"FileEndTime"));
 					}
 					else{
-						newFileTime.add(getFieldValue("file/fileInfo/sketchFileStartTime"));
-						newFileTime.add(getFieldValue("file/fileInfo/sketchFileEndTime"));
+						newFileTime.add(getFieldValue("file/fileHidden/sketchFileStartTime"));
+						newFileTime.add(getFieldValue("file/fileHidden/sketchFileEndTime"));
 					}
 
 					for(int i=0; i<ansTimeMng.size();i++){
@@ -3590,7 +3601,7 @@ setAudioToField(String ref) {
     }
     setFieldValue(ref, _convertListToPairs(selectedFiles));
     setFieldValue("file/fileInfo/audioFilePath",filePath);
-    setFieldValue("file/fileInfo/audioFileEndTime",getCurrentTime());
+    setFieldValue("file/fileHidden/audioFileEndTime",getCurrentTime());
 }
 
 
@@ -3616,7 +3627,7 @@ setVideoToField(String ref) {
     }
     setFieldValue(ref, _convertListToPairs(selectedFiles));
     setFieldValue("file/fileInfo/videoFilePath",filePath);
-    setFieldValue("file/fileInfo/videoFileEndTime",getCurrentTime());
+    setFieldValue("file/fileHidden/videoFileEndTime",getCurrentTime());
 }
 
 
@@ -3643,7 +3654,7 @@ setPictureToField(String ref) {
     }
     setFieldValue(ref, _convertListToPairs(selectedFiles));
     setFieldValue("file/fileInfo/photoFilePath",filePath);
-    setFieldValue("file/fileInfo/photoFileEndTime",getCurrentTime());
+    setFieldValue("file/fileHidden/photoFileEndTime",getCurrentTime());
 }
 
 
@@ -3669,7 +3680,7 @@ setFileToField(String ref) {
     }
     setFieldValue(ref, _convertListToPairs(selectedFiles));
     setFieldValue("file/fileInfo/sketchFilePath",filePath);
-    setFieldValue("file/fileInfo/sketchFileEndTime",getCurrentTime());
+    setFieldValue("file/fileHidden/sketchFileEndTime",getCurrentTime());
 }
 
 /**common methods**/
