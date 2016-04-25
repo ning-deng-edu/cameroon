@@ -2646,25 +2646,26 @@ ansTimeMng=new ArrayList();
 Boolean ansOrNot=true;//denoting if the answer has the answer ui page
 /**Answer dynamic ui generating**/
 createAnswerPage(){
-	if(!hasView("survey/answerBasic/answerLabel")){
+	if(!hasView("survey/answerHidden/answerLabel")){
 		removeAllViewsAndContainers("survey");
 		executeViewTask(new ViewTask() {
 	    doTask() {
 	  		//answerHidden page
 	    	hideQuesnirId=createViewDef().createTextField().setLabel("Questionnaire id").setAttributeName("AnswerQuestionnaireID").setAttributeType("measure").setReadOnly(true);
 	    	hideQuesId=createViewDef().createTextField().setLabel("Question id").setAttributeName("AnswerQuestionID").setAttributeType("measure").setReadOnly(true);
+	    	ansLabelViewDef = createViewDef().createTextField().setLabel("Answer label").setAttributeName("AnswerLabel").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+	    		    	ansStartTimeViewDef=createViewDef().createTextField().setLabel("Start timestamp").setAttributeName("AnswerStartTime").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+	    	ansEndTimeViewDef=createViewDef().createTextField().setLabel("End timestamp").setAttributeName("AnswerEndTime").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
 	    	createView("survey/answerHidden/answerQuestionnaireID",hideQuesnirId,"survey/answerHidden");
 	    	createView("survey/answerHidden/answerQuestionID",hideQuesId,"survey/answerHidden");
-
+	    	createView("survey/answerHidden/answerLabel",ansLabelViewDef,"survey/answerHidden");
+	        createView("survey/answerHidden/answerStartTimestamp",ansStartTimeViewDef,"survey/answerHidden");
+	        createView("survey/answerHidden/answerEndTimestamp",ansEndTimeViewDef,"survey/answerHidden");
 	    	//answerBasic page
-	    	ansLabelViewDef = createViewDef().createTextField().setLabel("Answer label").setAttributeName("AnswerLabel").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true).setStyleCss("required");
+	    	
 	    	ansTextViewDef=createViewDef().createTextField().setLabel("Answer text").setAttributeName("AnswerText").setAttributeType("measure").setAnnotationEnabled(true);
-	    	ansStartTimeViewDef=createViewDef().createTextField().setLabel("Start timestamp").setAttributeName("AnswerStartTime").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
-	    	ansEndTimeViewDef=createViewDef().createTextField().setLabel("End timestamp").setAttributeName("AnswerEndTime").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
-	    	createView("survey/answerBasic/answerLabel",ansLabelViewDef,"survey/answerBasic");
-	    	createView("survey/answerBasic/answerText",ansTextViewDef,"survey/answerBasic");
-	        createView("survey/answerBasic/answerStartTimestamp",ansStartTimeViewDef,"survey/answerBasic");
-	        createView("survey/answerBasic/answerEndTimestamp",ansEndTimeViewDef,"survey/answerBasic");
+			createView("survey/answerBasic/answerText",ansTextViewDef,"survey/answerBasic");
+	    	
 	        
 	        //answerFile page
 			newAnsBtnDef = createViewDef().createButton().setLabel("Save Answer").setStyleCss("faims-blue");
@@ -2818,10 +2819,10 @@ loadAnswerInfo(){
 			answerInfoOriginal.clear();
         	populateList("survey/answerFile/answerFileList", files_in_current_ques);   	
         	populateDropDown("survey/answerFile/file_Category",categoryTypes);
-        	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerLabel"));
+        	answerInfoOriginal.add(getFieldValue("survey/answerHidden/answerLabel"));
         	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerText"));
-        	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerStartTimestamp"));
-        	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerEndTimestamp"));
+        	answerInfoOriginal.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
+        	answerInfoOriginal.add(getFieldValue("survey/answerHidden/answerEndTimestamp"));
             showToast("Loaded answer"+result.getId());            
         }
         onError(message) {
@@ -2885,10 +2886,10 @@ startNewAnswer(String typeflag){
 		setFieldValue("survey/answerHidden/answerQuestionnaireID", current_quesnir_id);
 		setFieldValue("survey/answerHidden/answerQuestionID", current_question_id);
 		//setFieldValue("survey/answerHidden/answerChoice", "N/A");
-		setFieldValue("survey/answerBasic/answerStartTimestamp", current_start_time);
-		setFieldValue("survey/answerBasic/answerEndTimestamp", "placeholder");
+		setFieldValue("survey/answerHidden/answerStartTimestamp", current_start_time);
+		setFieldValue("survey/answerHidden/answerEndTimestamp", "placeholder");
 		
-		labelDeduplicate(tempAnsLabel,"AnswerLabel","survey/answerBasic/answerLabel","answer");
+		labelDeduplicate(tempAnsLabel,"AnswerLabel","survey/answerHidden/answerLabel","answer");
 		//setFieldValue("survey/answerBasic/answerLabel", tempAnsLabel);
 		populateList("survey/answerFile/answerFileList",files_in_current_ques);
 		populateDropDown("survey/answerFile/file_Category",categoryTypes);
@@ -3021,9 +3022,9 @@ saveNewAnswer(){
 	
 	
 	if(isNull(current_answer_id)){//create new answer
-		setFieldValue("survey/answerBasic/answerEndTimestamp",ansEndTime);
+		setFieldValue("survey/answerHidden/answerEndTimestamp",ansEndTime);
 
-		String newAnsLabel=getFieldValue("survey/answerBasic/answerLabel");
+		String newAnsLabel=getFieldValue("survey/answerHidden/answerLabel");
 		
 		saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
 			onSave(uuid, newRecord) {
@@ -3044,7 +3045,7 @@ saveNewAnswer(){
 					sss_answer_list.add(newAnswer);
 					newAnsTime=new ArrayList();
 					newAnsTime.add(answer_id);
-					newAnsTime.add(getFieldValue("survey/answerBasic/answerStartTimestamp"));
+					newAnsTime.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
 					newAnsTime.add(ansEndTime);
 					sssTimeMng.add(newAnsTime);
 
@@ -3076,10 +3077,10 @@ saveNewAnswer(){
 	else{//this is changing answerInfo		
 			//saveChangedAnswer();
 		answerInfoNew.clear();
-		answerInfoNew.add(getFieldValue("survey/answerBasic/answerLabel"));
+		answerInfoNew.add(getFieldValue("survey/answerHidden/answerLabel"));
 		answerInfoNew.add(getFieldValue("survey/answerBasic/answerText"));
-		setFieldValue("survey/answerBasic/answerEndTimestamp",ansEndTime);
-		answerInfoNew.add(getFieldValue("survey/answerBasic/answerStartTimestamp"));
+		setFieldValue("survey/answerHidden/answerEndTimestamp",ansEndTime);
+		answerInfoNew.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
 		answerInfoNew.add(ansEndTime);	
 		Hashtable fileListChange=listChange(files_in_current_ques,files_origin);
 		Hashtable answerBasicInfoChange=listChange(answerInfoNew,answerInfoOriginal);
@@ -3120,7 +3121,7 @@ saveNewAnswer(){
 								if(sssTimeMng.get(i).get(0).equals(answer_id)){
 									newAnsTime=new ArrayList();
 									newAnsTime.add(answer_id);
-									newAnsTime.add(getFieldValue("survey/answerBasic/answerStartTimestamp"));
+									newAnsTime.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
 									newAnsTime.add(ansEndTime);
 									sssTimeMng.set(i,newAnsTime);
 								}
@@ -3384,7 +3385,7 @@ newFile(String typeFlag, String fileCategory, HashMap hiddenAnsInfo){
 		case "answer":
 		if(fileCategory==null){
 			fileCategory=getFieldValue("survey/answerFile/file_Category");
-			tempAnsID=getFieldValue("survey/answerBasic/answerLabel");
+			tempAnsID=getFieldValue("survey/answerHidden/answerLabel");
 		}
 
 			answerFile=true;
