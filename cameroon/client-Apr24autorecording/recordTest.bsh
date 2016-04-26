@@ -2644,6 +2644,7 @@ files_origin=new ArrayList();
 ansTimeMng=new ArrayList();
 
 Boolean ansOrNot=true;//denoting if the answer has the answer ui page
+hiddenAnsInfo=new HashMap();// holding the answer info when no answer ui
 /**Answer dynamic ui generating**/
 createAnswerPage(){
 	if(!hasView("survey/answerHidden/answerLabel")){
@@ -2654,7 +2655,7 @@ createAnswerPage(){
 	    	hideQuesnirId=createViewDef().createTextField().setLabel("Questionnaire id").setAttributeName("AnswerQuestionnaireID").setAttributeType("measure").setReadOnly(true);
 	    	hideQuesId=createViewDef().createTextField().setLabel("Question id").setAttributeName("AnswerQuestionID").setAttributeType("measure").setReadOnly(true);
 	    	ansLabelViewDef = createViewDef().createTextField().setLabel("Answer label").setAttributeName("AnswerLabel").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
-	    		    	ansStartTimeViewDef=createViewDef().createTextField().setLabel("Start timestamp").setAttributeName("AnswerStartTime").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+	    	ansStartTimeViewDef=createViewDef().createTextField().setLabel("Start timestamp").setAttributeName("AnswerStartTime").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
 	    	ansEndTimeViewDef=createViewDef().createTextField().setLabel("End timestamp").setAttributeName("AnswerEndTime").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
 	    	createView("survey/answerHidden/answerQuestionnaireID",hideQuesnirId,"survey/answerHidden");
 	    	createView("survey/answerHidden/answerQuestionID",hideQuesId,"survey/answerHidden");
@@ -2679,7 +2680,7 @@ createAnswerPage(){
 	        refreshTabgroupCSS("survey");
 			/**Events for answer**/
 			onEvent("survey/answerFile/Finish_New_Answer","click","saveNewAnswer()");
-			onEvent("survey/answerFile/Add_New_File","click","newFile(\"answer\",null,null)");
+			onEvent("survey/answerFile/Add_New_File","click","newFile(\"answer\",null)");
 			onEvent("survey/answerFile/answerFileList","click","viewOrDeleteFileReln()");
 	   		}
 			});
@@ -2865,6 +2866,7 @@ startNewAnswer(String typeflag){
 	dupAnsLblInfo.clear();
 	dupFileLblInfo.clear();
 	ansTimeMng.clear();
+	hiddenAnsInfo.clear();
 
     currentDateTimeArray=current_start_time.toString().split("\\s+");
     String currentDate=currentDateTimeArray[0];
@@ -2896,7 +2898,6 @@ startNewAnswer(String typeflag){
 		ansOrNot=true;
     }
     else{
-    	hiddenAnsInfo=new HashMap();
     	hiddenAnsInfo.put("quesnir_id",current_quesnir_id);
 		hiddenAnsInfo.put("ques_id",current_question_id);
 		hiddenAnsInfo.put("start_time",current_start_time);
@@ -2909,7 +2910,7 @@ startNewAnswer(String typeflag){
 				tempAnsLabel=makeLabel(result,tempAnsLabel,"AnswerToQuestionnaire","AnswerLabel");
 			}
 			hiddenAnsInfo.put("label",tempAnsLabel);
-			newFile("answer","Video",hiddenAnsInfo);
+			newFile("answer","Video");
 			attachVideoToField("file/fileInfo/videoFileContent");
 			ansOrNot=false;
 		}
@@ -2997,20 +2998,8 @@ loadAnswerFromQuesInQuesnir(){
 
 	}
 }
-saveNewAnswer(){
-	
-	if(isNull(getFieldValue("survey/answerBasic/answerText"))){
-		if(isNull(files_in_current_ques)){
-			showWarning("Warning","Please input answer text or adding an answer file");
-			return;
-		}
-		else if((files_in_current_ques.size()==1) && files_in_current_ques.get(0).get(0).equals("0000")){
-			showWarning("Warning","Please input answer text or adding an answer file");
-			return;
-		}
-		
-	}
-	//dealing with the situation when the answer does not have a file attached
+/*
+saveNewAnswer(HashMap hiddenAnsInfo){
 	ansEndTime=getCurrentTime();
 	if(!isNull(ansTimeMng)){
 		ansTimeList=new ArrayList();
@@ -3019,33 +3008,30 @@ saveNewAnswer(){
 		}
 		ansEndTime=extractLatestTime(ansTimeList);
 	}
+	hiddenAnsInfo.put("end_time", ansEndTime);
+	attributes = createAttributeList();
 	
-	
-	if(isNull(current_answer_id)){//create new answer
-		setFieldValue("survey/answerHidden/answerEndTimestamp",ansEndTime);
-
-		String newAnsLabel=getFieldValue("survey/answerHidden/answerLabel");
-		
-		saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
-			onSave(uuid, newRecord) {
-				answer_id = uuid;
-				//showWarning("answer_id",answer_id);
-				current_answer_id=answer_id;
-				//showWarning("current_answer_id",current_answer_id);
-
-				if (newRecord) {
-
+	attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, hiddenAnsInfo.get("quesnir_id"), null));
+	attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
+	attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
+	attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
+	attributes.add(createEntityAttribute("AnswerEndTime", null, null, hiddenAnsInfo.get("end_time"), null));
+	saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
+		onSave(uuid, newRecord){
+			answer_id = uuid;
+			current_answer_id=answer_id;
+			if (newRecord) {
 					for(file : files_in_current_ques){
 						saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
 					}
 					
 					newAnswer=new ArrayList();
 					newAnswer.add(answer_id);
-					newAnswer.add(newAnsLabel);
+					newAnswer.add(hiddenAnsInfo.get("label"));
 					sss_answer_list.add(newAnswer);
 					newAnsTime=new ArrayList();
 					newAnsTime.add(answer_id);
-					newAnsTime.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
+					newAnsTime.add(hiddenAnsInfo.get("start_time"));
 					newAnsTime.add(ansEndTime);
 					sssTimeMng.add(newAnsTime);
 
@@ -3062,83 +3048,204 @@ saveNewAnswer(){
 						dupAnsLblInfo.clear();
 					}
 					showToast("new answer created");
-					cancelTabGroup("survey", true);
-					//cancelTabGroup("answerToQuestion", true);
+					cancelTabGroup("file", true);
 					autoSaveSession("head");
-					//saveSession("answer");
 				}
-			}
-			onError(message) {
-				showWarning("error",message);
-			}  
-			});
+		}
+	});
+}
+*/
+saveNewAnswer(){
+	//dealing with the situation when the answer does not have a file attached
+	ansEndTime=getCurrentTime();
+	if(!isNull(ansTimeMng)){
+		ansTimeList=new ArrayList();
+		for(time : ansTimeMng){
+			ansTimeList.add(time.get(2));
+		}
+		ansEndTime=extractLatestTime(ansTimeList);
 	}
+	//showWarning("ansEndTime",ansEndTime);
+	if(!ansOrNot){
+		hiddenAnsInfo.put("end_time", ansEndTime);
+		//showWarning("hiddenAnsInfo","hiddenAnsInfo");
+		//showWarning("hiddenAnsInfo",hiddenAnsInfo.get("quesnir_id"));
+		attributes = createAttributeList();
+		
+		attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, hiddenAnsInfo.get("quesnir_id"), null));
+		attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
+		attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
+		attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
+		attributes.add(createEntityAttribute("AnswerEndTime", null, null, hiddenAnsInfo.get("end_time"), null));
+		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
+			onSave(uuid, newRecord){
+				answer_id = uuid;
+				current_answer_id=answer_id;
+				if (newRecord) {
+						for(file : files_in_current_ques){
+							saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
+						}
+						
+						newAnswer=new ArrayList();
+						newAnswer.add(answer_id);
+						newAnswer.add(hiddenAnsInfo.get("label"));
+						sss_answer_list.add(newAnswer);
+						newAnsTime=new ArrayList();
+						newAnsTime.add(answer_id);
+						newAnsTime.add(hiddenAnsInfo.get("start_time"));
+						newAnsTime.add(ansEndTime);
+						sssTimeMng.add(newAnsTime);
 
-	else{//this is changing answerInfo		
-			//saveChangedAnswer();
-		answerInfoNew.clear();
-		answerInfoNew.add(getFieldValue("survey/answerHidden/answerLabel"));
-		answerInfoNew.add(getFieldValue("survey/answerBasic/answerText"));
-		setFieldValue("survey/answerHidden/answerEndTimestamp",ansEndTime);
-		answerInfoNew.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
-		answerInfoNew.add(ansEndTime);	
-		Hashtable fileListChange=listChange(files_in_current_ques,files_origin);
-		Hashtable answerBasicInfoChange=listChange(answerInfoNew,answerInfoOriginal);
-		//case1: Nothing changed
-		if((fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
-				showWarning("Answer Modification","No data is changed");
+						populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+						//if this is the second answer with a duplicate label
+						//the other answer label will be changed with a suffix (1)
+						if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
+							newLabel=dupAnsLblInfo.get(1);
+							ansEntityId=dupAnsLblInfo.get(0);
+							attributes = createAttributeList();
+							attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
+							saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
+							dupAnsLblChange=false;
+							dupAnsLblInfo.clear();
+						}
+						showToast("new answer created");
+						//cancelTabGroup("file", true);
+						autoSaveSession("head");
+					}
+			}
+		});
+	}
+	else{
+		if(isNull(getFieldValue("survey/answerBasic/answerText"))){
+			if(isNull(files_in_current_ques)){
+				showWarning("Warning","Please input answer text or adding an answer file");
 				return;
 			}
-		//case2: only fileList changed
-		else if((!fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
-				for(fileDelete:ansFileOriginReln){
-					deleteRel(fileDelete.get(0));
-				}
-				
-				for(file : files_in_current_ques){
-					saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
-				}
-
-				if(isNull(sss_id)){
-					populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-				}
-				
-				showToast("file list changed");
-				cancelTabGroup("survey", true);
+			else if((files_in_current_ques.size()==1) && files_in_current_ques.get(0).get(0).equals("0000")){
+				showWarning("Warning","Please input answer text or adding an answer file");
+				return;
 			}
-		else{//case 3: both answer basic info and file list are changed
-				saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
-						onSave(uuid, newRecord) {
-							answer_id = uuid;	//not sure how it's working
+			
+		}
+		
+		if(isNull(current_answer_id)){//create new answer
+			setFieldValue("survey/answerHidden/answerEndTimestamp",ansEndTime);
 
-							for(fileDelete:ansFileOriginReln){
-								deleteRel(fileDelete.get(0));
-							}
-							for(file : files_in_current_ques){
-								saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
-							}
-							for(int i =0; i<sssTimeMng.size();i++){
-								if(sssTimeMng.get(i).get(0).equals(answer_id)){
-									newAnsTime=new ArrayList();
-									newAnsTime.add(answer_id);
-									newAnsTime.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
-									newAnsTime.add(ansEndTime);
-									sssTimeMng.set(i,newAnsTime);
-								}
-							}
-							showToast("Answer Info Changed");
-							cancelTabGroup("survey", true);
-							autoSaveSession("head");
-							
+			String newAnsLabel=getFieldValue("survey/answerHidden/answerLabel");
+			
+			saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
+				onSave(uuid, newRecord) {
+					answer_id = uuid;
+					//showWarning("answer_id",answer_id);
+					current_answer_id=answer_id;
+					//showWarning("current_answer_id",current_answer_id);
+
+					if (newRecord) {
+
+						for(file : files_in_current_ques){
+							saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
+						}
+						
+						newAnswer=new ArrayList();
+						newAnswer.add(answer_id);
+						newAnswer.add(newAnsLabel);
+						sss_answer_list.add(newAnswer);
+						newAnsTime=new ArrayList();
+						newAnsTime.add(answer_id);
+						newAnsTime.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
+						newAnsTime.add(ansEndTime);
+						sssTimeMng.add(newAnsTime);
+
+						populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+						//if this is the second answer with a duplicate label
+						//the other answer label will be changed with a suffix (1)
+						if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
+							newLabel=dupAnsLblInfo.get(1);
+							ansEntityId=dupAnsLblInfo.get(0);
+							attributes = createAttributeList();
+							attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
+							saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
+							dupAnsLblChange=false;
+							dupAnsLblInfo.clear();
+						}
+						showToast("new answer created");
+						cancelTabGroup("survey", true);
+						//cancelTabGroup("answerToQuestion", true);
+						autoSaveSession("head");
+						//saveSession("answer");
 					}
-					onError(message) {
-						showWarning("error",message);
-					}  
-					});
+				}
+				onError(message) {
+					showWarning("error",message);
+				}  
+				});
 		}
 
-	}
+		else{//this is changing answerInfo		
+				//saveChangedAnswer();
+			answerInfoNew.clear();
+			answerInfoNew.add(getFieldValue("survey/answerHidden/answerLabel"));
+			answerInfoNew.add(getFieldValue("survey/answerBasic/answerText"));
+			setFieldValue("survey/answerHidden/answerEndTimestamp",ansEndTime);
+			answerInfoNew.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
+			answerInfoNew.add(ansEndTime);	
+			Hashtable fileListChange=listChange(files_in_current_ques,files_origin);
+			Hashtable answerBasicInfoChange=listChange(answerInfoNew,answerInfoOriginal);
+			//case1: Nothing changed
+			if((fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
+					showWarning("Answer Modification","No data is changed");
+					return;
+				}
+			//case2: only fileList changed
+			else if((!fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
+					for(fileDelete:ansFileOriginReln){
+						deleteRel(fileDelete.get(0));
+					}
+					
+					for(file : files_in_current_ques){
+						saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
+					}
 
+					if(isNull(sss_id)){
+						populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+					}
+					
+					showToast("file list changed");
+					cancelTabGroup("survey", true);
+				}
+			else{//case 3: both answer basic info and file list are changed
+					saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
+							onSave(uuid, newRecord) {
+								answer_id = uuid;	//not sure how it's working
+
+								for(fileDelete:ansFileOriginReln){
+									deleteRel(fileDelete.get(0));
+								}
+								for(file : files_in_current_ques){
+									saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
+								}
+								for(int i =0; i<sssTimeMng.size();i++){
+									if(sssTimeMng.get(i).get(0).equals(answer_id)){
+										newAnsTime=new ArrayList();
+										newAnsTime.add(answer_id);
+										newAnsTime.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
+										newAnsTime.add(ansEndTime);
+										sssTimeMng.set(i,newAnsTime);
+									}
+								}
+								showToast("Answer Info Changed");
+								cancelTabGroup("survey", true);
+								autoSaveSession("head");
+								
+						}
+						onError(message) {
+							showWarning("error",message);
+						}  
+						});
+			}
+
+		}
+	}
 }
 
 viewOrDeleteFileReln(){
@@ -3378,16 +3485,19 @@ createFilePage(String fileType, String attachFunc, String saveFunc){
 	}
 }
 /**File functions**/
-newFile(String typeFlag, String fileCategory, HashMap hiddenAnsInfo){
-	String fileCategory=fileCategory;
-	String tempAnsID=hiddenAnsInfo.get("label");
+newFile(String typeFlag, String fileType){
+	String fileCategory=null;
+	String tempAnsID=null;
 	switch (typeFlag){
 		case "answer":
-		if(fileCategory==null){
+		if(fileType==null){
 			fileCategory=getFieldValue("survey/answerFile/file_Category");
 			tempAnsID=getFieldValue("survey/answerHidden/answerLabel");
 		}
-
+		else{
+			fileCategory=fileType;
+	        tempAnsID=hiddenAnsInfo.get("label");
+		}
 			answerFile=true;
 			current_answer_file_id=null;	
 			
@@ -3454,6 +3564,7 @@ newFile(String typeFlag, String fileCategory, HashMap hiddenAnsInfo){
 }
 
 saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, String fileType){
+	//showWarning("saveFileFromAnswer","saveFileFromAnswer");
 	if(isNull(getFieldValue(ref))){
 		showWarning("Warning","File name can not be null");
 		return;
@@ -3467,7 +3578,9 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 		saveTabGroup(tabGroupRef,current_answer_file_id, null, null, new SaveCallback() {
 			onSave(uuid, newRecord) {
 				current_answer_file_id = uuid;
+				//showWarning("current_answer_file_id",current_answer_file_id);
 				if (newRecord) {	
+					//showWarning("newRecord","newRecord");	
 					newFile=new ArrayList();
 					newFile.add(current_answer_file_id);
 					newFile.add(getFieldValue(ref));
@@ -3478,8 +3591,7 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 							break;
 						}
 					}
-					//showWarning("add file",files_in_current_ques.size().toString());
-					populateList("survey/answerFile/answerFileList",files_in_current_ques);
+								
 					//Adding new file and file type for changing fileID
 					newFileType=new ArrayList();
 					newFileType.add(current_answer_file_id);
@@ -3509,10 +3621,20 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 						saveArchEnt(entityId, "File", null, attributes);
 						dupFileLblChange=false;
 						dupFileLblInfo.clear();
-					}		
+					}	
+					if(ansOrNot){
+						populateList("survey/answerFile/answerFileList",files_in_current_ques);
+						showTab("survey/answerFile");
+					}	
+					else{
+						//we need to save the answer info here
+						saveNewAnswer();
+
+					}	
 					showToast("New file record for answer created");
+
 					cancelTabGroup(tabGroupRef, true);
-					showTab("survey/answerFile");
+					
 				}
 				else{
 					for(changeFile:files_in_current_ques){
