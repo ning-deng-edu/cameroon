@@ -453,7 +453,7 @@ createQuesnirList(){
 }
 
 createQuesSel(){
-	if(!hasView("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireID")){
+	if(!hasView("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireID")){
 		removeAllViewsAndContainers("questionnaireInfo");
 		executeViewTask(new ViewTask() {
 	    doTask() {
@@ -462,16 +462,14 @@ createQuesSel(){
 	    	nameTextViewDef=createViewDef().createTextField().setLabel("Questionnaire name").setAttributeName("QuestionnaireName").setAttributeType("measure").setAnnotationEnabled(false).setReadOnly(true);
 	    	typeTextViewDef=createViewDef().createTextField().setLabel("Questionnaire type").setAnnotationEnabled(false).setReadOnly(true);
 	    	descTextViewDef=createViewDef().createTextField().setLabel("Questionnaire description").setAttributeName("QuestionnaireDescription").setAttributeType("measure").setAnnotationEnabled(false).setReadOnly(true);
-	    	
+	    	createView("questionnaireInfo/surveyQuesnirHidden/currentQuesnirID",hideQuesnirId,"questionnaireInfo/surveyQuesnirHidden");
+	    	createView("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireID",idTextViewDef,"questionnaireInfo/surveyQuesnirHidden");
+	        createView("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireName",nameTextViewDef,"questionnaireInfo/surveyQuesnirHidden");
+	        createView("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireType",typeTextViewDef,"questionnaireInfo/surveyQuesnirHidden");
+	        createView("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireDescription", descTextViewDef,"questionnaireInfo/surveyQuesnirHidden");
+	    		    	
 
 	        quesSelListDef=createViewDef().createList().setLabel("Questions").setStyleCss("questionQuestionnaire-list");
-
-	        createView("questionnaireInfo/surveyQuesnirHidden/currentQuesnirID",hideQuesnirId,"questionnaireInfo/surveyQuesnirHidden");
-
-	    	createView("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireID",idTextViewDef,"questionnaireInfo/surveyQuestionnaire");
-	        createView("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireName",nameTextViewDef,"questionnaireInfo/surveyQuestionnaire");
-	        createView("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireType",typeTextViewDef,"questionnaireInfo/surveyQuestionnaire");
-	        createView("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireDescription", descTextViewDef,"questionnaireInfo/surveyQuestionnaire");
 
 	        style1 = "orientation";
 	        style2 = "even";
@@ -886,7 +884,7 @@ loadQuesnirInfo(){
         	onFetch(result) {
 	        	setFieldValue("questionnaireInfo/surveyQuesnirHidden/currentQuesnirID",current_quesnir_id);
 	        	refreshQuesnirInfo();
-				current_quesnir_name=getFieldValue("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireName");
+				current_quesnir_name=getFieldValue("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireName");
 				showToast("Loaded questionnaire"+result.getId());  
 
         	}
@@ -910,7 +908,7 @@ loadQuesnirTypeQuery="select measure from latestNonDeletedAentValue "+
 fetchOne(loadQuesnirTypeQuery,new FetchCallback() {
 		onFetch(typeResult) {
 			if (!isNull(typeResult)) {	
-				setFieldValue("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireType",typeResult.get(0));
+				setFieldValue("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireType",typeResult.get(0));
 			}
 		}	       
 		onError(message) {
@@ -3005,63 +3003,7 @@ loadAnswerFromQuesInQuesnir(String ques_id){
 
 	}
 }
-/*
-saveNewAnswer(HashMap hiddenAnsInfo){
-	ansEndTime=getCurrentTime();
-	if(!isNull(ansTimeMng)){
-		ansTimeList=new ArrayList();
-		for(time : ansTimeMng){
-			ansTimeList.add(time.get(2));
-		}
-		ansEndTime=extractLatestTime(ansTimeList);
-	}
-	hiddenAnsInfo.put("end_time", ansEndTime);
-	attributes = createAttributeList();
-	
-	attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, hiddenAnsInfo.get("quesnir_id"), null));
-	attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
-	attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
-	attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
-	attributes.add(createEntityAttribute("AnswerEndTime", null, null, hiddenAnsInfo.get("end_time"), null));
-	saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
-		onSave(uuid, newRecord){
-			answer_id = uuid;
-			current_answer_id=answer_id;
-			if (newRecord) {
-					for(file : files_in_current_ques){
-						saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
-					}
-					
-					newAnswer=new ArrayList();
-					newAnswer.add(answer_id);
-					newAnswer.add(hiddenAnsInfo.get("label"));
-					sss_answer_list.add(newAnswer);
-					newAnsTime=new ArrayList();
-					newAnsTime.add(answer_id);
-					newAnsTime.add(hiddenAnsInfo.get("start_time"));
-					newAnsTime.add(ansEndTime);
-					sssTimeMng.add(newAnsTime);
 
-					populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-					//if this is the second answer with a duplicate label
-					//the other answer label will be changed with a suffix (1)
-					if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
-						newLabel=dupAnsLblInfo.get(1);
-						ansEntityId=dupAnsLblInfo.get(0);
-						attributes = createAttributeList();
-						attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
-						saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
-						dupAnsLblChange=false;
-						dupAnsLblInfo.clear();
-					}
-					showToast("new answer created");
-					cancelTabGroup("file", true);
-					autoSaveSession("head");
-				}
-		}
-	});
-}
-*/
 saveNewAnswer(){
 	//dealing with the situation when the answer does not have a file attached
 	ansEndTime=getCurrentTime();
