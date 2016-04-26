@@ -1066,11 +1066,11 @@ checkPersonAns(){
 		        			}
 		        		}
 		        		if(!rep){
-		        			loadAnswerFromQuesInQuesnir();
+		        			loadAnswerFromQuesInQuesnir(null);
 		        		}       		
 					}
 					else{
-						loadAnswerFromQuesInQuesnir();
+						loadAnswerFromQuesInQuesnir(null);
 					}
 		        }
 		    });
@@ -1079,14 +1079,14 @@ checkPersonAns(){
 checkDuplicateAns(Boolean dupOrNot){
 	if(dupOrNot){
 		if(sssConsultantIdList.size()==1){
-			showAlert("alert", sssConsultantIdList.get(0).get(1)+" has already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir()", "stayInCurrentPage()");
+			showAlert("alert", sssConsultantIdList.get(0).get(1)+" has already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir(null)", "stayInCurrentPage()");
 		}
 		else{
-			showAlert("alert", "Some consultants have already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir()", "stayInCurrentPage()");
+			showAlert("alert", "Some consultants have already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir(null)", "stayInCurrentPage()");
 		}
 	}
 	else{
-		loadAnswerFromQuesInQuesnir();
+		loadAnswerFromQuesInQuesnir(null);
 	}
 }
 
@@ -2922,12 +2922,19 @@ startNewAnswer(String typeflag){
 
 
 
-loadAnswerFromQuesInQuesnir(){
+loadAnswerFromQuesInQuesnir(String ques_id){
+	//showWarning("ques_id",ques_id);
 	if(isNull(current_quesnir_name)){
 		showWarning("No questionnaire name available","Can't get the questionnaire name, please contact the admin");
 		return;
 	}
-	current_question_id=getListItemValue();
+	if(ques_id==null){
+		current_question_id=getListItemValue();
+	}
+	else
+	{
+		current_question_id=ques_id;
+	}
 	Boolean quesLabelRead=false;
 	for(ques: ques_in_current_quesnir){
 		if(ques.get(0).equals(current_question_id))
@@ -3111,6 +3118,7 @@ saveNewAnswer(){
 						showToast("new answer created");
 						//cancelTabGroup("file", true);
 						autoSaveSession("head");
+						nextQuestion(hiddenAnsInfo.get("ques_id"));
 					}
 			}
 		});
@@ -3169,10 +3177,11 @@ saveNewAnswer(){
 							dupAnsLblInfo.clear();
 						}
 						showToast("new answer created");
+						String curntQuesId=getFieldValue("survey/answerHidden/answerQuestionID");
 						cancelTabGroup("survey", true);
 						//cancelTabGroup("answerToQuestion", true);
 						autoSaveSession("head");
-						//saveSession("answer");
+						nextQuestion(curntQuesId);
 					}
 				}
 				onError(message) {
@@ -3246,6 +3255,26 @@ saveNewAnswer(){
 
 		}
 	}
+}
+
+nextQuestion(String curntQuesId){
+	//showWarning("curntQuesId",curntQuesId);
+	int idxCrntQues=-1;
+	String nextQuesContent=null;
+	String nextQuesId=null;
+	for(int i=0;i<ques_in_current_quesnir.size();i++){
+		if(curntQuesId.equals(ques_in_current_quesnir.get(i).get(0))){
+			idxCrntQues=i;
+			break;
+		}
+	}
+	//showWarning("idxCrntQues",idxCrntQues.toString());
+	if(idxCrntQues!=ques_in_current_quesnir.size()-1){
+		nextQuesId=ques_in_current_quesnir.get(idxCrntQues+1).get(0);
+		nextQuesContent=ques_in_current_quesnir.get(idxCrntQues+1).get(1);
+		showAlert("Next question","Do you want to go to the next question:\n"+nextQuesContent,"loadAnswerFromQuesInQuesnir(\""+nextQuesId+"\")","stayInCurrentPage()");
+	}
+
 }
 
 viewOrDeleteFileReln(){
