@@ -407,7 +407,7 @@ createMainSessionPage(){
 
 	        refreshTabgroupCSS("sessionForAnswer");
 
-	        onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","showQuestionnaireList()");
+	        onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","checkNewAnsTime()");
 			onEvent("sessionForAnswer/sssAnsList/Save_Session","click","saveSession(\"answer\")");
 			onEvent("sessionForAnswer/sssPersonInfo/Add_Person","click","addPersonToSession()");
 			onEvent("sessionForAnswer/sssPersonInfo/sssPersonList","click","deletePersonInSession()");
@@ -415,6 +415,7 @@ createMainSessionPage(){
 			onEvent("sessionForAnswer/sssPersonInfo","show","refreshPsAndRole()");
 			onEvent("sessionForAnswer/sssAnsList/sssAnsSelList","click","addItemToTargetList(candidate_files_session,\"sessionFile\",null)");
 			onEvent("sessionForAnswer/sssAnsList/sssAnswerList","click","checkDelOrView()");
+
 			}
 	    
 		});
@@ -499,6 +500,21 @@ createQuesSel(){
 
 /**Functions for session**/
 /***Starting from creating a session***/
+checkNewAnsTime(){
+	sssTime=getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp");
+	sssDateTimeArray=sssTime.split("\\s+");
+    sssDate=sssDateTimeArray[0];
+   
+    crnTime=getCurrentTime();
+    crnDateArray=crnTime.toString().split("\\s+");
+	crnDate=crnDateArray[0];
+	if(!(sssDate.equals(crnDate))){
+		showAlert("alert", "You cannot add new answer to this session \n"+"Do you want to create a new session?", "newSessionForAnswer(\"answer\",null)", "stayInCurrentPage()");
+	}	
+	else{
+		showQuestionnaireList();
+	}
+}
 
 newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	createMainSessionPage();
