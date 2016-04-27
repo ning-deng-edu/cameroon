@@ -164,6 +164,7 @@ onEvent("questionnaire", "show", "showTab(\"questionnaire/questionnaire_info\")"
 onEvent("questionnaire/questionnaire_info/questionnaireTypeSelection", "click", "setQuesnirType()");
 onEvent("questionnaire/questionnaire_info/New_QuesnirType", "click", "newQuesnirType()");
 onEvent("questionnaire_question/questionnaire_question_info/Search_Question","click","searchQuestion()");
+onEvent("questionnaire/questionnaire_prop", "show", "createQuesnirPropSelPage()");
 finished_questionnaire_id=null;//flag for marking if any questionnaire is selected
 questionCandidates=new ArrayList();//original questions to be selected in questionnaire
 questionCandidatesContent=new ArrayList();//manipulatable question list to be selected in questionnaire
@@ -181,6 +182,50 @@ searchQuesType.add("selected");
 //questionirType.add(new NameValuePair("{Introductory}", "Introductory"));
 //flag_return_questionnaire=false;
 //starting point of creating new questionnaire 
+createQuesnirPropSelPage(){
+	fetchAll(loadAllQuesnirPropQuery,
+	new FetchCallback() {
+        onFetch(result) {
+			if (!isNull(result)) {
+				removeAllViewsAndContainers("questionnaire");
+				propOption=new ArrayList();
+				propOption.add(new NameValuePair("Yes", "Y"));
+				propOption.add(new NameValuePair("No", "N"));
+				style1 = "orientation";
+            	style2 = "even";
+            	int propCount=0;
+				for(prop : result){
+					propCount=propCount+1;
+					executeViewTask(new ViewTask() {
+				    doTask() {
+				  		createContainer("questionnaire/questionnaire_prop/prop_rowc_" + propCount, "orientation", "questionnaire/questionnaire_prop");
+
+		                createContainer("questionnaire/questionnaire_prop/prop_namec_" + propCount, "even", "questionnaire/questionnaire_prop/prop_rowc_" + propCount);
+		                createContainer("questionnaire/questionnaire_prop/prop_selc_" + propCount, "even", "questionnaire/questionnaire_prop/prop_rowc_" + propCount);
+
+		                createView("questionnaire/questionnaire_prop/prop_" + propCount, createViewDef().createTextField("string").setReadOnly(true), "questionnaire/questionnaire_prop/prop_namec_" + propCount);
+				   		createView("questionnaire/questionnaire_prop/prop_sel" + propCount, createViewDef().createRadioGroup(), "questionnaire/questionnaire_prop/prop_selc_" + propCount);
+				   		setFieldValue("questionnaire/questionnaire_prop/prop_" + propCount, prop.get(1));
+				   		populateRadioGroup("questionnaire/questionnaire_prop/prop_sel" + propCount, propOption);
+				   		}
+						});
+				}
+				createView("questionnaire/questionnaire_prop/savePropBtn", createViewDef().createButton().setLabel("Start/View Question Selection").setStyleCss("faims-blue"), "questionnaire/questionnaire_prop");
+				onEvent("questionnaire/questionnaire_prop/savePropBtn","click","startQuestionSelection()");
+			}
+			else{
+				showWarning("No property available","No questionniare property available at this point");
+				showTab("questionnaire/questionnaire_info");
+				return;
+			}
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+	
+}
 newQuestionnaire(){	
     newTabGroup("questionnaire");
     questionCandidates.clear();

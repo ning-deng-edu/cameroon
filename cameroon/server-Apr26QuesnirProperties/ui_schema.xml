@@ -99,6 +99,9 @@
                     </container7>
                       <Start_Question_Selection/>
                     </questionnaire_info>
+                   
+                    <questionnaire_prop>
+                    </questionnaire_prop>
                 </questionnaire>
 
                 <quesnirType>
@@ -445,7 +448,7 @@
         </group>
 
         <group ref="questionnaire_info">
-          <label>Questionnaire Basic Data</label>
+          <label>Basic Data</label>
           <input ref="questionnaireID" faims_attribute_name="QuestionnaireID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="false" faims_style_class="required">
             <label>{Questionnaire Label}</label>
           </input>
@@ -489,7 +492,11 @@
             <label>Start/View Question Selection</label>
           </trigger>  
     
-        </group>        
+        </group> 
+           
+        <group ref="questionnaire_prop">
+          <label> Property</label>
+        </group>     
     </group>
 
         <group ref="quesnirType" faims_archent_type="QuesnirType">
