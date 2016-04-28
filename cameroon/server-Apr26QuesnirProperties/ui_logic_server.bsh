@@ -397,7 +397,7 @@ quesnirPropertyId=null;
 quesnirProperty=new ArrayList();
 
 createQuesnirPropPage(){
-		if(!hasView("quesnirProperty/quesnirPropertyInfo/quesnirPropertyName")){
+		if(!hasView("quesnirProperty/quesnirPropertyInfo/propName")){
 			removeAllViewsAndContainers("quesnirProperty");
 			executeViewTask(new ViewTask() {
 		    doTask() {
