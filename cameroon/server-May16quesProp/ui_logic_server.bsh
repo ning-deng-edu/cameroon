@@ -1625,47 +1625,79 @@ listChange(ArrayList targetList,ArrayList sourceList){
 	source_list.clear();
 	target_diff_on_source.clear();
 	source_diff_on_target.clear();
-	//showWarning("listChange","initialization hashtable and arraylist done");
 	target_list.addAll(targetList);
-	//showWarning("target list size",target_list.size().toString());
 	source_list.addAll(sourceList);
-	//showWarning("source list size",source_list.size().toString());
 	target_list.removeAll(source_list);
-	//showWarning("target-source list size",target_list.size().toString());
 	target_diff_on_source.addAll(target_list);//target - source
-	//showWarning("target_diff_on_source size",target_diff_on_source.size().toString());
 	target_list.clear();
 	target_list.addAll(targetList);
-	//showWarning("target_list",target_list.size().toString());
 	source_list.removeAll(target_list);
 	source_diff_on_target.addAll(source_list);//source - target
-	//showWarning("source_diff_on_target",source_diff_on_target.size().toString());
 	if((target_diff_on_source.isEmpty()) && (source_diff_on_target.isEmpty())){
-		//showWarning("listChange","listChanges.put(EQUAL,null);");
-		listChanges.put("EQUAL",targetList);//here can not put ("EQUAL",null)
-		//showWarning("listChange","listChanges.put(EQUAL,null);");
+		listChanges.put("EQUAL",targetList);
 	}
 	else if((!target_diff_on_source.isEmpty()) && (source_diff_on_target.isEmpty())){
-		//added question
-		//return "PUREADD";
-		//showWarning("listChange","listChanges.put(PUREADD,null);");
 		listChanges.put("PUREADD",target_diff_on_source);
-		//showWarning("listChange","listChanges.put(PUREADD,null);");
-
 	}
 	else if((target_diff_on_source.isEmpty()) && (!source_diff_on_target.isEmpty())){
-		//return "PUREDELETE";
-		//showWarning("listChange","listChanges.put(PUREDELETE,null);");
 		listChanges.put("PUREDELETE",source_diff_on_target);
-		//showWarning("listChange","listChanges.put(PUREDELETE,null);");
 	}
 	else {
-		//showWarning("listChange","listChanges.put(DELETE,null);");
 		listChanges.put("ADD",target_diff_on_source);
-		//showWarning("listChange","listChanges.put(ADD,null);");
-		//showWarning("listChange","listChanges.put(DELETE,null);");
 		listChanges.put("DELETE",source_diff_on_target);
-		//showWarning("listChange","listChanges.put(DELETE,null);");
+	}
+	return listChanges;
+}
+
+listChange(ArrayList newList, ArrayList oldList, int newCompIdx, int oldCompIdx){
+	Hashtable listChanges=new Hashtable();
+	new_List=new ArrayList();
+	old_List=new ArrayList();
+	new_List.clear();
+	old_List.clear();
+	same_elements_old=new ArrayList();
+	same_elements_new=new ArrayList();
+	same_elements_old.clear();
+	same_elements_new.clear();
+	new_List.addAll(newList);
+	old_List.addAll(oldList);
+	//showWarning("add","addAll");
+	for (elmNew : new_List){
+		elmNewValue=elmNew.get(newCompIdx);
+		//showWarning("elmNewValue",elmNewValue);
+		for(elmOld: old_List){
+			//showWarning("elmOld",elmOld.get(0));
+			elmOldValue=elmOld.get(oldCompIdx);
+			//showWarning("elmOldValue",elmOldValue);
+			if(elmNewValue.equals(elmOldValue)){
+				same_elements_old.add(elmOld);
+				same_elements_new.add(elmNew);
+			}
+		}
+	}
+	//showWarning("for","for");
+	//get the to be deleted elements
+	if(!isNull(same_elements_old)){
+		old_List.removeAll(same_elements_old);
+		showWarning("old_List","remove");
+	}
+	//get the to add elements
+	if(!isNull(same_elements_new)){
+		new_List.removeAll(same_elements_new);
+	}
+
+	if((new_List.isEmpty()) && (old_List.isEmpty())){
+		listChanges.put("EQUAL",null);
+	}
+	else if((!new_List.isEmpty()) && (old_List.isEmpty())){
+		listChanges.put("PUREADD",new_List);
+	}
+	else if((new_List.isEmpty()) && (!old_List.isEmpty())){
+		listChanges.put("PUREDELETE",old_List);
+	}
+	else {
+		listChanges.put("ADD",new_List);
+		listChanges.put("DELETE",old_List);
 	}
 	return listChanges;
 }
@@ -1689,6 +1721,8 @@ candidateLanguageList=new ArrayList();
 //selected language
 current_selected_language_id=null;
 candidatePropList=new ArrayList();
+oldPropList=new ArrayList();
+newPropList=new ArrayList();
 //selected_prop_list=new ArrayList();
 
 testQuery(){
@@ -1736,45 +1770,77 @@ saveNewQuestion(){
 	tempDuplicateList.clear();
 	int sizeOfDup=0;
 	tempQuesLabel=getFieldValue("questionBank/questionInfo/questionID");
-	quesDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+	quesDuplicateQuery=null;
+	if(question_id!=null){
+		quesDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
+				"and uuid<>'"+question_id+"' "+
+				"and measure ='"+tempQuesLabel+"' or measure like '"+tempQuesLabel+"(%)'";
+	}
+	else{
+		quesDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
 				"and measure ='"+tempQuesLabel+"' or measure like '"+tempQuesLabel+"(%)'";
+	}
+
 	fetchAll(quesDuplicateQuery,new FetchCallback() {
 		onFetch(result) {
 			if(!isNull(result)){
 				tempQuesLabel=makeLbl(result,tempQuesLabel,"QuestionID","QuestionBank");
 				setFieldValue("questionBank/questionInfo/questionID",tempQuesLabel);
 			}
-		
+		recording_req_id=getFieldValue("questionBank/questionInfo/questionProp");
+		//showWarning("recording_req_id",recording_req_id);
 		saveTabGroup("questionBank", question_id, null, null, new SaveCallback() {
-			    onSave(uuid, newRecord) {
-			      question_id = uuid;
-				  //setFieldValue("questionBank/questionInfo/questionID", question_id);
-				  saveEntitiesToRel("Question and Language",question_id,current_selected_language_id);
-				  recording_req_id=getFieldValue("questionBank/questionInfo/questionProp");
+		    onSave(uuid, newRecord) {
+		      question_id = uuid;
+			  //setFieldValue("questionBank/questionInfo/questionID", question_id);
+		      if (newRecord) {
+		      	//saveEntitiesToRel("Question and Language",question_id,current_selected_language_id);
+			  	
+				quesPropAttributes= createAttributeList();
+				quesPropAttributes.add(createEntityAttribute("QuesUuid", null, null, question_id, null));
+				quesPropAttributes.add(createEntityAttribute("QuesPropDefID", null, null,recording_req_id, null));
+				quesPropAttributes.add(createEntityAttribute("QuesPropValue", null, null, "Yes", null));
+				saveArchEnt(null, "QuesProperty", null, quesPropAttributes);
+		        showToast("New record created");
+		        cancelTabGroup("questionBank",true);
+		        showTab("control/question_control");
+		      }
+		      else{
+		      //saveEntitiesToRel("Question and Language",question_id,current_selected_language_id);
+		      }
+		    }
+		    onError(message) {
+		        showWarning("error",message);
+		    }  
+		  });
+
+		if((question_id!=null) && (!isNull(oldPropList))){
+			tempPropAttr=new ArrayList();
+			tempPropAttr.add(recording_req_id);
+			tempPropAttr.add("Yes");
+			newPropList.add(tempPropAttr);
+			//showWarning("oldPropList",oldPropList.get(0).get(0));
+			Hashtable quesPropChange=listChange(newPropList,oldPropList,0,0);
+			//showWarning("quesPropChange","quesPropChange");
+			if(quesPropChange.containsKey("ADD")){
+				//showWarning("ADD","ADD");
+				for(eleDel: quesPropChange.get("DELETE")){
+					//showWarning("uuid",eleDel.get(1));
+					deleteArchEnt(eleDel.get(1));
+					//showWarning("DELETE","DELETE");
+				}
+				for(eleAdd:quesPropChange.get("ADD")){
 					quesPropAttributes= createAttributeList();
 					quesPropAttributes.add(createEntityAttribute("QuesUuid", null, null, question_id, null));
-					quesPropAttributes.add(createEntityAttribute("QuesPropDefID", null, null,recording_req_id, null));
+					quesPropAttributes.add(createEntityAttribute("QuesPropDefID", null, null,eleAdd.get(0), null));
 					quesPropAttributes.add(createEntityAttribute("QuesPropValue", null, null, "Yes", null));
 					saveArchEnt(null, "QuesProperty", null, quesPropAttributes);
-			      if (newRecord) {
-			        showToast("New record created");
-			        cancelTabGroup("questionBank",true);
-			        showTab("control/question_control");
-			       
-					//newQuestion();
-					//initialQuestionCreation();
-			      }
-				  else{
-					//saveEntitiesToRel("Question and Language",question_id,current_selected_language_id);
-					showToast("Record changed");
-					//question_id=null;
-				  }
-			    }
-			    onError(message) {
-			        showWarning("error",message);
-			    }  
-			  });
+				}
+			}
+				showToast("Record changed");
+			}
 		}
 	});
 
@@ -1898,11 +1964,11 @@ loadQuestionInfo(){
 	        	"AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
 	        	"and measure='"+question_id+"'));";
 	        	*/
-	        	quesPropQuery="select measure from latestNonDeletedAentValue where "+
-	        	"AttributeID=(select AttributeID from Attributekey where AttributeName='QuesPropDefID') "+
-	        	"and uuid = (select uuid from latestNonDeletedAentValue where "+
-	        	"AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
-	        	"and measure='"+question_id+"');";
+	        	quesPropQuery="select measure,uuid from latestNonDeletedAentValue where "+
+	        	"AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefID')"+
+	        	"and uuid = (select uuid from latestNonDeletedArchEntIdentifiers "+
+	        	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
+	        	"and measure='"+question_id+"')";
 
 	        	fetchOne(langNameQuery,new FetchCallback() {
 					onFetch(result) {
@@ -1926,20 +1992,25 @@ loadQuestionInfo(){
 						//candidatePropList.add(placeholder);
 						candidatePropList.addAll(result);
 						//populateDropDown("questionBank/questionInfo/questionProp", candidatePropList);
-						fetchOne(quesPropQuery,new FetchCallback() {
+						fetchAll(quesPropQuery,new FetchCallback() {
 							onFetch(propResult) {
 									if(!isNull(propResult)){
 										tempPropList=new ArrayList();
 										tempPropList.clear();
 										//showWarning("isNull","isNull");
-										String tempProp=propResult.get(0);
+										String tempProp=propResult.get(0).get(0);
 										//showWarning("tempProp",tempProp);
+										oldPropList.clear();
+										oldPropList.addAll(propResult);
+										newPropList.clear();
+
 										for(prop: candidatePropList){
 											if(prop.get(0).equals(tempProp)){
 												//showWarning("prop",prop.get(1));
 												tempPropList.add(prop);
+												//oldPropList.add(prop);
 												//setFieldValue("questionBank/questionInfo/questionProp",prop);
-												break;
+												//break;
 											}
 										}
 										for(prop: candidatePropList){
