@@ -52,6 +52,11 @@ loadAllQuesnirPropQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesnirPropDefName') "+
 		"GROUP BY uuid;";
+
+loadAllQuesPropQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+		"WHERE latestNonDeletedAentValue.AttributeID "+
+		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesPropDefName') "+
+		"GROUP BY uuid;";
 /***Enable data and file syncing***/
 addActionBarItem("sync", new ToggleActionButtonCallback() {
     actionOnLabel() {
@@ -390,9 +395,131 @@ setQuesnirType(){
 		}
 	}
 }
-/***Quesnir Property***/
+/***Question Property***/
 onEvent("control/other_control/Prop_Control","click","showTabGroup(\"prop_control\")");
-/*
+onEvent("prop_control/prop_control_info","show","loadQuesProp(\"propLoad\")");
+onEvent("prop_control/prop_control_info/New_Prop","click","newQuesProp()");
+onEvent("prop_control/prop_control_info/propList","click","loadQuesPropInfo()");
+quesPropertyId=null;
+quesProperty=new ArrayList();
+createQuesPropPage(){
+	//showWarning("createQuesPropPage","createQuesPropPage");
+		if(!hasView("quesProperty/quesPropertyInfo/propName")){
+			removeAllViewsAndContainers("quesProperty");
+	//		showWarning("removeAllViewsAndContainers","removeAllViewsAndContainers");
+			executeViewTask(new ViewTask() {
+		    doTask() {
+		  		propNameViewDef=createViewDef().createTextField().setLabel("Property name").setAttributeName("QuesPropDefName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+		  		propDescViewDef=createViewDef().createTextField().setLabel("Property Description").setAttributeName("QuesPropDefDesc").setAttributeType("measure").setAnnotationEnabled(true);
+		  		savePropBtnDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+		  		dupListDef=createViewDef().createList().setLabel("Duplicate properties");
+	//			showWarning("dupListDef","dupListDef");
+		    	createView("quesProperty/quesPropertyInfo/propName",propNameViewDef,"quesProperty/quesPropertyInfo");
+		    	createView("quesProperty/quesPropertyInfo/propDesc",propDescViewDef,"quesProperty/quesPropertyInfo");
+		        createView("quesProperty/quesPropertyInfo/saveProp",savePropBtnDef,"quesProperty/quesPropertyInfo");
+		        createView("quesProperty/quesPropertyInfo/propDupList",dupListDef,"quesProperty/quesPropertyInfo");
+		        
+	
+				onEvent("quesProperty/quesPropertyInfo/saveProp","click","quesPropCheck()");
+		   		}
+			});
+	}
+}
+
+loadQuesProp(String typeflag){
+	fetchAll(loadAllQuesPropQuery,
+	new FetchCallback() {
+        onFetch(result) {
+			if (!isNull(result)) {
+				quesProperty.clear();
+				quesProperty.addAll(result);
+				if(typeflag.equals("propLoad")){
+					populateList("prop_control/prop_control_info/propList",quesProperty);
+				}
+			}
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+newQuesProp(){
+	quesPropertyId=null;
+	createQuesPropPage();
+	newTabGroup("quesProperty");
+}
+
+loadQuesPropInfo(){
+	quesPropertyId=getListItemValue();
+	if(isNull(quesPropertyId) || quesPropertyId.equals("placeholder")){
+		showWarning("Invalid data","No data selected");
+		return;
+	}
+	createQuesPropPage();
+	showTabGroup("quesProperty", quesPropertyId, new FetchCallback() {
+        onFetch(result) {
+        	tempPop=new ArrayList();
+        	tempPop.clear();
+        	populateList("quesProperty/quesPropertyInfo/propDupList",tempPop);
+            showToast("Loaded data"+result.getId());  
+            //showWarning("intro?",result.getClass().getName());          
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+quesPropCheck(){
+	String newPropName=getFieldValue("quesProperty/quesPropertyInfo/propName").trim();
+	if(isNull(newPropName)){
+			showWarning("Incomplete data", "You must input questionnaire property name");
+			return;
+		}
+		else{
+
+		quesnirPropCheckQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+							"WHERE latestNonDeletedAentValue.AttributeID "+
+							"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesPropDefName') "+
+							"AND latestNonDeletedAentValue.measure like '%"+newPropName+"%'; ";
+		//showWarning("quesnirTypeCheckQuery","quesnirTypeCheckQuery");					
+		fetchAll(quesnirPropCheckQuery,
+			new FetchCallback() {
+				onFetch(result) {
+					if (!isNull(result)) {
+						populateList("quesProperty/quesPropertyInfo/propDupList",result);
+						showAlert("Question property data", "This could be a duplicate data\n"+"The possible existing data is listed in the list\n"+"Do you still want to save?", "saveQuesProp()", "stayInCurrentPage()");
+					}
+					else{
+						saveQuesProp();
+					}
+				}
+		       
+			onError(message) {
+				showToast(message);
+			}
+			});
+		}	
+}
+saveQuesProp(){
+	saveTabGroup("quesProperty", quesPropertyId, null, null, new SaveCallback() {
+		onSave(uuid, newRecord) {
+			quesPropertyId = uuid;
+			//showWarning("saveQuesnirType",quesnirTypeId);
+			if (newRecord) {
+				showToast("New record created");
+			    cancelTabGroup("quesProperty",true);
+			}
+			else{
+				showToast("Record changed");
+			}
+		}
+		onError(message) {
+			showWarning("error",message);
+		}  
+		});
+}
+/* Quesnir Property
 onEvent("prop_control/prop_control_info","show","loadQuesnirProp(\"propLoad\")");
 onEvent("prop_control/prop_control_info/New_Prop","click","newQuesnirProp()");
 onEvent("prop_control/prop_control_info/propList","click","loadQuesnirPropInfo()");
