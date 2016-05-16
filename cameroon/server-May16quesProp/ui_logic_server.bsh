@@ -1362,12 +1362,7 @@ finishCreateQuestionnaire(){
 			});
 
 		}
-					});
-	//showWarning("questionSelected","not null");
-		
-	
-	//flag_return_questionnaire=false;
-	
+	});
 }
 
 finishChangeQuestionnaire(){
@@ -1693,6 +1688,7 @@ question_id=null;
 candidateLanguageList=new ArrayList();
 //selected language
 current_selected_language_id=null;
+candidatePropList=new ArrayList();
 
 testQuery(){
 	query=getFieldValue("control/querytest/query");
@@ -1788,6 +1784,7 @@ saveNewQuestion(){
 //preparation for question creation
 initialQuestionCreation(){
 	candidateLanguageList.clear();
+	candidatePropList.clear();
 	//setFieldValue("questionBank/questionInfo/keywordInput", "*");
 	if(isNull(question_id)){
 		//String autoQuestionId="Ques_"+username+"_"+getCurrentTime();
@@ -1796,7 +1793,7 @@ initialQuestionCreation(){
 		//setFieldValue("questionBank/questionInforHidden/questionChoice", "N/A");
 		//setFieldValue("questionBank/questionInfo/questionContent", "");
 		fetchAll(loadAllLanguageQuery,
-				 new FetchCallback() {
+			new FetchCallback() {
 				onFetch(result) {
 					//if(!isNull(result)){
 					candidateLanguageList.addAll(result);
@@ -1806,9 +1803,18 @@ initialQuestionCreation(){
 					setFieldValue("questionBank/questionInfo/questionLanguage",candidateLanguageList.get(0).get(1));
 					setFieldValue("questionBank/questionInforHidden/questionLanguageUuid",candidateLanguageList.get(0).get(0));
 				}
-				//}
-		}  
-	});		
+			}  
+		});	
+		fetchAll(loadAllQuesPropQuery,
+			new FetchCallback() {
+				onFetch(result) {
+					//if(!isNull(result)){
+					candidatePropList.addAll(result);
+					//populateList("questionBank/questionInfo/questionLanguageSelectionList",result);
+					populateDropDown("questionBank/questionInfo/questionProp", result);
+				}  
+		});	
+
 	}
 	setFieldValue("questionBank/questionInfo/keywordInput", "*");
 	
