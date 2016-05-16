@@ -1689,6 +1689,7 @@ candidateLanguageList=new ArrayList();
 //selected language
 current_selected_language_id=null;
 candidatePropList=new ArrayList();
+//selected_prop_list=new ArrayList();
 
 testQuery(){
 	query=getFieldValue("control/querytest/query");
@@ -1749,17 +1750,23 @@ saveNewQuestion(){
 			    onSave(uuid, newRecord) {
 			      question_id = uuid;
 				  //setFieldValue("questionBank/questionInfo/questionID", question_id);
+				  saveEntitiesToRel("Question and Language",question_id,current_selected_language_id);
+				  recording_req_id=getFieldValue("questionBank/questionInfo/questionProp");
+					quesPropAttributes= createAttributeList();
+					quesPropAttributes.add(createEntityAttribute("QuesUuid", null, null, question_id, null));
+					quesPropAttributes.add(createEntityAttribute("QuesPropDefID", null, null,recording_req_id, null));
+					quesPropAttributes.add(createEntityAttribute("QuesPropValue", null, null, "Yes", null));
+					saveArchEnt(null, "QuesProperty", null, quesPropAttributes);
 			      if (newRecord) {
-					saveEntitiesToRel("Question and Language",question_id,current_selected_language_id);
-					//question_id=null;	
 			        showToast("New record created");
 			        cancelTabGroup("questionBank",true);
 			        showTab("control/question_control");
+			       
 					//newQuestion();
 					//initialQuestionCreation();
 			      }
 				  else{
-					saveEntitiesToRel("Question and Language",question_id,current_selected_language_id);
+					//saveEntitiesToRel("Question and Language",question_id,current_selected_language_id);
 					showToast("Record changed");
 					//question_id=null;
 				  }
