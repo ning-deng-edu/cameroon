@@ -1889,12 +1889,26 @@ loadQuestionInfo(){
 	        	"WHERE latestNonDeletedAentValue.AttributeID="+
 	        	"(SELECT AttributeID from AttributeKey WHERE AttributeName='LanguageName') "+
 	        	"AND latestNonDeletedAentValue.uuid='"+quesLangUuid+"';";
+	        	/*
+	        	quesPropQuery="select measure from latestNonDeletedAentValue where "+
+	        	"AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefName') "+
+	        	"and uuid = (select measure from latestNonDeletedAentValue where "+
+	        	"AttributeID=(select AttributeID from Attributekey where AttributeName='QuesPropDefID') "+
+	        	"and uuid = (select uuid from latestNonDeletedAentValue where "+
+	        	"AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
+	        	"and measure='"+question_id+"'));";
+	        	*/
+	        	quesPropQuery="select measure from latestNonDeletedAentValue where "+
+	        	"AttributeID=(select AttributeID from Attributekey where AttributeName='QuesPropDefID') "+
+	        	"and uuid = (select uuid from latestNonDeletedAentValue where "+
+	        	"AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
+	        	"and measure='"+question_id+"');";
 
 	        	fetchOne(langNameQuery,new FetchCallback() {
 					onFetch(result) {
 							if(!isNull(result)){
 								setFieldValue("questionBank/questionInfo/questionLanguage",result.get(0));
-								showToast("Loaded question"+question_id);
+								//showToast("Loaded question"+question_id);
 							}
 							else{
 								showWarning("Out-of-date data","The language in the question is not using anymore");
@@ -1904,6 +1918,39 @@ loadQuestionInfo(){
 	  						}
   						}
 					});
+	        	fetchAll(loadAllQuesPropQuery,
+					 new FetchCallback() {
+					onFetch(result) {
+						//if(!isNull(result)){
+						candidatePropList.clear();
+						//candidatePropList.add(placeholder);
+						candidatePropList.addAll(result);
+						populateDropDown("questionBank/questionInfo/questionProp", candidatePropList);
+						fetchOne(quesPropQuery,new FetchCallback() {
+							onFetch(propResult) {
+									if(!isNull(propResult)){
+										//showWarning("isNull","isNull");
+										String tempProp=propResult.get(0);
+										//showWarning("tempProp",tempProp);
+										for(prop: candidatePropList){
+											if(prop.get(0).equals(tempProp)){
+												//showWarning("prop",prop.get(1));
+												setFieldValue("questionBank/questionInfo/questionProp",prop.get(1));
+												break;
+											}
+										}
+									}
+									else{
+										showWarning("Out-of-date data","The property in the question is not using anymore");
+									}
+									onError(message) {
+			    						showToast(message);
+			  						}
+		  						}
+							});
+						}
+					});
+	        	
 				setFieldValue("questionBank/questionInfo/keywordInput", "*");
 	        }
 	        onError(message) {
@@ -1925,26 +1972,11 @@ loadQuestionInfo(){
 						//if(!isNull(result)){
 						candidateLanguageList.clear();
 						candidateLanguageList.add(placeholder);
-						//showWarning("loadQuestionInfo pla type",candidateLanguageList.get(0).getClass().getName());
 						candidateLanguageList.addAll(result);
-						//showWarning("loadQuestionInfo result type",candidateLanguageList.get(2).get(0).getClass().getName());
-						//showWarning("loadQuestionInfo result type",candidateLanguageList.get(2).get(1).getClass().getName());
-						//showWarning("loadQuestionInfo","result candidateLanguageList");
-						//populateList("questionBank/questionInfo/questionLanguageSelectionList",result);
 						populateDropDown("questionBank/questionInfo/questionLanguageSelectionList", candidateLanguageList);
 					}
 					});
-			/*			
-		fetchAll(loadAllLanguageQuery,
-					new FetchCallback() {
-					onFetch(result) {
-					candidateLanguageList.clear();
-					candidateLanguageList.addAll(result);
-					populateList("questionBank/questionInfo/questionLanguageSelectionList",result);
-					//populateDropDown("questionBank/questionInfo/questionLanguageDropdown", result);
-					}  
-		});
-		*/
+		
 }
 
 //search language
