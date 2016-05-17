@@ -2853,7 +2853,7 @@ startNewAnswer(String typeflag){
 		ansLabelMidPart=ansLabelMidPart+"EtAl";
     }
     tempAnsLabel=ansLabelFstPart+ansLabelMidPart+ansLabelSndPart;
-    if(typeflag.equals("ans")){
+    if(typeflag.equals("non")){
     	createAnswerPage();
 		newTabGroup("survey");
 		setFieldValue("survey/answerHidden/answerQuestionnaireID", current_quesnir_id);
@@ -2881,8 +2881,26 @@ startNewAnswer(String typeflag){
 				tempAnsLabel=makeLabel(result,tempAnsLabel,"AnswerToQuestionnaire","AnswerLabel");
 			}
 			hiddenAnsInfo.put("label",tempAnsLabel);
-			newFile("answer","Video");
-			attachVideoToField("file/fileInfo/videoFileContent");
+			switch(typeflag){
+				case "aud":
+					newFile("answer","Audio");
+					attachAudioToField("file/fileInfo/audioFileContent");
+				break;
+				case "vid":
+					newFile("answer","Video");
+					attachVideoToField("file/fileInfo/videoFileContent");
+				break;
+				case "pho":
+					newFile("answer","Photo");
+					attachPictureToField("file/fileInfo/photoFileContent");
+				break;
+
+				case "fil":
+					newFile("answer","Sketch");
+					attachFileToField("file/fileInfo/sketchFileContent");
+				break;
+			}
+			
 			ansOrNot=false;
 		}
 		});
