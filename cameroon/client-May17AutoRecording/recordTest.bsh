@@ -339,9 +339,6 @@ sssOldIntvReln=new ArrayList();
 sssOldCoslReln=new ArrayList();
 sssOldPsReln=new ArrayList();
 
-sssTimeMng=new ArrayList();
-
-
 /***session dynamic ui page generation***/
 createMainSessionPage(){
 	if(!hasView("sessionForAnswer/sssHidden/sssID")){
@@ -545,8 +542,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	sssOldPsReln.clear();
 	sssOldCoslReln.clear();
 	sssOldIntvReln.clear();
-	sssTimeMng.clear();
-	
+
 	takePoint();
 	
 	newTabGroup("sessionForAnswer");
@@ -554,7 +550,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
     currentDateTimeArray=currentTime.toString().split("\\s+");
     String currentDate=currentDateTimeArray[0];
     setFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp",currentTime);           
-    setFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp",currentDate+" 23:59:59");
+
     if (!isNull(currentPosition)){
     	sssLabel="_"+currentPosition.get(1)+"_"+currentPosition.get(2)+"_"+currentDate;
     	setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation",currentPosition.get(0));
@@ -1255,7 +1251,7 @@ loadSessionInfo(String typeFlag){
 				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
 	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
 				"and latestNonDeletedRelationship.Deleted IS NULL)))";
-
+		/*
 		loadAnsStartTimeForSssQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerStartTime') "+
 				"and uuid in "+
@@ -1275,7 +1271,7 @@ loadSessionInfo(String typeFlag){
 				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
 	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
 				"and latestNonDeletedRelationship.Deleted IS NULL)))";
-
+		*/
 		loadAnsSssRelnQuery="select RelationshipID, uuid from latestNonDeletedAentReln where uuid <> '"+sss_id+
 		"' and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='"+sss_id+
 			"' and RelationshipID in(select RelationshipID from latestNonDeletedRelationship "+
@@ -1305,43 +1301,7 @@ loadSessionInfo(String typeFlag){
 			"' and RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
 				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Person') "+
 				"and latestNonDeletedRelationship.Deleted IS NULL))";
-
-		fetchAll(loadAnsStartTimeForSssQuery, new FetchCallback() {
-	        onFetch(result) {
-	        	tempAnsStartTime=new ArrayList();
-	        	tempAnsStartTime.clear();
-	        	if(!isNull(result)){
-	        		tempAnsStartTime.addAll(result);
-	        		fetchAll(loadAnsEndTimeForSssQuery, new FetchCallback() {
-				        onFetch(endTimeResult) {
-				        	tempAnsEndTime=new ArrayList();
-	        				tempAnsEndTime.clear();
-	        				if(!isNull(endTimeResult)){
-	        					tempAnsEndTime.addAll(endTimeResult);
-	        					for(startTime:tempAnsStartTime){
-	        						for(endTime:tempAnsEndTime){
-	        							if(startTime.get(0).equals(endTime.get(0))){
-	        								tempAnsTime=new ArrayList();
-	        								tempAnsTime.add(startTime.get(0));
-	        								tempAnsTime.add(startTime.get(1));
-	        								tempAnsTime.add(endTime.get(1));
-	        								sssTimeMng.add(tempAnsTime);
-	        							}
-	        						}
-	        					}
-	        				}
-				        }
-				        onError(message) {
-				            showToast(message);
-				        }
-				    });
-	        	}
-	        }
-	        onError(message) {
-	            showToast(message);
-	        }
-	    });
-
+		
 		fetchAll(loadAnsSssRelnQuery, new FetchCallback() {
 	        onFetch(result) {
 	        	sssAnsRelnOrigin.clear();
@@ -1387,7 +1347,7 @@ loadSessionInfo(String typeFlag){
 	        	sssOriginInfo.add(sssLabelOld);
 	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
 	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"));
-	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp"));  
+	        	//sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp"));  
 	        	fetchAll(loadAnswerForSessionQuery, new FetchCallback() {
 	                onFetch(answers) {
 	                	original_sss_answer_list.clear();
@@ -1689,7 +1649,7 @@ autoSaveSession(String typeFlag){
 			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssID"));
 			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
 			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"));
-			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp"));
+
 			original_sss_answer_list.clear();
 			original_sss_answer_list.addAll(sss_answer_list);
 			sssPersonRoleNameListOrigin.clear();
@@ -2156,19 +2116,6 @@ ansListChange(Hashtable sssAnsChange){
 updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPsChange){
 	//case 1: sssInfoChanged only PASS
 	if((!sssInfoChange.containsKey("EQUAL")) && (sssAnsChange.containsKey("EQUAL"))){
-		String startTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp");
-		//String endTimeStamp=getCurrentTime();
-		endTimeStamp=null;
-		endTimeAuto=generateSssEndTime(sssTimeMng);
-		if(!isNull(endTimeAuto)){
-			setFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp",endTimeAuto);
-			endTimeStamp=endTimeAuto;
-		}
-		else{
-			endTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp");
-		}
-		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
-			//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
 		saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 		    onSave(uuid, newRecord) {
 		    	autoSaveSession("tail");
@@ -2178,94 +2125,29 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 		        showWarning("error",message);
 		    }  
 		  });
-		}
-		else{
-			showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
-					+"2.Datetime input should be valid \n"+
-								"3.Start timestamp should be before end timestamp \n"+
-											"4.Two dates should be the same");
-			return;
-		}
 	}
 
 	//case 2: sssAns changed only PASS
-	//TODO:ADD time validation for new answer's time
 	else if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
-		Boolean newAns=false;
-		endTimeStamp=null;
-		endTimeStamp=generateSssEndTime(sssTimeMng);
-		if(isNull(endTimeStamp)){
-			endTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp");
-		}
-		if((sssAnsChange.containsKey("ADD"))||(sssAnsChange.containsKey("PUREADD"))){
-			//endTimeStamp=generateSssEndTime(sssTimeMng);
-			newAns=true;
-		}
-		/*
-		else{
-			endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
-		}
-		*/
-		String startTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp");
-		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
-			if(newAns){
-				setFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp",endTimeStamp);
-			}
-			ansListChange(sssAnsChange);
-			autoSaveSession("tail");
-			showToast("Session answer data changed");
-		}
-		else{
-			showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
-					+"2.Datetime input should be valid \n"+
-								"3.Start timestamp should be before end timestamp \n"+
-											"4.Two dates should be the same");
-			return;
-		}
-		
+		ansListChange(sssAnsChange);
+		autoSaveSession("tail");
+		showToast("Session answer data changed");
 	}
 
 	//case 3: both sssInfo and sssAns changed PASS
-	//TODO:ADD time validation for new answer's time
 	else{
-		String startTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp");
-		Boolean newAns=false;
-		endTimeStamp=null;
-		endTimeStamp=generateSssEndTime(sssTimeMng);
-		if(isNull(endTimeStamp)){
-			endTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp");
-		}
-		if((sssAnsChange.containsKey("ADD")) ||(sssAnsChange.containsKey("PUREADD"))){
-			//endTimeStamp=getCurrentTime();
-			newAns=true;
-		}
-		//else{
-			//endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
-		//}
-		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
-			if(newAns){
-				setFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp",endTimeStamp);
-			}
-			//TODO: bug here
-			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-			    onSave(uuid, newRecord) {
-			    	ansListChange(sssAnsChange);
-			    	autoSaveSession("tail");
-			        showToast("Session data changed");
+		//TODO: bug here
+		saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+		    onSave(uuid, newRecord) {
+		    	ansListChange(sssAnsChange);
+		    	autoSaveSession("tail");
+		        showToast("Session data changed");
 
-			    }
-			    onError(message) {
-			        showWarning("error",message);
-			    }  
-			  });
-		}
-		else{
-			showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
-					+"2.Datetime input should be valid \n"+
-								"3.Start timestamp should be before end timestamp \n"+
-											"4.Two dates should be the same");
-			return;
-		}
+		    }
+		    onError(message) {
+		        showWarning("error",message);
+		    }  
+		  });
 	}
 }
 
@@ -2283,6 +2165,7 @@ generateSssEndTime(ArrayList sssTimeList){
 	}
 	return sssEndTime;
 }
+
 updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPsChange){
 	Hashtable psInfo=extractPsSum();
 	if(psInfo.isEmpty()){
@@ -2335,107 +2218,43 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 				else{
 					setFieldValue("sessionForAnswer/sssHidden/sssID",newSssLabel);
 				}
-				Boolean newAns=false;
-				String startTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp");
-				endTimeStamp=null;
-				endTimeStamp=generateSssEndTime(sssTimeMng);
-				if(isNull(endTimeStamp)){
-					endTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp");
-				}
-				if((sssAnsChange.containsKey("ADD"))||(sssAnsChange.containsKey("PUREADD"))){
-					//endTimeStamp=getCurrentTime();
-					newAns=true;
-				}
-				//else{
-					//endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
-				//}
-				if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
-					if(newAns){
-						setFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp",endTimeStamp);
-					}
-					saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-			    		onSave(uuid, newRecord) {
-			    		if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
-			    				ansListChange(sssAnsChange);
-			    				autoSaveSession("tail");
-			    			}
-			    		
-			    		}//onSave(uuid, newRecord)
+				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+		    		onSave(uuid, newRecord) {
+		    		if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
+		    				ansListChange(sssAnsChange);
+		    				autoSaveSession("tail");
+		    			}
+		    		
+		    		}//onSave(uuid, newRecord)
 
-					});
-				}
-				else{
-					showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
-							+"2.Datetime input should be valid \n"+
-										"3.Start timestamp should be before end timestamp \n"+
-													"4.Two dates should be the same");
-					return;
-				}
-
+				});
 			}
-
 		});
 		//showWarning("sssLabelChange",sssLabelChange.toString());
 	}//if sssLabelChange
 
 	else{
-			Boolean newAns=false;
-			String startTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp");
-			endTimeStamp=null;
-			endTimeStamp=generateSssEndTime(sssTimeMng);
-			if(isNull(endTimeStamp)){
-				endTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp");
-			}
-			if((sssAnsChange.containsKey("ADD"))||(sssAnsChange.containsKey("PUREADD"))){
-				//endTimeStamp=getCurrentTime();
-				newAns=true;
-			}
-			//else{
-			//	endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
-			//}
-			if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
-				//New added answers
-				if(newAns){
-					setFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp",endTimeStamp);
-					saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-					    onSave(uuid, newRecord) {
-					    	if(!sssAnsChange.containsKey("EQUAL")){
-					    		ansListChange(sssAnsChange);
-					    		autoSaveSession("tail");
-					    	}
-					    }
-					    onError(message) {
-					        showWarning("error",message);
-					    }  
-					  });
-				}
-				//new deleted answers
-				else if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
-					ansListChange(sssAnsChange);
-				}
-				//only sssInfoChange
-				else if(!sssInfoChange.containsKey("EQUAL")){	
-					saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-					    onSave(uuid, newRecord) {
-					    	if(!sssAnsChange.containsKey("EQUAL")){
-					    		ansListChange(sssAnsChange);
-					    		autoSaveSession("tail");
-					    	}
-					    }
-					    onError(message) {
-					        showWarning("error",message);
-					    }  
-					  });
-				}
-			}
-			else{
-				showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
-						+"2.Datetime input should be valid \n"+
-									"3.Start timestamp should be before end timestamp \n"+
-												"4.Two dates should be the same");
-				return;
-			}
+			//new deleted answers
+		if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
+			ansListChange(sssAnsChange);
+			autoSaveSession("tail");
 		}
+		//sssInfoChange
+		else if(!sssInfoChange.containsKey("EQUAL")){	
+			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+			    onSave(uuid, newRecord) {
+			    	if(!sssAnsChange.containsKey("EQUAL")){
+			    		ansListChange(sssAnsChange);
+			    		autoSaveSession("tail");
+			    	}
+			    }
+			    onError(message) {
+			        showWarning("error",message);
+			    }  
+			  });
+		}
+			
+	}
 	sssPsUpdate(sssPsChange);
 	saveAnsInSession(sss_id,"dupLabel");
 }
@@ -2448,17 +2267,11 @@ changeSession(){
 			showWarning("Incomplete Data","Please make sure that data is complete");
 			return;
 		}
-	endTimeAuto=generateSssEndTime(sssTimeMng);
-	if(isNull(endTimeAuto)){
-		endTimeAuto=getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp");
-	}
-	setFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp",endTimeAuto);
 	sssNewInfo.clear();
 	sssNewInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssID"));
 	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
 	sssNewInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"));
-	sssNewInfo.add(endTimeAuto);
-	//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",);
+
 	Hashtable sssInfoChange=listChange(sssNewInfo,sssOriginInfo);
 	Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
 	Hashtable sssPsChange=listChange(sssPersonRoleandNameList,sssPersonRoleNameListOrigin);
@@ -2528,39 +2341,22 @@ saveSession(String typeflag){
 							else{
 								setFieldValue("sessionForAnswer/sssHidden/sssID",tempSssLabel);
 							}
-							
-							endTimeAuto=generateSssEndTime(sssTimeMng);
-							if(isNull(endTimeAuto)){
-								endTimeAuto=getCurrentTime();
-							}
-							setFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp",endTimeAuto);
-							String startTimeStamp=getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp");
-							String endTimeStamp=endTimeAuto;
-							if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
-								saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-								    onSave(uuid, newRecord) {
-								    	sss_id = uuid;
-								      	if (newRecord) {
-								      	  //saving answer list for this session
-											saveAnsInSession(sss_id,"newSss");
-											savePsInSession(sss_id);
-											autoSaveSession("tailNew");
-											showToast("New session contains answer(s) created");
-								      }
-								    }
-								    onError(message) {
-								        showWarning("error",message);
-								    }  
-								  });
-							}
-							else{
-								showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
-								+"2.Datetime input should be valid \n"+
-											"3.Start timestamp should be before end timestamp \n"+
-														"4.Two dates should be the same");
-									return;
-							}
 
+							saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+							    onSave(uuid, newRecord) {
+							    	sss_id = uuid;
+							      	if (newRecord) {
+							      	  //saving answer list for this session
+										saveAnsInSession(sss_id,"newSss");
+										savePsInSession(sss_id);
+										autoSaveSession("tailNew");
+										showToast("New session contains answer(s) created");
+							      }
+							    }
+							    onError(message) {
+							        showWarning("error",message);
+							    }  
+							  });
 						}  
 					});
 			}//if(isNull(sss_id))
@@ -2611,8 +2407,6 @@ survey_list=new ArrayList();
 
 files_in_current_ques=new ArrayList();
 files_origin=new ArrayList();
-
-ansTimeMng=new ArrayList();
 
 Boolean ansOrNot=true;//denoting if the answer has the answer ui page
 hiddenAnsInfo=new HashMap();// holding the answer info when no answer ui
@@ -2670,7 +2464,6 @@ loadAnswerInfo(){
 		return;
 	}
 	else{
-	ansTimeMng.clear();
 	loadFileAnsRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+current_answer_id+" "+
 				"and RelationshipID in "+
 				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
@@ -2749,42 +2542,7 @@ loadAnswerInfo(){
             showToast(message);
         }
     });
-
-    fetchAll(loadFileStartTimeQuery, new FetchCallback() {
-        onFetch(result) {
-        	tempFileStartTime=new ArrayList();
-        	tempFileStartTime.clear();
-        	if(!isNull(result)){
-        		tempFileStartTime.addAll(result);
-        		fetchAll(loadFileEndTimeQuery, new FetchCallback() {
-			        onFetch(endTimeResult) {
-			        	tempFileEndTime=new ArrayList();
-        				tempFileEndTime.clear();
-        				if(!isNull(endTimeResult)){
-        					tempFileEndTime.addAll(endTimeResult);
-        					for(startTime:tempFileStartTime){
-        						for(endTime:tempFileEndTime){
-        							if(startTime.get(0).equals(endTime.get(0))){
-        								tempTime=new ArrayList();
-        								tempTime.add(startTime.get(0));
-        								tempTime.add(startTime.get(1));
-        								tempTime.add(endTime.get(1));
-        								ansTimeMng.add(tempTime);
-        							}
-        						}
-        					}
-        				}
-			        }
-			        onError(message) {
-			            showToast(message);
-			        }
-			    });
-        	}
-        }
-        onError(message) {
-            showToast(message);
-        }
-    });
+    
     createAnswerPage();
 	showTabGroup("survey", current_answer_id, new FetchCallback() {
         onFetch(result) {
@@ -2794,7 +2552,6 @@ loadAnswerInfo(){
         	answerInfoOriginal.add(getFieldValue("survey/answerHidden/answerLabel"));
         	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerText"));
         	answerInfoOriginal.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
-        	answerInfoOriginal.add(getFieldValue("survey/answerHidden/answerEndTimestamp"));
             showToast("Loaded answer"+result.getId());            
         }
         onError(message) {
@@ -2836,7 +2593,6 @@ startNewAnswer(String typeflag){
 	dupFileLblChange=false;
 	dupAnsLblInfo.clear();
 	dupFileLblInfo.clear();
-	ansTimeMng.clear();
 	hiddenAnsInfo.clear();
 
     currentDateTimeArray=current_start_time.toString().split("\\s+");
@@ -2860,7 +2616,6 @@ startNewAnswer(String typeflag){
 		setFieldValue("survey/answerHidden/answerQuestionID", current_question_id);
 		//setFieldValue("survey/answerHidden/answerChoice", "N/A");
 		setFieldValue("survey/answerHidden/answerStartTimestamp", current_start_time);
-		setFieldValue("survey/answerHidden/answerEndTimestamp", "placeholder");
 		
 		labelDeduplicate(tempAnsLabel,"AnswerLabel","survey/answerHidden/answerLabel","answer");
 		//setFieldValue("survey/answerBasic/answerLabel", tempAnsLabel);
@@ -3041,17 +2796,8 @@ ansTypeChecking(String ques_id){
 }
 saveNewAnswer(){
 	//dealing with the situation when the answer does not have a file attached
-	ansEndTime=getCurrentTime();
-	if(!isNull(ansTimeMng)){
-		ansTimeList=new ArrayList();
-		for(time : ansTimeMng){
-			ansTimeList.add(time.get(2));
-		}
-		ansEndTime=extractLatestTime(ansTimeList);
-	}
-	//showWarning("ansEndTime",ansEndTime);
+	
 	if(!ansOrNot){
-		hiddenAnsInfo.put("end_time", ansEndTime);
 		//showWarning("hiddenAnsInfo","hiddenAnsInfo");
 		//showWarning("hiddenAnsInfo",hiddenAnsInfo.get("quesnir_id"));
 		attributes = createAttributeList();
@@ -3060,7 +2806,7 @@ saveNewAnswer(){
 		attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
 		attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
 		attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
-		attributes.add(createEntityAttribute("AnswerEndTime", null, null, hiddenAnsInfo.get("end_time"), null));
+
 		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
 			onSave(uuid, newRecord){
 				answer_id = uuid;
@@ -3074,12 +2820,6 @@ saveNewAnswer(){
 						newAnswer.add(answer_id);
 						newAnswer.add(hiddenAnsInfo.get("label"));
 						sss_answer_list.add(newAnswer);
-						newAnsTime=new ArrayList();
-						newAnsTime.add(answer_id);
-						newAnsTime.add(hiddenAnsInfo.get("start_time"));
-						newAnsTime.add(ansEndTime);
-						sssTimeMng.add(newAnsTime);
-
 						populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
 						//if this is the second answer with a duplicate label
 						//the other answer label will be changed with a suffix (1)
@@ -3114,8 +2854,6 @@ saveNewAnswer(){
 		}
 		
 		if(isNull(current_answer_id)){//create new answer
-			setFieldValue("survey/answerHidden/answerEndTimestamp",ansEndTime);
-
 			String newAnsLabel=getFieldValue("survey/answerHidden/answerLabel");
 			
 			saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
@@ -3135,12 +2873,7 @@ saveNewAnswer(){
 						newAnswer.add(answer_id);
 						newAnswer.add(newAnsLabel);
 						sss_answer_list.add(newAnswer);
-						newAnsTime=new ArrayList();
-						newAnsTime.add(answer_id);
-						newAnsTime.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
-						newAnsTime.add(ansEndTime);
-						sssTimeMng.add(newAnsTime);
-
+						
 						populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
 						//if this is the second answer with a duplicate label
 						//the other answer label will be changed with a suffix (1)
@@ -3172,9 +2905,7 @@ saveNewAnswer(){
 			answerInfoNew.clear();
 			answerInfoNew.add(getFieldValue("survey/answerHidden/answerLabel"));
 			answerInfoNew.add(getFieldValue("survey/answerBasic/answerText"));
-			setFieldValue("survey/answerHidden/answerEndTimestamp",ansEndTime);
 			answerInfoNew.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
-			answerInfoNew.add(ansEndTime);	
 			Hashtable fileListChange=listChange(files_in_current_ques,files_origin);
 			Hashtable answerBasicInfoChange=listChange(answerInfoNew,answerInfoOriginal);
 			//case1: Nothing changed
@@ -3210,15 +2941,7 @@ saveNewAnswer(){
 								for(file : files_in_current_ques){
 									saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
 								}
-								for(int i =0; i<sssTimeMng.size();i++){
-									if(sssTimeMng.get(i).get(0).equals(answer_id)){
-										newAnsTime=new ArrayList();
-										newAnsTime.add(answer_id);
-										newAnsTime.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
-										newAnsTime.add(ansEndTime);
-										sssTimeMng.set(i,newAnsTime);
-									}
-								}
+								
 								showToast("Answer Info Changed");
 								cancelTabGroup("survey", true);
 								autoSaveSession("head");
@@ -3292,12 +3015,6 @@ deleteFileRelation(){
 			break;
 		}
 	}
-	for(delFile : ansTimeMng){
-		if(delFile.get(0).equals(delete_file_id)){
-			ansTimeMng.remove(delFile);
-		}
-	}
-
 }
 
 Boolean answerFile=false;//flag of whether user is viewing file from answer page
@@ -3604,21 +3321,6 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 					newFileType.add(fileType);
 					file_and_fileType.add(newFileType);
 
-					newFileTime=new ArrayList();
-					newFileTime.add(current_answer_file_id);
-					if(!fileType.equals("Recording")){
-						//showWarning("startTime","file/fileInfo/"+fileType.toLowerCase()+"FileStartTime");
-						newFileTime.add(getFieldValue("file/fileHidden/"+fileType.toLowerCase()+"FileStartTime"));
-						//showWarning("startTime",getFieldValue("file/fileInfo/"+fileType.toLowerCase()+"FileStartTime"));
-						newFileTime.add(getFieldValue("file/fileHidden/"+fileType.toLowerCase()+"FileEndTime"));
-					}
-					else{
-						newFileTime.add(getFieldValue("file/fileHidden/sketchFileStartTime"));
-						newFileTime.add(getFieldValue("file/fileHidden/sketchFileEndTime"));
-					}
-					ansTimeMng.add(newFileTime);
-					//showWarning("ansTimeMng","ansTimeMng added");
-					//saveEntitiesToRel("Answer and File",answer_id,current_answer_file_id);	
 					if(dupFileLblChange && !isNull(dupFileLblInfo)){
 						newLabel=dupFileLblInfo.get(1);
 						entityId=dupFileLblInfo.get(0);
@@ -3668,23 +3370,6 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 			saveTabGroup(tabGroupRef,file_id, null, null, new SaveCallback() {
 				onSave(uuid, newRecord) {
 					file_id = uuid;
-					newFileTime=new ArrayList();
-					newFileTime.add(current_answer_file_id);
-					if(!fileType.equals("Recording")){
-						newFileTime.add(getFieldValue("file/fileHidden/"+fileType.toLowerCase()+"FileStartTime"));
-						newFileTime.add(getFieldValue("file/fileHidden/"+fileType.toLowerCase()+"FileEndTime"));
-					}
-					else{
-						newFileTime.add(getFieldValue("file/fileHidden/sketchFileStartTime"));
-						newFileTime.add(getFieldValue("file/fileHidden/sketchFileEndTime"));
-					}
-
-					for(int i=0; i<ansTimeMng.size();i++){
-						if(ansTimeMng.get(i).get(0).equals(file_id)){
-							ansTimeMng.set(i,newFileTime);
-							break;
-						}
-					}
 					if (newRecord) {				
 						showToast("New file record created");
 					}
@@ -3895,12 +3580,6 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag, String toDelId)
 			case "sessionFile":
 				candidate_files_session.add(targetList.get(idx_delete));
 				sss_answer_list.remove(idx_delete);
-				for(ansTime:sssTimeMng){
-					if(ansTime.get(0).equals(toDelId)){
-						sssTimeMng.remove(ansTime);
-					}
-				}
-				//loadSessionInterviewer("session");
 				populateList("sessionForAnswer/sssAnsList/sssAnswerList", sss_answer_list);
 				populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
 				break;
