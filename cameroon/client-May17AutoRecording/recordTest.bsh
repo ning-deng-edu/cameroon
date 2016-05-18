@@ -2479,7 +2479,7 @@ loadAnswerInfo(){
             showToast(message);
         }
     });
-	
+	/*
 	loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileName') "+
 			"and uuid in "+
@@ -2489,7 +2489,17 @@ loadAnswerInfo(){
 			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
  			"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
 			"and latestNonDeletedRelationship.Deleted IS NULL)))";
-
+	*/
+	loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileID') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+			"(select RelationshipID from AEntReln where AEntReln.uuid="+current_answer_id+" "+
+ 			"AND RelationshipID in "+
+			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+ 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)))";		
+			
 	loadFileTypeQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileType') "+
 			"and uuid in "+
@@ -2798,8 +2808,6 @@ saveNewAnswer(){
 	//dealing with the situation when the answer does not have a file attached
 	
 	if(!ansOrNot){
-		//showWarning("hiddenAnsInfo","hiddenAnsInfo");
-		//showWarning("hiddenAnsInfo",hiddenAnsInfo.get("quesnir_id"));
 		attributes = createAttributeList();
 		
 		attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, hiddenAnsInfo.get("quesnir_id"), null));
@@ -3053,7 +3061,7 @@ loadAnswerFileInfo(String typeFlag){
 						switch (currentType){
 						case "Audio":		
 							createFilePage("audio","attachAudioToField(\"file/fileInfo/audioFileContent\")",
-								"saveFileFromAnswer(\"file/fileInfo/audioFileName\",\"file/fileInfo/audioFileContent\",\"file\",\"Audio\")");
+								"saveFileFromAnswer(\"file/fileHidden/audioFileID\",\"file/fileInfo/audioFileContent\",\"file\",\"Audio\")");
 							showTabGroup("file", view_file_id, new FetchCallback() {
 						        onFetch(result) {						  
 						            showToast("Loaded audio file"+result.getId());            
@@ -3065,7 +3073,7 @@ loadAnswerFileInfo(String typeFlag){
 							break;
 						case "Video":
 							createFilePage("video","attachVideoToField(\"file/fileInfo/videoFileContent\")",
-								"saveFileFromAnswer(\"file/fileInfo/videoFileName\",\"file/fileInfo/videoFileContent\",\"file\",\"Video\")");
+								"saveFileFromAnswer(\"file/fileHidden/videoFileID\",\"file/fileInfo/videoFileContent\",\"file\",\"Video\")");
 							showTabGroup("file", view_file_id, new FetchCallback() {
 						        onFetch(result) {						  
 						            showToast("Loaded video file"+result.getId());            
@@ -3077,7 +3085,7 @@ loadAnswerFileInfo(String typeFlag){
 							break;
 						case "Photo":
 							createFilePage("photo","attachPictureToField(\"file/fileInfo/photoFileContent\")",
-								"saveFileFromAnswer(\"file/fileInfo/photoFileName\",\"file/fileInfo/photoFileContent\",\"file\",\"Photo\")");
+								"saveFileFromAnswer(\"file/fileHidden/photoFileID\",\"file/fileInfo/photoFileContent\",\"file\",\"Photo\")");
 							showTabGroup("file", view_file_id, new FetchCallback() {
 						        onFetch(result) {						  
 						            showToast("Loaded photo file"+result.getId());            
@@ -3089,7 +3097,7 @@ loadAnswerFileInfo(String typeFlag){
 							break;
 						case "Sketch":
 							createFilePage("sketch","attachFileToField(\"file/fileInfo/sketchFileContent\")",
-								"saveFileFromAnswer(\"file/fileInfo/sketchFileName\",\"file/fileInfo/sketchFileContent\",\"file\",\"Recording\")");
+								"saveFileFromAnswer(\"file/fileHidden/sketchFileID\",\"file/fileInfo/sketchFileContent\",\"file\",\"Recording\")");
 							showTabGroup("file", view_file_id, new FetchCallback() {
 						        onFetch(result) {						  
 						            showToast("Loaded sketch file"+result.getId());            
@@ -3152,8 +3160,6 @@ createFilePage(String fileType, String attachFunc, String saveFunc){
 				idFileDef = createViewDef().createTextField().setLabel(uiLabelPrefix+" file label").setAttributeName("FileID").setAttributeType("measure").
 				setAnnotationEnabled(true).setReadOnly(true);
 
-				
-
 				typeViewDef=createViewDef().createTextField().setLabel("File type").setAttributeName("FileType").setAttributeType("measure").
 				setAnnotationEnabled(true).setReadOnly(true);
 
@@ -3175,14 +3181,14 @@ createFilePage(String fileType, String attachFunc, String saveFunc){
 				else{
 					fileContentViewDef=createViewDef().createCameraGallery(true).setLabel("Photo").setAttributeName("FileContent").setAttributeType("measure").setAnnotationEnabled(true);
 				}
-				nameViewDef=createViewDef().createTextField().setLabel(uiLabelPrefix+" file name").setAttributeName("FileName").setAttributeType("measure").
-				setAnnotationEnabled(true).setStyleCss("required");
+				nameViewDef=createViewDef().createTextField().setLabel(uiLabelPrefix+" file name").setAttributeName("FileName").setAttributeType("measure");
 
 				createView("file/fileHidden/"+uiNamePrefix+"FileID", idFileDef,"file/fileHidden");
 				createView("file/fileHidden/"+uiNamePrefix+"FileType", typeViewDef,"file/fileHidden");
 				createView("file/fileHidden/"+uiNamePrefix+"FileCreator", creatorViewDef,"file/fileHidden");
 				createView("file/fileHidden/"+uiNamePrefix+"FileStartTime", startTimeViewDef,"file/fileHidden");
 				createView("file/fileHidden/"+uiNamePrefix+"FileEndTime", endTimeViewDef,"file/fileHidden");
+				createView("file/fileHidden/"+uiNamePrefix+"FileName", nameViewDef,"file/fileHidden");
 
 				//non-hidden page
 				newBtnViewDef=createViewDef().createButton().setLabel("New "+ uiLabelPrefix);
@@ -3191,7 +3197,7 @@ createFilePage(String fileType, String attachFunc, String saveFunc){
 				setAnnotationEnabled(true).setReadOnly(true);
 
 				saveBtnViewDef=createViewDef().createButton().setLabel("Save "+ uiLabelPrefix);
-				createView("file/fileInfo/"+uiNamePrefix+"FileName", nameViewDef,"file/fileInfo");
+				//createView("file/fileInfo/"+uiNamePrefix+"FileName", nameViewDef,"file/fileInfo");
 
 				
 				createView("file/fileInfo/"+uiNamePrefix+"FileContent", fileContentViewDef,"file/fileInfo");
@@ -3229,7 +3235,7 @@ newFile(String typeFlag, String fileType){
 					//Generate audio file creation ui pages
 				 	//createAudioFilePage("new");
 					createFilePage("audio","attachAudioToField(\"file/fileInfo/audioFileContent\")",
-						"saveFileFromAnswer(\"file/fileInfo/audioFileName\",\"file/fileInfo/audioFileContent\",\"file\",\"Audio\")");
+						"saveFileFromAnswer(\"file/fileHidden/audioFileID\",\"file/fileInfo/audioFileContent\",\"file\",\"Audio\")");
 					newTabGroup("file");
 
 					String tempAudioID=tempAnsID+"_Audio";
@@ -3242,7 +3248,7 @@ newFile(String typeFlag, String fileType){
 				case "Video":
 					//createVideoPage("new");
 					createFilePage("video","attachVideoToField(\"file/fileInfo/videoFileContent\")",
-						"saveFileFromAnswer(\"file/fileInfo/videoFileName\",\"file/fileInfo/videoFileContent\",\"file\",\"Video\")");
+						"saveFileFromAnswer(\"file/fileHidden/videoFileID\",\"file/fileInfo/videoFileContent\",\"file\",\"Video\")");
 					newTabGroup("file");
 					String tempVideoID=tempAnsID+"_Video";
 					labelDeduplicate(tempVideoID,"FileID","file/fileHidden/videoFileID","file");
@@ -3255,7 +3261,7 @@ newFile(String typeFlag, String fileType){
 				case "Photo":
 					//createPhotoPage("new");
 					createFilePage("photo","attachPictureToField(\"file/fileInfo/photoFileContent\")",
-						"saveFileFromAnswer(\"file/fileInfo/photoFileName\",\"file/fileInfo/photoFileContent\",\"file\",\"Photo\")");
+						"saveFileFromAnswer(\"file/fileHidden/photoFileID\",\"file/fileInfo/photoFileContent\",\"file\",\"Photo\")");
 					newTabGroup("file");
 					String tempPhotoID=tempAnsID+"_Photo";
 					labelDeduplicate(tempPhotoID,"FileID","file/fileHidden/photoFileID","file");
@@ -3268,7 +3274,7 @@ newFile(String typeFlag, String fileType){
 				case "Other":
 					//createSketchPage("new");
 					createFilePage("sketch","attachFileToField(\"file/fileInfo/sketchFileContent\")",
-						"saveFileFromAnswer(\"file/fileInfo/sketchFileName\",\"file/fileInfo/sketchFileContent\",\"file\",\"Recording\")");
+						"saveFileFromAnswer(\"file/fileHidden/sketchFileID\",\"file/fileInfo/sketchFileContent\",\"file\",\"Recording\")");
 					newTabGroup("file");
 					String tempSketchID=tempAnsID+"_Recording";
 					labelDeduplicate(tempSketchID,"FileID","file/fileHidden/sketchFileID","file");
@@ -3288,10 +3294,12 @@ newFile(String typeFlag, String fileType){
 
 saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, String fileType){
 	//showWarning("saveFileFromAnswer","saveFileFromAnswer");
+	/*
 	if(isNull(getFieldValue(ref))){
 		showWarning("Warning","File name can not be null");
 		return;
 	}
+	*/
 	if(isNull(getFieldValue(fileListViewRef))){	
 		showWarning("Warning","File not recorded");
 		return;
