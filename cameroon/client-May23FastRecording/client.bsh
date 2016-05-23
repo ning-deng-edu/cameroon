@@ -10,6 +10,8 @@ import java.io.File;
 import java.lang.Character;
 import java.lang.StringBuffer;
 
+//import java.lang.*;
+/*** 'Editable' - you can edit the code below based on the needs ***/
 User user; // don't touch
 String userid;
 
@@ -51,6 +53,11 @@ loadAllPersonIDQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"IN (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonID') "+
 		"GROUP BY uuid;";
 
+loadAllLanguageQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+		"WHERE latestNonDeletedAentValue.AttributeID "+
+		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='LanguageName') "+
+		"GROUP BY uuid;";
+
 loadAllSurveyQuery="select uuid,measure from "+
 		"((select measure as quesnirid from latestNonDeletedAentValue where AttributeID = "+
 			"(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') group by measure) t1 "+
@@ -80,7 +87,12 @@ loadAllSessionIDQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifie
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionID') "+
 		"GROUP BY uuid;";
 
-		loadAllAnswerQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers " +
+loadAllFieldTripQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+		"WHERE latestNonDeletedAentValue.AttributeID "+
+		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='FieldTripName') "+
+		"GROUP BY uuid;";
+
+loadAllAnswerQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers " +
 		"WHERE AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='AnswerLabel') "+
 		"GROUP BY uuid;";
@@ -143,8 +155,9 @@ loadAllRoleQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 
 loadAllUserQuery="select userid, fname || ' ' || lname from user where userdeleted is null";
 
-/**Action bar**/
 
+//loadFilesForAnswer="select uuid, measure from AentValue where AentValue.AttributeID =(select AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerText') and AentValue.uuid in (select uuid from (SELECT uuid FROM AEntValue where AEntValue.AttributeID=(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionID') and AEntValue.freetext='1000011437080460685') t1 inner join (SELECT uuid FROM AEntValue where AEntValue.AttributeID=(select AttributeKey.AttributeID from AttributeKey where AttributeKey.AttributeName='AnswerQuestionnaireID') and AEntValue.freetext='1000011437080512135') t2 using(uuid))"
+/***Enable data and file syncing***/
 addActionBarItem("sync", new ToggleActionButtonCallback() {
     actionOnLabel() {
         "Disable Sync";
@@ -238,7 +251,7 @@ onSyncFailure() {
     showToast("sync failed");
 }
 
-/***Common function: Save relationships among entities***/
+/***Save relationships among entities***/
 saveEntitiesToRel(String type, String entity1, String entity2) {
 	
 	 if (isNull(entity1) || isNull(entity2)) return;
@@ -494,7 +507,6 @@ createQuesSel(){
 			});
 	}
 }
-
 
 /***session for answer***/
 
@@ -3929,6 +3941,777 @@ makeLabel(ArrayList result, String tempLbl, String tableName, String attriName){
 	return rtnLbl;
 }
 
+
+
+/*******Person********/
+personIntroSss=new ArrayList();
+currentPersonInfo=new ArrayList();//for creating intro session for a new added person or existing person
+originPersonInfo =new ArrayList();//for recording original loaded person info so that we can tell if a person's info has changed
+changedPersonInfo=new ArrayList();//for recording newest edited person info so that we can tell if a person's info has been changed
+role_list=new ArrayList();
+savePersonWfProperty=new ArrayList();
+role_id=null;
+person_id=null;
+
+/**person dynamic ui generation**/
+createPersonRolePage(){
+	if(!hasView("personRoleSelect/personRoleSelectInfo/SearchRole")){
+		removeAllViewsAndContainers("personRoleSelect");
+	
+		executeViewTask(new ViewTask() {
+    	doTask() { 	
+	        style1 = "orientation";
+	        style2 = "even";
+	    	createContainer("personRoleSelect/personRoleSelectInfo/psRoleSelCtn", "orientation");
+	    	createContainer("personRoleSelect/personRoleSelectInfo/child1", "even", "personRoleSelect/personRoleSelectInfo/psRoleSelCtn");
+	        createContainer("personRoleSelect/personRoleSelectInfo/child2", "even", "personRoleSelect/personRoleSelectInfo/psRoleSelCtn");
+		
+			searchTextViewDef = createViewDef().createTextField().setLabel("keyword");
+			searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
+			psRoleListDef=createViewDef().createDropDown().setLabel("Role List");
+			newPsBtnDef=createViewDef().createButton().setLabel("New Person").setStyleCss("faims-blue");
+			createView("personRoleSelect/personRoleSelectInfo/keywordOfRole", searchTextViewDef,"personRoleSelect/personRoleSelectInfo/child1");
+			createView("personRoleSelect/personRoleSelectInfo/SearchRole", searchButtonDef,"personRoleSelect/personRoleSelectInfo/child2");
+			createView("personRoleSelect/personRoleSelectInfo/PersonRoleSelectList", psRoleListDef,"personRoleSelect/personRoleSelectInfo");
+			createView("personRoleSelect/personRoleSelectInfo/CreateNewPerson", newPsBtnDef,"personRoleSelect/personRoleSelectInfo");
+	        refreshTabgroupCSS("personRoleSelect");
+	        onEvent("personRoleSelect/personRoleSelectInfo","show","loadRoles(\"newPerson\",\"personRoleSelect/personRoleSelectInfo/PersonRoleSelectList\")");
+			onEvent("personRoleSelect/personRoleSelectInfo/CreateNewPerson","click","newPersonByRole()");
+	        }
+		});
+
+	}
+	showTabGroup("personRoleSelect");
+}
+
+createPersonPage(){
+	if(!hasView("person/personInfo/personID")){
+		removeAllViewsAndContainers("person");
+	
+		executeViewTask(new ViewTask() {
+    	doTask() { 	
+
+    		//personInfoHide page
+    		psRoleIdViewDef = createViewDef().createTextField().setLabel("psRole").setAttributeName("PersonRole").setAttributeType("measure");
+    		createView("person/personInfoHide/personRoleId", psRoleIdViewDef,"person/personInfoHide");
+    		
+    		//personInfo page
+    		personIDViewDef= createViewDef().createTextField().setLabel("Person label").setAttributeName("PersonID").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+    		
+    		personNameViewDef=createViewDef().createTextField().setLabel("Person name").setAttributeName("PersonName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+  			
+    		personOtherNamesViewDef=createViewDef().createTextField().setLabel("Person Other Names").setAttributeName("PersonOtherNames").setAttributeType("measure").setAnnotationEnabled(true);
+   
+    		personDOBViewDef=createViewDef().createTextField().setLabel("Person DOB").setAttributeName("PersonDOB").setAttributeType("measure").setAnnotationEnabled(true);
+    	
+    		personRoleViewDef=createViewDef().createTextField().setLabel("Person Role").setReadOnly(true);
+   		
+   			personPhotoViewDef=createViewDef().createCameraGallery(true).setAttributeName("PersonPhoto").setAttributeType("measure").setAnnotationEnabled(true);
+   		
+   			takePhotoViewDef=createViewDef().createButton().setLabel("Take Photo").setStyleCss("faims-blue");
+    
+    		psPhotoDescViewDef=createViewDef().createTextField().setLabel("Photo decription").setAttributeName("PersonPhotoDescription").setAttributeType("measure").setAnnotationEnabled(true);
+
+    		takeIntroQuesnirViewDef=createViewDef().createButton().setLabel("Intro Questionnaire").setStyleCss("faims-blue");
+
+    		introDescViewDef=createViewDef().createTextField().setLabel("Intro quesnir description").setAttributeName("PersonIntroQuenirDesp").setAttributeType("measure").setAnnotationEnabled(true);
+
+	        finishNewPsViewDef=createViewDef().createButton().setLabel("Save Person").setStyleCss("faims-blue");
+
+		
+			createView("person/personInfo/personID", personIDViewDef,"person/personInfo");
+			createView("person/personInfo/personName", personNameViewDef,"person/personInfo");
+			createView("person/personInfo/personOtherNames", personOtherNamesViewDef,"person/personInfo");
+			createView("person/personInfo/personDOB", personDOBViewDef,"person/personInfo");
+			createView("person/personInfo/personRoleName", personRoleViewDef,"person/personInfo");
+			createView("person/personInfo/personPhoto", personPhotoViewDef,"person/personInfo");
+			createView("person/personInfo/Take_Photo", takePhotoViewDef,"person/personInfo");
+			createView("person/personInfo/personPhotoDesc", psPhotoDescViewDef,"person/personInfo");
+			createView("person/personInfo/Take_Intro_Quesnir", takeIntroQuesnirViewDef,"person/personInfo");
+			createView("person/personInfo/personIntroDesc", introDescViewDef,"person/personInfo");
+			createView("person/personInfo/Finish_New_Person", finishNewPsViewDef,"person/personInfo");
+
+	        refreshTabgroupCSS("person");
+
+	        onEvent("person/personInfo/Finish_New_Person","click","saveNewPerson(\"save\")");
+			onEvent("person/personInfo/Take_Intro_Quesnir","click","checkPersonIntroSession()");
+			onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
+	        }
+		});
+
+	}
+}
+onEvent("control/user_control/New_User","click","createPersonRolePage()");
+onEvent("control/user_control","show","loadPerson()");
+onEvent("control/user_control/userList","click","loadPersonInfo(\"person\",null)");
+//onEvent("person/personInfo/Finish_New_Person","click","saveNewPerson(\"save\")");
+//onEvent("person/personInfo/Take_Intro_Quesnir","click","checkPersonIntroSession()");
+//onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
+onEvent("introSssList/introSssInfo/intrSessionList","click","loadSessionInfo(\"answer\")");
+onEvent("introSssList/introSssInfo/new_intro_sss","click","newSessionForAnswer(\"intro\",currentPersonInfo)");
+
+loadRoles(String typeFlag, String populateRef){
+	fetchAll(loadAllRoleQuery,new FetchCallback() {
+				onFetch(result) {
+					role_list.clear();
+					role_list.addAll(result);
+					if(typeFlag.equals("newPerson")){
+						populateDropDown(populateRef, role_list);
+					}
+					else{
+						populateList(populateRef,role_list);
+					}
+					
+				}  
+		});
+
+}
+
+newPersonByRole(){
+	role_id=getFieldValue("personRoleSelect/personRoleSelectInfo/PersonRoleSelectList");
+	roleInfo=new ArrayList();
+	roleInfo.clear();
+	propertyInfo=new ArrayList();
+	propertyInfo.clear();
+	String roleName=null;
+	if(isNull(role_id)){
+		showWarning("Invalid role","This role is invalid, please select another role for continue");
+		return;
+	}
+	for(role : role_list){
+		if(role.get(0).equals(role_id)){
+			roleName=role.get(1);
+			break;
+		}
+	}
+	if(isNull(roleName)){
+		showWarning("Invalid role","This role is invalid, please select another role for continue");
+		return;
+	}
+	roleInfo.add(role_id);
+	roleInfo.add(roleName);
+	checkRoleIntroQuery="SELECT measure from latestNonDeletedAentValue WHERE "+
+	"latestNonDeletedAentValue.AttributeID="+
+	"(select AttributeID from AttributeKey where AttributeKey.AttributeName='RoleIntroAnsRequired') "+
+	"AND latestNonDeletedAentValue.uuid='"+role_id+"';";
+
+	checkRolePhotoQuery="SELECT measure from latestNonDeletedAentValue WHERE "+
+	"latestNonDeletedAentValue.AttributeID="+
+	"(select AttributeID from AttributeKey where AttributeKey.AttributeName='RolePhotoRequired') "+
+	"AND latestNonDeletedAentValue.uuid='"+role_id+"';";
+
+	fetchOne(checkRoleIntroQuery,new FetchCallback() {
+				onFetch(result) {
+					if(!isNull(result)){
+						if(result.get(0).equals("Yes")){
+							propertyInfo.add("Y");
+							fetchOne(checkRolePhotoQuery,new FetchCallback() {
+								onFetch(result) {
+									if(!isNull(result)){
+										if(result.get(0).equals("Yes")){
+											propertyInfo.add("Y");
+											newPersonWithIntro(roleInfo,propertyInfo);
+										}
+										else{
+											propertyInfo.add("N");
+											newPersonWithIntro(roleInfo,propertyInfo);
+										}
+									}
+									else{
+										showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+										return;
+									}
+								 
+								}  
+						});
+						}
+						else{
+							propertyInfo.add("N");
+							fetchOne(checkRolePhotoQuery,new FetchCallback() {
+								onFetch(result) {
+									if(!isNull(result)){
+										if(result.get(0).equals("Yes")){
+											propertyInfo.add("Y");
+											newPersonWithIntro(roleInfo,propertyInfo);
+										}
+										else{
+											propertyInfo.add("N");
+											newPersonWithIntro(roleInfo,propertyInfo);
+										}
+									}
+									else{
+										showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+										return;
+									}
+								 
+								}  
+						});
+						}
+					}
+
+					else{
+						showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+										return;
+					}
+				 
+				}  
+		});
+
+}
+
+newPersonWithIntro(ArrayList roleflag, ArrayList propertyFlag){
+	createPersonPage();
+	person_id=null;
+	newTabGroup("person");
+	onEvent("person", "show", "showTab(\"person/personInfo\");");  
+	setFieldValue("person/personInfoHide/personRoleId",roleflag.get(0));
+	setFieldValue("person/personInfo/personRoleName",roleflag.get(1));
+	savePersonWfProperty.clear();
+	savePersonWfProperty.addAll(propertyFlag);
+}
+
+loadPerson(){
+	person_id=null;
+	fetchAll(loadAllPersonIDQuery, new FetchCallback() {
+        onFetch(result) {
+            populateList("control/user_control/userList", result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+loadPersonInfo(String typeflag, String toShowPsId){
+if(typeflag.equals("person")){
+	person_id=getListItemValue();
+}
+else{
+	person_id=toShowPsId;
+}
+	if(isNull(person_id)){
+		showToast("No Person selected");
+		return;
+	}
+	createPersonPage();
+	showTabGroup("person", person_id, new FetchCallback() {
+        onFetch(result) {
+      
+        	String roleUuid=getFieldValue("person/personInfoHide/personRoleId");
+            checkPersonRoleQuery="SELECT measure from latestNonDeletedAentValue "+
+											"WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
+											"AND latestNonDeletedAentValue.AttributeID="+
+											"(select AttributeID from AttributeKey where AttributeName='PersonRoleName');";
+
+			checkRoleIntroQuery="SELECT measure from latestNonDeletedAentValue "+
+								"WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
+								"AND latestNonDeletedAentValue.AttributeID="+
+								"(select AttributeID from AttributeKey where AttributeName='RoleIntroAnsRequired');";
+
+			checkRolePhotoQuery="SELECT measure from latestNonDeletedAentValue "+
+								"WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
+								"AND latestNonDeletedAentValue.AttributeID="+
+								"(select AttributeID from AttributeKey where AttributeName='RolePhotoRequired');";
+
+        	fetchOne(checkPersonRoleQuery,new FetchCallback() {
+								onFetch(result) {
+									if(!isNull(result)){
+										setFieldValue("person/personInfo/personRoleName",result.get(0));
+										
+									}
+									else{
+										showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+									}
+								 
+								}  
+						});
+
+        	fetchOne(checkRoleIntroQuery,new FetchCallback() {
+								onFetch(result) {
+									if(!isNull(result)){
+										savePersonWfProperty.clear();
+										if(result.get(0).equals("Yes")){
+											savePersonWfProperty.add("Y");
+										}
+										else{
+											savePersonWfProperty.add("N");
+										}
+										fetchOne(checkRolePhotoQuery,new FetchCallback() {
+											onFetch(result) {
+												if(!isNull(result)){
+													if(result.get(0).equals("Yes")){
+														savePersonWfProperty.add("Y");
+													}
+													else{
+														savePersonWfProperty.add("N");
+													}
+													
+												}
+												else{
+													showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+												}
+											 
+											}  
+										});
+									}
+									else{
+										showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+									}
+								 
+								}  
+						});
+        	originPersonInfo.clear();
+        	originPersonInfo.add(getFieldValue("person/personInfo/personID"));
+        	originPersonInfo.add(getFieldValue("person/personInfo/personName"));
+        	originPersonInfo.add(getFieldValue("person/personInfo/personOtherNames"));
+        	originPersonInfo.add(getFieldValue("person/personInfo/personDOB"));
+        	originPersonInfo.add(getFieldValue("person/personInfo/personPhoto"));
+			originPersonInfo.add(getFieldValue("person/personInfo/personPhotoDesc"));
+			originPersonInfo.add(getFieldValue("person/personInfo/personIntroDesc"));
+
+            person=result;
+            showToast("Loaded person"+person.getId());            
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+timeValidation(String startDateTime){	
+	String hyphenDateRegex="^\\d{4}[-]\\d{2}[-]\\d{2}$";
+	Pattern hyphenDatePattern=Pattern.compile(hyphenDateRegex);
+	Matcher hyphenDateMatcher=hyphenDatePattern.matcher(startDateTime);
+	if (hyphenDateMatcher.find()){		
+			DateFormat df=new SimpleDateFormat("yyyy-MM-dd");
+			df.setLenient(false);
+			Date sdt=null;
+			try{
+				sdt=df.parse(startDateTime);	
+			}
+			catch(Exception ex){
+				//Log.e("error", ex.getMessage().toString());
+				//showWarning("ex","ex");
+				return false;
+			}
+		return true;
+	}
+return false;
+}
+
+nameCamCaseConverter(String originName){
+	String camCase=null;
+	String [] originNameSplit=originName.split("\\s+");
+	//showWarning("originNameSplit",originNameSplit[0]);
+	StringBuffer sb=new StringBuffer();
+	//showWarning("StringBuffer","originNameSplit[0]");
+	for (part : originNameSplit){
+		if(part.length()>1){
+			sb.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+		}
+		else{
+			sb.append(Character.toUpperCase(part.charAt(0)));
+		}
+	}
+	camCase=sb.toString().trim();
+	return camCase;
+	//showWarning("camCase",camCase);
+}
+saveNewPerson(String typeflag){
+
+	if((isNull(getFieldValue("person/personInfo/personName")))|| (isNull(getFieldValue("person/personInfo/personDOB")))){
+		showWarning("Validation Error", "You must fill in the Person Name and Person DOB before you can continue");
+        return;
+	}
+
+	if((savePersonWfProperty.get(1).equals("Y"))&&(savePersonWfProperty.get(0).equals("N"))){
+			if((isNull(getFieldValue("person/personInfo/personPhoto")))&& (isNull(getFieldValue("person/personInfo/personPhotoDesc")))){
+				showWarning("Validation Error", "You must either take person photo or write the reason of not taking photo");
+        		return;
+			}
+
+	}
+	if(!typeflag.equals("intro"))//normal saving
+	{
+		if((savePersonWfProperty.get(1).equals("Y"))&&(savePersonWfProperty.get(0).equals("Y"))){
+			if((isNull(getFieldValue("person/personInfo/personPhoto"))) && (isNull(getFieldValue("person/personInfo/personPhotoDesc")))){
+				showWarning("Saving Error", "You must either take person photo or write the reason of not taking photo");
+        		return;
+			}
+			if((isNull(person_id)) && (isNull(getFieldValue("person/personInfo/personIntroDesc")))){
+				showWarning("Validation Error", "You must either take person introductory questionnaire \n"+"or write the reason of not taking introductory questionnaire");
+        		return;
+			}
+			if((!isNull(person_id))&&(isNull(getFieldValue("person/personInfo/personIntroDesc")))){
+				checkPsIntrSssQuery="select uuid,measure from latestNonDeletedArchEntIdentifiers "+
+					"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+					"and uuid in ( select uuid from AentReln "+
+						"where RelationshipID in(select RelationshipID from AentReln "+
+							"where RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+								"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session' ) "+
+								"and latestNonDeletedRelationship.Deleted IS NULL) "+
+					"and uuid in (select uuid from latestNonDeletedAentValue "+
+						"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+						"and latestNonDeletedAentValue.measure in(select uuid from latestNonDeletedAentValue "+
+							"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+							"and measure=(select uuid from latestNonDeletedAentValue "+
+								"where AttributeID= (select AttributeID from AttributeKey "+
+									"where AttributeName='QuesnirTypeName') and measure = 'Introductory'))))) "+
+					"and uuid in (select measure from latestNonDeletedArchEntIdentifiers "+
+						"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
+						"and uuid in (select uuid from latestNonDeletedAentValue "+
+							"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') "+
+							"and measure=(select uuid from latestNonDeletedAentValue "+
+								"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
+								"and measure='consultant') "+
+					"and uuid in (select uuid from latestNonDeletedAentValue "+
+						"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
+						"and measure ='"+person_id+"')));";
+	
+				fetchAll(checkPsIntrSssQuery,new FetchCallback() {
+						        	onFetch(result) {					        	
+									if(isNull(result)){
+										showWarning("Validation Error", "You must either take person introductory questionnaire \n"+"or write the reason of not taking introductory questionnaire");
+        								return;
+									}
+								
+						        }
+						        onError(message) {
+						        	Log.e("error",message);
+						            showToast(message);
+						           
+						        }
+						    });
+			}
+
+		}
+	}
+    
+	String personNameOrigin=getFieldValue("person/personInfo/personName");
+	String personNameCamCase=nameCamCaseConverter(personNameOrigin);
+	String personLabel=personNameCamCase+"_"+getFieldValue("person/personInfo/personDOB");
+	//setFieldValue("person/personInfo/personID", personLabel);
+	String personDOB=getFieldValue("person/personInfo/personDOB");
+	changedPersonInfo.clear();
+	changedPersonInfo.add(personLabel);
+	changedPersonInfo.add(personNameOrigin);
+	changedPersonInfo.add(getFieldValue("person/personInfo/personOtherNames"));
+	changedPersonInfo.add(personDOB);
+	changedPersonInfo.add(getFieldValue("person/personInfo/personPhoto"));
+	changedPersonInfo.add(getFieldValue("person/personInfo/personPhotoDesc"));
+	changedPersonInfo.add(getFieldValue("person/personInfo/personIntroDesc"));
+
+	if(timeValidation(personDOB)){
+
+		Hashtable personInfoChange=listChange(changedPersonInfo,originPersonInfo);
+
+		if((personInfoChange.containsKey("EQUAL"))&& (typeflag.equals("intro"))){
+				newPersonIntro=new ArrayList();
+	      		newPersonIntro.add(person_id);
+				newPersonIntro.add(personNameOrigin);
+				newSessionForAnswer("intro",newPersonIntro);
+		}
+		
+		else if((personInfoChange.containsKey("EQUAL"))&& (!typeflag.equals("intro"))){
+			showWarning("No changes","All data are saved");
+			return;
+		}
+
+		else{
+			tempDuplicateList=new ArrayList();
+			tempDuplicateList.clear();
+			int sizeOfDup=0;
+			if(person_id==null){
+				psDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+						"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonID') "+
+						"and (measure = '"+personLabel+"' or measure like '"+personLabel+"(%)')";
+			}
+			else{
+				psDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+						"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonID') "+
+						"and uuid<>"+person_id+" "+
+						"and (measure = '"+personLabel+"' or measure like '"+personLabel+"(%)')";
+			}
+			fetchAll(psDuplicateQuery,new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+								tempDuplicateList.addAll(result);
+								sizeOfDup=tempDuplicateList.size();
+								Pattern numberPat = Pattern.compile("\\(\\d+\\)");
+								if(sizeOfDup==1){
+									attributes = createAttributeList();
+									duplicateOldLabel=tempDuplicateList.get(0).get(1);
+									//suffix=duplicateOldLabel.substring(duplicateOldLabel.length()-3);
+									Matcher numMatcher = numberPat.matcher(duplicateOldLabel);
+									if(numMatcher.find()){
+										suffix=duplicateOldLabel.substring(duplicateOldLabel.indexOf("("),duplicateOldLabel.length());
+										if(!suffix.equals("(1)"))
+										{
+											newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.indexOf("("))+"(1)";
+											attributes.add(createEntityAttribute("PersonID", null, null, newLabel, null));
+											entityId=tempDuplicateList.get(0).get(0);
+											saveArchEnt(entityId, "Person", null, attributes);
+										}
+									}
+									else{
+										newLabel=duplicateOldLabel+"(1)";
+										attributes.add(createEntityAttribute("PersonID", null, null, newLabel, null));
+										entityId=tempDuplicateList.get(0).get(0);
+										saveArchEnt(entityId, "Person", null, attributes);
+									}
+									personLabel=personLabel+"(2)";
+						            setFieldValue("person/personInfo/personID",personLabel);
+								}
+								else{
+									int maxSuffix=0;
+									for(temp: tempDuplicateList){
+										tempLabel=temp.get(1);
+										Matcher numMatcher = numberPat.matcher(tempLabel);
+										if(numMatcher.find()){
+											tempSuffixStr=tempLabel.substring(tempLabel.indexOf("(")+1, tempLabel.length()-1);
+											int tempSuffixNum=Integer.parseInt(tempSuffixStr);
+											if(tempSuffixNum>maxSuffix){
+												maxSuffix=tempSuffixNum;
+											}
+										}
+									}
+									maxSuffix=maxSuffix+1;
+									personLabel=personLabel+"("+maxSuffix+")";
+									setFieldValue("person/personInfo/personID",personLabel);
+								}
+								
+							}
+							else{
+								setFieldValue("person/personInfo/personID", personLabel);
+							}
+
+						saveTabGroup("person", person_id, null, null, new SaveCallback() {
+					    onSave(uuid, newRecord) {
+					      person_id = uuid;
+					      if (newRecord) {
+					      	newPersonIntro=new ArrayList();
+					      	newPersonIntro.add(person_id);
+							newPersonIntro.add(personNameOrigin);
+
+					      	if(typeflag.equals("intro")){
+								newSessionForAnswer("intro",newPersonIntro);
+							}
+							else{
+					        	showToast("New record created");
+					        	cancelTabGroup("person",true);
+					     	    showTab("control/user_control");
+					    	}
+					      }
+						  else{
+							showToast("Record changed");	
+							if(typeflag.equals("intro")){
+								newPersonIntro=new ArrayList();
+					      		newPersonIntro.add(person_id);
+								newPersonIntro.add(personNameOrigin);
+								newSessionForAnswer("intro",newPersonIntro);
+							}
+						  }
+						  
+					    }
+					    onError(message) {
+					        showWarning("error",message);
+					    }  
+					  	});
+					}
+				});
+		}
+		}
+		else{
+			showWarning("Invalid DOB","1.Datetime format should be yyyy-MM-dd \n"+"2.The value for date should be valid");
+						return;
+		}
+
+}
+
+//Get the intro session list for a person
+checkPersonIntroSession(){
+
+checkPsIntrSssQuery="select uuid,measure from latestNonDeletedArchEntIdentifiers "+
+	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+	"and uuid in ( select uuid from AentReln "+
+		"where RelationshipID in(select RelationshipID from AentReln "+
+			"where RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session' ) "+
+				"and latestNonDeletedRelationship.Deleted IS NULL) "+
+	"and uuid in (select uuid from latestNonDeletedAentValue "+
+		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+		"and latestNonDeletedAentValue.measure in(select uuid from latestNonDeletedAentValue "+
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+			"and measure=(select uuid from latestNonDeletedAentValue "+
+				"where AttributeID= (select AttributeID from AttributeKey "+
+					"where AttributeName='QuesnirTypeName') and measure = 'Introductory'))))) "+
+	"and uuid in (select measure from latestNonDeletedArchEntIdentifiers "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
+		"and uuid in (select uuid from latestNonDeletedAentValue "+
+			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') "+
+			"and measure=(select uuid from latestNonDeletedAentValue "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
+				"and measure='consultant') "+
+	"and uuid in (select uuid from latestNonDeletedAentValue "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
+		"and measure ='"+person_id+"')));";
+
+fetchAll(checkPsIntrSssQuery, new FetchCallback() {
+        onFetch(result) {
+        		if(!isNull(result)){
+					personIntroSss.clear();
+					personIntroSss.addAll(result);
+					//createMainSessionPage();
+					showTabGroup("introSssList");
+					populateList("introSssList/introSssInfo/intrSessionList",personIntroSss);
+					currentPersonInfo.clear();
+					currentPersonInfo.add(person_id);
+					currentPersonInfo.add(getFieldValue("person/personInfo/personName"));
+
+        		}
+        		else{
+        			saveNewPerson("intro");
+        		}
+        	}
+            
+        onError(message) {
+            showToast(message);
+        }
+    });
+
+}
+/*** Language ***/
+onEvent("control/language_control/New_Language","click","newLanguage()");
+onEvent("language/languageInfo/Finish_New_Language","click","saveNewLanguage()");
+onEvent("control/language_control","show","loadLanguage()");
+onEvent("control/language_control/languageList","click","loadLanguageInfo()");
+language_id=null;
+newLanguage(){
+	language_id=null;
+	newTabGroup("language");
+	onEvent("language", "show", "showTab(\"language/languageInfo\");");  
+
+}
+saveNewLanguage(){
+
+	if(isNull(getFieldValue("language/languageInfo/languageName"))){
+		showWarning("Validation Error", "You must fill in the Language Name before you can continue");
+        return;
+	}
+	if(isNull(getFieldValue("language/languageInfo/languageID"))){
+		showWarning("Validation Error", "You must fill in the Language ID before you can continue");
+        return;
+	}
+	//setFieldValue("person/personInfo/personID", getFieldValue("person/personInfo/personName")+getCurrentTime());
+	tempDuplicateList=new ArrayList();
+	tempDuplicateList.clear();
+	int sizeOfDup=0;
+	tempLangLabel=getFieldValue("language/languageInfo/languageID");
+	langDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID') "+
+				"and measure like '"+tempLangLabel+"' or measure like '"+tempLangLabel+"(%)'";
+    fetchAll(langDuplicateQuery,new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+								tempDuplicateList.addAll(result);
+								sizeOfDup=tempDuplicateList.size();
+								if(sizeOfDup==1){
+									attributes = createAttributeList();
+									duplicateOldLabel=tempDuplicateList.get(0).get(1);
+									suffix=duplicateOldLabel.substring(duplicateOldLabel.length()-3);
+									if(!suffix.equals("(1)"))
+									{
+										newLabel=duplicateOldLabel+"(1)";
+										attributes.add(createEntityAttribute("LanguageID", null, null, newLabel, null));
+										entityId=tempDuplicateList.get(0).get(0);
+										saveArchEnt(entityId, "Language", null, attributes);
+									}
+									tempLangLabel=tempLangLabel+"(2)";
+						            setFieldValue("language/languageInfo/languageID",tempLangLabel);
+								}
+								else{
+									sizeOfDup=sizeOfDup+1;
+									tempLangLabel=tempLangLabel+"("+sizeOfDup.toString()+")";
+									setFieldValue("language/languageInfo/languageID",tempLangLabel);
+								}	
+							}
+							saveTabGroup("language", language_id, null, null, new SaveCallback() {
+							    onSave(uuid, newRecord) {
+							      language_id = uuid;
+							      if (newRecord) {
+									newLanguage();
+							        showToast("New record created");
+							      }
+								  else{
+									//language_id=null;
+									showToast("Record changed");
+								  }
+							    }
+							    onError(message) {
+							        showWarning("error",message);
+							    }  
+							  });
+						}
+					});
+	
+}
+
+loadLanguage(){
+	language_id=null;
+	
+	fetchAll(loadAllLanguageQuery, new FetchCallback() {
+        onFetch(result) {
+            populateList("control/language_control/languageList", result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+loadLanguageInfo(){
+language_id=getListItemValue();
+	if(isNull(language_id)){
+		showToast("No Language selected");
+		return;
+	}
+	showTabGroup("language", language_id, new FetchCallback() {
+        onFetch(result) {
+            language=result;
+            showToast("Loaded language"+language.getId());            
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+/*** File ***/
+onEvent("control/file_control","show","loadFile()");
+//onEvent("control/file_control/New_File","click","newFile(\"file\")");
+onEvent("control/file_control/fileList","click","loadAnswerFileInfo(\"fileView\")");
+file_id=null;
+fileCategory=new ArrayList();
+fileCategory.add(new NameValuePair("{All}", "All"));
+fileCategory.add(new NameValuePair("{Audio}", "Audio"));
+fileCategory.add(new NameValuePair("{Video}", "Video"));
+fileCategory.add(new NameValuePair("{Photo}", "Photo"));
+fileCategory.add(new NameValuePair("{Other}", "Other"));
+
+loadFile(){
+	file_id=null;
+	populateDropDown("control/file_control/fileCategorySelect",fileCategory);
+	setFieldValue("control/file_control/file_keyword","*");
+	fetchAll(loadAllFileIDQuery, new FetchCallback() {
+        onFetch(result) {
+            populateList("control/file_control/fileList", result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+
 /*** query ***/
 onEvent("control/querytest/Submit","click","testQuery()");
 
@@ -3959,3 +4742,792 @@ testQuery(){
     });
 	
 }
+/*
+onEvent("control/deleteTest/delSubmit","click","delQuery()");
+
+delQuery(){
+	delId=getFieldValue("control/deleteTest/delQuery");
+	//fetchAll("SELECT sql FROM sqlite_master WHERE name='archentity';",
+	deleteArchEnt(delId, new DeleteCallback() {
+    onDelete(uuid) {
+      showWarning("Record deleted",delId);
+      //cancelTabGroup(tabgroup, false);
+    	}
+  	});
+	
+}
+*/
+
+/***Dynamic ui-FieldTrip***/
+onEvent("control/other_control/fieldTrip_page","click","createFieldTripPage()");
+onEvent("fieldTrip_control/fieldTripInfo","show","loadFieldTripList()");
+
+fieldTrip_id=null;
+selected_session_fieldTrip=new ArrayList();
+candidate_session_fieldTrip=new ArrayList();
+original_session_fieldTrip=new ArrayList();
+fieldTripInfoOrigin=new ArrayList();
+fieldTripInfoNew=new ArrayList();
+
+createFieldTripPage(){
+	if(!hasView("fieldTrip_control/fieldTripInfo/fieldTrip_Search_kw")){
+		removeAllViewsAndContainers("fieldTrip_control");
+		executeViewTask(new ViewTask() {
+    	doTask() { 	
+	        style1 = "orientation";
+	        style2 = "even";
+	    	createContainer("fieldTrip_control/fieldTripInfo/fieldTrip_Search_Ct", "orientation");
+	    	createContainer("fieldTrip_control/fieldTripInfo/child1", "even", "fieldTrip_control/fieldTripInfo/fieldTrip_Search_Ct");
+	        createContainer("fieldTrip_control/fieldTripInfo/child2", "even", "fieldTrip_control/fieldTripInfo/fieldTrip_Search_Ct");
+	        searchTextViewDef = createViewDef().createTextField().setLabel("keyword").setInfoEnabled(true);
+	        searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
+	        newFTButtonDef = createViewDef().createButton().setLabel("New FieldTrip").setStyleCss("faims-blue");
+	        fieldTripListDef=createViewDef().createList().setLabel("Record List").setStyleCss("session-list");
+	        createView("fieldTrip_control/fieldTripInfo/fieldTrip_Search_kw", searchTextViewDef,"fieldTrip_control/fieldTripInfo/child1");
+	        createView("fieldTrip_control/fieldTripInfo/fieldTrip_Search_bn", searchButtonDef,"fieldTrip_control/fieldTripInfo/child2");
+	        createView("fieldTrip_control/fieldTripInfo/fieldTrip_New_bn", newFTButtonDef,"fieldTrip_control/fieldTripInfo");
+	        createView("fieldTrip_control/fieldTripInfo/fieldTripList", fieldTripListDef,"fieldTrip_control/fieldTripInfo");
+	        refreshTabgroupCSS("fieldTrip_control");
+	        showTabGroup("fieldTrip_control");
+	        onEvent("fieldTrip_control/fieldTripInfo/fieldTrip_New_bn","click","createFieldTripInfoPage(\"new\")");
+	        onEvent("fieldTrip_control/fieldTripInfo/fieldTripList","click","loadFieldTripInfo()");
+    	}
+		});
+	}
+	else{
+		showTabGroup("fieldTrip_control");
+	}
+	
+}
+
+createFieldTripInfoPage(String typeflag){
+	if(!hasView("fieldTrip/fieldTripBasicInfo/fieldTripID")){
+		removeAllViewsAndContainers("fieldTrip");
+		executeViewTask(new ViewTask() {
+	    doTask() {
+	    	
+	    	//basic info page
+	    	idTextViewDef = createViewDef().createTextField().setLabel("FieldTrip label").setAttributeName("FieldTripID").setAttributeType("measure").
+	    	setAnnotationEnabled(true).setReadOnly(true);
+	    	nameTextViewDef=createViewDef().createTextField().setLabel("FieldTrip Name").setAttributeName("FieldTripName").setAttributeType("measure").
+	    	setAnnotationEnabled(true);
+	    	descTextViewDef=createViewDef().createTextField().setLabel("Description").setAttributeName("FieldTripDescription").setAttributeType("measure").
+	    	setAnnotationEnabled(true);
+	    	startDateDef = createViewDef().createDatePicker().setLabel("Start Date");
+	    	endDateDef = createViewDef().createDatePicker().setLabel("End Date");
+	    	createView("fieldTrip/fieldTripBasicInfo/fieldTripID", idTextViewDef,"fieldTrip/fieldTripBasicInfo");
+	        createView("fieldTrip/fieldTripBasicInfo/fieldTripName", nameTextViewDef,"fieldTrip/fieldTripBasicInfo");
+	        createView("fieldTrip/fieldTripBasicInfo/fieldTripDesc", descTextViewDef,"fieldTrip/fieldTripBasicInfo");
+	        createView("fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker", startDateDef,"fieldTrip/fieldTripBasicInfo");
+	        createView("fieldTrip/fieldTripBasicInfo/fieldTripEndDatePicker", endDateDef,"fieldTrip/fieldTripBasicInfo");
+
+	    	//session page
+	        style1 = "orientation";
+	        style2 = "even";
+	    	createContainer("fieldTrip/fieldTripSession/field_session_ct", "orientation");
+	    	createContainer("fieldTrip/fieldTripSession/child1", "even", "fieldTrip/fieldTripSession/field_session_ct");
+	        createContainer("fieldTrip/fieldTripSession/child2", "even", "fieldTrip/fieldTripSession/field_session_ct");
+	        
+	        ftFileListDef=createViewDef().createList().setLabel("Session").setStyleCss("session-file-list");
+	        ftSelFileListDef=createViewDef().createList().setLabel("Select session").setStyleCss("session-file-list");
+	        ftSaveBtnDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+	        createView("fieldTrip/fieldTripSession/fieldTripFileList", ftFileListDef,"fieldTrip/fieldTripSession/child1");
+	        createView("fieldTrip/fieldTripSession/fieldTripFileSelectionList", ftSelFileListDef,"fieldTrip/fieldTripSession/child2");
+	        createView("fieldTrip/fieldTripSession/Finish_New_FieldTrip", ftSaveBtnDef,"fieldTrip/fieldTripSession");
+	        refreshTabgroupCSS("fieldTrip_control");
+	        //showTabGroup("fieldTrip");
+	        onEvent("fieldTrip/fieldTripSession/fieldTripFileSelectionList","click","addItemToTargetList(candidate_session_fieldTrip,\"fieldTripSession\",null)");
+	        onEvent("fieldTrip/fieldTripSession/fieldTripFileList","click","deleteItemFromTargetList(selected_session_fieldTrip,\"fieldTripSession\",null)");
+	        onEvent("fieldTrip/fieldTripSession/Finish_New_FieldTrip","click","saveFieldTrip()");
+	        //fieldTripBasicInfoHidden page
+	        startdateViewDef = createViewDef().createTextField().setLabel("startdate").setAttributeName("FieldTripStartTime").setAttributeType("measure");
+	        enddateViewDef = createViewDef().createTextField().setLabel("enddate").setAttributeName("FieldTripEndTime").setAttributeType("measure");
+	        createView("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp", startdateViewDef,"fieldTrip/fieldTripBasicInfoHidden");
+	        createView("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp", enddateViewDef,"fieldTrip/fieldTripBasicInfoHidden");
+	        
+	   		}
+			});
+
+		if(typeflag.equals("new")){
+			startNewFieldTrip();
+		}
+
+	}
+	else{
+		//showTabGroup("fieldTrip");
+		if(typeflag.equals("new")){
+			startNewFieldTrip();
+		}
+	}
+
+	
+
+}
+
+loadFieldTripList(){
+	fetchAll(loadAllFieldTripQuery, new FetchCallback() {
+        onFetch(result) {
+            populateList("fieldTrip_control/fieldTripInfo/fieldTripList", result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+startNewFieldTrip(){
+	fieldTrip_id=null;
+	selected_session_fieldTrip.clear();
+	candidate_session_fieldTrip.clear();
+	original_session_fieldTrip.clear();
+	fieldTripInfoOrigin.clear();
+	fieldTripInfoNew.clear();
+	currentDateTimeArray=new ArrayList();
+	
+	newTabGroup("fieldTrip");
+	
+	fetchAll(loadAllSessionIDQuery, new FetchCallback() {
+        onFetch(result) {
+        	candidate_session_fieldTrip.addAll(result);
+            populateList("fieldTrip/fieldTripSession/fieldTripFileSelectionList", candidate_session_fieldTrip);
+            populateList("fieldTrip/fieldTripSession/fieldTripFileList", selected_session_fieldTrip);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+
+saveFieldTrip(){
+	//showWarning("saveFieldTrip","saveFieldTrip");
+	String startDateToConvert=getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker");
+	//showWarning("startDateToConvert",startDateToConvert);
+	String startDate=dateParser(startDateToConvert);
+	//showWarning("startdate",startDate);
+	String endDateToConvert=getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripEndDatePicker");
+	String endDate=dateParser(endDateToConvert);
+	//showWarning("endDate",endDate);
+	if(isNull(fieldTrip_id)){//create new session
+		//showWarning("new","new");
+		if(isNull(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripName"))){
+			showWarning("Incomplete Data","Please make sure that data is complete");
+			return;
+			}
+		else{
+			//duplicate check
+			tempFtLabel=username+"_FieldTrip_"+startDate;
+			//showWarning("tempFtLabel",tempFtLabel);
+			tempDuplicateList=new ArrayList();
+			tempDuplicateList.clear();
+			int sizeOfDup=0;
+			ftDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripID') "+
+				"and measure like '"+tempFtLabel+"' or measure like '"+tempFtLabel+"(%)'";
+			//showWarning("ftDuplicateQuery",ftDuplicateQuery);
+			fetchAll(ftDuplicateQuery,new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+								tempDuplicateList.addAll(result);
+								sizeOfDup=tempDuplicateList.size();
+								if(sizeOfDup==1){
+									attributes = createAttributeList();
+									duplicateOldLabel=tempDuplicateList.get(0).get(1);
+									suffix=duplicateOldLabel.substring(duplicateOldLabel.length()-3);
+									if(!suffix.equals("(1)"))//save changes to the older questionnaire
+									{
+										newLabel=duplicateOldLabel+"(1)";
+										attributes.add(createEntityAttribute("FieldTripID", null, null, newLabel, null));
+										entityId=tempDuplicateList.get(0).get(0);
+										saveArchEnt(entityId, "FieldTrip", null, attributes);
+									}
+									tempFtLabel=tempFtLabel+"(2)";
+						            setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID",tempFtLabel);
+								}
+								else{
+									sizeOfDup=sizeOfDup+1;
+									tempFtLabel=tempFtLabel+"("+sizeOfDup.toString()+")";
+									setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID",tempFtLabel);
+								}
+								
+							}
+							else{
+								//showWarning("nodup","nodup");
+								setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID",tempFtLabel);
+							}
+						setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp",startDate);
+						setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp",endDate);
+						if(timeValidation(startDate,endDate,"fieldTripTime")){
+							saveTabGroup("fieldTrip", fieldTrip_id, null, null, new SaveCallback() {
+							    onSave(uuid, newRecord) {
+							    	fieldTrip_id = uuid;
+							      if (newRecord) {
+							    	  for(session:selected_session_fieldTrip){
+							    		  saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
+							    	  }
+							        showToast("New fieldtrip record created");
+							        cancelTabGroup("fieldTrip",true);
+							      }
+							    }
+							    onError(message) {
+							        showWarning("error",message);
+							    }  
+							  });
+						}
+							else{
+								showWarning("Invalid date","Start date should before end date");
+								return;
+							}
+						}
+					});	
+		}
+	}
+	else{//change session info
+			tempFtLabel=username+"_FieldTrip_"+startDate;
+			//showWarning("tempFtLabel",tempFtLabel);
+			tempDuplicateList=new ArrayList();
+			tempDuplicateList.clear();
+			int sizeOfDup=0;
+			ftDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripID') "+
+				"and measure like '"+tempFtLabel+"' or measure like '"+tempFtLabel+"(%)'";
+			//showWarning("ftDuplicateQuery",ftDuplicateQuery);
+			fetchAll(ftDuplicateQuery,new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+								tempDuplicateList.addAll(result);
+								sizeOfDup=tempDuplicateList.size();
+								if(sizeOfDup==1){
+									attributes = createAttributeList();
+									duplicateOldLabel=tempDuplicateList.get(0).get(1);
+									suffix=duplicateOldLabel.substring(duplicateOldLabel.length()-3);
+									if(!suffix.equals("(1)"))//save changes to the older questionnaire
+									{
+										newLabel=duplicateOldLabel+"(1)";
+										attributes.add(createEntityAttribute("FieldTripID", null, null, newLabel, null));
+										entityId=tempDuplicateList.get(0).get(0);
+										saveArchEnt(entityId, "FieldTrip", null, attributes);
+									}
+									tempFtLabel=tempFtLabel+"(2)";
+						            setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID",tempFtLabel);
+								}
+								else{
+									sizeOfDup=sizeOfDup+1;
+									tempFtLabel=tempFtLabel+"("+sizeOfDup.toString()+")";
+									setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID",tempFtLabel);
+								}
+								
+							}
+							else{
+								//showWarning("nodup","nodup");
+								setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID",tempFtLabel);
+							}
+							fieldTripInfoNew.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID"));
+							fieldTripInfoNew.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripName"));
+							fieldTripInfoNew.add(startDate);
+							fieldTripInfoNew.add(endDate);
+							Hashtable fieldTripInfoChange=listChange(fieldTripInfoNew,fieldTripInfoOrigin);
+							Hashtable fieldTripSessionChange=listChange(selected_session_fieldTrip,original_session_fieldTrip);
+							if(fieldTripInfoChange.containsKey("EQUAL")){
+								if(fieldTripSessionChange.containsKey("EQUAL")){
+									showWarning("No change","No data changed");
+									return;
+								}
+								else{
+									//showWarning("yes change","beginingchange file");
+									for(session:selected_session_fieldTrip){
+							    		  saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
+							    	  }
+									showToast("session in FieldTrip changed");
+									cancelTabGroup("fieldTrip",true);
+								}
+							}
+							else{
+								setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp",startDate);
+								setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp",endDate);
+								if(timeValidation(startDate,endDate,"fieldTripTime")){
+								saveTabGroup("fieldTrip", fieldTrip_id, null, null, new SaveCallback() {
+								    onSave(uuid, newRecord) {
+								    	for(session:selected_session_fieldTrip){
+								    		  saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
+								    	  }
+								        showToast("fieldTrip data changed");
+								        cancelTabGroup("fieldTrip",true);
+
+								    }
+								    onError(message) {
+								        showWarning("error",message);
+								    }  
+								  });
+							}
+								else{
+									showWarning("Invalid date","Start date should before end date");
+									return;
+								}
+							}
+						}
+					});
+	}
+}
+
+loadFieldTripInfo(){
+	if(!hasView("fieldTrip/fieldTripBasicInfo/fieldTripID")){
+		createFieldTripInfoPage("change");
+	}
+	fieldTrip_id=getListItemValue();
+	if(isNull(fieldTrip_id)){
+		showWarning("Invalid fieldTrip","No fieldTrip is selected or fieldTrip is not available");
+		return;
+	}
+	loadSessionForFieldTripQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+ 				"(select RelationshipID from "+
+ 					"(select RelationshipID, AEntRelnTimestamp from AentReln where AentReln.uuid="+fieldTrip_id+" "+
+ 					"and RelationshipID in "+
+ 						"(select RelationshipID from Relationship where RelnTypeID="+
+ 							"(select RelnTypeID from RelnType where RelnTypeName='Session and FieldTrip'))) t1 "+
+ 					"inner join "+
+ 					"(select max(AEntRelnTimestamp) as maxtime from AEntReln where AEntReln.uuid ="+fieldTrip_id+" "+
+ 					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
+ 					"(select RelnTypeID from RelnType where RelnTypeName='Session and FieldTrip'))) t2 "+
+ 					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
+	
+	showTabGroup("fieldTrip", fieldTrip_id, new FetchCallback() {
+        onFetch(result) {
+        	String startTimeOrigin=getFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp");
+        	String endTimeOrigin=getFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp");
+        	fieldTripInfoOrigin.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID"));
+        	fieldTripInfoOrigin.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripName"));
+        	fieldTripInfoOrigin.add(startTimeOrigin);
+        	fieldTripInfoOrigin.add(endTimeOrigin);  
+        	String startTimeForPicker=dateParser(startTimeOrigin);
+        	String endTimeForPicker=dateParser(endTimeOrigin);
+        	setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker",startTimeForPicker);
+        	setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripEndDatePicker",endTimeForPicker);
+        	fetchAll(loadSessionForFieldTripQuery, new FetchCallback() {
+                onFetch(result) {
+                	selected_session_fieldTrip.clear();
+                	selected_session_fieldTrip.addAll(result);
+                	original_session_fieldTrip.clear();
+                	original_session_fieldTrip.addAll(result);
+
+                	fetchAll(loadAllSessionIDQuery, new FetchCallback() {
+                        onFetch(result) {
+                        	candidate_session_fieldTrip.clear();
+                        	candidate_session_fieldTrip.addAll(result);
+                        	candidate_session_fieldTrip.removeAll(selected_session_fieldTrip);
+                        	populateList("fieldTrip/fieldTripSession/fieldTripFileSelectionList", candidate_session_fieldTrip);
+                            populateList("fieldTrip/fieldTripSession/fieldTripFileList", selected_session_fieldTrip);
+                        }
+                        onError(message) {
+                            showToast(message);
+                        }
+                    });
+                }
+
+                onError(message) {
+                    showToast(message);
+                }
+            });
+        	
+        	
+            showToast("Loaded fieldTrip"+result.getId());            
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+/***Search button ***/
+onEvent("control/survey_control/Survey_Search","click","entitySearch(\"session\",\"control/survey_control/survey_keyword\",\"control/survey_control/surveyList\",null)");
+onEvent("control/user_control/Person_Search","click","entitySearch(\"person\",\"control/user_control/person_keyword\",\"control/user_control/userList\",null)");
+onEvent("control/language_control/Language_Search","click","entitySearch(\"language\",\"control/language_control/language_keyword\",\"control/language_control/languageList\",null)");
+onEvent("control/file_control/File_Search","click","entitySearch(\"file\",\"control/file_control/file_keyword\",\"control/file_control/fileList\",\"control/file_control/fileCategorySelect\")");
+//onEvent("sessionGroup/sessionInfo/Session_Search","click","entitySearch(\"session\",\"sessionGroup/sessionInfo/session_Name\",\"sessionGroup/sessionInfo/sessionList\",null)");
+//onEvent("questionnaireListAll/questionnaireListInfo/quesnir_Search","click","entitySearch(\"questionnaire\",\"questionnaireListAll/questionnaireListInfo/quesnir_keyword\",\"questionnaireListAll/questionnaireListInfo/questionnaireListInDB\",null)");
+
+entitySearch(String entityNameRef, String keywordRef, String listRef, String fileTypeRef){
+	String entityName= entityNameRef;
+	String keywordOfEntity= getFieldValue(keywordRef).trim();
+	if((isNull(keywordOfEntity)) || (keywordOfEntity.equals("*"))){
+		switch (entityName){
+		case "survey":		
+			
+			fetchAll(loadAllSurveyQuery,
+					new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+					populateList(listRef, result);}
+						else{
+							showWarning("No result","No record matches the keyword");
+						}
+					}  
+			});
+			break;
+		
+		case "person":
+			loadAllPersonIDQuery="SELECT uuid, group_concat(coalesce(measure, ''),' - ') as response " +
+				    "FROM (select * from latestNonDeletedArchentIdentifiers) " +
+				    "WHERE aenttypename = 'Person' " +
+				    "GROUP BY uuid " +
+				    "order by response;";
+			fetchAll(loadAllPersonIDQuery,
+					new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+					populateList(listRef, result);}
+						else{
+							showWarning("No result","No record matches the keyword");
+						}
+					}  
+			});
+			break;
+			
+		case "language":	
+			fetchAll(loadAllLanguageQuery,
+					new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+					populateList(listRef, result);}
+						else{
+							showWarning("No result","No record matches the keyword");
+						}
+					}  
+			});
+			break;
+			
+		case "session":	
+			fetchAll(loadAllSessionIDQuery,
+					new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+					populateList(listRef, result);}
+						else{
+							showWarning("No result","No record matches the keyword");
+						}
+					}  
+			});
+			break;
+			
+		case "questionnaire":
+			fetchAll(loadAllQuestionnaireQuery,
+					new FetchCallback() {
+			        	onFetch(result) {
+							if (!isNull(result)) {
+								populateList(listRef, result);}	
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+			       	 }
+
+			        	onError(message) {
+			            	showToast(message);
+			        	}
+			    	});
+			break;
+			
+		case "file":
+			String fileType=getFieldValue(fileTypeRef);
+			switch (fileType){
+			case "Audio":
+				//select uuid,measure from 
+				//((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Audio' 
+				//and AttributeID = (select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 
+				//inner join 
+				//(select uuid,measure from latestNonDeletedAentValue where AttributeID=
+				//(select AttributeID from AttributeKey where AttributeName='FileName')) t2 on t1.fileID=t2.uuid);
+				searchAudioFileQuery="select uuid,measure from "+
+						"((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Audio' and AttributeID = "+
+							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
+						"inner join "+
+						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
+							"(select AttributeID from AttributeKey where AttributeName='FileID')) t2 "+
+							"on t1.fileID=t2.uuid );";
+				fetchAll(searchAudioFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				
+				break;
+			case "Video":
+				searchVideoFileQuery="select uuid,measure from "+
+						"((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Video' and AttributeID = "+
+							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
+						"inner join "+
+						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
+							"(select AttributeID from AttributeKey where AttributeName='FileID')) t2 "+
+							"on t1.fileID=t2.uuid );";
+				fetchAll(searchVideoFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				break;
+			case "Photo":
+				searchPhotoFileQuery="select uuid,measure from "+
+						"((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Photo' and AttributeID = "+
+							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
+						"inner join "+
+						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
+							"(select AttributeID from AttributeKey where AttributeName='FileID')) t2 "+
+							"on t1.fileID=t2.uuid );";
+				fetchAll(searchPhotoFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				break;
+			case "Other":
+				searchOtherFileQuery="select uuid,measure from "+
+						"((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Other' and AttributeID = "+
+							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
+						"inner join "+
+						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
+							"(select AttributeID from AttributeKey where AttributeName='FileID')) t2 "+
+							"on t1.fileID=t2.uuid );";
+				fetchAll(searchOtherFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				
+				break;
+			case "All":
+				fetchAll(loadAllFileIDQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				break;
+			}
+			
+			break;
+		}
+			
+			
+		}
+	
+	else{
+		
+		switch (entityName){
+		case "survey":		
+			searchSureyQuery="select uuid,measure from "+
+			"((select measure as quesnirid from latestNonDeletedAentValue where AttributeID = "+
+				"(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') group by measure) t1 "+
+			"inner join "+
+			"(select uuid, measure from latestNonDeletedAentValue where AttributeID= "+
+				"(select AttributeID from AttributeKey where AttributeName='QuestionnaireName') AND latestNonDeletedAentValue.Measure like '%"+
+				keywordOfEntity+ "%') t2 "+
+				"on t2.uuid=t1.quesnirid );";
+			fetchAll(searchSureyQuery,
+					new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+							populateList(listRef, result);}
+						else{
+							showWarning("No result","No record matches the keyword");
+						}
+					}  
+			});
+			break;
+			
+		case "person":		
+			searchPersonQuery="select uuid, measure from latestNonDeletedAentValue where " +
+					"latestNonDeletedAentValue.Measure like '%"+ keywordOfEntity +
+					"%' and latestNonDeletedAentValue.AttributeID = "+
+					"(select AttributeID from AttributeKey where AttributeName='PersonID')";
+			fetchAll(searchPersonQuery,
+					new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+							populateList(listRef, result);}
+						else{
+							showWarning("No result","No record matches the keyword");
+						}
+					}  
+			});
+			break;
+			
+		case "language":		
+			searchPersonQuery="select uuid, measure from latestNonDeletedAentValue where " +
+					"latestNonDeletedAentValue.Measure like '%"+ keywordOfEntity +
+					"%' and latestNonDeletedAentValue.AttributeID = "+
+					"(select AttributeID from AttributeKey where AttributeName='LanguageName')";
+			fetchAll(searchPersonQuery,
+					new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+							populateList(listRef, result);}
+						else{
+							showWarning("No result","No record matches the keyword");
+						}
+					}  
+			});
+			break;
+			
+		case "session":		
+			searchSessionQuery="select uuid, measure from latestNonDeletedAentValue where " +
+					"latestNonDeletedAentValue.Measure like '%"+ keywordOfEntity +
+					"%' and latestNonDeletedAentValue.AttributeID = "+
+					"(select AttributeID from AttributeKey where AttributeName='SessionID')";
+			fetchAll(searchSessionQuery,
+					new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+							populateList(listRef, result);}
+						else{
+							showWarning("No result","No record matches the keyword");
+						}
+					}  
+			});
+			break;
+		case "questionnaire":
+			searchQuesnirQuery="select uuid, measure from latestNonDeletedAentValue where " +
+					"latestNonDeletedAentValue.Measure like '%"+ keywordOfEntity +
+					"%' and latestNonDeletedAentValue.AttributeID = "+
+					"(select AttributeID from AttributeKey where AttributeName='QuestionnaireName')";
+			fetchAll(searchQuesnirQuery,
+					new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+							populateList(listRef, result);}
+						else{
+							showWarning("No result","No record matches the keyword");
+						}
+					}  
+			});
+
+			break;
+		case "file":
+			String fileType=getFieldValue(fileTypeRef);
+			switch (fileType){
+			case "Audio":
+				searchAudioFileQuery="select uuid,measure from "+
+						"((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Audio' and AttributeID = "+
+							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
+						"inner join "+
+						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
+							"(select AttributeID from AttributeKey where AttributeName='FileID') and measure like '%"+keywordOfEntity+"%') t2 "+
+							"on t1.fileID=t2.uuid );";
+				fetchAll(searchAudioFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				
+				break;
+			case "Video":
+				searchVideoFileQuery="select uuid,measure from "+
+						"((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Video' and AttributeID = "+
+							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
+						"inner join "+
+						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
+						"(select AttributeID from AttributeKey where AttributeName='FileID') and measure like '%"+keywordOfEntity+"%') t2 "+
+							"on t1.fileID=t2.uuid );";
+				fetchAll(searchVideoFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				break;
+			case "Photo":
+				searchPhotoFileQuery="select uuid,measure from "+
+						"((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Photo' and AttributeID = "+
+							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
+						"inner join "+
+						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
+						"(select AttributeID from AttributeKey where AttributeName='FileID') and measure like '%"+keywordOfEntity+"%') t2 "+
+							"on t1.fileID=t2.uuid );";
+				fetchAll(searchPhotoFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				break;
+			case "Other":
+				searchOtherFileQuery="select uuid,measure from "+
+						"((select uuid as fileID from latestNonDeletedAentValue where latestNonDeletedAentValue.measure='Other' and AttributeID = "+
+							"(select AttributeID from AttributeKey where AttributeName='FileType') group by fileID) t1 "+
+						"inner join "+
+						"(select uuid,measure from latestNonDeletedAentValue where AttributeID= "+
+						"(select AttributeID from AttributeKey where AttributeName='FileID') and measure like '%"+keywordOfEntity+"%') t2 "+
+							"on t1.fileID=t2.uuid );";
+				fetchAll(searchOtherFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				
+				break;
+			case "All":
+				searchAllFileQuery="select uuid, measure from latestNonDeletedAentValue where " +
+						"latestNonDeletedAentValue.Measure like '%"+ keywordOfEntity +
+						"%' and latestNonDeletedAentValue.AttributeID = "+
+						"(select AttributeID from AttributeKey where AttributeName='FileID')";
+				fetchAll(searchAllFileQuery,
+						new FetchCallback() {
+						onFetch(result) {
+							if(!isNull(result)){
+						populateList(listRef, result);}
+							else{
+								showWarning("No result","No record matches the keyword");
+							}
+						}  
+				});
+				break;
+			}
+			
+			break;
+		}
+	}
+  }

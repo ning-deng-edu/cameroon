@@ -339,30 +339,34 @@ sssOldIntvReln=new ArrayList();
 sssOldCoslReln=new ArrayList();
 sssOldPsReln=new ArrayList();
 
-quesRecordingType=new ArrayList();
+sssTimeMng=new ArrayList();
 
-//busyDialog=null;
 
 /***session dynamic ui page generation***/
 createMainSessionPage(){
-	if(!hasView("sessionForAnswer/sssHidden/sssID")){
+	if(!hasView("sessionForAnswer/sssAnsBasicInfo/sssID")){
 		removeAllViewsAndContainers("sessionForAnswer");
 		executeViewTask(new ViewTask() {
     	doTask() { 
-    		//sssHidden page
+    		//sssAnsBasicInfo page
+    		
     		sssIdViewDef= createViewDef().createTextField().setLabel("Session label").setAttributeName("SessionID").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
-    		sssStartTimeViewDef=createViewDef().createTextField().setLabel("Session start time").setAttributeName("SessionStartTimestamp").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
-    		sssEndTimeViewDef=createViewDef().createTextField().setLabel("Session end time").setAttributeName("SessionEndTimestamp").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
-    		createView("sessionForAnswer/sssHidden/sssID",sssIdViewDef,"sessionForAnswer/sssHidden"); 
-    		createView("sessionForAnswer/sssHidden/sssStartTimetamp",sssStartTimeViewDef,"sessionForAnswer/sssHidden");
-    		createView("sessionForAnswer/sssHidden/sssEndTimestamp",sssEndTimeViewDef,"sessionForAnswer/sssHidden");
-    		//sssAnsBasicInfo page   
+    
     		sssNameViewDef=createViewDef().createTextField().setLabel("Session name").setAttributeName("SessionName").setAttributeType("measure").setAnnotationEnabled(true);
+  
     		sssLocViewDef=createViewDef().createTextField().setLabel("Session location").setAttributeName("SessionLocation").setAttributeType("measure").setAnnotationEnabled(true);
+    
+    		sssStartTimeViewDef=createViewDef().createTextField().setLabel("Session start time").setAttributeName("SessionStartTimestamp").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+   
+    		sssEndTimeViewDef=createViewDef().createTextField().setLabel("Session end time").setAttributeName("SessionEndTimestamp").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+    	
     		sssDescViewDef=createViewDef().createTextField().setLabel("Session description").setAttributeName("SessionDescription").setAttributeType("measure").setAnnotationEnabled(true);
-    		  
-    		createView("sessionForAnswer/sssAnsBasicInfo/sssName",sssNameViewDef,"sessionForAnswer/sssAnsBasicInfo");		
-    		createView("sessionForAnswer/sssAnsBasicInfo/sssLocation",sssLocViewDef,"sessionForAnswer/sssAnsBasicInfo");	
+    	
+    		createView("sessionForAnswer/sssAnsBasicInfo/sssID",sssIdViewDef,"sessionForAnswer/sssAnsBasicInfo");
+    		createView("sessionForAnswer/sssAnsBasicInfo/sssName",sssNameViewDef,"sessionForAnswer/sssAnsBasicInfo");
+    		createView("sessionForAnswer/sssAnsBasicInfo/sssLocation",sssLocViewDef,"sessionForAnswer/sssAnsBasicInfo");
+    		createView("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp",sssStartTimeViewDef,"sessionForAnswer/sssAnsBasicInfo");
+    		createView("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",sssEndTimeViewDef,"sessionForAnswer/sssAnsBasicInfo");
     		createView("sessionForAnswer/sssAnsBasicInfo/sssDescription",sssDescViewDef,"sessionForAnswer/sssAnsBasicInfo");
     	
     		//sssPersonInfo page
@@ -408,7 +412,7 @@ createMainSessionPage(){
 
 	        refreshTabgroupCSS("sessionForAnswer");
 
-	        onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","checkNewAnsTime()");
+	        onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","showQuestionnaireList()");
 			onEvent("sessionForAnswer/sssAnsList/Save_Session","click","saveSession(\"answer\")");
 			onEvent("sessionForAnswer/sssPersonInfo/Add_Person","click","addPersonToSession()");
 			onEvent("sessionForAnswer/sssPersonInfo/sssPersonList","click","deletePersonInSession()");
@@ -416,7 +420,6 @@ createMainSessionPage(){
 			onEvent("sessionForAnswer/sssPersonInfo","show","refreshPsAndRole()");
 			onEvent("sessionForAnswer/sssAnsList/sssAnsSelList","click","addItemToTargetList(candidate_files_session,\"sessionFile\",null)");
 			onEvent("sessionForAnswer/sssAnsList/sssAnswerList","click","checkDelOrView()");
-
 			}
 	    
 		});
@@ -455,7 +458,7 @@ createQuesnirList(){
 }
 
 createQuesSel(){
-	if(!hasView("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireID")){
+	if(!hasView("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireID")){
 		removeAllViewsAndContainers("questionnaireInfo");
 		executeViewTask(new ViewTask() {
 	    doTask() {
@@ -464,14 +467,16 @@ createQuesSel(){
 	    	nameTextViewDef=createViewDef().createTextField().setLabel("Questionnaire name").setAttributeName("QuestionnaireName").setAttributeType("measure").setAnnotationEnabled(false).setReadOnly(true);
 	    	typeTextViewDef=createViewDef().createTextField().setLabel("Questionnaire type").setAnnotationEnabled(false).setReadOnly(true);
 	    	descTextViewDef=createViewDef().createTextField().setLabel("Questionnaire description").setAttributeName("QuestionnaireDescription").setAttributeType("measure").setAnnotationEnabled(false).setReadOnly(true);
-	    	createView("questionnaireInfo/surveyQuesnirHidden/currentQuesnirID",hideQuesnirId,"questionnaireInfo/surveyQuesnirHidden");
-	    	createView("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireID",idTextViewDef,"questionnaireInfo/surveyQuesnirHidden");
-	        createView("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireName",nameTextViewDef,"questionnaireInfo/surveyQuesnirHidden");
-	        createView("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireType",typeTextViewDef,"questionnaireInfo/surveyQuesnirHidden");
-	        createView("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireDescription", descTextViewDef,"questionnaireInfo/surveyQuesnirHidden");
-	    		    	
+	    	
 
 	        quesSelListDef=createViewDef().createList().setLabel("Questions").setStyleCss("questionQuestionnaire-list");
+
+	        createView("questionnaireInfo/surveyQuesnirHidden/currentQuesnirID",hideQuesnirId,"questionnaireInfo/surveyQuesnirHidden");
+
+	    	createView("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireID",idTextViewDef,"questionnaireInfo/surveyQuestionnaire");
+	        createView("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireName",nameTextViewDef,"questionnaireInfo/surveyQuestionnaire");
+	        createView("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireType",typeTextViewDef,"questionnaireInfo/surveyQuestionnaire");
+	        createView("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireDescription", descTextViewDef,"questionnaireInfo/surveyQuestionnaire");
 
 	        style1 = "orientation";
 	        style2 = "even";
@@ -488,7 +493,7 @@ createQuesSel(){
 	    	 
 	        refreshTabgroupCSS("questionnaireInfo");
 	        //showTabGroup("fieldTrip");
-	        onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","checkPersonAns(null)");
+	        onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","checkPersonAns()");
 	        onEvent("questionnaireInfo/surveyQuestionnaire/ques_Search","click","searchQuesInCrtQuesnir()");
 	   		}
 			});
@@ -501,21 +506,6 @@ createQuesSel(){
 
 /**Functions for session**/
 /***Starting from creating a session***/
-checkNewAnsTime(){
-	sssTime=getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp");
-	sssDateTimeArray=sssTime.split("\\s+");
-    sssDate=sssDateTimeArray[0];
-   
-    crnTime=getCurrentTime();
-    crnDateArray=crnTime.toString().split("\\s+");
-	crnDate=crnDateArray[0];
-	if(!(sssDate.equals(crnDate))){
-		showAlert("alert", "You cannot add new answer to this session \n"+"Do you want to create a new session?", "newSessionForAnswer(\"answer\",null)", "stayInCurrentPage()");
-	}	
-	else{
-		showQuestionnaireList();
-	}
-}
 
 newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	createMainSessionPage();
@@ -546,15 +536,16 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	sssOldPsReln.clear();
 	sssOldCoslReln.clear();
 	sssOldIntvReln.clear();
-	quesRecordingType.clear();
+	sssTimeMng.clear();
+	
 	takePoint();
 	
 	newTabGroup("sessionForAnswer");
 	String currentTime=getCurrentTime();
     currentDateTimeArray=currentTime.toString().split("\\s+");
     String currentDate=currentDateTimeArray[0];
-    setFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp",currentTime);           
-
+    setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp",currentTime);           
+    setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",currentDate+" 23:59:59");
     if (!isNull(currentPosition)){
     	sssLabel="_"+currentPosition.get(1)+"_"+currentPosition.get(2)+"_"+currentDate;
     	setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation",currentPosition.get(0));
@@ -564,7 +555,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
     	setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation","GPS not available");
     }
     String tempSssLabelNew=username+sssLabel;
-    labelDeduplicate(tempSssLabelNew,"SessionID","sessionForAnswer/sssHidden/sssID",null);
+    labelDeduplicate(tempSssLabelNew,"SessionID","sessionForAnswer/sssAnsBasicInfo/sssID",null,null);
     //setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",username+sssLabel);
     
     populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list); 
@@ -805,7 +796,7 @@ showQuestionnaireList(){
 		showWarning("No session name","Please input session name");
 		return;
 	}
-	if(isNull(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"))){
+	if(isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"))){
 		showWarning("No session time","Please input session start time");
 		return;
 	}
@@ -833,7 +824,6 @@ showQuestionnaireList(){
 	survey_list.clear();
 	questionnaire_list.clear();
 	queslabel_current_quesnir.clear();
-	quesRecordingType.clear();
 	
 	createQuesnirList();
 	newTabGroup("questionnaireListAll");
@@ -901,7 +891,7 @@ loadQuesnirInfo(){
         	onFetch(result) {
 	        	setFieldValue("questionnaireInfo/surveyQuesnirHidden/currentQuesnirID",current_quesnir_id);
 	        	refreshQuesnirInfo();
-				current_quesnir_name=getFieldValue("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireName");
+				current_quesnir_name=getFieldValue("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireName");
 				showToast("Loaded questionnaire"+result.getId());  
 
         	}
@@ -925,7 +915,7 @@ loadQuesnirTypeQuery="select measure from latestNonDeletedAentValue "+
 fetchOne(loadQuesnirTypeQuery,new FetchCallback() {
 		onFetch(typeResult) {
 			if (!isNull(typeResult)) {	
-				setFieldValue("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireType",typeResult.get(0));
+				setFieldValue("questionnaireInfo/surveyQuestionnaire/surveyQuestionnaireType",typeResult.get(0));
 			}
 		}	       
 		onError(message) {
@@ -947,7 +937,6 @@ fetchAll(quesnir_ques_reln_query, new FetchCallback() {
 
 			queslabel_current_quesnir.clear();
 			ques_in_current_quesnir.clear();
-			quesRecordingType.clear();
 			for(reln:quesListRelnOrigin){
     			String relnId=reln.get(0);
 
@@ -958,65 +947,42 @@ fetchAll(quesnir_ques_reln_query, new FetchCallback() {
 			                			"and uuid='"+relnId+"')";
 
 				fetchOne(loadQuesContentQuery,new FetchCallback() {
-					onFetch(quesResult) {
-						if (!isNull(quesResult)) {			
-							//showWarning("quesResult","quesResult");
-			   				ques_in_current_quesnir.add(quesResult);
-							populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
+								onFetch(quesResult) {
+									if (!isNull(quesResult)) {			
+										//showWarning("quesResult","quesResult");
+						   				ques_in_current_quesnir.add(quesResult);
+										populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
 
-							loadQuesLabelQuery="select uuid,measure from latestNonDeletedAentValue "+
-	                		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
-	                		"and uuid=(select measure from latestNonDeletedAentValue where AttributeID="+
-	                			"(select AttributeID from AttributeKey where AttributeName='QuesID') "+
-	                			"and uuid='"+relnId+"')";
+										loadQuesLabelQuery="select uuid,measure from latestNonDeletedAentValue "+
+				                		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
+				                		"and uuid=(select measure from latestNonDeletedAentValue where AttributeID="+
+				                			"(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+				                			"and uuid='"+relnId+"')";
 
-	                		quesRecordingTypeQuery="select measure from latestNonDeletedAentValue where "+
-							"AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefName') "+
-							"and uuid =(select measure from latestNonDeletedAentValue "+
-							"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefID') "+
-							"and uuid=(select uuid from latestNonDeletedArchEntIdentifiers "+
-							"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
-							"and measure ='"+quesResult.get(0)+"'))";
-							//showWarning("quesid",quesResult.get(0));
-	        				fetchOne(loadQuesLabelQuery,new FetchCallback() {
-									onFetch(labelResult) {
-										if (!isNull(labelResult)) {	
-											//showWarning("labelResult","labelResult");
-											queslabel_current_quesnir.add(labelResult);
+				        				fetchOne(loadQuesLabelQuery,new FetchCallback() {
+												onFetch(labelResult) {
+													if (!isNull(labelResult)) {	
+														//showWarning("labelResult","labelResult");
+														queslabel_current_quesnir.add(labelResult);
+													}
+												}
+										       
+												onError(message) {
+													showToast(message);
+												}
+											});
 										}
-									}
-							       
-									onError(message) {
-										showToast(message);
-									}
-								});
-	        				fetchOne(quesRecordingTypeQuery,new FetchCallback() {
-									onFetch(recordingType) {
-										if (!isNull(recordingType)) {	
-											recording=new ArrayList();
-											recording.add(quesResult.get(0));
-											recording.add(recordingType.get(0));
-											//showWarning("recordingType",recordingType.get(0));
-											quesRecordingType.add(recording);
+									else{
+											showWarning("Out-of-date Data","Some questions may not be using anymore\n"+"Please contact the admin for further information");
 										}
+								}
+											       
+								onError(message) {
+									showToast(message);
 									}
-							       
-									onError(message) {
-										showToast(message);
-									}
-								});
+								});	
 							}
-						else{
-								showWarning("Out-of-date Data","Some questions may not be using anymore\n"+"Please contact the admin for further information");
-							}
-					}
-								       
-					onError(message) {
-						showToast(message);
 						}
-					});	
-				}
-			}
 		else{
 			showWarning("Out-of-date Data","Some questions in this questionnaire may not be using anymore\n"+"Please contact the admin for further information");
 		}
@@ -1056,15 +1022,8 @@ searchQuesInCrtQuesnir(){
 	}	
 }
 
-checkPersonAns(String tempQuesId){
-	if(tempQuesId==null){
-		quesId=getListItemValue();
-	}
-	else
-	{
-		quesId=tempQuesId;
-	}
-	//showWarning("checkPersonAns",tempQuesId);
+checkPersonAns(){
+	quesId=getListItemValue();
 	//showWarning("quesId",quesId);
 	ansedPs=new ArrayList();
 	ansedPs.clear();
@@ -1107,33 +1066,32 @@ checkPersonAns(String tempQuesId){
 		        			if (ansQues.get(0).equals(quesId))
 		        			{	
 		        				rep=true;
-		        				checkDuplicateAns(true, tempQuesId);
+		        				checkDuplicateAns(true);
 		        				break;
 		        			}
 		        		}
 		        		if(!rep){
-		        			loadAnswerFromQuesInQuesnir(tempQuesId);
+		        			loadAnswerFromQuesInQuesnir();
 		        		}       		
 					}
 					else{
-						loadAnswerFromQuesInQuesnir(tempQuesId);
+						loadAnswerFromQuesInQuesnir();
 					}
 		        }
 		    });
 }
 
-checkDuplicateAns(Boolean dupOrNot, String tempQuesId){
+checkDuplicateAns(Boolean dupOrNot){
 	if(dupOrNot){
-		//showWarning("checkDuplicateAns",tempQuesId);
 		if(sssConsultantIdList.size()==1){
-			showAlert("alert", sssConsultantIdList.get(0).get(1)+" has already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir(\""+tempQuesId+"\")", "stayInCurrentPage()");
+			showAlert("alert", sssConsultantIdList.get(0).get(1)+" has already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir()", "stayInCurrentPage()");
 		}
 		else{
-			showAlert("alert", "Some consultants have already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir(\""+tempQuesId+"\")", "stayInCurrentPage()");
+			showAlert("alert", "Some consultants have already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir()", "stayInCurrentPage()");
 		}
 	}
 	else{
-		loadAnswerFromQuesInQuesnir(tempQuesId);
+		loadAnswerFromQuesInQuesnir();
 	}
 }
 
@@ -1280,7 +1238,7 @@ loadSessionInfo(String typeFlag){
 				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
 	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
 				"and latestNonDeletedRelationship.Deleted IS NULL)))";
-		/*
+
 		loadAnsStartTimeForSssQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerStartTime') "+
 				"and uuid in "+
@@ -1300,7 +1258,7 @@ loadSessionInfo(String typeFlag){
 				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
 	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
 				"and latestNonDeletedRelationship.Deleted IS NULL)))";
-		*/
+
 		loadAnsSssRelnQuery="select RelationshipID, uuid from latestNonDeletedAentReln where uuid <> '"+sss_id+
 		"' and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='"+sss_id+
 			"' and RelationshipID in(select RelationshipID from latestNonDeletedRelationship "+
@@ -1330,7 +1288,43 @@ loadSessionInfo(String typeFlag){
 			"' and RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
 				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Person') "+
 				"and latestNonDeletedRelationship.Deleted IS NULL))";
-		
+
+		fetchAll(loadAnsStartTimeForSssQuery, new FetchCallback() {
+	        onFetch(result) {
+	        	tempAnsStartTime=new ArrayList();
+	        	tempAnsStartTime.clear();
+	        	if(!isNull(result)){
+	        		tempAnsStartTime.addAll(result);
+	        		fetchAll(loadAnsEndTimeForSssQuery, new FetchCallback() {
+				        onFetch(endTimeResult) {
+				        	tempAnsEndTime=new ArrayList();
+	        				tempAnsEndTime.clear();
+	        				if(!isNull(endTimeResult)){
+	        					tempAnsEndTime.addAll(endTimeResult);
+	        					for(startTime:tempAnsStartTime){
+	        						for(endTime:tempAnsEndTime){
+	        							if(startTime.get(0).equals(endTime.get(0))){
+	        								tempAnsTime=new ArrayList();
+	        								tempAnsTime.add(startTime.get(0));
+	        								tempAnsTime.add(startTime.get(1));
+	        								tempAnsTime.add(endTime.get(1));
+	        								sssTimeMng.add(tempAnsTime);
+	        							}
+	        						}
+	        					}
+	        				}
+				        }
+				        onError(message) {
+				            showToast(message);
+				        }
+				    });
+	        	}
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+
 		fetchAll(loadAnsSssRelnQuery, new FetchCallback() {
 	        onFetch(result) {
 	        	sssAnsRelnOrigin.clear();
@@ -1372,11 +1366,11 @@ loadSessionInfo(String typeFlag){
 		showTabGroup("sessionForAnswer", sss_id, new FetchCallback() {
 	        onFetch(result) {
 				sssOriginInfo.clear();
-	        	sssLabelOld=getFieldValue("sessionForAnswer/sssHidden/sssID");
+	        	sssLabelOld=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID");
 	        	sssOriginInfo.add(sssLabelOld);
 	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
-	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"));
-	        	//sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp"));  
+	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
+	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));  
 	        	fetchAll(loadAnswerForSessionQuery, new FetchCallback() {
 	                onFetch(answers) {
 	                	original_sss_answer_list.clear();
@@ -1675,10 +1669,10 @@ autoSaveSession(String typeFlag){
 		break;
 		case "tailNew":
 			sssOriginInfo.clear();
-			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssID"));
+			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
 			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
-			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"));
-
+			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
+			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp"));
 			original_sss_answer_list.clear();
 			original_sss_answer_list.addAll(sss_answer_list);
 			sssPersonRoleNameListOrigin.clear();
@@ -2145,6 +2139,19 @@ ansListChange(Hashtable sssAnsChange){
 updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPsChange){
 	//case 1: sssInfoChanged only PASS
 	if((!sssInfoChange.containsKey("EQUAL")) && (sssAnsChange.containsKey("EQUAL"))){
+		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+		//String endTimeStamp=getCurrentTime();
+		endTimeStamp=null;
+		endTimeAuto=generateSssEndTime(sssTimeMng);
+		if(!isNull(endTimeAuto)){
+			setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
+			endTimeStamp=endTimeAuto;
+		}
+		else{
+			endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+		}
+		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+			//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
 		saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 		    onSave(uuid, newRecord) {
 		    	autoSaveSession("tail");
@@ -2154,32 +2161,147 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 		        showWarning("error",message);
 		    }  
 		  });
+		}
+		else{
+			showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
+					+"2.Datetime input should be valid \n"+
+								"3.Start timestamp should be before end timestamp \n"+
+											"4.Two dates should be the same");
+			return;
+		}
 	}
 
 	//case 2: sssAns changed only PASS
+	//TODO:ADD time validation for new answer's time
 	else if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
-		ansListChange(sssAnsChange);
-		autoSaveSession("tail");
-		showToast("Session answer data changed");
+		Boolean newAns=false;
+		endTimeStamp=null;
+		endTimeStamp=generateSssEndTime(sssTimeMng);
+		if(isNull(endTimeStamp)){
+			endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+		}
+		if((sssAnsChange.containsKey("ADD"))||(sssAnsChange.containsKey("PUREADD"))){
+			//endTimeStamp=generateSssEndTime(sssTimeMng);
+			newAns=true;
+		}
+		/*
+		else{
+			endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+		}
+		*/
+		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+			if(newAns){
+				setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
+			}
+			ansListChange(sssAnsChange);
+			autoSaveSession("tail");
+			showToast("Session answer data changed");
+		}
+		else{
+			showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
+					+"2.Datetime input should be valid \n"+
+								"3.Start timestamp should be before end timestamp \n"+
+											"4.Two dates should be the same");
+			return;
+		}
+		
 	}
 
 	//case 3: both sssInfo and sssAns changed PASS
+	//TODO:ADD time validation for new answer's time
 	else{
-		//TODO: bug here
-		saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-		    onSave(uuid, newRecord) {
-		    	ansListChange(sssAnsChange);
-		    	autoSaveSession("tail");
-		        showToast("Session data changed");
+		String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+		Boolean newAns=false;
+		endTimeStamp=null;
+		endTimeStamp=generateSssEndTime(sssTimeMng);
+		if(isNull(endTimeStamp)){
+			endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+		}
+		if((sssAnsChange.containsKey("ADD")) ||(sssAnsChange.containsKey("PUREADD"))){
+			//endTimeStamp=getCurrentTime();
+			newAns=true;
+		}
+		//else{
+			//endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+		//}
+		if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+			if(newAns){
+				setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
+			}
+			
+			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+			    onSave(uuid, newRecord) {
+			    	ansListChange(sssAnsChange);
+			    	autoSaveSession("tail");
+			        showToast("Session data changed");
 
-		    }
-		    onError(message) {
-		        showWarning("error",message);
-		    }  
-		  });
+			    }
+			    onError(message) {
+			        showWarning("error",message);
+			    }  
+			  });
+		}
+		else{
+			showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
+					+"2.Datetime input should be valid \n"+
+								"3.Start timestamp should be before end timestamp \n"+
+											"4.Two dates should be the same");
+			return;
+		}
 	}
 }
 
+makeSssLabel(ArrayList result, String tempLbl){
+	String rtnLbl=tempLbl;
+	tempDuplicateList=new ArrayList();
+	tempDuplicateList.clear();
+	tempDuplicateList.addAll(result);
+	int sizeOfDup=0;
+	Pattern numberPat = Pattern.compile("\\(\\d+\\)");
+	sizeOfDup=tempDuplicateList.size();
+	if(sizeOfDup==1){
+		attributes = createAttributeList();
+		duplicateOldLabel=tempDuplicateList.get(0).get(1);
+		Matcher numMatcher = numberPat.matcher(duplicateOldLabel);
+
+		if(numMatcher.find()){
+			suffix=duplicateOldLabel.substring(duplicateOldLabel.indexOf("("),duplicateOldLabel.length());
+			if(!suffix.equals("(1)"))
+			{
+				newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.indexOf("("))+"(1)";
+				attributes.add(createEntityAttribute("SessionID", null, null, newLabel, null));
+				entityId=tempDuplicateList.get(0).get(0);
+				saveArchEnt(entityId, "Session", null, attributes);
+			}
+		}
+		else{
+			newLabel=duplicateOldLabel+"(1)";
+			attributes.add(createEntityAttribute("SessionID", null, null, newLabel, null));
+			entityId=tempDuplicateList.get(0).get(0);
+			saveArchEnt(entityId, "Session", null, attributes);
+		}
+		rtnLbl=rtnLbl+"(2)";
+	}
+	else{
+		int maxSuffix=0;
+		for(temp: tempDuplicateList){
+			tempLabel=temp.get(1);
+			Matcher numMatcher = numberPat.matcher(tempLabel);
+			if(numMatcher.find()){
+				tempSuffixStr=tempLabel.substring(tempLabel.indexOf("(")+1, tempLabel.length()-1);
+				int tempSuffixNum=Integer.parseInt(tempSuffixStr);
+				if(tempSuffixNum>maxSuffix){
+					maxSuffix=tempSuffixNum;
+				}
+			}
+		}
+		maxSuffix=maxSuffix+1;
+		rtnLbl=rtnLbl+"("+maxSuffix+")";
+	}
+	return rtnLbl;
+
+}
 //TODO: add this function to all session saving functions
 
 generateSssEndTime(ArrayList sssTimeList){
@@ -2194,7 +2316,6 @@ generateSssEndTime(ArrayList sssTimeList){
 	}
 	return sssEndTime;
 }
-
 updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPsChange){
 	Hashtable psInfo=extractPsSum();
 	if(psInfo.isEmpty()){
@@ -2214,7 +2335,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 
 	//generate new sssLabel
 	Boolean sssLabelChange=false;
-    String oldSssLabel=getFieldValue("sessionForAnswer/sssHidden/sssID");
+    String oldSssLabel=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID");
 	String [] oldSssLabelSplit=oldSssLabel.split("_");
 	String sssOldInv=oldSssLabelSplit[0];
 	//showWarning("sssOldInv",sssOldInv);
@@ -2241,66 +2362,136 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 		fetchAll(sssDuplicateQuery,new FetchCallback() {
 			onFetch(result) {
 				if(!isNull(result)){
-					newSssLabel=makeLabel(result,newSssLabel, "Session","SessionID");
-					setFieldValue("sessionForAnswer/sssHidden/sssID",newSssLabel);
+					newSssLabel=makeSssLabel(result,newSssLabel);
+					setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",newSssLabel);
 				}
 				else{
-					setFieldValue("sessionForAnswer/sssHidden/sssID",newSssLabel);
+					setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",newSssLabel);
 				}
-				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-		    		onSave(uuid, newRecord) {
-		    		if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
-		    				ansListChange(sssAnsChange);
-		    				autoSaveSession("tail");
-		    			}
-		    		
-		    		}//onSave(uuid, newRecord)
+				Boolean newAns=false;
+				String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+				endTimeStamp=null;
+				endTimeStamp=generateSssEndTime(sssTimeMng);
+				if(isNull(endTimeStamp)){
+					endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+				}
+				if((sssAnsChange.containsKey("ADD"))||(sssAnsChange.containsKey("PUREADD"))){
+					//endTimeStamp=getCurrentTime();
+					newAns=true;
+				}
+				//else{
+					//endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+				//}
+				if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+					if(newAns){
+						setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
+					}
+					saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+			    		onSave(uuid, newRecord) {
+			    		if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
+			    				ansListChange(sssAnsChange);
+			    				autoSaveSession("tail");
+			    			}
+			    		
+			    		}//onSave(uuid, newRecord)
 
-				});
+					});
+				}
+				else{
+					showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
+							+"2.Datetime input should be valid \n"+
+										"3.Start timestamp should be before end timestamp \n"+
+													"4.Two dates should be the same");
+					return;
+				}
+
 			}
+
 		});
 		//showWarning("sssLabelChange",sssLabelChange.toString());
 	}//if sssLabelChange
 
 	else{
-			//new deleted answers
-		if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
-			ansListChange(sssAnsChange);
-			autoSaveSession("tail");
+			Boolean newAns=false;
+			String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+			endTimeStamp=null;
+			endTimeStamp=generateSssEndTime(sssTimeMng);
+			if(isNull(endTimeStamp)){
+				endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+			}
+			if((sssAnsChange.containsKey("ADD"))||(sssAnsChange.containsKey("PUREADD"))){
+				//endTimeStamp=getCurrentTime();
+				newAns=true;
+			}
+			//else{
+			//	endTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+			//}
+			if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+				//New added answers
+				if(newAns){
+					setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeStamp);
+					saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+					    onSave(uuid, newRecord) {
+					    	if(!sssAnsChange.containsKey("EQUAL")){
+					    		ansListChange(sssAnsChange);
+					    		autoSaveSession("tail");
+					    	}
+					    }
+					    onError(message) {
+					        showWarning("error",message);
+					    }  
+					  });
+				}
+				//new deleted answers
+				else if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
+					ansListChange(sssAnsChange);
+				}
+				//only sssInfoChange
+				else if(!sssInfoChange.containsKey("EQUAL")){	
+					saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+					    onSave(uuid, newRecord) {
+					    	if(!sssAnsChange.containsKey("EQUAL")){
+					    		ansListChange(sssAnsChange);
+					    		autoSaveSession("tail");
+					    	}
+					    }
+					    onError(message) {
+					        showWarning("error",message);
+					    }  
+					  });
+				}
+			}
+			else{
+				showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
+						+"2.Datetime input should be valid \n"+
+									"3.Start timestamp should be before end timestamp \n"+
+												"4.Two dates should be the same");
+				return;
+			}
 		}
-		//sssInfoChange
-		else if(!sssInfoChange.containsKey("EQUAL")){	
-			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-			    onSave(uuid, newRecord) {
-			    	if(!sssAnsChange.containsKey("EQUAL")){
-			    		ansListChange(sssAnsChange);
-			    		autoSaveSession("tail");
-			    	}
-			    }
-			    onError(message) {
-			        showWarning("error",message);
-			    }  
-			  });
-		}
-			
-	}
 	sssPsUpdate(sssPsChange);
 	saveAnsInSession(sss_id,"dupLabel");
 }
 
 changeSession(){
 	if((isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"))) || 
-				(isNull(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"))) || 
+				(isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"))) || 
 				(isNull(sss_answer_list)))
 		{
 			showWarning("Incomplete Data","Please make sure that data is complete");
 			return;
 		}
+	endTimeAuto=generateSssEndTime(sssTimeMng);
+	if(isNull(endTimeAuto)){
+		endTimeAuto=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp");
+	}
+	setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
 	sssNewInfo.clear();
-	sssNewInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssID"));
+	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID"));
 	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
-	sssNewInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"));
-
+	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"));
+	sssNewInfo.add(endTimeAuto);
+	//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",);
 	Hashtable sssInfoChange=listChange(sssNewInfo,sssOriginInfo);
 	Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
 	Hashtable sssPsChange=listChange(sssPersonRoleandNameList,sssPersonRoleNameListOrigin);
@@ -2331,7 +2522,7 @@ saveSession(String typeflag){
 		case "answer":	
 			if(isNull(sss_id)){//SAVING NEW SESSION
 				if((isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"))) || 
-						(isNull(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"))) || 
+						(isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp"))) || 
 						(isNull(sss_answer_list)))
 				{
 					showWarning("Incomplete Data","Data can't be saved\n"+"Please make sure basic session data is complete");
@@ -2363,29 +2554,46 @@ saveSession(String typeflag){
 				fetchAll(sssDuplicateQuery,new FetchCallback() {
 						onFetch(result) {
 							if(!isNull(result)){
-								tempSssLabel = makeLabel(result, tempSssLabel,"Session","SessionID");
+								tempSssLabel = makeSssLabel(result, tempSssLabel);
 
-								setFieldValue("sessionForAnswer/sssHidden/sssID",tempSssLabel);
+								setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",tempSssLabel);
 							}
 							else{
-								setFieldValue("sessionForAnswer/sssHidden/sssID",tempSssLabel);
+								setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssID",tempSssLabel);
+							}
+							
+							endTimeAuto=generateSssEndTime(sssTimeMng);
+							if(isNull(endTimeAuto)){
+								endTimeAuto=getCurrentTime();
+							}
+							setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssEndTimestamp",endTimeAuto);
+							String startTimeStamp=getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssStartTimetamp");
+							String endTimeStamp=endTimeAuto;
+							if(timeValidation(startTimeStamp,endTimeStamp,"sessionTime")){
+								saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+								    onSave(uuid, newRecord) {
+								    	sss_id = uuid;
+								      	if (newRecord) {
+								      	  //saving answer list for this session
+											saveAnsInSession(sss_id,"newSss");
+											savePsInSession(sss_id);
+											autoSaveSession("tailNew");
+											showToast("New session contains answer(s) created");
+								      }
+								    }
+								    onError(message) {
+								        showWarning("error",message);
+								    }  
+								  });
+							}
+							else{
+								showWarning("Invalid timestamp","1. Datetime format should be yyyy-MM-dd HH:mm:ss \n"
+								+"2.Datetime input should be valid \n"+
+											"3.Start timestamp should be before end timestamp \n"+
+														"4.Two dates should be the same");
+									return;
 							}
 
-							saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-							    onSave(uuid, newRecord) {
-							    	sss_id = uuid;
-							      	if (newRecord) {
-							      	  //saving answer list for this session
-										saveAnsInSession(sss_id,"newSss");
-										savePsInSession(sss_id);
-										autoSaveSession("tailNew");
-										showToast("New session contains answer(s) created");
-							      }
-							    }
-							    onError(message) {
-							        showWarning("error",message);
-							    }  
-							  });
 						}  
 					});
 			}//if(isNull(sss_id))
@@ -2437,30 +2645,28 @@ survey_list=new ArrayList();
 files_in_current_ques=new ArrayList();
 files_origin=new ArrayList();
 
-Boolean ansOrNot=true;//denoting if the answer has the answer ui page
-hiddenAnsInfo=new HashMap();// holding the answer info when no answer ui
+ansTimeMng=new ArrayList();
 /**Answer dynamic ui generating**/
 createAnswerPage(){
-	if(!hasView("survey/answerHidden/answerLabel")){
+	if(!hasView("survey/answerBasic/answerLabel")){
 		removeAllViewsAndContainers("survey");
 		executeViewTask(new ViewTask() {
 	    doTask() {
 	  		//answerHidden page
 	    	hideQuesnirId=createViewDef().createTextField().setLabel("Questionnaire id").setAttributeName("AnswerQuestionnaireID").setAttributeType("measure").setReadOnly(true);
 	    	hideQuesId=createViewDef().createTextField().setLabel("Question id").setAttributeName("AnswerQuestionID").setAttributeType("measure").setReadOnly(true);
-	    	ansLabelViewDef = createViewDef().createTextField().setLabel("Answer label").setAttributeName("AnswerLabel").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
-	    	ansStartTimeViewDef=createViewDef().createTextField().setLabel("Start timestamp").setAttributeName("AnswerStartTime").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
-	    	ansEndTimeViewDef=createViewDef().createTextField().setLabel("End timestamp").setAttributeName("AnswerEndTime").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
 	    	createView("survey/answerHidden/answerQuestionnaireID",hideQuesnirId,"survey/answerHidden");
 	    	createView("survey/answerHidden/answerQuestionID",hideQuesId,"survey/answerHidden");
-	    	createView("survey/answerHidden/answerLabel",ansLabelViewDef,"survey/answerHidden");
-	        createView("survey/answerHidden/answerStartTimestamp",ansStartTimeViewDef,"survey/answerHidden");
-	        createView("survey/answerHidden/answerEndTimestamp",ansEndTimeViewDef,"survey/answerHidden");
+
 	    	//answerBasic page
-	    	
+	    	ansLabelViewDef = createViewDef().createTextField().setLabel("Answer label").setAttributeName("AnswerLabel").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true).setStyleCss("required");
 	    	ansTextViewDef=createViewDef().createTextField().setLabel("Answer text").setAttributeName("AnswerText").setAttributeType("measure").setAnnotationEnabled(true);
-			createView("survey/answerBasic/answerText",ansTextViewDef,"survey/answerBasic");
-	    	
+	    	ansStartTimeViewDef=createViewDef().createTextField().setLabel("Start timestamp").setAttributeName("AnswerStartTime").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+	    	ansEndTimeViewDef=createViewDef().createTextField().setLabel("End timestamp").setAttributeName("AnswerEndTime").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+	    	createView("survey/answerBasic/answerLabel",ansLabelViewDef,"survey/answerBasic");
+	    	createView("survey/answerBasic/answerText",ansTextViewDef,"survey/answerBasic");
+	        createView("survey/answerBasic/answerStartTimestamp",ansStartTimeViewDef,"survey/answerBasic");
+	        createView("survey/answerBasic/answerEndTimestamp",ansEndTimeViewDef,"survey/answerBasic");
 	        
 	        //answerFile page
 			newAnsBtnDef = createViewDef().createButton().setLabel("Save Answer").setStyleCss("faims-blue");
@@ -2474,7 +2680,7 @@ createAnswerPage(){
 	        refreshTabgroupCSS("survey");
 			/**Events for answer**/
 			onEvent("survey/answerFile/Finish_New_Answer","click","saveNewAnswer()");
-			onEvent("survey/answerFile/Add_New_File","click","newFile(\"answer\",null)");
+			onEvent("survey/answerFile/Add_New_File","click","newFile(\"answer\",null,null)");
 			onEvent("survey/answerFile/answerFileList","click","viewOrDeleteFileReln()");
 	   		}
 			});
@@ -2493,6 +2699,7 @@ loadAnswerInfo(){
 		return;
 	}
 	else{
+	ansTimeMng.clear();
 	loadFileAnsRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+current_answer_id+" "+
 				"and RelationshipID in "+
 				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
@@ -2508,7 +2715,7 @@ loadAnswerInfo(){
             showToast(message);
         }
     });
-	/*
+	
 	loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileName') "+
 			"and uuid in "+
@@ -2518,16 +2725,6 @@ loadAnswerInfo(){
 			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
  			"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
 			"and latestNonDeletedRelationship.Deleted IS NULL)))";
-	*/
-	loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
-			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileID') "+
-			"and uuid in "+
- 			"(select uuid from AentReln where RelationshipID in "+
-			"(select RelationshipID from AEntReln where AEntReln.uuid="+current_answer_id+" "+
- 			"AND RelationshipID in "+
-			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
- 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
-			"and latestNonDeletedRelationship.Deleted IS NULL)))";		
 
 	loadFileTypeQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileType') "+
@@ -2581,16 +2778,52 @@ loadAnswerInfo(){
             showToast(message);
         }
     });
-    
+
+    fetchAll(loadFileStartTimeQuery, new FetchCallback() {
+        onFetch(result) {
+        	tempFileStartTime=new ArrayList();
+        	tempFileStartTime.clear();
+        	if(!isNull(result)){
+        		tempFileStartTime.addAll(result);
+        		fetchAll(loadFileEndTimeQuery, new FetchCallback() {
+			        onFetch(endTimeResult) {
+			        	tempFileEndTime=new ArrayList();
+        				tempFileEndTime.clear();
+        				if(!isNull(endTimeResult)){
+        					tempFileEndTime.addAll(endTimeResult);
+        					for(startTime:tempFileStartTime){
+        						for(endTime:tempFileEndTime){
+        							if(startTime.get(0).equals(endTime.get(0))){
+        								tempTime=new ArrayList();
+        								tempTime.add(startTime.get(0));
+        								tempTime.add(startTime.get(1));
+        								tempTime.add(endTime.get(1));
+        								ansTimeMng.add(tempTime);
+        							}
+        						}
+        					}
+        				}
+			        }
+			        onError(message) {
+			            showToast(message);
+			        }
+			    });
+        	}
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
     createAnswerPage();
 	showTabGroup("survey", current_answer_id, new FetchCallback() {
         onFetch(result) {
 			answerInfoOriginal.clear();
         	populateList("survey/answerFile/answerFileList", files_in_current_ques);   	
         	populateDropDown("survey/answerFile/file_Category",categoryTypes);
-        	answerInfoOriginal.add(getFieldValue("survey/answerHidden/answerLabel"));
+        	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerLabel"));
         	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerText"));
-        	answerInfoOriginal.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
+        	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerStartTimestamp"));
+        	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerEndTimestamp"));
             showToast("Loaded answer"+result.getId());            
         }
         onError(message) {
@@ -2600,7 +2833,7 @@ loadAnswerInfo(){
 	}
 }
 
-startNewAnswer(String typeflag){
+startNewAnswer(String typeFlag){
 
 	String current_start_time=getCurrentTime();
 	
@@ -2632,7 +2865,7 @@ startNewAnswer(String typeflag){
 	dupFileLblChange=false;
 	dupAnsLblInfo.clear();
 	dupFileLblInfo.clear();
-	hiddenAnsInfo.clear();
+	ansTimeMng.clear();
 
     currentDateTimeArray=current_start_time.toString().split("\\s+");
     String currentDate=currentDateTimeArray[0];
@@ -2648,77 +2881,38 @@ startNewAnswer(String typeflag){
 		ansLabelMidPart=ansLabelMidPart+"EtAl";
     }
     tempAnsLabel=ansLabelFstPart+ansLabelMidPart+ansLabelSndPart;
-    if(typeflag.equals("non")){
-    	createAnswerPage();
-		newTabGroup("survey");
+    if(typeFlag.equals("ans")){
+	    createAnswerPage();
+		newTabGroup("survey");O
 		setFieldValue("survey/answerHidden/answerQuestionnaireID", current_quesnir_id);
 		setFieldValue("survey/answerHidden/answerQuestionID", current_question_id);
 		//setFieldValue("survey/answerHidden/answerChoice", "N/A");
-		setFieldValue("survey/answerHidden/answerStartTimestamp", current_start_time);
-		
-		labelDeduplicate(tempAnsLabel,"AnswerLabel","survey/answerHidden/answerLabel","answer");
+		setFieldValue("survey/answerBasic/answerStartTimestamp", current_start_time);
+		setFieldValue("survey/answerBasic/answerEndTimestamp", "placeholder");		
+		labelDeduplicate(tempAnsLabel,"AnswerLabel","survey/answerBasic/answerLabel","answer",null);
 		//setFieldValue("survey/answerBasic/answerLabel", tempAnsLabel);
 		populateList("survey/answerFile/answerFileList",files_in_current_ques);
 		populateDropDown("survey/answerFile/file_Category",categoryTypes);
-		ansOrNot=true;
-    }
-    else{
-    	hiddenAnsInfo.put("quesnir_id",current_quesnir_id);
-		hiddenAnsInfo.put("ques_id",current_question_id);
-		hiddenAnsInfo.put("start_time",current_start_time);
-    	ansLabelDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
-		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
-		"and (measure = '"+tempAnsLabel+"' or measure like '"+tempAnsLabel+"(%)')";
-		fetchAll(ansLabelDuplicateQuery,new FetchCallback() {
-		onFetch(result) {
-			if(!isNull(result)){
-				tempAnsLabel=makeLabel(result,tempAnsLabel,"AnswerToQuestionnaire","AnswerLabel");
-			}
-			hiddenAnsInfo.put("label",tempAnsLabel);
-			switch(typeflag){
-				case "aud":
-					newFile("answer","Audio");
-					attachAudioToField("file/fileInfo/audioFileContent");
-				break;
-				case "vid":
-					newFile("answer","Video");
-					attachVideoToField("file/fileInfo/videoFileContent");
-				break;
-				case "pho":
-					newFile("answer","Photo");
-					attachPictureToField("file/fileInfo/photoFileContent");
-				break;
-
-				case "fil":
-					newFile("answer","Sketch");
-					attachFileToField("file/fileInfo/sketchFileContent");
-				break;
-			}
-			
-			ansOrNot=false;
-		}
-		});
-    }
-    
-	
+	}
+	else{
+		//An answer info arraylist
+		hiddenAnsInfo=new ArrayList();
+		hiddenAnsInfo.add(current_quesnir_id);
+		hiddenAnsInfo.add(current_question_id);
+		tempAnsLabel=labelDeduplicate(tempAnsLabel,"AnswerLabel",null,"answer","lblRtn");
+		hiddenAnsInfo.add(tempAnsLabel);
+		hiddenAnsInfo.add(current_start_time);
+		newFile("answer","Video",tempAnsLabel);
+		attachVideoToField("file/fileInfo/videoFileContent");
 }
 
 
-
-loadAnswerFromQuesInQuesnir(String ques_id){
-	//showWarning("loadAnswerFromQuesInQuesnirques_id",ques_id);
+loadAnswerFromQuesInQuesnir(){
 	if(isNull(current_quesnir_name)){
 		showWarning("No questionnaire name available","Can't get the questionnaire name, please contact the admin");
 		return;
 	}
-	if(ques_id==null || ques_id.equals("null")){
-		current_question_id=getListItemValue();
-	}
-	else
-	{
-		current_question_id=ques_id;
-	}
-	//showWarning("loadAnswerFromQuesInQuesnircurrent_question_id",current_question_id);
+	current_question_id=getListItemValue();
 	Boolean quesLabelRead=false;
 	for(ques: ques_in_current_quesnir){
 		if(ques.get(0).equals(current_question_id))
@@ -2739,10 +2933,8 @@ loadAnswerFromQuesInQuesnir(String ques_id){
 			break;
 		}
 	}
-	
-
 	if(quesLabelRead){
-		ansTypeChecking(current_question_id);
+		startNewAnswer("tst");
 	}
 	
 	else{
@@ -2772,7 +2964,7 @@ loadAnswerFromQuesInQuesnir(String ques_id){
 									}
 
 									if(quesLabelRead){
-										ansTypeChecking(current_question_id);
+										startNewAnswer("tst");
 									}
 									else{
 											showWarning("The data is outdated","Please exit the module and retry");
@@ -2791,256 +2983,146 @@ loadAnswerFromQuesInQuesnir(String ques_id){
 
 	}
 }
-
-ansTypeChecking(String ques_id){
-	String answerType=null;
-	String recordingType=null;
-	for(ques: quesRecordingType){
-		if(ques.get(0).equals(ques_id)){
-			recordingType=ques.get(1);
-			switch(recordingType){
-				case "Audio_Required":
-					answerType="aud";
-				break;
-				case "Video_Required":
-					answerType="vid";
-				break;
-				case "Photo_Required":
-					answerType="pho";
-				break;
-				case "File_Required":
-					answerType="fil";
-				break;
-				case "None":
-					answerType="non";
-				break;
-				default:
-					answerType="non";
-				break;
-			}
-			startNewAnswer(answerType);
-			break;
+saveNewAnswer(){
+	
+	if(isNull(getFieldValue("survey/answerBasic/answerText"))){
+		if(isNull(files_in_current_ques)){
+			showWarning("Warning","Please input answer text or adding an answer file");
+			return;
 		}
+		else if((files_in_current_ques.size()==1) && files_in_current_ques.get(0).get(0).equals("0000")){
+			showWarning("Warning","Please input answer text or adding an answer file");
+			return;
+		}
+		
 	}
-	/*
-	quesRecordingTypeQuery="select measure from latestNonDeletedAentValue where "+
-		"AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefName') "+
-		"and uuid =(select measure from latestNonDeletedAentValue "+
-		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefID') "+
-		"and uuid=(select uuid from latestNonDeletedArchEntIdentifiers "+
-		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
-		"and measure ='"+ques_id+"'))";
-	fetchOne(quesRecordingTypeQuery,new FetchCallback() {
-			onFetch(result) {
-				String answerType=null;
-				if(!isNull(result)){
-					String recordingType=result.get(0);	
-					switch(recordingType){
-						case "Audio_Required":
-							answerType="aud";
-						break;
-						case "Video_Required":
-							answerType="vid";
-						break;
-						case "Photo_Required":
-							answerType="pho";
-						break;
-						case "File_Required":
-							answerType="fil";
-						break;
-						case "None":
-							answerType="non";
-						break;
+	//dealing with the situation when the answer does not have a file attached
+	ansEndTime=getCurrentTime();
+	if(!isNull(ansTimeMng)){
+		ansTimeList=new ArrayList();
+		for(time : ansTimeMng){
+			ansTimeList.add(time.get(2));
+		}
+		ansEndTime=extractLatestTime(ansTimeList);
+	}
+	
+	
+	if(isNull(current_answer_id)){//create new answer
+		setFieldValue("survey/answerBasic/answerEndTimestamp",ansEndTime);
+
+		String newAnsLabel=getFieldValue("survey/answerBasic/answerLabel");
+		
+		saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
+			onSave(uuid, newRecord) {
+				answer_id = uuid;
+				//showWarning("answer_id",answer_id);
+				current_answer_id=answer_id;
+				//showWarning("current_answer_id",current_answer_id);
+
+				if (newRecord) {
+
+					for(file : files_in_current_ques){
+						saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
 					}
+					
+					newAnswer=new ArrayList();
+					newAnswer.add(answer_id);
+					newAnswer.add(newAnsLabel);
+					sss_answer_list.add(newAnswer);
+					newAnsTime=new ArrayList();
+					newAnsTime.add(answer_id);
+					newAnsTime.add(getFieldValue("survey/answerBasic/answerStartTimestamp"));
+					newAnsTime.add(ansEndTime);
+					sssTimeMng.add(newAnsTime);
+
+					populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+					//if this is the second answer with a duplicate label
+					//the other answer label will be changed with a suffix (1)
+					if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
+						newLabel=dupAnsLblInfo.get(1);
+						ansEntityId=dupAnsLblInfo.get(0);
+						attributes = createAttributeList();
+						attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
+						saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
+						dupAnsLblChange=false;
+						dupAnsLblInfo.clear();
+					}
+					showToast("new answer created");
+					cancelTabGroup("survey", true);
+					//cancelTabGroup("answerToQuestion", true);
+					autoSaveSession("head");
+					//saveSession("answer");
 				}
-				else{
-					answerType="non";
-				}
-				startNewAnswer(answerType);
 			}
 			onError(message) {
-				showToast(message);
-			}
-	});
-	*/	
-}
-saveNewAnswer(){
-	//dealing with the situation when the answer does not have a file attached
-	
-	if(!ansOrNot){
-		attributes = createAttributeList();
-		
-		attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, hiddenAnsInfo.get("quesnir_id"), null));
-		attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
-		attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
-		attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
-
-		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
-			onSave(uuid, newRecord){
-				answer_id = uuid;
-				current_answer_id=answer_id;
-				if (newRecord) {
-						for(file : files_in_current_ques){
-							saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
-						}
-						
-						newAnswer=new ArrayList();
-						newAnswer.add(answer_id);
-						newAnswer.add(hiddenAnsInfo.get("label"));
-						sss_answer_list.add(newAnswer);
-						populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-						//if this is the second answer with a duplicate label
-						//the other answer label will be changed with a suffix (1)
-						if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
-							newLabel=dupAnsLblInfo.get(1);
-							ansEntityId=dupAnsLblInfo.get(0);
-							attributes = createAttributeList();
-							attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
-							saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
-							dupAnsLblChange=false;
-							dupAnsLblInfo.clear();
-						}
-						showToast("new answer created");
-						//cancelTabGroup("file", true);
-						autoSaveSession("head");
-						nextQuestion(hiddenAnsInfo.get("ques_id"));
-					}
-			}
-		});
+				showWarning("error",message);
+			}  
+			});
 	}
-	else{
-		if(isNull(getFieldValue("survey/answerBasic/answerText"))){
-			if(isNull(files_in_current_ques)){
-				showWarning("Warning","Please input answer text or adding an answer file");
+
+	else{//this is changing answerInfo		
+			//saveChangedAnswer();
+		answerInfoNew.clear();
+		answerInfoNew.add(getFieldValue("survey/answerBasic/answerLabel"));
+		answerInfoNew.add(getFieldValue("survey/answerBasic/answerText"));
+		setFieldValue("survey/answerBasic/answerEndTimestamp",ansEndTime);
+		answerInfoNew.add(getFieldValue("survey/answerBasic/answerStartTimestamp"));
+		answerInfoNew.add(ansEndTime);	
+		Hashtable fileListChange=listChange(files_in_current_ques,files_origin);
+		Hashtable answerBasicInfoChange=listChange(answerInfoNew,answerInfoOriginal);
+		//case1: Nothing changed
+		if((fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
+				showWarning("Answer Modification","No data is changed");
 				return;
 			}
-			else if((files_in_current_ques.size()==1) && files_in_current_ques.get(0).get(0).equals("0000")){
-				showWarning("Warning","Please input answer text or adding an answer file");
-				return;
+		//case2: only fileList changed
+		else if((!fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
+				for(fileDelete:ansFileOriginReln){
+					deleteRel(fileDelete.get(0));
+				}
+				
+				for(file : files_in_current_ques){
+					saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
+				}
+
+				if(isNull(sss_id)){
+					populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+				}
+				
+				showToast("file list changed");
+				cancelTabGroup("survey", true);
 			}
-			
-		}
-		
-		if(isNull(current_answer_id)){//create new answer
-			String newAnsLabel=getFieldValue("survey/answerHidden/answerLabel");
-			
-			saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
-				onSave(uuid, newRecord) {
-					answer_id = uuid;
-					//showWarning("answer_id",answer_id);
-					current_answer_id=answer_id;
-					//showWarning("current_answer_id",current_answer_id);
+		else{//case 3: both answer basic info and file list are changed
+				saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
+						onSave(uuid, newRecord) {
+							answer_id = uuid;	//not sure how it's working
 
-					if (newRecord) {
-
-						for(file : files_in_current_ques){
-							saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
-						}
-						
-						newAnswer=new ArrayList();
-						newAnswer.add(answer_id);
-						newAnswer.add(newAnsLabel);
-						sss_answer_list.add(newAnswer);
-						
-						populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-						//if this is the second answer with a duplicate label
-						//the other answer label will be changed with a suffix (1)
-						if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
-							newLabel=dupAnsLblInfo.get(1);
-							ansEntityId=dupAnsLblInfo.get(0);
-							attributes = createAttributeList();
-							attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
-							saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
-							dupAnsLblChange=false;
-							dupAnsLblInfo.clear();
-						}
-						showToast("new answer created");
-						String curntQuesId=getFieldValue("survey/answerHidden/answerQuestionID");
-						cancelTabGroup("survey", true);
-						//cancelTabGroup("answerToQuestion", true);
-						autoSaveSession("head");
-						nextQuestion(curntQuesId);
-					}
-				}
-				onError(message) {
-					showWarning("error",message);
-				}  
-				});
-		}
-
-		else{//this is changing answerInfo		
-				//saveChangedAnswer();
-			answerInfoNew.clear();
-			answerInfoNew.add(getFieldValue("survey/answerHidden/answerLabel"));
-			answerInfoNew.add(getFieldValue("survey/answerBasic/answerText"));
-			answerInfoNew.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
-			Hashtable fileListChange=listChange(files_in_current_ques,files_origin);
-			Hashtable answerBasicInfoChange=listChange(answerInfoNew,answerInfoOriginal);
-			//case1: Nothing changed
-			if((fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
-					showWarning("Answer Modification","No data is changed");
-					return;
-				}
-			//case2: only fileList changed
-			else if((!fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
-					for(fileDelete:ansFileOriginReln){
-						deleteRel(fileDelete.get(0));
-					}
-					
-					for(file : files_in_current_ques){
-						saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
-					}
-
-					if(isNull(sss_id)){
-						populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-					}
-					
-					showToast("file list changed");
-					cancelTabGroup("survey", true);
-				}
-			else{//case 3: both answer basic info and file list are changed
-					saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
-							onSave(uuid, newRecord) {
-								answer_id = uuid;	//not sure how it's working
-
-								for(fileDelete:ansFileOriginReln){
-									deleteRel(fileDelete.get(0));
+							for(fileDelete:ansFileOriginReln){
+								deleteRel(fileDelete.get(0));
+							}
+							for(file : files_in_current_ques){
+								saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
+							}
+							for(int i =0; i<sssTimeMng.size();i++){
+								if(sssTimeMng.get(i).get(0).equals(answer_id)){
+									newAnsTime=new ArrayList();
+									newAnsTime.add(answer_id);
+									newAnsTime.add(getFieldValue("survey/answerBasic/answerStartTimestamp"));
+									newAnsTime.add(ansEndTime);
+									sssTimeMng.set(i,newAnsTime);
 								}
-								for(file : files_in_current_ques){
-									saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
-								}
-								
-								showToast("Answer Info Changed");
-								cancelTabGroup("survey", true);
-								autoSaveSession("head");
-								
-						}
-						onError(message) {
-							showWarning("error",message);
-						}  
-						});
-			}
-
+							}
+							showToast("Answer Info Changed");
+							cancelTabGroup("survey", true);
+							autoSaveSession("head");
+							
+					}
+					onError(message) {
+						showWarning("error",message);
+					}  
+					});
 		}
-	}
-}
 
-nextQuestion(String curntQuesId){
-	//showWarning("curntQuesId",curntQuesId);
-	int idxCrntQues=-1;
-	String nextQuesContent=null;
-	String nextQuesId=null;
-	for(int i=0;i<ques_in_current_quesnir.size();i++){
-		if(curntQuesId.equals(ques_in_current_quesnir.get(i).get(0))){
-			idxCrntQues=i;
-			break;
-		}
-	}
-	//showWarning("idxCrntQues",idxCrntQues.toString());
-	if(idxCrntQues!=ques_in_current_quesnir.size()-1){
-		nextQuesId=ques_in_current_quesnir.get(idxCrntQues+1).get(0);
-		nextQuesContent=ques_in_current_quesnir.get(idxCrntQues+1).get(1);
-		showAlert("Next question","Do you want to go to the next question:\n"+nextQuesContent,"checkPersonAns(\""+nextQuesId+"\")","stayInCurrentPage()");
 	}
 
 }
@@ -3083,6 +3165,12 @@ deleteFileRelation(){
 			break;
 		}
 	}
+	for(delFile : ansTimeMng){
+		if(delFile.get(0).equals(delete_file_id)){
+			ansTimeMng.remove(delFile);
+		}
+	}
+
 }
 
 Boolean answerFile=false;//flag of whether user is viewing file from answer page
@@ -3121,7 +3209,7 @@ loadAnswerFileInfo(String typeFlag){
 						switch (currentType){
 						case "Audio":		
 							createFilePage("audio","attachAudioToField(\"file/fileInfo/audioFileContent\")",
-								"saveFileFromAnswer(\"file/fileHidden/audioFileID\",\"file/fileInfo/audioFileContent\",\"file\",\"Audio\")");
+								"saveFileFromAnswer(\"file/fileInfo/audioFileName\",\"file/fileInfo/audioFileContent\",\"file\",\"Audio\")");
 							showTabGroup("file", view_file_id, new FetchCallback() {
 						        onFetch(result) {						  
 						            showToast("Loaded audio file"+result.getId());            
@@ -3133,7 +3221,7 @@ loadAnswerFileInfo(String typeFlag){
 							break;
 						case "Video":
 							createFilePage("video","attachVideoToField(\"file/fileInfo/videoFileContent\")",
-								"saveFileFromAnswer(\"file/fileHidden/videoFileID\",\"file/fileInfo/videoFileContent\",\"file\",\"Video\")");
+								"saveFileFromAnswer(\"file/fileInfo/videoFileName\",\"file/fileInfo/videoFileContent\",\"file\",\"Video\")");
 							showTabGroup("file", view_file_id, new FetchCallback() {
 						        onFetch(result) {						  
 						            showToast("Loaded video file"+result.getId());            
@@ -3145,7 +3233,7 @@ loadAnswerFileInfo(String typeFlag){
 							break;
 						case "Photo":
 							createFilePage("photo","attachPictureToField(\"file/fileInfo/photoFileContent\")",
-								"saveFileFromAnswer(\"file/fileHidden/photoFileID\",\"file/fileInfo/photoFileContent\",\"file\",\"Photo\")");
+								"saveFileFromAnswer(\"file/fileInfo/photoFileName\",\"file/fileInfo/photoFileContent\",\"file\",\"Photo\")");
 							showTabGroup("file", view_file_id, new FetchCallback() {
 						        onFetch(result) {						  
 						            showToast("Loaded photo file"+result.getId());            
@@ -3157,7 +3245,7 @@ loadAnswerFileInfo(String typeFlag){
 							break;
 						case "Sketch":
 							createFilePage("sketch","attachFileToField(\"file/fileInfo/sketchFileContent\")",
-								"saveFileFromAnswer(\"file/fileHidden/sketchFileID\",\"file/fileInfo/sketchFileContent\",\"file\",\"Recording\")");
+								"saveFileFromAnswer(\"file/fileInfo/sketchFileName\",\"file/fileInfo/sketchFileContent\",\"file\",\"Recording\")");
 							showTabGroup("file", view_file_id, new FetchCallback() {
 						        onFetch(result) {						  
 						            showToast("Loaded sketch file"+result.getId());            
@@ -3210,15 +3298,16 @@ createFilePage(String fileType, String attachFunc, String saveFunc){
 		break;
 	}
 	//Generate ui
-	if(!hasView("file/fileHidden/"+uiNamePrefix+"FileID")){
+	if(!hasView("file/fileInfo/"+uiNamePrefix+"FileID")){
 		removeAllViewsAndContainers("file");
 	 	executeViewTask(new ViewTask() {
-			doTask() { 
-
-				//file hidden	
+			doTask() { 	
 		 	
 				idFileDef = createViewDef().createTextField().setLabel(uiLabelPrefix+" file label").setAttributeName("FileID").setAttributeType("measure").
 				setAnnotationEnabled(true).setReadOnly(true);
+
+				nameViewDef=createViewDef().createTextField().setLabel(uiLabelPrefix+" file name").setAttributeName("FileName").setAttributeType("measure").
+				setAnnotationEnabled(true).setStyleCss("required");
 
 				typeViewDef=createViewDef().createTextField().setLabel("File type").setAttributeName("FileType").setAttributeType("measure").
 				setAnnotationEnabled(true).setReadOnly(true);
@@ -3241,30 +3330,24 @@ createFilePage(String fileType, String attachFunc, String saveFunc){
 				else{
 					fileContentViewDef=createViewDef().createCameraGallery(true).setLabel("Photo").setAttributeName("FileContent").setAttributeType("measure").setAnnotationEnabled(true);
 				}
-				nameViewDef=createViewDef().createTextField().setLabel(uiLabelPrefix+" file name").setAttributeName("FileName").setAttributeType("measure");
-
-				createView("file/fileHidden/"+uiNamePrefix+"FileID", idFileDef,"file/fileHidden");
-				createView("file/fileHidden/"+uiNamePrefix+"FileType", typeViewDef,"file/fileHidden");
-				createView("file/fileHidden/"+uiNamePrefix+"FileCreator", creatorViewDef,"file/fileHidden");
-				createView("file/fileHidden/"+uiNamePrefix+"FileStartTime", startTimeViewDef,"file/fileHidden");
-				createView("file/fileHidden/"+uiNamePrefix+"FileEndTime", endTimeViewDef,"file/fileHidden");
-				createView("file/fileHidden/"+uiNamePrefix+"FileName", nameViewDef,"file/fileHidden");
-
-				//non-hidden page
+				
 				newBtnViewDef=createViewDef().createButton().setLabel("New "+ uiLabelPrefix);
 
 				pathTextViewDef=createViewDef().createTextField().setLabel(uiLabelPrefix+" file path").setAttributeName("FilePath").setAttributeType("measure").
 				setAnnotationEnabled(true).setReadOnly(true);
 
 				saveBtnViewDef=createViewDef().createButton().setLabel("Save "+ uiLabelPrefix);
-				//createView("file/fileInfo/"+uiNamePrefix+"FileName", nameViewDef,"file/fileInfo");
 
-				
+				createView("file/fileInfo/"+uiNamePrefix+"FileID", idFileDef,"file/fileInfo");
+				createView("file/fileInfo/"+uiNamePrefix+"FileName", nameViewDef,"file/fileInfo");
+				createView("file/fileInfo/"+uiNamePrefix+"FileType", typeViewDef,"file/fileInfo");
+				createView("file/fileInfo/"+uiNamePrefix+"FileCreator", creatorViewDef,"file/fileInfo");
+				createView("file/fileInfo/"+uiNamePrefix+"FileStartTime", startTimeViewDef,"file/fileInfo");
+				createView("file/fileInfo/"+uiNamePrefix+"FileEndTime", endTimeViewDef,"file/fileInfo");
 				createView("file/fileInfo/"+uiNamePrefix+"FileContent", fileContentViewDef,"file/fileInfo");
 				createView("file/fileInfo/Take_"+uiLabelPrefix+"_File", newBtnViewDef,"file/fileInfo");
 				createView("file/fileInfo/"+uiNamePrefix+"FilePath", pathTextViewDef,"file/fileInfo");
 				createView("file/fileInfo/Save_New_"+uiLabelPrefix, saveBtnViewDef,"file/fileInfo");
-
 			    onEvent("file/fileInfo/Take_"+uiLabelPrefix+"_File","click",attachFunc);
 				//onEvent("file/fileInfo/Save_New_"+uiLabelPrefix,"click","saveFileFromAnswer(\"file/fileInfo/"+uiNamePrefix+"FileName\",\"file/fileInfo/"+uiNamePrefix+"FileContent\",\"file\",uiLabelPrefix)");
 				onEvent("file/fileInfo/Save_New_"+uiLabelPrefix,"click",saveFunc);
@@ -3274,74 +3357,70 @@ createFilePage(String fileType, String attachFunc, String saveFunc){
 	}
 }
 /**File functions**/
-newFile(String typeFlag, String fileType){
-	String fileCategory=null;
-	String tempAnsID=null;
+newFile(String typeFlag, String fileCategory, String tempAnsLbl){
+	String fileCategory=fileCategory;
+	String tempAnsID=tempAnsLbl;
 	switch (typeFlag){
 		case "answer":
-		if(fileType==null){
-			fileCategory=getFieldValue("survey/answerFile/file_Category");
-			tempAnsID=getFieldValue("survey/answerHidden/answerLabel");
-		}
-		else{
-			fileCategory=fileType;
-	        tempAnsID=hiddenAnsInfo.get("label");
-		}
+			if(isNull(fileCategory)){
+				fileCategory=getFieldValue("survey/answerFile/file_Category");
+				tempAnsID=getFieldValue("survey/answerBasic/answerLabel");
+			}
 			answerFile=true;
 			current_answer_file_id=null;	
-			
+
 			switch (fileCategory){
 				case "Audio":		
 					//Generate audio file creation ui pages
 				 	//createAudioFilePage("new");
 					createFilePage("audio","attachAudioToField(\"file/fileInfo/audioFileContent\")",
-						"saveFileFromAnswer(\"file/fileHidden/audioFileID\",\"file/fileInfo/audioFileContent\",\"file\",\"Audio\")");
+						"saveFileFromAnswer(\"file/fileInfo/audioFileName\",\"file/fileInfo/audioFileContent\",\"file\",\"Audio\")");
 					newTabGroup("file");
 
 					String tempAudioID=tempAnsID+"_Audio";
-					labelDeduplicate(tempAudioID,"FileID","file/fileHidden/audioFileID","file");
+					labelDeduplicate(tempAudioID,"FileID","file/fileInfo/audioFileID","file",null);
 
-					setFieldValue("file/fileHidden/audioFileCreator",username);
-					setFieldValue("file/fileHidden/audioFileType","Audio");
-					setFieldValue("file/fileHidden/audioFileStartTime", getCurrentTime());
+					setFieldValue("file/fileInfo/audioFileCreator",username);
+					setFieldValue("file/fileInfo/audioFileType","Audio");
+					setFieldValue("file/fileInfo/audioFileStartTime", getCurrentTime());
 				break;
 				case "Video":
 					//createVideoPage("new");
 					createFilePage("video","attachVideoToField(\"file/fileInfo/videoFileContent\")",
-						"saveFileFromAnswer(\"file/fileHidden/videoFileID\",\"file/fileInfo/videoFileContent\",\"file\",\"Video\")");
+						"saveFileFromAnswer(\"file/fileInfo/videoFileName\",\"file/fileInfo/videoFileContent\",\"file\",\"Video\")");
 					newTabGroup("file");
 					String tempVideoID=tempAnsID+"_Video";
-					labelDeduplicate(tempVideoID,"FileID","file/fileHidden/videoFileID","file");
+					labelDeduplicate(tempVideoID,"FileID","file/fileInfo/videoFileID","file",null);
 	
-					setFieldValue("file/fileHidden/videoFileCreator",username);
-					setFieldValue("file/fileHidden/videoFileType","Video");
-					setFieldValue("file/fileHidden/videoFileStartTime", getCurrentTime());
+					setFieldValue("file/fileInfo/videoFileCreator",username);
+					setFieldValue("file/fileInfo/videoFileType","Video");
+					setFieldValue("file/fileInfo/videoFileStartTime", getCurrentTime());
 				break;
 
 				case "Photo":
 					//createPhotoPage("new");
 					createFilePage("photo","attachPictureToField(\"file/fileInfo/photoFileContent\")",
-						"saveFileFromAnswer(\"file/fileHidden/photoFileID\",\"file/fileInfo/photoFileContent\",\"file\",\"Photo\")");
+						"saveFileFromAnswer(\"file/fileInfo/photoFileName\",\"file/fileInfo/photoFileContent\",\"file\",\"Photo\")");
 					newTabGroup("file");
 					String tempPhotoID=tempAnsID+"_Photo";
-					labelDeduplicate(tempPhotoID,"FileID","file/fileHidden/photoFileID","file");
+					labelDeduplicate(tempPhotoID,"FileID","file/fileInfo/photoFileID","file",null);
 
-					setFieldValue("file/fileHidden/photoFileCreator",username);
-					setFieldValue("file/fileHidden/photoFileType","Photo");
-					setFieldValue("file/fileHidden/photoFileStartTime", getCurrentTime());
+					setFieldValue("file/fileInfo/photoFileCreator",username);
+					setFieldValue("file/fileInfo/photoFileType","Photo");
+					setFieldValue("file/fileInfo/photoFileStartTime", getCurrentTime());
 				
 				break;
 				case "Other":
 					//createSketchPage("new");
 					createFilePage("sketch","attachFileToField(\"file/fileInfo/sketchFileContent\")",
-						"saveFileFromAnswer(\"file/fileHidden/sketchFileID\",\"file/fileInfo/sketchFileContent\",\"file\",\"Recording\")");
+						"saveFileFromAnswer(\"file/fileInfo/sketchFileName\",\"file/fileInfo/sketchFileContent\",\"file\",\"Recording\")");
 					newTabGroup("file");
 					String tempSketchID=tempAnsID+"_Recording";
-					labelDeduplicate(tempSketchID,"FileID","file/fileHidden/sketchFileID","file");
+					labelDeduplicate(tempSketchID,"FileID","file/fileInfo/sketchFileID","file",null);
 
-					setFieldValue("file/fileHidden/sketchFileCreator",username);
-					setFieldValue("file/fileHidden/sketchFileType","Recording");
-					setFieldValue("file/fileHidden/sketchFileStartTime", getCurrentTime());
+					setFieldValue("file/fileInfo/sketchFileCreator",username);
+					setFieldValue("file/fileInfo/sketchFileType","Recording");
+					setFieldValue("file/fileInfo/sketchFileStartTime", getCurrentTime());
 					
 					break;
 				default:
@@ -3351,28 +3430,22 @@ newFile(String typeFlag, String fileType){
 		break;
 	}
 }
-
+//TODO: find the bug : save audio then save another audio error
 saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, String fileType){
-	//showWarning("saveFileFromAnswer","saveFileFromAnswer");
-	/*
 	if(isNull(getFieldValue(ref))){
 		showWarning("Warning","File name can not be null");
 		return;
 	}
-	*/
 	if(isNull(getFieldValue(fileListViewRef))){	
 		showWarning("Warning","File not recorded");
 		return;
 	}
 	else{
 		if(answerFile){
-		//busyDialog = showBusy("saving data", "please wait");
 		saveTabGroup(tabGroupRef,current_answer_file_id, null, null, new SaveCallback() {
 			onSave(uuid, newRecord) {
 				current_answer_file_id = uuid;
-				//showWarning("current_answer_file_id",current_answer_file_id);
 				if (newRecord) {	
-					//showWarning("newRecord","newRecord");	
 					newFile=new ArrayList();
 					newFile.add(current_answer_file_id);
 					newFile.add(getFieldValue(ref));
@@ -3383,13 +3456,29 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 							break;
 						}
 					}
-								
+					//showWarning("add file",files_in_current_ques.size().toString());
+					populateList("survey/answerFile/answerFileList",files_in_current_ques);
 					//Adding new file and file type for changing fileID
 					newFileType=new ArrayList();
 					newFileType.add(current_answer_file_id);
 					newFileType.add(fileType);
 					file_and_fileType.add(newFileType);
 
+					newFileTime=new ArrayList();
+					newFileTime.add(current_answer_file_id);
+					if(!fileType.equals("Recording")){
+						//showWarning("startTime","file/fileInfo/"+fileType.toLowerCase()+"FileStartTime");
+						newFileTime.add(getFieldValue("file/fileInfo/"+fileType.toLowerCase()+"FileStartTime"));
+						//showWarning("startTime",getFieldValue("file/fileInfo/"+fileType.toLowerCase()+"FileStartTime"));
+						newFileTime.add(getFieldValue("file/fileInfo/"+fileType.toLowerCase()+"FileEndTime"));
+					}
+					else{
+						newFileTime.add(getFieldValue("file/fileInfo/sketchFileStartTime"));
+						newFileTime.add(getFieldValue("file/fileInfo/sketchFileEndTime"));
+					}
+					ansTimeMng.add(newFileTime);
+					//showWarning("ansTimeMng","ansTimeMng added");
+					//saveEntitiesToRel("Answer and File",answer_id,current_answer_file_id);	
 					if(dupFileLblChange && !isNull(dupFileLblInfo)){
 						newLabel=dupFileLblInfo.get(1);
 						entityId=dupFileLblInfo.get(0);
@@ -3398,22 +3487,10 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 						saveArchEnt(entityId, "File", null, attributes);
 						dupFileLblChange=false;
 						dupFileLblInfo.clear();
-					}	
-					if(ansOrNot){
-						populateList("survey/answerFile/answerFileList",files_in_current_ques);
-						showTab("survey/answerFile");
-					}	
-					//else{
-						//we need to save the answer info here
-					saveNewAnswer();
-
-					//}	
-					//showToast("New file record for answer created");
-
+					}		
+					showToast("New file record for answer created");
 					cancelTabGroup(tabGroupRef, true);
-					//busyDialog.dismiss();
-					//showWarning("SAVE FILE DONE","SAVE FILE DONE");
-					
+					showTab("survey/answerFile");
 				}
 				else{
 					for(changeFile:files_in_current_ques){
@@ -3441,6 +3518,23 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 			saveTabGroup(tabGroupRef,file_id, null, null, new SaveCallback() {
 				onSave(uuid, newRecord) {
 					file_id = uuid;
+					newFileTime=new ArrayList();
+					newFileTime.add(current_answer_file_id);
+					if(!fileType.equals("Recording")){
+						newFileTime.add(getFieldValue("file/fileInfo/"+fileType.toLowerCase()+"FileStartTime"));
+						newFileTime.add(getFieldValue("file/fileInfo/"+fileType.toLowerCase()+"FileEndTime"));
+					}
+					else{
+						newFileTime.add(getFieldValue("file/fileInfo/sketchFileStartTime"));
+						newFileTime.add(getFieldValue("file/fileInfo/sketchFileEndTime"));
+					}
+
+					for(int i=0; i<ansTimeMng.size();i++){
+						if(ansTimeMng.get(i).get(0).equals(file_id)){
+							ansTimeMng.set(i,newFileTime);
+							break;
+						}
+					}
 					if (newRecord) {				
 						showToast("New file record created");
 					}
@@ -3481,7 +3575,7 @@ setAudioToField(String ref) {
     }
     setFieldValue(ref, _convertListToPairs(selectedFiles));
     setFieldValue("file/fileInfo/audioFilePath",filePath);
-    setFieldValue("file/fileHidden/audioFileEndTime",getCurrentTime());
+    setFieldValue("file/fileInfo/audioFileEndTime",getCurrentTime());
 }
 
 
@@ -3507,7 +3601,7 @@ setVideoToField(String ref) {
     }
     setFieldValue(ref, _convertListToPairs(selectedFiles));
     setFieldValue("file/fileInfo/videoFilePath",filePath);
-    setFieldValue("file/fileHidden/videoFileEndTime",getCurrentTime());
+    setFieldValue("file/fileInfo/videoFileEndTime",getCurrentTime());
 }
 
 
@@ -3534,7 +3628,7 @@ setPictureToField(String ref) {
     }
     setFieldValue(ref, _convertListToPairs(selectedFiles));
     setFieldValue("file/fileInfo/photoFilePath",filePath);
-    setFieldValue("file/fileHidden/photoFileEndTime",getCurrentTime());
+    setFieldValue("file/fileInfo/photoFileEndTime",getCurrentTime());
 }
 
 
@@ -3560,7 +3654,7 @@ setFileToField(String ref) {
     }
     setFieldValue(ref, _convertListToPairs(selectedFiles));
     setFieldValue("file/fileInfo/sketchFilePath",filePath);
-    setFieldValue("file/fileHidden/sketchFileEndTime",getCurrentTime());
+    setFieldValue("file/fileInfo/sketchFileEndTime",getCurrentTime());
 }
 
 /**common methods**/
@@ -3651,6 +3745,12 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag, String toDelId)
 			case "sessionFile":
 				candidate_files_session.add(targetList.get(idx_delete));
 				sss_answer_list.remove(idx_delete);
+				for(ansTime:sssTimeMng){
+					if(ansTime.get(0).equals(toDelId)){
+						sssTimeMng.remove(ansTime);
+					}
+				}
+				//loadSessionInterviewer("session");
 				populateList("sessionForAnswer/sssAnsList/sssAnswerList", sss_answer_list);
 				populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
 				break;
@@ -3794,7 +3894,7 @@ extractLatestTime(ArrayList timeList){
 	return timeList.get(timeList.size()-1);
 }
 
-labelDeduplicate(String originLabel, String attriName, String fieldRef, String typeflag){
+labelDeduplicate(String originLabel, String attriName, String fieldRef, String typeflag, String setValue){
 	//Here we can't use regexp, so we use naive LIKE condition
 	tempDuplicateList=new ArrayList();
 	tempDuplicateList.clear();
@@ -3841,9 +3941,15 @@ labelDeduplicate(String originLabel, String attriName, String fieldRef, String t
 
 					}
 					originLabel=originLabel+"(2)";
-		            setFieldValue(fieldRef,originLabel);
+					if(isNull(setValue)){
+						setLabelFieldValue(fieldRef,originLabel);
+					}
+		           	else{
+		           		returnLabel(originLabel);
+		           	}
 						//saveArchEnt(entityId, tableName, null, attributes);
-				}
+		           	}
+					}
 					//}
 					else{
 					//showWarning("size>1","size>1");
@@ -3866,69 +3972,33 @@ labelDeduplicate(String originLabel, String attriName, String fieldRef, String t
 						}
 						maxSuffix=maxSuffix+1;
 						originLabel=originLabel+"("+maxSuffix+")";
-						setFieldValue(fieldRef,originLabel);
-						
+						if(isNull(setValue)){
+							setLabelFieldValue(fieldRef,originLabel);
+						}
+						else{
+			           		returnLabel(originLabel);
+			           	}
 					}
 					
 				}
 				else{
-					setFieldValue(fieldRef,originLabel);
+					if(isNull(setValue)){
+						setLabelFieldValue(fieldRef,originLabel);
+					}
+					else{
+			           		returnLabel(originLabel);
+			        }
 				}
 				
 			}
 	});
 }
-
-makeLabel(ArrayList result, String tempLbl, String tableName, String attriName){
-	String rtnLbl=tempLbl;
-	tempDuplicateList=new ArrayList();
-	tempDuplicateList.clear();
-	tempDuplicateList.addAll(result);
-	int sizeOfDup=0;
-	Pattern numberPat = Pattern.compile("\\(\\d+\\)");
-	sizeOfDup=tempDuplicateList.size();
-	if(sizeOfDup==1){
-		attributes = createAttributeList();
-		duplicateOldLabel=tempDuplicateList.get(0).get(1);
-		Matcher numMatcher = numberPat.matcher(duplicateOldLabel);
-
-		if(numMatcher.find()){
-			suffix=duplicateOldLabel.substring(duplicateOldLabel.indexOf("("),duplicateOldLabel.length());
-			if(!suffix.equals("(1)"))
-			{
-				newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.indexOf("("))+"(1)";
-				attributes.add(createEntityAttribute(attriName, null, null, newLabel, null));
-				entityId=tempDuplicateList.get(0).get(0);
-				saveArchEnt(entityId, tableName, null, attributes);
-			}
-		}
-		else{
-			newLabel=duplicateOldLabel+"(1)";
-			attributes.add(createEntityAttribute(attriName, null, null, newLabel, null));
-			entityId=tempDuplicateList.get(0).get(0);
-			saveArchEnt(entityId, tableName, null, attributes);
-		}
-		rtnLbl=rtnLbl+"(2)";
-	}
-	else{
-		int maxSuffix=0;
-		for(temp: tempDuplicateList){
-			tempLabel=temp.get(1);
-			Matcher numMatcher = numberPat.matcher(tempLabel);
-			if(numMatcher.find()){
-				tempSuffixStr=tempLabel.substring(tempLabel.indexOf("(")+1, tempLabel.length()-1);
-				int tempSuffixNum=Integer.parseInt(tempSuffixStr);
-				if(tempSuffixNum>maxSuffix){
-					maxSuffix=tempSuffixNum;
-				}
-			}
-		}
-		maxSuffix=maxSuffix+1;
-		rtnLbl=rtnLbl+"("+maxSuffix+")";
-	}
-	return rtnLbl;
+setLabelFieldValue(String fieldRef, String setLabel){
+	setFieldValue(fieldRef,setLabel);
 }
-
+returnLabel(String label){
+	return label;
+}
 /*** query ***/
 onEvent("control/querytest/Submit","click","testQuery()");
 
