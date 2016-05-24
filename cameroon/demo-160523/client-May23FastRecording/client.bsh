@@ -179,6 +179,7 @@ addActionBarItem("sync", new ToggleActionButtonCallback() {
         showToast("Sync enabled.");
     }
 });
+
 addActionBarItem("internal_gps", new ToggleActionButtonCallback() {
     actionOnLabel() {
         "{Internal_GPS_Enabled}";
@@ -200,37 +201,6 @@ addActionBarItem("internal_gps", new ToggleActionButtonCallback() {
         }
         startInternalGPS();
         showToast("{GPS_Enabled}");
-        updateGPSStatus();
-    }
-});
-
-addActionBarItem("external_gps", new ToggleActionButtonCallback() {
-    actionOnLabel() {
-        "{External_GPS_Enabled}";
-    }
-    actionOn() {
-        stopGPS();
-        showToast("{GPS_Disabled}");
-        updateGPSStatus();
-
-    }
-    isActionOff() {
-        isExternalGPSOn();
-    }
-    actionOffLabel() {
-        "{External_GPS_Disabled}";
-    }
-    actionOff() {
-        if(isInternalGPSOn()) {
-            stopGPS();
-        }
-        startExternalGPS();
-        if(isBluetoothConnected()) {
-            showToast("{GPS_Enabled}");
-        } else {
-            showToast("{Please_Enable_Bluetooth}");
-            this.isActionOff();
-        }
         updateGPSStatus();
     }
 });
