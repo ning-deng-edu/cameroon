@@ -108,18 +108,9 @@
                         </container10>
                         <fileList/>
                     </file_control>
-                    
-                    <querytest>
-                        <query/>
-                        <Submit/>
-                    </querytest>
-                     <!--deleteTest>
-                        <delQuery/>
-                        <delSubmit/>
-                    </deleteTest-->
                 </control>
                 
-                 <questionnaireListAll>
+                <questionnaireListAll>
                    <questionnaireListInfo>
                    </questionnaireListInfo> 
                 </questionnaireListAll>
@@ -282,7 +273,7 @@
           <group ref="child1" faims_style="even">
             <label></label>
              <input ref="survey_keyword">
-                <label>session keyword</label>
+                <label>Keyword</label>
             </input>
         </group>
        <group ref="child2" faims_style="even">
@@ -318,7 +309,7 @@
           <group ref="child1" faims_style="even">
             <label></label>
              <input ref="person_keyword">
-                <label>name keyword</label>
+                <label>Name keyword</label>
             </input>
          
           </group>
@@ -353,7 +344,7 @@
           <group ref="child1" faims_style="even">
             <label></label>
              <input ref="language_keyword">
-                <label>language keyword</label>
+                <label>Keyword</label>
             </input>
          
           </group>
@@ -385,9 +376,6 @@
                     <value>placeholder</value>
                 </item>
             </select1>
-            <!--trigger ref="New_File" faims_style_class="faims-blue">
-                <label>New File</label>
-            </trigger-->
     
              <group ref="container10" faims_style="orientation">
         
@@ -395,7 +383,7 @@
           <group ref="child1" faims_style="even">
             <label></label>
              <input ref="file_keyword">
-                <label>filename keyword</label>
+                <label>Filename keyword</label>
             </input>
          
           </group>
@@ -428,7 +416,7 @@
           <group ref="child1" faims_style="even">
             <label></label>
              <input ref="fieldTrip_Search_kw">
-                <label>search keyword</label>
+                <label>Keyword</label>
             </input>
         </group>
        <group ref="child2" faims_style="even">
@@ -449,38 +437,12 @@
                 </item>
             </select1>
         </group>
-
-        <group ref="querytest">
-        <label>{query}</label>
-        
-            <input ref="query" faims_attribute_type="freetext" faims_certainty="false" faims_annotation="false">
-              <label>{query}</label>
-            </input>
-    
-            <trigger ref="Submit" faims_style_class="faims-blue">
-                <label>New {submit}</label>
-            </trigger>
-   
-        </group>
-       
-         <!--group ref="deleteTest">
-        <label>{del}</label>
-        
-            <input ref="delQuery" faims_attribute_type="freetext" faims_certainty="false" faims_annotation="false">
-              <label>{del}</label>
-            </input>
-    
-            <trigger ref="delSubmit" faims_style_class="faims-blue">
-                <label>New {submit}</label>
-            </trigger>
-   
-        </group-->
     </group>
     
     <group ref="questionnaireListAll" faims_scrollable="false">
-          <label>Questionnaire list</label>
+          <label>Questionnaire</label>
            <group ref="questionnaireListInfo" faims_scrollable="false">
-            <label>Questionnaire list</label>
+            <label>Questionnaire</label>
             </group>
     </group>
     
@@ -503,15 +465,15 @@
                 <label>Session info</label>
             </group>
             <group ref="sssAnsBasicInfo">
-                <label>Session info</label>
+                <label>Session</label>
             </group>
          
              <group ref="sssPersonInfo">
-                 <label>Session Person</label>
+                 <label>Person</label>
              </group>
 
             <group ref="sssAnsList">
-                 <label>Session Answers</label>
+                 <label>Answers</label>
             </group>
     </group>    
       
@@ -524,21 +486,21 @@
         </group>
         
         <group ref="answerBasic">
-            <label>Answer Basic Info</label>
+            <label>Basic Info</label>
         </group>
 
         <group ref="answerFile">
-             <label>Answer file</label>
+             <label>Files</label>
             </group>
     </group>
     
     <group ref="file" faims_archent_type="File">
         <label>File</label>
         <group ref="fileHidden" faims_hidden="true">
-            <label>File info</label>
+            <label>Basic Info</label>
         </group>
         <group ref="fileInfo">
-            <label>File info</label>
+            <label>File Info</label>
         </group>
     </group>
   
@@ -566,9 +528,9 @@
     </group>
 
      <group ref="introSssList">
-        <label>Intro session</label>
+        <label>Intro Session</label>
         <group ref="introSssInfo" >
-            <label>Intro session List</label>
+            <label>Intro sessions</label>
             <trigger ref="new_intro_sss" faims_style_class="faims-blue">
                 <label>New session</label>
             </trigger>
@@ -589,7 +551,7 @@
         <group ref="languageInfo">
           <label>Language Info</label>
             <input ref="languageID" faims_attribute_name="LanguageID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true" faims_style_class="required">
-              <label>Language id</label>
+              <label>Language label</label>
             </input>
             <input ref="languageName" faims_attribute_name="LanguageName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true" faims_style_class="required">
               <label>Language name</label>

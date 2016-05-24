@@ -262,7 +262,7 @@
     </group>
 
     <group ref="user">
-      <label>{User_List}</label>
+      <label>User</label>
       <group ref="usertab">
         <label>User List</label>
          
@@ -272,7 +272,7 @@
           <group ref="child1" faims_style="even">
             <label></label>
              <input ref="user_keyword">
-            	<label>user name</label>
+            	<label>User name</label>
             </input>
         </group>
        <group ref="child2" faims_style="even">
@@ -285,7 +285,7 @@
         </group>
         
         <select1 appearance="compact" ref="users" faims_style_class="user_list">
-          <label>{Users}:</label>
+          <label>Users</label>
           <item>
             <label>placeholder</label>
             <value>placeholder</value>
@@ -299,14 +299,14 @@
         
         
         <group ref="questionnaire_control">
-            <label>Quesnir</label>
+            <label>Questionnaire</label>
             <!--No input here-->
             <trigger ref="New_Questionnaire" faims_style_class="faims-blue">
                 <label>New Questionnaire</label>
             </trigger>
             <!--TODO: in ui_styling.css add quesionnaire-list class-->
             <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionnaireList" faims_style_class="questionnaire-list">
-                <label>{Tap questionnaire to view details}</label>
+                <label>Tap to view questionnaire</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
@@ -322,7 +322,7 @@
             </trigger>
             <!--TODO: in ui_styling.css add quesion-list class-->
             <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionList" faims_style_class="question-list">
-                <label>{Tap question to view details}</label>
+                <label>Tap to view question</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
@@ -339,7 +339,7 @@
             </trigger>
 
             <select1 appearance="compact" ref="userList" faims_style_class="user-list">
-                <label>{Tap person id to view details}</label>
+                <label>Tap to view person</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
@@ -356,7 +356,7 @@
             </trigger>
             <!--TODO: in ui_styling.css add language-list class-->
             <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="languageList" faims_style_class="language-list">
-                <label>{Tap language to view details}</label>
+                <label>Tap to view language</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
@@ -380,7 +380,7 @@
         <group ref="search" faims_scrollable="false">
         <label>Search</label>
          <input ref="keyword" faims_attribute_type="freetext" faims_certainty="false" faims_annotation="false">
-              <label>Enter keyword here</label>
+              <label>Keyword</label>
             </input>
         <select1 ref="entityTypes" faims_attribute_type="vocab">
           <label>Entity types</label>
@@ -391,11 +391,11 @@
         </select1>
         
         <trigger ref="Record_Search" faims_style_class="faims-blue">
-                <label>Search Records</label>
+                <label>Search</label>
         </trigger>
         
         <select1 appearance="compact" ref="entityList" faims_style_class="menu-list">
-          <label>Result list</label>
+          <label>Results</label>
           <item>
             <label>placeholder</label>
             <value>placeholder</value>
@@ -420,19 +420,19 @@
         <group ref="questionnaire_info">
           <label>Basic Data</label>
           <input ref="questionnaireID" faims_attribute_name="QuestionnaireID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_read_only="false" faims_style_class="required">
-            <label>{Questionnaire Label}</label>
+            <label>Questionnaire label</label>
           </input>
           
           <input ref="questionnaireName" faims_attribute_name="QuestionnaireName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
-            <label>{Questionnaire Name}</label>
+            <label>Questionnaire name</label>
           </input>
           
           <input ref="questionnaireDescription" faims_attribute_name="QuestionnaireDescription" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-            <label>{Questionnaire Description}</label>
+            <label>Description</label>
           </input>
           
            <input ref="questionnaireType" faims_certainty="false" faims_annotation="false" faims_read_only="true">
-            <label>{Questionnaire Type}</label>
+            <label>Questionnaire type</label>
           </input>
 
           <group ref="container7" faims_style="orientation">
@@ -440,7 +440,7 @@
           <group ref="child1" faims_style="even">
             <label></label>
               <select1 ref="questionnaireTypeSelection" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-              <label>Questionnaire Type:</label>
+              <label>Questionnaire type:</label>
               <item>
                   <label>Regular</label>
                   <value>regular</value>
@@ -473,7 +473,7 @@
           <label>Questionnaire Type</label>
           
           <input ref="quesnirTypeName" faims_attribute_name="QuesnirTypeName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true" faims_style_class="required">
-            <label>{Questionnaire Type Name}</label>
+            <label>Questionnaire type name</label>
           </input>
          
            <trigger ref="SaveQuesnirType" faims_style_class="faims-blue">
@@ -481,7 +481,7 @@
           </trigger>  
 
           <select1 appearance="compact" ref="duplicateTypeList" faims_style_class="menu-list">
-                <label>{Duplicate quesnir type}</label>
+                <label>Duplicate records</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
@@ -492,18 +492,11 @@
         </group>        
     </group>
 
-    <!--group ref="quesnirProperty" faims_archent_type="QuesnirPropDef">
-        <label>Questionnaire Property</label>      
-        <group ref="quesnirPropertyInfo">
-          <label>Questionnaire Property Info</label>
-        </group>        
-    </group-->
-
      <group ref="questionnaire_question">
         <label>Questionnaire</label>
         
         <group ref="questionnaire_question_info">
-          <label>{Question Selction}</label>
+          <label>Question Selction</label>
 
             <group ref="container3" faims_style="orientation">
         
@@ -512,14 +505,14 @@
                 <label></label>
 
                    <input ref="keywordOfQuestion" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-                    <label>keyword</label>
+                    <label>Kkeyword</label>
                 </input>
               </group>
 
               <group ref="child2" faims_style="even">
                 <label></label>
                    <select1 ref="category">
-                    <label>category</label>
+                    <label>Category</label>
                     <item>
                         <label>placeholder</label>
                         <value>placeholder</value>
@@ -536,7 +529,7 @@
         </group>
 
            <select1 appearance="compact" faims_annotation="false" ref="questionList" faims_style_class="session-file-list">
-                <label>{Add question}</label>
+                <label>Add question</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
@@ -553,25 +546,25 @@
     </group>
 
     <group ref="questionBank" faims_archent_type="QuestionBank">
-        <label>Question Bank</label>
+        <label>Question</label>
         
  
         <group ref="questionInforHidden" faims_hidden="true">
             <label></label>
             <input ref="questionLanguageUuid" faims_attribute_name="QuestionLanguage" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-           <label>{Question Language}</label>
+           <label>Question language</label>
          </input>
           
         </group>
         
         
         <group ref="questionInfo">
-          <label>{Question Information}</label>
+          <label>Question Information</label>
           <input ref="questionID" faims_attribute_name="QuestionID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
-          <label>{Question ID}</label>
+          <label>Question label</label>
         </input>
         <input ref="questionContent" faims_attribute_name="QuestionContent" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
-          <label>{Question Content}</label>
+          <label>Question content</label>
         </input>
         
         
@@ -579,7 +572,7 @@
        
        
        <select1 ref="questionProp"  faims_certainty="false" faims_annotation="false">
-          <label>{Question property}</label>
+          <label>Question property</label>
           <item>
             <label>placeholder</label>
             <value>placeholder</value>
@@ -587,11 +580,11 @@
           </select1>
 
            <input ref="questionLanguage" faims_read_only="true" faims_certainty="false" faims_annotation="false">
-          <label>{Language}</label>
+          <label>Language</label>
         </input>
           
           <select1 ref="questionLanguageSelectionList" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="languageInQuestion-list">
-          <label>{Language list}</label>
+          <label>Language list</label>
           <item>
             <label>placeholder</label>
             <value>placeholder</value>
@@ -605,7 +598,7 @@
           <group ref="child1" faims_style="even">
             <label></label>
            <input ref="keywordInput" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-                <label>Enter keyword here</label>
+                <label>Keyword</label>
             </input>
           </group>
        <group ref="child2" faims_style="even">
@@ -633,19 +626,19 @@
      <group ref="personRoleSelect">
         <label>Person Role</label>     
         <group ref="personRoleSelectInfo">
-          <label>{Person Role Information}</label>
+          <label>Person Role</label>
           <group ref="container8" faims_style="orientation">
           <label></label>
           <group ref="child1" faims_style="even">
             <label></label>
            <input ref="keywordOfRole">
-            	<label>role keyword</label>
+            	<label>Keyword</label>
             </input>
            </group>
           <group ref="child2" faims_style="even">
             <label></label>
              <trigger ref="SearchRole" faims_style_class="faims-blue-parallel">
-            <label>Search Role</label>
+            <label>Search</label>
           </trigger>            
           </group>
         </group>       
@@ -680,25 +673,25 @@
         </group>
 
         <group ref="personInfo">
-          <label>{Person Information}</label>
+          <label>Person Information</label>
            <input ref="personID" faims_attribute_name="PersonID" faims_attribute_type="measure" faims_certainty="false" faims_read_only="true">
-              <label>{Person ID}</label>
+              <label>Person label</label>
             </input>
             <input ref="personName" faims_attribute_name="PersonName" faims_attribute_type="measure" faims_certainty="false" faims_style_class="required">
-              <label>{Person Name}</label>
+              <label>Person name</label>
             </input>
             <input ref="personOtherNames" faims_attribute_name="PersonOtherNames" faims_attribute_type="measure" faims_certainty="false" >
-              <label>{Person Other Names}</label>
+              <label>Person other names</label>
             </input>
 			<input ref="personDOB" faims_attribute_name="PersonDOB" faims_attribute_type="measure" faims_certainty="false" >
-              <label>{Person DOB}</label>
+              <label>Person DOB</label>
             </input>
             <input ref="personRoleName" faims_certainty="false" faims_read_only="true">
-              <label>{Person Role}</label>
+              <label>Person role</label>
             </input>
            
             <select type="camera" faims_sync="true" ref="personPhoto" faims_attribute_name="PersonPhoto" faims_attribute_type="measure" faims_certainty="true" faims_annotation="true" faims_read_only="false">
-            <label>{Photos}</label>
+            <label>Photos</label>
               <item>
                   <label>placeholder</label>
                   <value>placeholder</value>
@@ -737,9 +730,9 @@
     <group ref="personRole" faims_archent_type="PersonRole">
         <label>Person Role</label>
         <group ref="personRoleInfo">
-          <label>{Person Role Information}</label>
+          <label>Person Role</label>
            <input ref="personRoleName" faims_attribute_name="PersonRoleName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true">
-              <label>{Role Name}</label>
+              <label>Role name</label>
             </input>
            <select1 ref="RoleIntroRequired" faims_attribute_name="RoleIntroAnsRequired" faims_attribute_type="measure" appearance="full">
           <label>Answering introductory questionnaire required?</label>
@@ -781,7 +774,7 @@
             </trigger>
 
               <select1 appearance="compact" ref="duplicateRoleList" faims_style_class="menu-list">
-                <label>{Duplicate person role}</label>
+                <label>Duplicate records</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
@@ -794,15 +787,15 @@
     <group ref="language" faims_archent_type="Language">
         <label>Language</label>
         <group ref="languageInfo">
-          <label>{Language Information}</label>
+          <label>Language</label>
             <input ref="languageID" faims_attribute_name="LanguageID" faims_attribute_type="measure" faims_certainty="false" faims_style_class="required">
-              <label>{Language ID}</label>
+              <label>Language label</label>
             </input>
             <input ref="languageName" faims_attribute_name="LanguageName" faims_attribute_type="measure" faims_certainty="false" faims_style_class="required">
-              <label>{Language Name}</label>
+              <label>Language name</label>
             </input>
             <input ref="languageOtherNames" faims_attribute_name="LanguageOtherNames" faims_attribute_type="measure" faims_certainty="false" >
-              <label>{Language Other Names}</label>
+              <label>Language other names</label>
             </input>      
             <trigger ref="Finish_New_Language" faims_style_class="faims-blue">
                 <label>Save Language</label>
@@ -819,7 +812,7 @@
                 <label>New Role</label>
             </trigger>
             <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="roleList" faims_style_class="user-list">
-                <label>{Tap role to view details}</label>
+                <label>Tap to view role</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
@@ -836,7 +829,7 @@
                 <label>New Type</label>
             </trigger>
             <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="typeList" faims_style_class="user-list">
-                <label>{Tap type to view details}</label>
+                <label>Tap to view type</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>
@@ -853,7 +846,7 @@
                 <label>New Property</label>
             </trigger>
             <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="propList" faims_style_class="user-list">
-                <label>{Tap to view details}</label>
+                <label>Tap to view property</label>
                 <item>
                     <label>placeholder</label>
                     <value>placeholder</value>

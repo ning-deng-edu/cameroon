@@ -364,15 +364,15 @@ createMainSessionPage(){
     	doTask() { 
     		//sssHidden page
     		sssIdViewDef= createViewDef().createTextField().setLabel("Session label").setAttributeName("SessionID").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
-    		sssStartTimeViewDef=createViewDef().createTextField().setLabel("Session start time").setAttributeName("SessionStartTimestamp").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
-    		sssEndTimeViewDef=createViewDef().createTextField().setLabel("Session end time").setAttributeName("SessionEndTimestamp").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+    		sssStartTimeViewDef=createViewDef().createTextField().setLabel("Start time").setAttributeName("SessionStartTimestamp").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+    		sssEndTimeViewDef=createViewDef().createTextField().setLabel("End time").setAttributeName("SessionEndTimestamp").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
     		createView("sessionForAnswer/sssHidden/sssID",sssIdViewDef,"sessionForAnswer/sssHidden"); 
     		createView("sessionForAnswer/sssHidden/sssStartTimetamp",sssStartTimeViewDef,"sessionForAnswer/sssHidden");
     		createView("sessionForAnswer/sssHidden/sssEndTimestamp",sssEndTimeViewDef,"sessionForAnswer/sssHidden");
     		//sssAnsBasicInfo page   
     		sssNameViewDef=createViewDef().createTextField().setLabel("Session name").setAttributeName("SessionName").setAttributeType("measure").setAnnotationEnabled(true);
-    		sssLocViewDef=createViewDef().createTextField().setLabel("Session location").setAttributeName("SessionLocation").setAttributeType("measure").setAnnotationEnabled(true);
-    		sssDescViewDef=createViewDef().createTextField().setLabel("Session description").setAttributeName("SessionDescription").setAttributeType("measure").setAnnotationEnabled(true);
+    		sssLocViewDef=createViewDef().createTextField().setLabel("GPS").setAttributeName("SessionLocation").setAttributeType("measure").setAnnotationEnabled(true);
+    		sssDescViewDef=createViewDef().createTextField().setLabel("Description").setAttributeName("SessionDescription").setAttributeType("measure").setAnnotationEnabled(true);
     		  
     		createView("sessionForAnswer/sssAnsBasicInfo/sssName",sssNameViewDef,"sessionForAnswer/sssAnsBasicInfo");		
     		createView("sessionForAnswer/sssAnsBasicInfo/sssLocation",sssLocViewDef,"sessionForAnswer/sssAnsBasicInfo");	
@@ -410,13 +410,13 @@ createMainSessionPage(){
 			saveSssButtonDef = createViewDef().createButton().setLabel("Save Session").setStyleCss("faims-blue");
 			newAnsButtonDef = createViewDef().createButton().setLabel("New Answer").setStyleCss("faims-blue");
 
-			ansSelListDef=createViewDef().createList().setLabel("Selectable Answers").setAnnotationEnabled(false).setStyleCss("session-file-list");
+			//ansSelListDef=createViewDef().createList().setLabel("Selectable Answers").setAnnotationEnabled(false).setStyleCss("session-file-list");
 			ansListDef=createViewDef().createList().setLabel("Answers").setAnnotationEnabled(false).setStyleCss("session-file-list");
 
 			createView("sessionForAnswer/sssAnsList/Save_Session", saveSssButtonDef,"sessionForAnswer/sssAnsList");
 	        createView("sessionForAnswer/sssAnsList/New_Answer_In_Session", newAnsButtonDef,"sessionForAnswer/sssAnsList");
 
-	        createView("sessionForAnswer/sssAnsList/sssAnsSelList", ansSelListDef,"sessionForAnswer/sssAnsList");
+	        //createView("sessionForAnswer/sssAnsList/sssAnsSelList", ansSelListDef,"sessionForAnswer/sssAnsList");
 	        createView("sessionForAnswer/sssAnsList/sssAnswerList", ansListDef,"sessionForAnswer/sssAnsList");
 
 	        refreshTabgroupCSS("sessionForAnswer");
@@ -427,7 +427,7 @@ createMainSessionPage(){
 			onEvent("sessionForAnswer/sssPersonInfo/sssPersonList","click","deletePersonInSession()");
 			onEvent("sessionForAnswer/sssPersonInfo/Add_New_Person","click","newPerson()");
 			onEvent("sessionForAnswer/sssPersonInfo","show","refreshPsAndRole()");
-			onEvent("sessionForAnswer/sssAnsList/sssAnsSelList","click","addItemToTargetList(candidate_files_session,\"sessionFile\",null)");
+			//onEvent("sessionForAnswer/sssAnsList/sssAnsSelList","click","addItemToTargetList(candidate_files_session,\"sessionFile\",null)");
 			onEvent("sessionForAnswer/sssAnsList/sssAnswerList","click","checkDelOrView()");
 
 			}
@@ -447,7 +447,7 @@ createQuesnirList(){
 	    	createContainer("questionnaireListAll/questionnaireListInfo/child1", "even", "questionnaireListAll/questionnaireListInfo/quesnirLsCt");
 	        createContainer("questionnaireListAll/questionnaireListInfo/child2", "even", "questionnaireListAll/questionnaireListInfo/quesnirLsCt");
 
-	        searchTextViewDef = createViewDef().createTextField().setLabel("keyword").setInfoEnabled(true);
+	        searchTextViewDef = createViewDef().createTextField().setLabel("Keyword").setInfoEnabled(true);
 	        searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
 	        
 	        quesnirListDef=createViewDef().createList().setLabel("Questionnaires").setStyleCss("questionnaire-list");
@@ -492,7 +492,7 @@ createQuesSel(){
 	    	createContainer("questionnaireInfo/surveyQuestionnaire/child1", "even", "questionnaireInfo/surveyQuestionnaire/quesSelCt");
 	        createContainer("questionnaireInfo/surveyQuestionnaire/child2", "even", "questionnaireInfo/surveyQuestionnaire/quesSelCt");
 
-	    	searchTextViewDef = createViewDef().createTextField().setLabel("keyword").setInfoEnabled(true);
+	    	searchTextViewDef = createViewDef().createTextField().setLabel("Keyword").setInfoEnabled(true);
 	        searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
 
 			createView("questionnaireInfo/surveyQuestionnaire/ques_keyword", searchTextViewDef,"questionnaireInfo/surveyQuestionnaire/child1");
@@ -642,7 +642,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
         onFetch(result) {
         	candidate_files_session.clear();
         	candidate_files_session.addAll(result);
-            populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
+            //populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
         }
 
 	        onError(message) {
@@ -656,7 +656,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
         onFetch(result) {
         	candidate_files_session.clear();
         	candidate_files_session.addAll(result);
-            populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
+            //populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
         }
 
 	        onError(message) {
@@ -1542,7 +1542,7 @@ checkSssQuesnirType(String typeflag){
 	    	                	candidate_files_session.clear();
 	    	                	candidate_files_session.addAll(result);
 	    	                	candidate_files_session.removeAll(original_sss_answer_list);
-	    	                	populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
+	    	                	//populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
 	    	                }
 	    	                
 
@@ -1558,7 +1558,7 @@ checkSssQuesnirType(String typeflag){
 	    	                	candidate_files_session.clear();
 	    	                	candidate_files_session.addAll(result);
 	    	                	candidate_files_session.removeAll(original_sss_answer_list);
-	    	                	populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
+	    	                	//populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
 	    	                }
 	    	                
 
@@ -1577,7 +1577,7 @@ checkSssQuesnirType(String typeflag){
                 	candidate_files_session.clear();
                 	candidate_files_session.addAll(result);
                 	candidate_files_session.removeAll(original_sss_answer_list);
-                	populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
+                	//populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
                 }
                 
 
@@ -2458,7 +2458,7 @@ createAnswerPage(){
 			newAnsBtnDef = createViewDef().createButton().setLabel("Save Answer").setStyleCss("faims-blue");
 			fileCateDef = createViewDef().createDropDown().setLabel("File Category");
 			newFileBtnDef = createViewDef().createButton().setLabel("New File").setStyleCss("faims-blue");
-			fileListDef=createViewDef().createList().setLabel("Answer file").setStyleCss("answerFile-list");
+			fileListDef=createViewDef().createList().setLabel("Answer files").setStyleCss("answerFile-list");
 			createView("survey/answerFile/Finish_New_Answer",newAnsBtnDef,"survey/answerFile");
 	    	createView("survey/answerFile/file_Category",fileCateDef,"survey/answerFile");
 	        createView("survey/answerFile/Add_New_File",newFileBtnDef,"survey/answerFile");
@@ -3174,13 +3174,13 @@ createFilePage(String fileType, String attachFunc, String saveFunc){
 				typeViewDef=createViewDef().createTextField().setLabel("File type").setAttributeName("FileType").setAttributeType("measure").
 				setAnnotationEnabled(true).setReadOnly(true);
 
-				creatorViewDef=createViewDef().createTextField().setLabel("File creator").setAttributeName("FileCreator").setAttributeType("measure").
+				creatorViewDef=createViewDef().createTextField().setLabel("Creator").setAttributeName("FileCreator").setAttributeType("measure").
 				setAnnotationEnabled(true).setReadOnly(true);
 
-				startTimeViewDef=createViewDef().createTextField().setLabel("File start time").setAttributeName("FileStartTime").setAttributeType("measure").
+				startTimeViewDef=createViewDef().createTextField().setLabel("Start time").setAttributeName("FileStartTime").setAttributeType("measure").
 				setAnnotationEnabled(true).setReadOnly(true);
 
-				endTimeViewDef=createViewDef().createTextField().setLabel("File end time").setAttributeName("FileEndTime").setAttributeType("measure").
+				endTimeViewDef=createViewDef().createTextField().setLabel("End time").setAttributeName("FileEndTime").setAttributeType("measure").
 				setAnnotationEnabled(true).setReadOnly(true);
 
 				if (fileType.equals("audio") || fileType.equals("sketch")){
@@ -3544,7 +3544,7 @@ addItemToTargetList(ArrayList sourceList, String type_flag, String intervieweeID
 				candidate_files_session.remove(idx_item);
 				//loadSessionInterviewer("session");
 				populateList("sessionForAnswer/sssAnsList/sssAnswerList", sss_answer_list);
-				populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
+				//populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
 				
 				break;
 			
@@ -3596,7 +3596,7 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag, String toDelId)
 				candidate_files_session.add(targetList.get(idx_delete));
 				sss_answer_list.remove(idx_delete);
 				populateList("sessionForAnswer/sssAnsList/sssAnswerList", sss_answer_list);
-				populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
+				//populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
 				break;
 			case "fieldTripSession":
 				candidate_session_fieldTrip.add(targetList.get(idx_delete));
@@ -3898,7 +3898,7 @@ createPersonRolePage(){
 	    	createContainer("personRoleSelect/personRoleSelectInfo/child1", "even", "personRoleSelect/personRoleSelectInfo/psRoleSelCtn");
 	        createContainer("personRoleSelect/personRoleSelectInfo/child2", "even", "personRoleSelect/personRoleSelectInfo/psRoleSelCtn");
 		
-			searchTextViewDef = createViewDef().createTextField().setLabel("keyword");
+			searchTextViewDef = createViewDef().createTextField().setLabel("Keyword");
 			searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
 			psRoleListDef=createViewDef().createDropDown().setLabel("Role List");
 			newPsBtnDef=createViewDef().createButton().setLabel("New Person").setStyleCss("faims-blue");
@@ -3936,7 +3936,7 @@ createPersonPage(){
    
     		personDOBViewDef=createViewDef().createTextField().setLabel("Person DOB").setAttributeName("PersonDOB").setAttributeType("measure").setAnnotationEnabled(true);
     	
-    		personRoleViewDef=createViewDef().createTextField().setLabel("Person Role").setReadOnly(true);
+    		personRoleViewDef=createViewDef().createTextField().setLabel("Person general role").setReadOnly(true);
    		
    			personPhotoViewDef=createViewDef().createCameraGallery(true).setAttributeName("PersonPhoto").setAttributeType("measure").setAnnotationEnabled(true);
    		
@@ -4641,53 +4641,6 @@ loadFile(){
     });
 }
 
-
-/*** query ***/
-onEvent("control/querytest/Submit","click","testQuery()");
-
-testQuery(){
-	query=getFieldValue("control/querytest/query");
-	//fetchAll("SELECT sql FROM sqlite_master WHERE name='archentity';",
-	fetchAll(query.toString()+";",
-	new FetchCallback() {
-        onFetch(result) {
-			if (isNull(result)) {
-				//code
-				showWarning("no","no result");
-			}
-			else{
-			for (re : result) {
-				
-				showWarning("yes",re.toString());
-				//showWarning("me",re.toString());
-				
-			}		    
-            //populateList("control/question_control/questionList", result);
-        }
-		}
-        onError(message) {
-        	Log.e("query error",message);
-            showToast(message);
-        }
-    });
-	
-}
-/*
-onEvent("control/deleteTest/delSubmit","click","delQuery()");
-
-delQuery(){
-	delId=getFieldValue("control/deleteTest/delQuery");
-	//fetchAll("SELECT sql FROM sqlite_master WHERE name='archentity';",
-	deleteArchEnt(delId, new DeleteCallback() {
-    onDelete(uuid) {
-      showWarning("Record deleted",delId);
-      //cancelTabGroup(tabgroup, false);
-    	}
-  	});
-	
-}
-*/
-
 /***Dynamic ui-FieldTrip***/
 //onEvent("control/other_control","show","createFieldTripPage()");
 //onEvent("control/other_control/fieldTrip_page","click","createFieldTripPage()");
@@ -4745,7 +4698,7 @@ createFieldTripInfoPage(String typeflag){
 	    	//basic info page
 	    	idTextViewDef = createViewDef().createTextField().setLabel("FieldTrip label").setAttributeName("FieldTripID").setAttributeType("measure").
 	    	setAnnotationEnabled(true).setReadOnly(true);
-	    	nameTextViewDef=createViewDef().createTextField().setLabel("FieldTrip Name").setAttributeName("FieldTripName").setAttributeType("measure").
+	    	nameTextViewDef=createViewDef().createTextField().setLabel("FieldTrip name").setAttributeName("FieldTripName").setAttributeType("measure").
 	    	setAnnotationEnabled(true);
 	    	descTextViewDef=createViewDef().createTextField().setLabel("Description").setAttributeName("FieldTripDescription").setAttributeType("measure").
 	    	setAnnotationEnabled(true);

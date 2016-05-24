@@ -183,56 +183,7 @@ quesnirTypeRelnOrigin=new ArrayList();
 searchQuesType=new ArrayList();
 searchQuesType.add("candidate");
 searchQuesType.add("selected");
-//questionirType.add(new NameValuePair("{Regular}", "Regular"));
-//questionirType.add(new NameValuePair("{Introductory}", "Introductory"));
-//flag_return_questionnaire=false;
-//starting point of creating new questionnaire 
-/*
-createQuesnirPropSelPage(){
-	fetchAll(loadAllQuesnirPropQuery,
-	new FetchCallback() {
-        onFetch(result) {
-			if (!isNull(result)) {
-				removeAllViewsAndContainers("questionnaire");
-				propOption=new ArrayList();
-				propOption.add(new NameValuePair("Yes", "Y"));
-				propOption.add(new NameValuePair("No", "N"));
-				style1 = "orientation";
-            	style2 = "even";
-            	int propCount=0;
-				for(prop : result){
-					propCount=propCount+1;
-					executeViewTask(new ViewTask() {
-				    doTask() {
-				  		createContainer("questionnaire/questionnaire_prop/prop_rowc_" + propCount, "orientation", "questionnaire/questionnaire_prop");
 
-		                createContainer("questionnaire/questionnaire_prop/prop_namec_" + propCount, "even", "questionnaire/questionnaire_prop/prop_rowc_" + propCount);
-		                createContainer("questionnaire/questionnaire_prop/prop_selc_" + propCount, "even", "questionnaire/questionnaire_prop/prop_rowc_" + propCount);
-
-		                createView("questionnaire/questionnaire_prop/prop_" + propCount, createViewDef().createTextField("string").setReadOnly(true), "questionnaire/questionnaire_prop/prop_namec_" + propCount);
-				   		createView("questionnaire/questionnaire_prop/prop_sel" + propCount, createViewDef().createRadioGroup(), "questionnaire/questionnaire_prop/prop_selc_" + propCount);
-				   		setFieldValue("questionnaire/questionnaire_prop/prop_" + propCount, prop.get(1));
-				   		populateRadioGroup("questionnaire/questionnaire_prop/prop_sel" + propCount, propOption);
-				   		}
-						});
-				}
-				createView("questionnaire/questionnaire_prop/savePropBtn", createViewDef().createButton().setLabel("Start/View Question Selection").setStyleCss("faims-blue"), "questionnaire/questionnaire_prop");
-				onEvent("questionnaire/questionnaire_prop/savePropBtn","click","startQuestionSelection()");
-			}
-			else{
-				showWarning("No property available","No questionniare property available at this point");
-				showTab("questionnaire/questionnaire_info");
-				return;
-			}
-        }
-
-        onError(message) {
-            showToast(message);
-        }
-    });
-	
-}
-*/
 newQuestionnaire(){	
     newTabGroup("questionnaire");
     questionCandidates.clear();
@@ -410,9 +361,9 @@ createQuesPropPage(){
 			executeViewTask(new ViewTask() {
 		    doTask() {
 		  		propNameViewDef=createViewDef().createTextField().setLabel("Property name").setAttributeName("QuesPropDefName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
-		  		propDescViewDef=createViewDef().createTextField().setLabel("Property Description").setAttributeName("QuesPropDefDesc").setAttributeType("measure").setAnnotationEnabled(true);
+		  		propDescViewDef=createViewDef().createTextField().setLabel("Description").setAttributeName("QuesPropDefDesc").setAttributeType("measure").setAnnotationEnabled(true);
 		  		savePropBtnDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
-		  		dupListDef=createViewDef().createList().setLabel("Duplicate properties");
+		  		dupListDef=createViewDef().createList().setLabel("Duplicate records");
 	//			showWarning("dupListDef","dupListDef");
 		    	createView("quesProperty/quesPropertyInfo/propName",propNameViewDef,"quesProperty/quesPropertyInfo");
 		    	createView("quesProperty/quesPropertyInfo/propDesc",propDescViewDef,"quesProperty/quesPropertyInfo");
@@ -519,128 +470,7 @@ saveQuesProp(){
 		}  
 		});
 }
-/* Quesnir Property
-onEvent("prop_control/prop_control_info","show","loadQuesnirProp(\"propLoad\")");
-onEvent("prop_control/prop_control_info/New_Prop","click","newQuesnirProp()");
-onEvent("prop_control/prop_control_info/propList","click","loadQuesnirPropInfo()");
-quesnirPropertyId=null;
-quesnirProperty=new ArrayList();
 
-createQuesnirPropPage(){
-		if(!hasView("quesnirProperty/quesnirPropertyInfo/propName")){
-			removeAllViewsAndContainers("quesnirProperty");
-			executeViewTask(new ViewTask() {
-		    doTask() {
-		  		propNameViewDef=createViewDef().createTextField().setLabel("Property name").setAttributeName("QuesnirPropDefName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
-		  		propDescViewDef=createViewDef().createTextField().setLabel("Property Description").setAttributeName("QuesnirPropDefDesc").setAttributeType("measure").setAnnotationEnabled(true);
-		  		savePropBtnDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
-		  		dupListDef=createViewDef().createList().setLabel("Duplicate properties").setStyleCss("user_list");
-
-		    	createView("quesnirProperty/quesnirPropertyInfo/propName",propNameViewDef,"quesnirProperty/quesnirPropertyInfo");
-		    	createView("quesnirProperty/quesnirPropertyInfo/propDesc",propDescViewDef,"quesnirProperty/quesnirPropertyInfo");
-		        createView("quesnirProperty/quesnirPropertyInfo/saveProp",savePropBtnDef,"quesnirProperty/quesnirPropertyInfo");
-		        createView("quesnirProperty/quesnirPropertyInfo/propDupList",dupListDef,"quesnirProperty/quesnirPropertyInfo");
-		        
-	
-				onEvent("quesnirProperty/quesnirPropertyInfo/saveProp","click","quesnirPropCheck()");
-		   		}
-			});
-	}
-}
-
-loadQuesnirProp(String typeflag){
-	fetchAll(loadAllQuesnirPropQuery,
-	new FetchCallback() {
-        onFetch(result) {
-			if (!isNull(result)) {
-				quesnirProperty.clear();
-				quesnirProperty.addAll(result);
-				if(typeflag.equals("propLoad")){
-					populateList("prop_control/prop_control_info/propList",quesnirProperty);
-				}
-			}
-        }
-        onError(message) {
-            showToast(message);
-        }
-    });
-}
-loadQuesnirPropInfo(){
-	quesnirPropertyId=getListItemValue();
-	if(isNull(quesnirPropertyId)){
-		showWarning("Invalid data","No data selected");
-		return;
-	}
-	createQuesnirPropPage();
-	showTabGroup("quesnirProperty", quesnirPropertyId, new FetchCallback() {
-        onFetch(result) {
-        	tempPop=new ArrayList();
-        	tempPop.clear();
-        	populateList("quesnirProperty/quesnirPropertyInfo/propDupList",tempPop);
-            showToast("Loaded data"+result.getId());  
-            //showWarning("intro?",result.getClass().getName());          
-        }
-        onError(message) {
-            showToast(message);
-        }
-    });
-}
-newQuesnirProp(){
-	quesnirPropertyId=null;
-	createQuesnirPropPage();
-	newTabGroup("quesnirProperty");
-}
-
-quesnirPropCheck(){
-	String newPropName=getFieldValue("quesnirProperty/quesnirPropertyInfo/propName").trim();
-	if(isNull(newPropName)){
-			showWarning("Incomplete data", "You must input questionnaire property name");
-			return;
-		}
-		else{
-
-		quesnirPropCheckQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
-							"WHERE latestNonDeletedAentValue.AttributeID "+
-							"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesnirPropDefName') "+
-							"AND latestNonDeletedAentValue.measure like '%"+newPropName+"%'; ";
-		//showWarning("quesnirTypeCheckQuery","quesnirTypeCheckQuery");					
-		fetchAll(quesnirPropCheckQuery,
-			new FetchCallback() {
-				onFetch(result) {
-					if (!isNull(result)) {
-						populateList("quesnirProperty/quesnirPropertyInfo/propDupList",result);
-						showAlert("Questionnaire property data", "This could be a duplicate data\n"+"The possible existing data is listed in the list\n"+"Do you still want to save?", "saveQuesnirProp()", "stayInCurrentPage()");
-					}
-					else{
-						saveQuesnirProp();
-					}
-				}
-		       
-			onError(message) {
-				showToast(message);
-			}
-			});
-		}	
-}
-saveQuesnirProp(){
-	saveTabGroup("quesnirProperty", quesnirPropertyId, null, null, new SaveCallback() {
-		onSave(uuid, newRecord) {
-			quesnirPropertyId = uuid;
-			//showWarning("saveQuesnirType",quesnirTypeId);
-			if (newRecord) {
-				showToast("New record created");
-			    cancelTabGroup("quesnirProperty",true);
-			}
-			else{
-				showToast("Record changed");
-			}
-		}
-		onError(message) {
-			showWarning("error",message);
-		}  
-		});
-}
-*/
 /***Quesnir type***/
 onEvent("quesnirType/quesnirType_info/SaveQuesnirType","click","quesnirTypePreCheck()");
 quesnirTypeId=null;
