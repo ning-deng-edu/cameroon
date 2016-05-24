@@ -3917,7 +3917,7 @@ createPersonRolePage(){
 }
 
 createPersonPage(){
-	if(!hasView("person/personInfo/personID")){
+	if(!hasView("person/personInfoHide/personID")){
 		removeAllViewsAndContainers("person");
 	
 		executeViewTask(new ViewTask() {
@@ -3951,11 +3951,12 @@ createPersonPage(){
 	        finishNewPsViewDef=createViewDef().createButton().setLabel("Save Person").setStyleCss("faims-blue");
 
 		
-			createView("person/personInfo/personID", personIDViewDef,"person/personInfo");
+			createView("person/personInfoHide/personID", personIDViewDef,"person/personInfoHide");
+			createView("person/personInfoHide/personRoleName", personRoleViewDef,"person/personInfoHide");
+
 			createView("person/personInfo/personName", personNameViewDef,"person/personInfo");
 			createView("person/personInfo/personOtherNames", personOtherNamesViewDef,"person/personInfo");
 			createView("person/personInfo/personDOB", personDOBViewDef,"person/personInfo");
-			createView("person/personInfo/personRoleName", personRoleViewDef,"person/personInfo");
 			createView("person/personInfo/personPhoto", personPhotoViewDef,"person/personInfo");
 			createView("person/personInfo/Take_Photo", takePhotoViewDef,"person/personInfo");
 			createView("person/personInfo/personPhotoDesc", psPhotoDescViewDef,"person/personInfo");
@@ -4094,7 +4095,7 @@ newPersonWithIntro(ArrayList roleflag, ArrayList propertyFlag){
 	newTabGroup("person");
 	onEvent("person", "show", "showTab(\"person/personInfo\");");  
 	setFieldValue("person/personInfoHide/personRoleId",roleflag.get(0));
-	setFieldValue("person/personInfo/personRoleName",roleflag.get(1));
+	setFieldValue("person/personInfoHide/personRoleName",roleflag.get(1));
 	savePersonWfProperty.clear();
 	savePersonWfProperty.addAll(propertyFlag);
 }
@@ -4145,7 +4146,7 @@ else{
         	fetchOne(checkPersonRoleQuery,new FetchCallback() {
 								onFetch(result) {
 									if(!isNull(result)){
-										setFieldValue("person/personInfo/personRoleName",result.get(0));
+										setFieldValue("person/personInfoHide/personRoleName",result.get(0));
 										
 									}
 									else{
@@ -4190,7 +4191,7 @@ else{
 								}  
 						});
         	originPersonInfo.clear();
-        	originPersonInfo.add(getFieldValue("person/personInfo/personID"));
+        	originPersonInfo.add(getFieldValue("person/personInfoHide/personID"));
         	originPersonInfo.add(getFieldValue("person/personInfo/personName"));
         	originPersonInfo.add(getFieldValue("person/personInfo/personOtherNames"));
         	originPersonInfo.add(getFieldValue("person/personInfo/personDOB"));
@@ -4388,7 +4389,7 @@ saveNewPerson(String typeflag){
 										saveArchEnt(entityId, "Person", null, attributes);
 									}
 									personLabel=personLabel+"(2)";
-						            setFieldValue("person/personInfo/personID",personLabel);
+						            setFieldValue("person/personInfoHide/personID",personLabel);
 								}
 								else{
 									int maxSuffix=0;
@@ -4405,12 +4406,12 @@ saveNewPerson(String typeflag){
 									}
 									maxSuffix=maxSuffix+1;
 									personLabel=personLabel+"("+maxSuffix+")";
-									setFieldValue("person/personInfo/personID",personLabel);
+									setFieldValue("person/personInfoHide/personID",personLabel);
 								}
 								
 							}
 							else{
-								setFieldValue("person/personInfo/personID", personLabel);
+								setFieldValue("person/personInfoHide/personID", personLabel);
 							}
 
 						saveTabGroup("person", person_id, null, null, new SaveCallback() {
