@@ -187,7 +187,6 @@ addActionBarItem("internal_gps", new ToggleActionButtonCallback() {
     actionOn() {
         stopGPS();
         showToast("{GPS_Disabled}");
-        updateGPSStatus();
     }
     isActionOff() {
         isInternalGPSOn();
@@ -201,7 +200,6 @@ addActionBarItem("internal_gps", new ToggleActionButtonCallback() {
         }
         startInternalGPS();
         showToast("{GPS_Enabled}");
-        updateGPSStatus();
     }
 });
 
