@@ -168,7 +168,7 @@ onEvent("questionnaire_question/questionnaire_question_info/Search_Question","cl
 onEvent("questionnaire", "show", "showTab(\"questionnaire/questionnaire_info\")");
 onEvent("questionnaire/questionnaire_info/questionnaireTypeSelection", "click", "setQuesnirType()");
 onEvent("questionnaire/questionnaire_info/New_QuesnirType", "click", "newQuesnirType()");
-onEvent("questionnaire_question/questionnaire_question_info/Search_Question","click","searchQuestion()");
+//onEvent("questionnaire_question/questionnaire_question_info/Search_Question","click","searchQuestion()");
 //onEvent("questionnaire/questionnaire_prop", "show", "createQuesnirPropSelPage()");
 finished_questionnaire_id=null;//flag for marking if any questionnaire is selected
 questionCandidates=new ArrayList();//original questions to be selected in questionnaire
@@ -1027,6 +1027,36 @@ reConstructQuesOrder(){
 	createChangeBtnQuesnir();
 }
 
+reConstructQuesOrder(ArrayList searchResult){
+	removeAllViewsAndContainers("questionnaire_question");
+	for(int j=0; j<searchResult.size();j++){
+		String quesContent= searchResult.get(j).get(1);
+		//showWarning("quesContent",quesContent);
+		quesCountDel=j+1;
+		executeViewTask(new ViewTask() {
+	    	doTask() {
+	    		createContainer("questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel, "orientation", "questionnaire_question/questionnaire_question_info");
+		        createContainer("questionnaire_question/questionnaire_question_info/quesc_" + quesCountDel, "even", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+		        createContainer("questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCountDel, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+		        createContainer("questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCountDel, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+		        createContainer("questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCountDel, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+		        createView("questionnaire_question/questionnaire_question_info/Ques_" + quesCountDel, createViewDef().createTextField("string").setReadOnly(true), "questionnaire_question/questionnaire_question_info/quesc_" + quesCountDel);
+		        createView("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCountDel, createViewDef().createButton().setLabel("X").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCountDel);
+		        createView("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCountDel, createViewDef().createButton().setLabel("↑").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCountDel);
+		        createView("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCountDel, createViewDef().createButton().setLabel("↓").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCountDel);
+				setFieldValue("questionnaire_question/questionnaire_question_info/Ques_" + quesCountDel, quesContent);
+				onEvent("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCountDel,"click","deleteQuesConfirm(\""+quesContent+"\")");
+				onEvent("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCountDel,"click","moveUpQues(\""+quesContent+"\")");
+				onEvent("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCountDel,"click","moveDownQues(\""+quesContent+"\")");
+		    	}
+	    });
+		
+		//quesCount++;
+		//refreshTabgroupCSS("questionnaire_question");
+	}
+	createChangeBtnQuesnir();
+}
+
 createChangeBtnQuesnir(){
 	executeViewTask(new ViewTask() {
 		doTask(){
@@ -1427,6 +1457,7 @@ searchQuestion(){
 	}
 	else{//searching in the arraylist 
 		if((isNull(keywordForQuestion))||(keywordForQuestion.equals("*"))){
+			reConstructQuesOrder();
 			//populateRadioGroup("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
 		}
 		else{
@@ -1437,6 +1468,7 @@ searchQuestion(){
 					tempQuesQuery.add(ques);
 				}
 			}
+			reConstructQuesOrder(tempQuesQuery);
 			//populateRadioGroup("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", tempQuesQuery);
 		}
 	}
