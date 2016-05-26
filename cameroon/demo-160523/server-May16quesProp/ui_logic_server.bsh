@@ -1463,8 +1463,9 @@ searchQuestion(){
 		else{
 			tempQuesQuery=new ArrayList();
 			tempQuesQuery.clear();
+			Pattern pattern = Pattern.compile(Pattern.quote(keywordForQuestion), Pattern.CASE_INSENSITIVE);
 			for (ques : questionSelected){
-				if(ques.get(1).contains(keywordForQuestion)){
+				if(pattern.matcher(ques.get(1)).find()){
 					tempQuesQuery.add(ques);
 				}
 			}
