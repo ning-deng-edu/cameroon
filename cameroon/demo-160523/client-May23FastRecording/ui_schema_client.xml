@@ -255,12 +255,12 @@
       </group>
     </group>
     
-    <group ref="control">
+    <group ref="control" faims_scrollable="false">
         
         <label>{Control}</label>
         
         
-        <group ref="survey_control">
+        <group ref="survey_control" faims_scrollable="false">
             <label>Session</label>
             <!--No input here-->
             <trigger ref="New_Survey" faims_style_class="faims-blue">
@@ -298,7 +298,7 @@
         
        
         
-        <group ref="user_control" >
+        <group ref="user_control" faims_scrollable="false">
             <label>Person</label>
             <trigger ref="New_User" faims_style_class="faims-blue">
                 <label>New Person</label>
@@ -331,7 +331,7 @@
         </group>
         
         
-         <group ref="language_control">
+         <group ref="language_control" faims_scrollable="false">
             <label>Language</label>
             <!--No input here-->
             <trigger ref="New_Language" faims_style_class="faims-blue">
@@ -366,7 +366,7 @@
             </select1>
         </group>
         
-        <group ref="file_control">
+        <group ref="file_control" faims_scrollable="false">
             <label>File</label>
  
           <select1 ref="fileCategorySelect">
@@ -404,7 +404,7 @@
             </select1>
         </group>
         
-        <group ref="other_control">
+        <group ref="other_control" faims_scrollable="false">
             <label>Other</label>
             <trigger ref="fieldTrip_New_bn" faims_style_class="faims-blue">
                 <label>New FieldTrip</label>
@@ -447,7 +447,7 @@
     </group>
     
     
-    <group ref="questionnaireInfo" faims_archent_type="Questionnaire">
+    <group ref="questionnaireInfo" faims_archent_type="Questionnaire" faims_scrollable="false">
           <label>Questionnaire info</label>
         <group ref="surveyQuesnirHidden" faims_hidden="true">
             <label>currentQuesnirHiddenInfo</label>
@@ -459,7 +459,7 @@
       </group>
       
 
-    <group ref="sessionForAnswer" faims_archent_type="Session">
+    <group ref="sessionForAnswer" faims_archent_type="Session" faims_scrollable="false">
             <label>Session</label>
             <group ref="sssHidden" faims_hidden="true">
                 <label>Session info</label>
@@ -477,7 +477,7 @@
             </group>
     </group>    
       
-      <group ref="survey" faims_archent_type="AnswerToQuestionnaire">
+      <group ref="survey" faims_archent_type="AnswerToQuestionnaire" faims_scrollable="false">
         <label>Survey/Answer</label>
         
         

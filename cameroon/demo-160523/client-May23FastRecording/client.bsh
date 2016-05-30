@@ -334,15 +334,17 @@ createMainSessionPage(){
     		sssIdViewDef= createViewDef().createTextField().setLabel("Session label").setAttributeName("SessionID").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
     		sssStartTimeViewDef=createViewDef().createTextField().setLabel("Start time").setAttributeName("SessionStartTimestamp").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
     		sssEndTimeViewDef=createViewDef().createTextField().setLabel("End time").setAttributeName("SessionEndTimestamp").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+    		sssNameViewDef=createViewDef().createTextField().setLabel("Session name").setAttributeName("SessionName").setAttributeType("measure").setAnnotationEnabled(true);
     		createView("sessionForAnswer/sssHidden/sssID",sssIdViewDef,"sessionForAnswer/sssHidden"); 
     		createView("sessionForAnswer/sssHidden/sssStartTimetamp",sssStartTimeViewDef,"sessionForAnswer/sssHidden");
     		createView("sessionForAnswer/sssHidden/sssEndTimestamp",sssEndTimeViewDef,"sessionForAnswer/sssHidden");
+    		createView("sessionForAnswer/sssHidden/sssName",sssNameViewDef,"sessionForAnswer/sssHidden");		
     		//sssAnsBasicInfo page   
-    		sssNameViewDef=createViewDef().createTextField().setLabel("Session name").setAttributeName("SessionName").setAttributeType("measure").setAnnotationEnabled(true);
+    		
     		sssLocViewDef=createViewDef().createTextField().setLabel("GPS").setAttributeName("SessionLocation").setAttributeType("measure").setAnnotationEnabled(true);
     		sssDescViewDef=createViewDef().createTextField().setLabel("Description").setAttributeName("SessionDescription").setAttributeType("measure").setAnnotationEnabled(true);
     		  
-    		createView("sessionForAnswer/sssAnsBasicInfo/sssName",sssNameViewDef,"sessionForAnswer/sssAnsBasicInfo");		
+    		
     		createView("sessionForAnswer/sssAnsBasicInfo/sssLocation",sssLocViewDef,"sessionForAnswer/sssAnsBasicInfo");	
     		createView("sessionForAnswer/sssAnsBasicInfo/sssDescription",sssDescViewDef,"sessionForAnswer/sssAnsBasicInfo");
     	
@@ -781,14 +783,6 @@ checkRolesInSession(){
 	return psRoleSum;
 }
 showQuestionnaireList(){
-	if(isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"))){
-		showWarning("No session name","Please input session name");
-		return;
-	}
-	if(isNull(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"))){
-		showWarning("No session time","Please input session start time");
-		return;
-	}
 	sssRoleInfo=checkRolesInSession();
 	if(!sssRoleInfo.contains("consultant")){
 		showWarning("No consultant","No consultant selected, please add consultant");
@@ -1334,8 +1328,8 @@ loadSessionInfo(String typeFlag){
 				sssOriginInfo.clear();
 	        	sssLabelOld=getFieldValue("sessionForAnswer/sssHidden/sssID");
 	        	sssOriginInfo.add(sssLabelOld);
-	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
-	        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"));
+	        	//sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
+	        	//sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"));
 	        	//sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssEndTimestamp"));  
 	        	fetchAll(loadAnswerForSessionQuery, new FetchCallback() {
 	                onFetch(answers) {
@@ -1636,8 +1630,8 @@ autoSaveSession(String typeFlag){
 		case "tailNew":
 			sssOriginInfo.clear();
 			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssID"));
-			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
-			sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"));
+			//sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
+			//sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"));
 
 			original_sss_answer_list.clear();
 			original_sss_answer_list.addAll(sss_answer_list);
@@ -2249,17 +2243,15 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 }
 
 changeSession(){
-	if((isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"))) || 
-				(isNull(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"))) || 
-				(isNull(sss_answer_list)))
+	if(isNull(sss_answer_list))
 		{
-			showWarning("Incomplete Data","Please make sure that data is complete");
+			showWarning("Incomplete Data","Please make sure that you have answer(s) in this session");
 			return;
 		}
 	sssNewInfo.clear();
 	sssNewInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssID"));
-	sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
-	sssNewInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"));
+	//sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"));
+	//sssNewInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"));
 
 	Hashtable sssInfoChange=listChange(sssNewInfo,sssOriginInfo);
 	Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
@@ -2290,11 +2282,9 @@ saveSession(String typeflag){
 	switch(typeflag){
 		case "answer":	
 			if(isNull(sss_id)){//SAVING NEW SESSION
-				if((isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssName"))) || 
-						(isNull(getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp"))) || 
-						(isNull(sss_answer_list)))
+				if(isNull(sss_answer_list))
 				{
-					showWarning("Incomplete Data","Data can't be saved\n"+"Please make sure basic session data is complete");
+					showWarning("Incomplete Data","Data can't be saved\n"+"Please make sure you have answer(s) in this session");
 					return;
 				}
 

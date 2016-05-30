@@ -295,12 +295,12 @@
         </select1>
       </group>
     </group>
-    <group ref="control">
+    <group ref="control" faims_scrollable="false">
         
         <label>Admin</label>
         
         
-        <group ref="questionnaire_control">
+        <group ref="questionnaire_control" faims_scrollable="false">
             <label>Questionnaire</label>
             <!--No input here-->
             <trigger ref="New_Questionnaire" faims_style_class="faims-blue">
@@ -316,7 +316,7 @@
             </select1>
         </group>
         
-        <group ref="question_control">
+        <group ref="question_control" faims_scrollable="false">
             <label>Question</label>
             <!--No input here-->
             <trigger ref="New_Question" faims_style_class="faims-blue">
@@ -333,7 +333,7 @@
         </group>
         
         
-        <group ref="user_control">
+        <group ref="user_control" faims_scrollable="false">
             <label>Person</label>
             <!--No input here-->
             <trigger ref="New_User" faims_style_class="faims-blue">
@@ -350,7 +350,7 @@
         </group>
         
         
-        <group ref="language_control">
+        <group ref="language_control" faims_scrollable="false">
             <label>Language</label>
             <!--No input here-->
             <trigger ref="New_Language" faims_style_class="faims-blue">
