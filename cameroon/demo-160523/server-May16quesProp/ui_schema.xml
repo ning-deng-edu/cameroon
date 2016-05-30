@@ -128,14 +128,8 @@
                
                <questionBank>
                    <questionInforHidden>   
-                   <questionLanguageUuid/>    
-                   </questionInforHidden>
-                   
-                  <questionInfo>
-                    <questionID/>
-                    <questionContent/>  
-                    <questionProp/>                   
-                    <questionLanguage/>
+                   <questionLanguageUuid/> 
+                   <questionLanguage/>
                    <questionLanguageSelectionList/>
                             
                     <container2>
@@ -145,9 +139,17 @@
                       <child2>
                         <Search_Language/>
                       </child2>
-                    </container2>
+                    </container2> 
+                     <New_Language/>      
+                   </questionInforHidden>
+                   
+                  <questionInfo>
+                    <questionID/>
+                    <questionContent/>  
+                    <questionProp/>                   
+                    
                     <Finish_New_Question/>                 
-                    <New_Language/>          
+                         
                                       
                   </questionInfo>
                 </questionBank>
@@ -554,31 +556,6 @@
             <input ref="questionLanguageUuid" faims_attribute_name="QuestionLanguage" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
            <label>Question language</label>
          </input>
-          
-        </group>
-        
-        
-        <group ref="questionInfo">
-          <label>Question Information</label>
-          <input ref="questionID" faims_attribute_name="QuestionID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
-          <label>Question label</label>
-        </input>
-        <input ref="questionContent" faims_attribute_name="QuestionContent" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
-          <label>Question content</label>
-        </input>
-        
-        
-      
-       
-       
-       <select1 ref="questionProp"  faims_certainty="false" faims_annotation="false">
-          <label>Question property</label>
-          <item>
-            <label>placeholder</label>
-            <value>placeholder</value>
-          </item>
-          </select1>
-
            <input ref="questionLanguage" faims_read_only="true" faims_certainty="false" faims_annotation="false">
           <label>Language</label>
         </input>
@@ -608,15 +585,41 @@
            </trigger>
           </group>      
         </group>
+
+        <trigger ref="New_Language" faims_style_class="faims-blue">
+                <label>New Language</label>
+        </trigger>
+        </group>
+        
+        
+        <group ref="questionInfo">
+          <label>Question Information</label>
+          <input ref="questionID" faims_attribute_name="QuestionID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
+          <label>Question label</label>
+        </input>
+        <input ref="questionContent" faims_attribute_name="QuestionContent" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
+          <label>Question content</label>
+        </input>
+        
+        
+      
+       
+       
+       <select1 ref="questionProp"  faims_certainty="false" faims_annotation="false">
+          <label>Recording requirement</label>
+          <item>
+            <label>placeholder</label>
+            <value>placeholder</value>
+          </item>
+          </select1>
+
+          
          
         <trigger ref="Finish_New_Question" faims_style_class="faims-blue">
                 <label>Save Question</label>
         </trigger>
         
-        
-        <trigger ref="New_Language" faims_style_class="faims-blue">
-                <label>New Language</label>
-        </trigger>
+       
        
         </group>
     </group>
