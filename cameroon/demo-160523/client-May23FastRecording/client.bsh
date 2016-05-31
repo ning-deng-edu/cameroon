@@ -4840,6 +4840,7 @@ saveFieldTrip(){
 							    	  }
 							        showToast("New fieldtrip record created");
 							        cancelTabGroup("fieldTrip",true);
+							        showTab("control/other_control");
 							      }
 							    }
 							    onError(message) {
@@ -4935,6 +4936,7 @@ saveFieldTrip(){
 							    	  }
 									showToast("session in FieldTrip changed");
 									cancelTabGroup("fieldTrip",true);
+									showTab("control/other_control");
 								}
 							}
 							else{
@@ -4948,6 +4950,7 @@ saveFieldTrip(){
 								    	  }
 								        showToast("fieldTrip data changed");
 								        cancelTabGroup("fieldTrip",true);
+								        showTab("control/other_control");
 
 								    }
 								    onError(message) {
