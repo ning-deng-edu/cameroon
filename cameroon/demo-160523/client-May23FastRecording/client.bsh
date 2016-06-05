@@ -341,7 +341,7 @@ createMainSessionPage(){
     		createView("sessionForAnswer/sssHidden/sssName",sssNameViewDef,"sessionForAnswer/sssHidden");		
     		//sssAnsBasicInfo page   
     		
-    		sssLocViewDef=createViewDef().createTextField().setLabel("GPS").setAttributeName("SessionLocation").setAttributeType("measure").setAnnotationEnabled(true);
+    		sssLocViewDef=createViewDef().createTextField().setLabel("GPS").setAttributeName("SessionLocation").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
     		sssDescViewDef=createViewDef().createTextField().setLabel("Description").setAttributeName("SessionDescription").setAttributeType("measure").setAnnotationEnabled(true);
     		  
     		
