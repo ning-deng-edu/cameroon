@@ -106,6 +106,10 @@ saveEntitiesToRel(String type, String entity1, String entity2) {
             addReln(entity1, rel_id, null);
             addReln(entity2, rel_id, null);
         }
+        onError(message) {
+	            //Log.e("saveEntitiesToHierRel", message);
+	        	showWarning("error saveEntitiesToRel",type+":"+message);
+	    }
     });
 }
 
@@ -1604,10 +1608,14 @@ newQuestion(){
 
 //save the question info and its relationship with language
 saveNewQuestion(){
-
 	if((isNull(getFieldValue("questionBank/questionInfo/questionContent"))) || (isNull(getFieldValue("questionBank/questionInfo/questionID"))))
 	{
 		showWarning("Validation Error", "You must fill in the question content  and question label before you can continue");
+        return;
+	}
+	selLangList=getFieldValue("questionBank/questionInfo/langVer");
+	if(isNull(selLangList)){
+		showWarning("Validation Error", "You must indicate at least one language for this question before you can continue");
         return;
 	}
 	tempDuplicateList=new ArrayList();
@@ -1650,6 +1658,11 @@ saveNewQuestion(){
 				//showWarning("prop created1","prop created1");
 				saveArchEnt(null, "QuesProperty", null, quesPropAttributes);
 				//showWarning("prop created2","prop created2");
+				//save Question languages
+				for(lang: selLangList){
+					saveEntitiesToRel("Question and Language",question_id,lang.getName());
+				}
+
 		        showToast("Record created");
 		        cancelTabGroup("questionBank",true);
 		        showTab("control/question_control");
@@ -1691,10 +1704,21 @@ saveNewQuestion(){
 	}
 	});
 }
+/*
 getLangVersions(){
 	selLangList=getFieldValue("questionBank/questionInfo/langVer");
+	showWarning("selLangList","selLangList");
+	if(!isNull(selLangList)){
+		showWarning("notnull","notnull");
+		showWarning("id",selLangList.get(0).getName());
+		for(int i=0;i<selLangList.size();i++){
+			showWarning("for","for");
+			showWarning("id",selLangList.get(i).getName());
+		}
+	}
+	
 }
-/*
+
 addOrDelLang(String opType){
 	String opId=null;
 	if(opType.equals("add")){
