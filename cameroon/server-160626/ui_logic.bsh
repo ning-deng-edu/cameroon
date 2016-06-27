@@ -1569,10 +1569,12 @@ listChange(ArrayList newList, ArrayList oldList, int newCompIdx, int oldCompIdx)
 /*** QuestionBank ***/
 
 onEvent("control/question_control/New_Question","click","newQuestion()");
-onEvent("questionBank/questionInfo/Finish_New_Question","click","saveNewQuestion()");
+//onEvent("questionBank/questionInfo/Finish_New_Question","click","saveNewQuestion()");
 onEvent("control/question_control","show","loadQuestionBank()");
 onEvent("questionBank/questionInfo/","show","initialQuestionCreation()");
 onEvent("control/question_control/questionList","click","loadQuestionInfo()");
+//onEvent("questionBank/questionInfo/languageSel","select","addOrDelLang(\"add\")");
+//onEvent("questionBank/questionInfo/langVersion","select","addOrDelLang(\"del\")");
 //Temp removed for demo version
 //onEvent("questionBank/questionInfo/New_Language","click","newLanguage()");
 //onEvent("questionBank/questionInfo/questionLanguageSelectionList","click","setQuestionLanguageText()");
@@ -1581,14 +1583,19 @@ onEvent("control/question_control/questionList","click","loadQuestionInfo()");
 //indicates of there is selected question
 question_id=null;
 //All candidate lanaguages
-candidateLanguageList=new ArrayList();
+//candidateLanguageList=new ArrayList();
 //selected language
 current_selected_language_id=null;
 candidatePropList=new ArrayList();
 oldPropList=new ArrayList();
 newPropList=new ArrayList();
+canLangList=new ArrayList();
+selLangList=new ArrayList();
+oldLangList=new ArrayList();
+newLangList=new ArrayList();
 //selected_prop_list=new ArrayList();
 //Starting point of creating new question
+
 newQuestion(){
 	question_id=null;
 	newTabGroup("questionBank");
@@ -1680,24 +1687,31 @@ saveNewQuestion(){
 					saveArchEnt(null, "QuesProperty", null, quesPropAttributes);
 				}
 			}
-				//showToast("Record changed");
 		}
 	}
 	});
-
-
-	
-  /*
-	pushDatabaseToServer("onComplete()");
-	onComplete() {
-	    showToast("finished pushing database");
-	}
-	*/
 }
-
+getLangVersions(){
+	selLangList=getFieldValue("questionBank/questionInfo/langVer");
+}
+/*
+addOrDelLang(String opType){
+	String opId=null;
+	if(opType.equals("add")){
+		opId=getFieldValue("questionBank/questionInfo/languageSel");
+		showWarning("id",opId);
+		addItemToTargetList(canLangList,selLangList,"ques",opId);
+	}
+	else{
+		opId=getFieldValue("questionBank/questionInfo/langVersion");
+		deleteItemFromTargetList(selLangList,canLangList,"ques",opId);
+	}
+}
+*/
 //preparation for question creation
 initialQuestionCreation(){
-	candidateLanguageList.clear();
+	canLangList.clear();
+	selLangList.clear();
 	candidatePropList.clear();
 	//setFieldValue("questionBank/questionInfo/keywordInput", "*");
 	if(isNull(question_id)){
@@ -1706,34 +1720,42 @@ initialQuestionCreation(){
 		//setFieldValue("questionBank/questionInforHidden/questionType", "N/A");
 		//setFieldValue("questionBank/questionInforHidden/questionChoice", "N/A");
 		//setFieldValue("questionBank/questionInfo/questionContent", "");
-		/*Temp removed for demo version
+		
 		fetchAll(loadAllLanguageQuery,
 			new FetchCallback() {
 				onFetch(result) {
 					//if(!isNull(result)){
-					candidateLanguageList.addAll(result);
-					//populateList("questionBank/questionInfo/questionLanguageSelectionList",result);
-					populateDropDown("questionBank/questionInfo/questionLanguageSelectionList", result);
-				if(!isNull(result)){
-					setFieldValue("questionBank/questionInfo/questionLanguage",candidateLanguageList.get(0).get(1));
-					setFieldValue("questionBank/questionInforHidden/questionLanguageUuid",candidateLanguageList.get(0).get(0));
-				}
+					canLangList.addAll(result);
+					createLangSel(canLangList);
+					fetchAll(loadAllQuesPropQuery,
+						new FetchCallback() {
+							onFetch(result) {
+								//if(!isNull(result)){
+								candidatePropList.addAll(result);
+								//populateList("questionBank/questionInfo/questionLanguageSelectionList",result);
+								populateDropDown("questionBank/questionInfo/questionProp", result);
+							}  
+						});	
 			}  
 		});	
 		//setFieldValue("questionBank/questionInfo/keywordInput", "*");
-		*/
-		fetchAll(loadAllQuesPropQuery,
-			new FetchCallback() {
-				onFetch(result) {
-					//if(!isNull(result)){
-					candidatePropList.addAll(result);
-					//populateList("questionBank/questionInfo/questionLanguageSelectionList",result);
-					populateDropDown("questionBank/questionInfo/questionProp", result);
-				}  
-		});	
-
-	}
 	
+	}
+}
+createLangSel(ArrayList langList){
+	removeAllViewsAndContainers("questionBank");
+	executeViewTask(new ViewTask() {
+	doTask() { 	
+		langCheckDef = createViewDef().createCheckboxGroup().addChoice("placeholder", "placeholder").setLabel("Languages");
+		newQuesButtonDef = createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+		createView("questionBank/questionInfo/langVer", langCheckDef);
+		createView("questionBank/questionInfo/Finish_New_Question", newQuesButtonDef);
+        refreshTabgroupCSS("questionBank");
+        showTabGroup("questionBank");
+        populateCheckBoxGroup("questionBank/questionInfo/langVer",langList);
+        onEvent("questionBank/questionInfo/Finish_New_Question","click","saveNewQuestion()");
+	}
+	});
 	
 }
 /* Temp removed for demo version
@@ -1792,6 +1814,7 @@ loadQuestionInfo(){
 		}
 		showTabGroup("questionBank", question_id, new FetchCallback() {
 	        onFetch(result) {
+	        	langsForQuesQuery="";
 	        	/*Temp removed for demo version
 	        	String quesLangUuid=getFieldValue("questionBank/questionInforHidden/questionLanguageUuid");
 
@@ -2730,5 +2753,117 @@ showEntity(){
 	}
 	
 }
+/***Common methods***/
+/*
+addItemToTargetList(ArrayList sourceList, ArrayList targetList, String type_flag, String toAddId){	
+	String itemId=null;
+	if(isNull(toAddId)){
+		itemId=getListItemValue();	
+	}
+	else
+	{
+		itemId=toAddId;
+	}
+	int idx_item=-1;
+		
+	if(isNull(itemId)){
+		showToast("No Item selected");
+		return;
+	}
+	if(itemId.equals("placeholder")){
+		showToast("Invalid item");
+		return;
+	}
 
+	for (int i=0; i<sourceList.size();i++){
+		if (sourceList.get(i).get(0).equals(itemId)) {
+			idx_item=i;
+			break;
+		}
+	}
+	
+	if (idx_item>=0) {
+		targetList.add(sourceList.get(idx_item));
+		sourceList.remove(idx_item);
+		switch (type_flag){
+		case "ques":
+			populateDropDown("questionBank/questionInfo/langVersion", selLangList);
+			populateDropDown("questionBank/questionInfo/languageSel", canLangList);
+		break;
+		}
+	}
+	else{
+		showWarning("Item Not Found","Oops! Can't find this item, it could be not valid anymore, please contact the Admin");
+	}
+	
+}
+
+
+deleteItemFromTargetList(ArrayList targetList, ArrayList sourceList, String type_flag, String toDelId){
+	if(isNull(toDelId)){
+		deleteItemId=getListItemValue();
+	}
+	else{
+		deleteItemId=toDelId;
+	}
+	int idx_delete=-1;
+	if(isNull(deleteItemId)){
+		showToast("No Item selected");
+		return;
+	}
+	if(deleteItemId.equals("placeholder")){
+		showToast("Invalid item");
+		return;
+	}
+	else{	
+		for (int i=0; i<targetList.size();i++){
+			if (targetList.get(i).get(0).equals(deleteItemId)) {
+				idx_delete=i;
+				break;
+			}
+		}
+		
+		if (idx_delete>=0) {
+			sourceList.add(targetList.get(idx_delete));
+			targetList.remove(idx_delete);
+			switch (type_flag){
+			case "ques":
+				populateDropDown("questionBank/questionInfo/langVersion", selLangList);
+				populateDropDown("questionBank/questionInfo/languageSel", canLangList);
+			break;
+			}
+		}
+		else{
+			showWarning("Item Not Found","Oops! Can't find this item, it could be not valid anymore, please contact the Admin");
+		}
+		
+	}
+}
+*/
+onEvent("control/querytest/Submit","click","testQuery()");
+testQuery(){
+	query=getFieldValue("control/querytest/query");
+	//fetchAll("SELECT sql FROM sqlite_master WHERE name='archentity';",
+	fetchAll(query.toString()+";",
+	new FetchCallback() {
+        onFetch(result) {
+			if (isNull(result)) {
+				//code
+				showWarning("no","no result");
+			}
+			else{
+				for (re : result) {
+				showWarning("yes",re.toString());
+				//showWarning("me",re.toString());
+				
+			}		    
+            //populateList("control/question_control/questionList", result);
+        }
+		}
+        onError(message) {
+            showToast(message);
+        }
+    });
+	
+}
 

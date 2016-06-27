@@ -72,6 +72,10 @@
                         <Record_Search/>
                         <entityList/>
                    </search>
+                   <querytest>
+                      <query/>
+                      <Submit/>
+                    </querytest>
             </control>
           
                 <questionnaire>
@@ -127,27 +131,11 @@
                 </questionnaire_question>
                
                <questionBank>
-                   <questionInforHidden>   
-                   <questionLanguageUuid/> 
-                   <questionLanguage/>
-                   <questionLanguageSelectionList/>
-                            
-                    <container2>
-                      <child1>
-                        <keywordInput/>
-                      </child1>
-                      <child2>
-                        <Search_Language/>
-                      </child2>
-                    </container2> 
-                     <New_Language/>      
-                   </questionInforHidden>
-                   
                   <questionInfo>
                     <questionID/>
                     <questionContent/>  
                     <questionProp/>                   
-                    <container1>
+                    <!--container1>
                       <child1>
                         <langVersion/>
                       </child1>
@@ -155,7 +143,7 @@
                         <languageSel/>
                       </child2>
                     </container1>
-                    <Finish_New_Question/>                 
+                    <Finish_New_Question/-->                 
                          
                                       
                   </questionInfo>
@@ -411,7 +399,18 @@
           </item>
         </select1>
       </group>
-         
+           <group ref="querytest">
+        <label>{query}</label>
+        
+            <input ref="query" faims_attribute_type="freetext" faims_certainty="false" faims_annotation="false">
+              <label>{query}</label>
+            </input>
+    
+            <trigger ref="Submit" faims_style_class="faims-blue">
+                <label>New {submit}</label>
+            </trigger>
+   
+        </group>
     </group>
  
 
@@ -557,48 +556,6 @@
     <group ref="questionBank" faims_archent_type="QuestionBank">
         <label>Question</label>
         
- 
-        <group ref="questionInforHidden" faims_hidden="true">
-            <label></label>
-            <input ref="questionLanguageUuid" faims_attribute_name="QuestionLanguage" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-           <label>Question language</label>
-         </input>
-           <input ref="questionLanguage" faims_read_only="true" faims_certainty="false" faims_annotation="false">
-          <label>Language</label>
-        </input>
-          
-          <select1 ref="questionLanguageSelectionList" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="languageInQuestion-list">
-          <label>Language list</label>
-          <item>
-            <label>placeholder</label>
-            <value>placeholder</value>
-          </item>
-          </select1>
-         
-
-        
-       <group ref="container2" faims_style="orientation">
-          <label></label>
-          <group ref="child1" faims_style="even">
-            <label></label>
-           <input ref="keywordInput" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-                <label>Keyword</label>
-            </input>
-          </group>
-       <group ref="child2" faims_style="even">
-            <label></label>
-           <trigger ref="Search_Language" faims_style_class="faims-blue-search">
-             <label>Search</label>
-           </trigger>
-          </group>      
-        </group>
-
-        <trigger ref="New_Language" faims_style_class="faims-blue">
-                <label>New Language</label>
-        </trigger>
-        </group>
-        
-        
         <group ref="questionInfo">
           <label>Question Information</label>
           <input ref="questionID" faims_attribute_name="QuestionID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
@@ -620,7 +577,7 @@
           </item>
           </select1>
           
-          <group ref="container1" faims_style="orientation">
+          <!--group ref="container1" faims_style="orientation">
           <label></label>
           <group ref="child1" faims_style="even">
             <label></label>
@@ -646,7 +603,7 @@
 
         <trigger ref="Finish_New_Question" faims_style_class="faims-blue">
                 <label>Save Question</label>
-        </trigger>
+        </trigger-->
         
        
        
