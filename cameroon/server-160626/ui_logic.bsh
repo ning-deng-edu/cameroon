@@ -1657,7 +1657,7 @@ saveNewQuestion(){
 				quesPropAttributes.add(createEntityAttribute("QuesPropValue", null, null, "Yes", null));
 				//showWarning("prop created1","prop created1");
 				saveArchEnt(null, "QuesProperty", null, quesPropAttributes);
-				//showWarning("prop created2","prop created2");
+
 				//save Question languages
 				for(lang: selLangList){
 					saveEntitiesToRel("Question and Language",question_id,lang.getName());
@@ -1750,7 +1750,8 @@ initialQuestionCreation(){
 				onFetch(result) {
 					//if(!isNull(result)){
 					canLangList.addAll(result);
-					createLangSel(canLangList);
+					createLangSel();
+					populateCheckBoxGroup("questionBank/questionInfo/langVer",canLangList);
 					fetchAll(loadAllQuesPropQuery,
 						new FetchCallback() {
 							onFetch(result) {
@@ -1766,7 +1767,7 @@ initialQuestionCreation(){
 	
 	}
 }
-createLangSel(ArrayList langList){
+createLangSel(){
 	removeAllViewsAndContainers("questionBank");
 	executeViewTask(new ViewTask() {
 	doTask() { 	
@@ -1776,7 +1777,6 @@ createLangSel(ArrayList langList){
 		createView("questionBank/questionInfo/Finish_New_Question", newQuesButtonDef);
         refreshTabgroupCSS("questionBank");
         showTabGroup("questionBank");
-        populateCheckBoxGroup("questionBank/questionInfo/langVer",langList);
         onEvent("questionBank/questionInfo/Finish_New_Question","click","saveNewQuestion()");
 	}
 	});
@@ -1836,9 +1836,52 @@ loadQuestionInfo(){
 			showToast("No Question selected");
 			return;
 		}
+		//initialQuestionCreation();
 		showTabGroup("questionBank", question_id, new FetchCallback() {
 	        onFetch(result) {
-	        	langsForQuesQuery="";
+	        //createLangSel();
+	        fetchAll(loadAllLanguageQuery,
+			new FetchCallback() {
+				onFetch(result) {
+					//if(!isNull(result)){
+					canLangList.addAll(result);
+					createLangSel();
+					populateCheckBoxGroup("questionBank/questionInfo/langVer",canLangList);
+
+					langsForQuesQuery="select RelationshipID, uuid from latestNonDeletedAentReln "+
+				        "where uuid <>'"+question_id+"' and RelationshipID in "+
+				        "(select RelationshipID from latestNonDeletedAentReln "+
+				        "where uuid='"+question_id+"' and RelationshipID in "+
+				        "(select RelationshipID from latestNonDeletedRelationship "+
+				        "where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Question and Language') "+
+				        "and latestNonDeletedRelationship.Deleted IS NULL))";
+
+				    fetchAll(langsForQuesQuery,new FetchCallback() {
+						onFetch(langResult) {
+							if(!isNull(langResult)){
+								oldLangList.clear();
+								oldLangList.addAll(langResult);
+								selLangList.clear();
+								selLangList.addAll(langResult);
+								for(lang:oldLangList){
+									setFieldValue("questionBank/questionInfo/langVer",lang.get(1));
+								}
+								
+							}
+							else{
+								showWarning("Out-of-date data","You may still using old data");
+							}													
+						}
+						onError(message) {
+							showToast(message);
+						}
+					});
+
+				}  
+			});	
+
+
+	        
 	        	/*Temp removed for demo version
 	        	String quesLangUuid=getFieldValue("questionBank/questionInforHidden/questionLanguageUuid");
 
@@ -1877,7 +1920,8 @@ loadQuestionInfo(){
 	        	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
 	        	"and measure='"+question_id+"')";
 
-	        	
+				
+	        		
 	        	fetchAll(loadAllQuesPropQuery,
 					 new FetchCallback() {
 					onFetch(result) {
@@ -1888,41 +1932,42 @@ loadQuestionInfo(){
 						//populateDropDown("questionBank/questionInfo/questionProp", candidatePropList);
 						fetchAll(quesPropQuery,new FetchCallback() {
 							onFetch(propResult) {
-									if(!isNull(propResult)){
-										tempPropList=new ArrayList();
-										tempPropList.clear();
-										//showWarning("isNull","isNull");
-										String tempProp=propResult.get(0).get(0);
-										//showWarning("tempProp",tempProp);
-										oldPropList.clear();
-										oldPropList.addAll(propResult);
-										newPropList.clear();
+								if(!isNull(propResult)){
+									tempPropList=new ArrayList();
+									tempPropList.clear();
+									//showWarning("isNull","isNull");
+									String tempProp=propResult.get(0).get(0);
+									//showWarning("tempProp",tempProp);
+									oldPropList.clear();
+									oldPropList.addAll(propResult);
+									newPropList.clear();
 
-										for(prop: candidatePropList){
-											if(prop.get(0).equals(tempProp)){
-												//showWarning("prop",prop.get(1));
-												tempPropList.add(prop);
-												//oldPropList.add(prop);
-												//setFieldValue("questionBank/questionInfo/questionProp",prop);
-												//break;
-											}
+									for(prop: candidatePropList){
+										if(prop.get(0).equals(tempProp)){
+											//showWarning("prop",prop.get(1));
+											tempPropList.add(prop);
+											//oldPropList.add(prop);
+											//setFieldValue("questionBank/questionInfo/questionProp",prop);
+											//break;
 										}
-										for(prop: candidatePropList){
-											if(!(prop.get(0).equals(tempProp))){
-												//showWarning("prop",prop.get(1));
-												tempPropList.add(prop);
-											}
+									}
+									for(prop: candidatePropList){
+										if(!(prop.get(0).equals(tempProp))){
+											//showWarning("prop",prop.get(1));
+											tempPropList.add(prop);
 										}
-										populateDropDown("questionBank/questionInfo/questionProp", tempPropList);
 									}
-									else{
-										showWarning("Out-of-date data","The property in the question is not using anymore");
-									}
-									onError(message) {
-			    						showToast(message);
-			  						}
-		  						}
-							});
+									populateDropDown("questionBank/questionInfo/questionProp", tempPropList);
+								}
+								else{
+									showWarning("Out-of-date data","The property in the question is not using anymore");
+								}
+								
+								}
+								onError(message) {
+		    						showToast(message);
+		  					}
+						});
 						}
 					});
 	        	
