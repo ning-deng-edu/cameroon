@@ -5020,6 +5020,15 @@ loadFieldTripInfo(){
 	loadSessionForFieldTripQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
 			"and uuid in "+
+			"(select uuid from latestNonDeletedAentReln where uuid <>'"+fieldTrip_id+"' "+
+			"and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='"+fieldTrip_id+
+			"' and RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and FieldTrip') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL)))";
+				/*
+	loadSessionForFieldTripQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+			"and uuid in "+
  			"(select uuid from AentReln where RelationshipID in "+
  				"(select RelationshipID from "+
  					"(select RelationshipID, AEntRelnTimestamp from AentReln where AentReln.uuid="+fieldTrip_id+" "+
@@ -5031,7 +5040,7 @@ loadFieldTripInfo(){
  					"and AentReln.RelationshipID in (select RelationshipID from Relationship where RelnTypeID="+
  					"(select RelnTypeID from RelnType where RelnTypeName='Session and FieldTrip'))) t2 "+
  					"on t1.AentRelnTimestamp=t2.maxtime group by relationshipID))";
-	
+	*/
 	showTabGroup("fieldTrip", fieldTrip_id, new FetchCallback() {
         onFetch(result) {
         	String startTimeOrigin=getFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp");
