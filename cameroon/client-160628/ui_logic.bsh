@@ -559,7 +559,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	takePoint();
 	
 	newTabGroup("sessionForAnswer");
-	//String currentTime=getCurrentTime();
+	String currentTime=getCurrentTime();
     //currentDateTimeArray=currentTime.toString().split("\\s+");
     //String currentDate=currentDateTimeArray[0];
     String currentDate=getCurrentDate();
@@ -2359,6 +2359,7 @@ saveSession(String typeflag){
 										savePsInSession(sss_id);
 										autoSaveSession("tailNew");
 										showToast("New session contains answer(s) created");
+										saveNewSssToFieldTrip(sss_id);
 							      }
 							    }
 							    onError(message) {
@@ -2375,7 +2376,13 @@ saveSession(String typeflag){
 		break;
 	}
 }
-
+/***saving new session to active fieldTrip***/
+saveNewSssToFieldTrip(String newSssId){
+	if(!isNull(activeFieldTrip)){
+		saveEntitiesToRel("Session and FieldTrip",activeFieldTrip.get(0),newSssId);
+	}
+	showToast("session is added to a fieldTrip");
+}
 
 /**Variables for answer**/
 selected_answer_interviewer=new ArrayList();
