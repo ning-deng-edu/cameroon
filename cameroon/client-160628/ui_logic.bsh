@@ -258,12 +258,16 @@ login() {
             setUser(user);
             username = result.get(1) + " " + result.get(2);
             showTabGroup("control");
+            activeFieldTripCheck();
         }
     });
 }
 //checking if there's any active fieldTrip
+//Boolean tripActive=false;
+activeFieldTrip=new ArrayList();
 activeFieldTripCheck(){
 	String currentDate=getCurrentDate();
+	activeFieldTrip.clear();
 	//search for fieldTrip that this date is in
 	fieldTripSearchQuery="select uuid from latestNonDeletedAentValue "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripStartTime') "+
@@ -274,6 +278,14 @@ activeFieldTripCheck(){
 		"(select uuid from latestNonDeletedAentValue where "+
 		"AttributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripID') "+
 		"and measure like '"+username+"%'))";
+
+	fetchOne(fieldTripSearchQuery, new FetchCallback() {
+        onFetch(result) {
+           if(!isNull(result)){
+           		activeFieldTrip.addAll(result);
+           }
+        }
+    });
 }
 userSearch(){
 	String userKeyword=getFieldValue("user/usertab/user_keyword");
