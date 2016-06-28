@@ -1730,7 +1730,7 @@ saveNewQuestion(){
 				}
 				showToast("Language data updated");
 			}
-			else {
+			else if(quesLangChange.containsKey("ADD")){
 				tempDelLang=quesLangChange.get("DELETE");
 				for(lang: tempDelLang){
 					deleteRel(lang.get(0));
