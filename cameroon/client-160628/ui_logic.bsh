@@ -3544,10 +3544,23 @@ addItemToTargetList(ArrayList sourceList, String type_flag, String intervieweeID
 				break;
 			
 			case "fieldTripSession":
-				selected_session_fieldTrip.add(sourceList.get(idx_item));
-				candidate_session_fieldTrip.remove(idx_item);
-				populateList("fieldTrip/fieldTripSession/fieldTripFileList", selected_session_fieldTrip);
-				populateList("fieldTrip/fieldTripSession/fieldTripFileSelectionList", candidate_session_fieldTrip);
+
+				//String tempSssLabel=sourceList.get(idx_item).get(1);
+			
+				String tempSssDate=extractLabelDate(sourceList.get(idx_item).get(1),"sss");
+				String tempTripStartDate=dateParser(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker"));
+				String tempTripEndDate=dateParser(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripEndDatePicker"));
+				Boolean addOrNot=dateCompare(tempTripStartDate,tempSssDate,tempTripEndDate);
+				if(addOrNot){
+					selected_session_fieldTrip.add(sourceList.get(idx_item));
+					candidate_session_fieldTrip.remove(idx_item);
+					populateList("fieldTrip/fieldTripSession/fieldTripFileList", selected_session_fieldTrip);
+					populateList("fieldTrip/fieldTripSession/fieldTripFileSelectionList", candidate_session_fieldTrip);
+				}
+				else{
+					showWarning("invalid date","This session is not taken in this fieldTrip date period");
+				}
+			
 				break;
 			
 			}
@@ -3608,6 +3621,19 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag, String toDelId)
 	}
 }
 
+extractLabelDate(String label, String typeflag){
+	switch(typeflag){
+		case "sss":
+			String [] labelArray=label.split("_");
+			String tempDate=labelArray[labelArray.length-1];
+			if(tempDate.contains("(")){
+				tempDate=tempDate.substring(0,tempDate.indexOf("("));
+			}
+			return tempDate;
+		break;
+	}
+	return null;
+}
 stayInCurrentPage()
 {
 	return;
@@ -3726,6 +3752,27 @@ dateParser(String sourceDate){
 		return targetDate;
 	}
 	//convert yyyy-mm-dd to dd/mm/yy
+}
+
+dateCompare(String beginDate, String middleDate, String endDate){
+	DateFormat df=new SimpleDateFormat("yyyy-MM-dd");
+	try{
+		Date sdt=df.parse(beginDate);
+		Date edt=df.parse(endDate);
+		Date mdt=df.parse(middleDate);
+		if((sdt.getTime()<=mdt.getTime()) && (mdt.getTime()<=edt.getTime())){
+			return true;
+		}
+	
+		else{
+			return false;
+		}
+	}
+	catch(Exception excption){
+		//exception.printStackTrace();
+		return false;
+	}
+	return false;
 }
 
 extractLatestTime(ArrayList timeList){
@@ -4726,6 +4773,7 @@ createFieldTripInfoPage(String typeflag){
 	        refreshTabgroupCSS("fieldTrip_control");
 	        //showTabGroup("fieldTrip");
 	        onEvent("fieldTrip/fieldTripSession/fieldTripFileSelectionList","click","addItemToTargetList(candidate_session_fieldTrip,\"fieldTripSession\",null)");
+	        //No delete function for client
 	        onEvent("fieldTrip/fieldTripSession/fieldTripFileList","click","deleteItemFromTargetList(selected_session_fieldTrip,\"fieldTripSession\",null)");
 	        onEvent("fieldTrip/fieldTripSession/Finish_New_FieldTrip","click","saveFieldTrip()");
 	        //fieldTripBasicInfoHidden page
