@@ -133,19 +133,10 @@
                <questionBank>
                   <questionInfo>
                     <questionID/>
-                    <questionContent/>  
-                    <questionProp/>                   
-                    <!--container1>
-                      <child1>
-                        <langVersion/>
-                      </child1>
-                      <child2>
-                        <languageSel/>
-                      </child2>
-                    </container1>
-                    <Finish_New_Question/-->                 
-                         
-                                      
+                    <!--questionContent/-->  
+                    <questionType/>
+                    <questionProp/>                             
+                    
                   </questionInfo>
                 </questionBank>
              
@@ -561,11 +552,14 @@
           <input ref="questionID" faims_attribute_name="QuestionID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
           <label>Question label</label>
         </input>
-        <input ref="questionContent" faims_attribute_name="QuestionContent" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
-          <label>Question content</label>
-        </input>
         
-        
+          <select1 ref="questionType"  faims_certainty="false" faims_annotation="false">
+          <label>Question Type</label>
+          <item>
+            <label>placeholder</label>
+            <value>placeholder</value>
+          </item>
+          </select1>
       
        
        
