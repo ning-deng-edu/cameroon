@@ -1602,13 +1602,77 @@ oldLangList=new ArrayList();
 newLangList=new ArrayList();
 //selected_prop_list=new ArrayList();
 //Starting point of creating new question
+createQuesLangVer(){
+	canLangList.clear();
+	selLangList.clear();
+	candidatePropList.clear();
+	if(isNull(question_id)){
+		fetchAll(loadAllLanguageQuery,
+			new FetchCallback() {
+				onFetch(result) {
+					//if(!isNull(result)){
+					canLangList.addAll(result);
+					int langCount=0;
+					int langSize=canLangList.size();
+					for(lang:canLangList){
+						String langID=lang.get(0);
+						String langName=lang.get(1);
 
+						style1="orientation";
+						style2="even";
+						style3="large";
+						
+						if(hasView("questionBank/questionInfo/Finish_New_Question")){
+							removeAllViewsAndContainers("questionBank");
+						}
+
+						executeViewTask(new ViewTask()){
+							doTask(){
+								createContainer("questionBank/questionInfo/lang_c"+langCount, "orientation","questionBank/questionInfo");
+								createContainer("questionBank/questionInfo/langName_c" + langCount, "even", "questionBank/questionInfo/lang_c" + langCount);
+                				createContainer("questionBank/questionInfo/quesInput_c" + langCount, "large", "questionBank/questionInfo/lang_c" + langCount);
+                				if(langCount==0){
+                					createView("questionBank/questionInfo/langc" + langCount, createViewDef().createCheckboxGroup().addChoice(langID, langName).setLabel("languages"), "questionBank/questionInfo/langName_c" + langCount);
+									createView("questionBank/questionInfo/quesc" + langCount, createViewDef().createTextField("string").setLabel("Question content"), "questionBank/questionInfo/quesInput_c" + langCount);
+                				}
+                				else{
+              						createView("questionBank/questionInfo/langc" + langCount, createViewDef().createCheckboxGroup().addChoice(langID, langName), "questionBank/questionInfo/langName_c" + langCount);  					
+                					createView("questionBank/questionInfo/quesc" + langCount, createViewDef().createTextField("string"), "questionBank/questionInfo/quesInput_c" + langCount);
+                				}
+                				
+								if(langCount==langSize-1){
+									createView("questionBank/questionInfo/Finish_New_Question", createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue"), "questionBank/questionInfo");	
+									onEvent("questionBank/questionInfo/Finish_New_Question","click","saveNewQuestion()");	
+								}
+							}
+						}
+						langCount++;
+					}
+					refreshTabgroupCSS("questionBank");
+			}  
+		});	
+		//setFieldValue("questionBank/questionInfo/keywordInput", "*");
+	}
+}
 newQuestion(){
 	question_id=null;
 	newTabGroup("questionBank");
 	onEvent("questionBank", "show", "showTab(\"questionBank/questionInfo\");"); 
 }
 
+getSelLang(){
+	returnLangVer=new ArrayList();
+	returnLangVer.clear();
+	for(int i=0;i<canLangList.size();i++){
+		if(getFieldValue("questionBank/questionInfo/langc" + i)!=null){
+			tempLangVer=new ArrayList();
+			tempLangVer.add(getFieldValue("questionBank/questionInfo/langc" + i));
+			tempLangVer.add(getFieldValue("questionBank/questionInfo/quesc" + i));
+			returnLangVer.add(getFieldValue(tempLangVer);
+		}
+	}
+	return returnLangVer;
+}
 //save the question info and its relationship with language
 saveNewQuestion(){
 	if((isNull(getFieldValue("questionBank/questionInfo/questionContent"))) || (isNull(getFieldValue("questionBank/questionInfo/questionID"))))
@@ -1616,7 +1680,9 @@ saveNewQuestion(){
 		showWarning("Validation Error", "You must fill in the question content  and question label before you can continue");
         return;
 	}
-	selLangList=getFieldValue("questionBank/questionInfo/langVer");
+
+	selLangList=getSelLang();
+	//selLangList=getFieldValue("questionBank/questionInfo/langVer");
 	if(isNull(selLangList)){
 		showWarning("Validation Error", "You must indicate at least one language for this question before you can continue");
         return;
@@ -1662,8 +1728,16 @@ saveNewQuestion(){
 				saveArchEnt(null, "QuesProperty", null, quesPropAttributes);
 
 				//save Question languages
+				quesLangVer=createAttributeList();
+				quesLangVer.add(createEntityAttribute("QuestionUuid", null, null, question_id, null));
+				quesLangVer.add(createEntityAttribute("QuestionUuid", null, null, question_id, null));
 				for(lang: selLangList){
-					saveEntitiesToRel("Question and Language",question_id,lang.getName());
+					//saveEntitiesToRel("Question and Language",question_id,lang.getName());
+					quesLangVer=createAttributeList();
+					quesLangVer.add(createEntityAttribute("QuestionUuid", null, null, question_id, null));
+					quesLangVer.add(createEntityAttribute("QuesLangUuid", null, null, lang.get(0).getName(), null));
+					quesLangVer.add(createEntityAttribute("QuesContent", null, null, lang.get(1), null));
+					saveArchEnt(null, "QuestionLang", null, quesLangVer);
 				}
 
 		        showToast("Record created");
@@ -1753,32 +1827,17 @@ initialQuestionCreation(){
 	candidatePropList.clear();
 	//setFieldValue("questionBank/questionInfo/keywordInput", "*");
 	if(isNull(question_id)){
-		//String autoQuestionId="Ques_"+username+"_"+getCurrentTime();
-		//setFieldValue("questionBank/questionInfo/questionID", autoQuestionId);
-		//setFieldValue("questionBank/questionInforHidden/questionType", "N/A");
-		//setFieldValue("questionBank/questionInforHidden/questionChoice", "N/A");
-		//setFieldValue("questionBank/questionInfo/questionContent", "");
-		
-		fetchAll(loadAllLanguageQuery,
+		createQuesLangVer();
+		fetchAll(loadAllQuesPropQuery,
 			new FetchCallback() {
 				onFetch(result) {
 					//if(!isNull(result)){
-					canLangList.addAll(result);
-					createLangSel();
-					populateCheckBoxGroup("questionBank/questionInfo/langVer",canLangList);
-					fetchAll(loadAllQuesPropQuery,
-						new FetchCallback() {
-							onFetch(result) {
-								//if(!isNull(result)){
-								candidatePropList.addAll(result);
-								//populateList("questionBank/questionInfo/questionLanguageSelectionList",result);
-								populateDropDown("questionBank/questionInfo/questionProp", result);
-							}  
-						});	
-			}  
-		});	
-		//setFieldValue("questionBank/questionInfo/keywordInput", "*");
-	
+					candidatePropList.addAll(result);
+					//populateList("questionBank/questionInfo/questionLanguageSelectionList",result);
+					populateDropDown("questionBank/questionInfo/questionProp", result);
+				}  
+			});	
+
 	}
 }
 createLangSel(){
@@ -1796,24 +1855,7 @@ createLangSel(){
 	});
 	
 }
-/* Temp removed for demo version
-setQuestionLanguageText(){
-	//String question_language_id=getListItemValue();
-	//String question_language_id=null;
-	String question_language_id=getFieldValue("questionBank/questionInfo/questionLanguageSelectionList");
-	//String current_language_text=getFieldValue("questionBank/questionInfo/questionLanguage");
-	if(!question_language_id.equals("001")){
-		setFieldValue("questionBank/questionInforHidden/questionLanguageUuid",question_language_id);
-		for (language: candidateLanguageList){
-			if (language.get(0).equals(question_language_id)){
-				current_selected_language_id=question_language_id;
-				String languageName=language.get(1);
-				setFieldValue("questionBank/questionInfo/questionLanguage",languageName);
-				break;
-			}
-		}
-	}
-}*/
+
 //load all question contents
 loadQuestionBank(){
 	question_id=null;
@@ -1895,39 +1937,6 @@ loadQuestionInfo(){
 			});	
 
 
-	        
-	        	/*Temp removed for demo version
-	        	String quesLangUuid=getFieldValue("questionBank/questionInforHidden/questionLanguageUuid");
-
-	        	langNameQuery="SELECT measure from latestNonDeletedAentValue "+
-	        	"WHERE latestNonDeletedAentValue.AttributeID="+
-	        	"(SELECT AttributeID from AttributeKey WHERE AttributeName='LanguageName') "+
-	        	"AND latestNonDeletedAentValue.uuid='"+quesLangUuid+"';";
-	        	fetchOne(langNameQuery,new FetchCallback() {
-					onFetch(result) {
-							if(!isNull(result)){
-								setFieldValue("questionBank/questionInfo/questionLanguage",result.get(0));
-								//showToast("Loaded question"+question_id);
-							}
-							else{
-								showWarning("Out-of-date data","The language in the question is not using anymore");
-							}
-							onError(message) {
-	    						showToast(message);
-	  						}
-  						}
-					});
-					setFieldValue("questionBank/questionInfo/keywordInput", "*");
-					*/
-	        	/*
-	        	quesPropQuery="select measure from latestNonDeletedAentValue where "+
-	        	"AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefName') "+
-	        	"and uuid = (select measure from latestNonDeletedAentValue where "+
-	        	"AttributeID=(select AttributeID from Attributekey where AttributeName='QuesPropDefID') "+
-	        	"and uuid = (select uuid from latestNonDeletedAentValue where "+
-	        	"AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
-	        	"and measure='"+question_id+"'));";
-	        	*/
 	        	quesPropQuery="select measure,uuid from latestNonDeletedAentValue where "+
 	        	"AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefID')"+
 	        	"and uuid = (select uuid from latestNonDeletedArchEntIdentifiers "+
@@ -1991,70 +2000,9 @@ loadQuestionInfo(){
 	            showToast(message);
 	        }
 	    });
-	    /*Temp removed for demo version
-			placeholder=new ArrayList();
-			placeholder.add("001");
-			placeholder.add("Change language");
-			//showWarning("loadQuestionInfo",placeholder.get(0).getClass().getName());
-			fetchAll(loadAllLanguageQuery,
-					 new FetchCallback() {
-					onFetch(result) {
-						//if(!isNull(result)){
-						candidateLanguageList.clear();
-						candidateLanguageList.add(placeholder);
-						candidateLanguageList.addAll(result);
-						populateDropDown("questionBank/questionInfo/questionLanguageSelectionList", candidateLanguageList);
-					}
-					});
-					*/
 		
 }
 
-//search language 
-/*Temp removed for demo version
-searchLanguage(){
-	String keywordForLanguage=getFieldValue("questionBank/questionInfo/keywordInput").trim();
-	if((isNull(keywordForLanguage)) || (keywordForLanguage.equals("*"))){
-		placeholder=new ArrayList();
-		placeholder.add("001");
-		placeholder.add("View result");
-		fetchAll(loadAllLanguageQuery,
-				new FetchCallback() {
-				onFetch(result) {
-				candidateLanguageList.clear();
-				candidateLanguageList.add(placeholder);
-				candidateLanguageList.addAll(result);
-				//populateList("questionBank/questionInfo/questionLanguageSelectionList",result);
-				populateDropDown("questionBank/questionInfo/questionLanguageSelectionList", candidateLanguageList);
-				}  
-		});		
-	}
-	else{
-	searchLanguageQueryFirstHalf="select uuid, measure from latestNonDeletedAentValue where " +
-						"latestNonDeletedAentValue.Measure like '%"; 
-	searchLanguageQueryLastHalf="%' and latestNonDeletedAentValue.AttributeID = "+
-						"(select AttributeID from AttributeKey where AttributeName='LanguageName');";
-								//"(select AttributeID from IdealAent where IdealAent.AentTypeID in "+
-								//"(select AEntTypeID from AEntType where AEntType.AEntTypeName= 'Language'));";
-	//String keywordForLanguage=getFieldValue("questionBank/questionInfo/keywordInput");
-	placeholder=new ArrayList();
-	
-	placeholder.add("001");
-	placeholder.add("View result");
-	fetchAll(searchLanguageQueryFirstHalf+keywordForLanguage+searchLanguageQueryLastHalf,
-				new FetchCallback() {
-				onFetch(result) {
-				candidateLanguageList.clear();
-				candidateLanguageList.add(placeholder);
-				candidateLanguageList.addAll(result);
-				//populateList("questionBank/questionInfo/questionLanguageSelectionList",result);
-				populateDropDown("questionBank/questionInfo/questionLanguageSelectionList", candidateLanguageList);
-				}  
-		});
-	}
-
-}
-*/
 
 /*** Person AND PersonRole***/
 onEvent("control/user_control/New_User","click","newPerson()");
