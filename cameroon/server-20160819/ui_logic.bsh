@@ -1570,8 +1570,31 @@ listChange(ArrayList newList, ArrayList oldList, int newCompIdx, int oldCompIdx)
 	}
 	return listChanges;
 }
+//todo: write this
+listChange(ArrayList newList, ArrayList oldList, int compareKey, ArrayList compareValues){
+	Hashtable listChanges=new Hashtable();
+	new_List=new ArrayList();
+	old_List=new ArrayList();
+	new_List.clear();
+	old_List.clear();
+	same_elements_old=new ArrayList();
+	same_elements_new=new ArrayList();
+	same_elements_old.clear();
+	same_elements_new.clear();
+	new_List.addAll(newList);
+	old_List.addAll(oldList);
+	for(elmOld:old_List){
+		elmOldKey=elmOld.get(compareKey);
+		for(elmNew:new_List){
+			elmNewKey=elmNew.get(compareKey);
+			if(elmOldKey.equals(elmNewKey)){
+				for(int i=0;i<compareValues.size();i++){
 
-
+				}
+			}
+		}
+	}
+}
 //Dynamically generate questionnaire question order ui
 /*** QuestionBank ***/
 
@@ -1606,7 +1629,7 @@ createQuesLangVer(){
 	canLangList.clear();
 	selLangList.clear();
 	candidatePropList.clear();
-	if(isNull(question_id)){
+	//if(isNull(question_id)){
 		fetchAll(loadAllLanguageQuery,
 			new FetchCallback() {
 				onFetch(result) {
@@ -1652,7 +1675,7 @@ createQuesLangVer(){
 			}  
 		});	
 		//setFieldValue("questionBank/questionInfo/keywordInput", "*");
-	}
+	//}
 }
 newQuestion(){
 	question_id=null;
@@ -1780,14 +1803,14 @@ saveNewQuestion(){
 		}
 		//question language update
 		if((question_id!=null) && (!isNull(oldLangList))){
-			tempNewLangList=new ArrayList();
-			for(sel:selLangList){
+			tempOldLangList=new ArrayList();
+			for(old:oldLangList){
 				ArrayList tempLang=new ArrayList();
-				tempLang.add(sel.getName());
-				tempLang.add(sel.getValue());
-				tempNewLangList.add(tempLang);
+				tempLang.add(old.get(1));
+				tempLang.add(old.get(2));
+				tempOldLangList.add(tempLang);
 			}
-			Hashtable quesLangChange=listChange(tempNewLangList,oldLangList,0,1);
+			Hashtable quesLangChange=listChange(selLangList,tempOldLangList);
 			//showWarning("quesLangChange","quesLangChange");
 			if(quesLangChange.containsKey("PUREADD")){
 				//showWarning("PUREADD","PUREADD");
@@ -1840,6 +1863,7 @@ initialQuestionCreation(){
 
 	}
 }
+/*
 createLangSel(){
 	removeAllViewsAndContainers("questionBank");
 	executeViewTask(new ViewTask() {
@@ -1855,7 +1879,7 @@ createLangSel(){
 	});
 	
 }
-
+*/
 //load all question contents
 loadQuestionBank(){
 	question_id=null;
@@ -1893,48 +1917,34 @@ loadQuestionInfo(){
 			return;
 		}
 		//initialQuestionCreation();
+		createQuesLangVer();
 		showTabGroup("questionBank", question_id, new FetchCallback() {
 	        onFetch(result) {
-	        //createLangSel();
-	        fetchAll(loadAllLanguageQuery,
-			new FetchCallback() {
-				onFetch(result) {
-					//if(!isNull(result)){
-					canLangList.addAll(result);
-					createLangSel();
-					populateCheckBoxGroup("questionBank/questionInfo/langVer",canLangList);
 
-					langsForQuesQuery="select RelationshipID, uuid from latestNonDeletedAentReln "+
-				        "where uuid <>'"+question_id+"' and RelationshipID in "+
-				        "(select RelationshipID from latestNonDeletedAentReln "+
-				        "where uuid='"+question_id+"' and RelationshipID in "+
-				        "(select RelationshipID from latestNonDeletedRelationship "+
-				        "where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Question and Language') "+
-				        "and latestNonDeletedRelationship.Deleted IS NULL))";
+				langVerForQuesQuery="select lang.uuid, lang.measure, quesContent.measure from latestNonDeletedAentValue lang, latestNonDeletedAentValue quesContent "+
+					"where lang.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesLangUuid') "+
+					"and quesContent.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesContent') "+
+					"and lang.uuid=quesContent.uuid "+
+					"and lang.uuid in "+
+					"(select uuid from latestNonDeletedArchEntIdentifiers "+
+					"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
+					"and measure='"+question_id+"'')";
 
-				    fetchAll(langsForQuesQuery,new FetchCallback() {
-						onFetch(langResult) {
-							if(!isNull(langResult)){
-								oldLangList.clear();
-								oldLangList.addAll(langResult);
-								selLangList.clear();
-								//selLangList.addAll(langResult);
-								for(lang:oldLangList){
-									setFieldValue("questionBank/questionInfo/langVer",lang.get(1));
+				fetchAll(langVerForQuesQuery, new FetchCallback() {
+					onFetch(result) {
+							oldLangList.clear();
+							oldLangList.addAll(result);
+							for(lang:oldLangList){
+								for(int i=0;i<canLangList.size();i++){
+									if(getFieldValue("questionBank/questionInfo/langc" + i)==lang.get(0)){
+										setFieldValue("questionBank/questionInfo/langc" + i,lang.get(0));
+										setFieldValue("questionBank/questionInfo/quesc" + i,lang.get(2));
+									}
 								}
-								
 							}
-							else{
-								showWarning("Out-of-date data","You may still using old data");
-							}													
 						}
-						onError(message) {
-							showToast(message);
-						}
-					});
+				});
 
-				}  
-			});	
 
 
 	        	quesPropQuery="select measure,uuid from latestNonDeletedAentValue where "+
@@ -1967,16 +1977,11 @@ loadQuestionInfo(){
 
 									for(prop: candidatePropList){
 										if(prop.get(0).equals(tempProp)){
-											//showWarning("prop",prop.get(1));
 											tempPropList.add(prop);
-											//oldPropList.add(prop);
-											//setFieldValue("questionBank/questionInfo/questionProp",prop);
-											//break;
 										}
 									}
 									for(prop: candidatePropList){
 										if(!(prop.get(0).equals(tempProp))){
-											//showWarning("prop",prop.get(1));
 											tempPropList.add(prop);
 										}
 									}
