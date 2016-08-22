@@ -1669,18 +1669,34 @@ createQuesLangVer(){
 		}  
 	});	
 }
+
+getSelLang(){
+	returnLangVer=new ArrayList();
+	returnLangVer.clear();
+	for(int i=0;i<canLangList.size();i++){
+		if(!isNull(getFieldValue("questionBank/questionInfo/langc" + i))){
+			tempLangVer=new ArrayList();
+			tempLangVer.add(getFieldValue("questionBank/questionInfo/langc" + i).get(0).getName());
+			tempLangVer.add(getFieldValue("questionBank/questionInfo/quesc" + i));
+			returnLangVer.add(tempLangVer);
+		}
+	}
+	return returnLangVer;
+}
 //save the question info and its relationship with language
 saveNewQuestion(){
-	if((isNull(getFieldValue("questionBank/questionInfo/questionContent"))) || (isNull(getFieldValue("questionBank/questionInfo/questionID"))))
+	if(isNull(getFieldValue("questionBank/questionInfo/questionID")))
 	{
-		showWarning("Validation Error", "You must fill in the question content  and question label before you can continue");
+		showWarning("Validation Error", "You must fill in the question label before you can continue");
         return;
 	}
-	selLangList=getFieldValue("questionBank/questionInfo/langVer");
+	selLangList.clear();
+	selLangList.addAll(getSelLang());
 	if(isNull(selLangList)){
 		showWarning("Validation Error", "You must indicate at least one language for this question before you can continue");
         return;
 	}
+	/*
 	tempDuplicateList=new ArrayList();
 	tempDuplicateList.clear();
 	int sizeOfDup=0;
@@ -1804,6 +1820,7 @@ saveNewQuestion(){
 		}
 	}
 	});
+	*/
 }
 
 
