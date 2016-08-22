@@ -1677,8 +1677,15 @@ getSelLang(){
 		if(!isNull(getFieldValue("questionBank/questionInfo/langc" + i))){
 			tempLangVer=new ArrayList();
 			tempLangVer.add(getFieldValue("questionBank/questionInfo/langc" + i).get(0).getName());
-			tempLangVer.add(getFieldValue("questionBank/questionInfo/quesc" + i));
-			returnLangVer.add(tempLangVer);
+			if(!isNull(getFieldValue("questionBank/questionInfo/quesc" + i))){
+				tempLangVer.add(getFieldValue("questionBank/questionInfo/quesc" + i));
+				returnLangVer.add(tempLangVer);
+			}
+			else{
+				returnLangVer.clear();
+				return returnLangVer;
+			}
+			
 		}
 	}
 	return returnLangVer;
@@ -1687,13 +1694,12 @@ getSelLang(){
 saveNewQuestion(){
 	if(isNull(getFieldValue("questionBank/questionInfo/questionID")))
 	{
-		showWarning("Validation Error", "You must fill in the question label before you can continue");
+		showWarning("Validation Error", "You must enter the question label before you can continue");
         return;
 	}
-	selLangList.clear();
-	selLangList.addAll(getSelLang());
+	selLangList=getSelLang();
 	if(isNull(selLangList)){
-		showWarning("Validation Error", "You must indicate at least one language for this question before you can continue");
+		showWarning("Incomplete data", "You must:\n"+"indicate at least one language, and\n"+"enter the question content for every language");
         return;
 	}
 	/*
