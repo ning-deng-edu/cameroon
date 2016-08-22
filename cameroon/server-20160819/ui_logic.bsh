@@ -1782,9 +1782,6 @@ saveNewQuestion(){
 				saveArchEnt(null, "QuesProperty", null, quesPropAttributes);
 
 				//save Question languages
-				quesLangVer=createAttributeList();
-				quesLangVer.add(createEntityAttribute("QuestionUuid", null, null, question_id, null));
-				quesLangVer.add(createEntityAttribute("QuestionUuid", null, null, question_id, null));
 				for(lang: selLangList){
 					//saveEntitiesToRel("Question and Language",question_id,lang.getName());
 					quesLangVer=createAttributeList();
