@@ -134,7 +134,7 @@
                   <questionInfo>
                     <questionID/>
                     <!--questionContent/-->  
-                    <questionType/>
+                    <!--questionType/-->
                     <questionProp/>                             
                     
                   </questionInfo>
@@ -553,18 +553,18 @@
           <label>Question label</label>
         </input>
         
-          <select1 ref="questionType"  faims_certainty="false" faims_annotation="false">
+          <!--select1 ref="questionType"  faims_certainty="false" faims_annotation="false">
           <label>Question Type</label>
           <item>
             <label>placeholder</label>
             <value>placeholder</value>
           </item>
-          </select1>
+          </select1-->
       
        
        
        <select1 ref="questionProp"  faims_certainty="false" faims_annotation="false">
-          <label>Recording requirement</label>
+          <label>Question property</label>
           <item>
             <label>placeholder</label>
             <value>placeholder</value>
