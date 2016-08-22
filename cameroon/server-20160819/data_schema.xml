@@ -119,7 +119,7 @@
     <ArchaeologicalElement name="QuestionLang">
         <description>Entity QuestionBank, stores the questions created by user</description>
         <property name="QuestionUuid" isIdentifier="true" type="measure"></property>
-        <property name="QuesLangUuid" isIdentifier="true" type="measure">
+        <property name="QuesLangUuid" type="measure">
             <formatString><![CDATA[$3]]></formatString>
         </property>
           <property name="QuesContent" type="measure">
