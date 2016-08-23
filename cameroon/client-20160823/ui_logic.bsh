@@ -527,10 +527,12 @@ checkNewAnsTime(){
 }
 preNewSss(){
 	if(isNull(activeFieldTrip)){
-		showAlert("alert", "No active FieldTrip for this session\n"+"Do you want to continue create a new session?", "newSessionForAnswer(\"answer\",null)", "stayInCurrentPage()");
+		showAlert("alert", "No active FieldTrip for this session\n"+"Do you want to continue create a new session?", "newSessionForAnswer(\"answer\",null)", "checkGoToFieldTrip()");
 	}
 }
-
+checkGoToFieldTrip(){
+	showAlert("alert", "Do you want to create a fieldTrip?","createFieldTripInfoPage(\"new\")", "stayInCurrentPage()");
+}
 newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	createMainSessionPage();
 	if(typeflag.equals("answer")){
