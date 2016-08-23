@@ -307,7 +307,7 @@ userSearch(){
 	}
 }
 /***Survey Control***/
-onEvent("control/survey_control/New_Survey","click","newSessionForAnswer(\"answer\",null)");
+onEvent("control/survey_control/New_Survey","click","preNewSss()");
 onEvent("control/survey_control","show","loadSessionList(\"answer\")");
 onEvent("control/survey_control/surveyList","click","loadSessionInfo(\"answer\")");
 
@@ -519,10 +519,15 @@ checkNewAnsTime(){
 	//crnDate=crnDateArray[0];
 	String crnDate=getCurrentDate();
 	if(!(sssDate.equals(crnDate))){
-		showAlert("alert", "You cannot add new answer to this session \n"+"Do you want to create a new session?", "newSessionForAnswer(\"answer\",null)", "stayInCurrentPage()");
+		showAlert("alert", "You cannot add new answer to this session \n"+"Do you want to create a new session?", "preNewSss()", "stayInCurrentPage()");
 	}	
 	else{
 		showQuestionnaireList();
+	}
+}
+preNewSss(){
+	if(isNull(activeFieldTrip)){
+		showAlert("alert", "No active FieldTrip for this session\n"+"Do you want to continue create a new session?", "newSessionForAnswer(\"answer\",null)", "stayInCurrentPage()");
 	}
 }
 
