@@ -1705,6 +1705,26 @@ extractPsSum(){
 	return extractedPsRole;
 }
 
+getNumSuffix(String inputString){
+	String returnSuffix=null;
+	Pattern numberPat = Pattern.compile("\\(\\d+\\)");
+	Matcher numMatcher = numberPat.matcher(inputString);
+	Boolean suffixFind=numMatcher.find();
+	if(suffixFind){
+		String [] patternSplit=inputString.split("\\(");
+		//showWarning("patternSplit",patternSplit.length.toString());
+		Pattern numberPat2 = Pattern.compile("\\d+\\)");
+		//showWarning("numberPat2","numberPat2");
+		Matcher numMatcher2 = numberPat2.matcher(patternSplit[patternSplit.length-1]);
+		//showWarning("numMatcher2",patternSplit[patternSplit.length-1]);
+		if(numMatcher2.find()){
+			returnSuffix="("+patternSplit[patternSplit.length-1];
+		}
+	}
+	return returnSuffix;
+	
+}
+//This is for getting the original answer label
 extractOriginLbl(ArrayList inputList){
 	extrList=new ArrayList();
 	extrList.clear();
@@ -1713,9 +1733,9 @@ extractOriginLbl(ArrayList inputList){
 	//showWarning("numberPat","numberPat");
 	for (input: inputList){
 		tempLblId=input.get(0);
-		//showWarning("tempAnsLblId",tempAnsLblId);
+		//showWarning("tempAnsLblId",tempLblId);
 		tempLbl=input.get(1);
-		//showWarning("tempAnsLbl",tempAnsLblId+tempAnsLbl);
+		//showWarning("tempAnsLbl",tempLbl);
 		Matcher numMatcher = numberPat.matcher(tempLbl);
 		//showWarning("numMatcher","numMatcher");
 		Boolean suffixFind=numMatcher.find();
@@ -1723,15 +1743,36 @@ extractOriginLbl(ArrayList inputList){
 		//if there's no number suffix of the current label, then it can be directly added to exrAnsList
 		if(!suffixFind){
 			extrList.add(input);
+			//showWarning("extrList3","add3");
 		}
-		//else take the substring to the "("
 		else{
-			String orgnSub=tempLbl.substring(0,tempLbl.indexOf("("));
-			//showWarning("orgnSub",orgnSub);
-			orgn=new ArrayList();
-			orgn.add(tempLblId);
-			orgn.add(orgnSub);
-			extrList.add(orgn);
+			//showWarning("else","else");
+			String [] patternSplit=tempLbl.split("\\(");
+			//showWarning("patternSplit",patternSplit.length.toString());
+			Pattern numberPat2 = Pattern.compile("\\d+\\)");
+			//showWarning("numberPat2","numberPat2");
+			Matcher numMatcher2 = numberPat2.matcher(patternSplit[patternSplit.length-1]);
+			//showWarning("numMatcher2",patternSplit[patternSplit.length-1]);
+			if(numMatcher2.find()){
+				StringBuilder sb=new StringBuilder();
+				for (lbl : patternSplit){
+					if (sb.length()>0)
+						{sb.append("(");}
+					sb.append(lbl);
+				}
+				String orgnSub=sb.toString();
+				//showWarning("orgnSub",orgnSub);
+				orgn=new ArrayList();
+				orgn.add(tempLblId);
+				orgn.add(orgnSub);
+				extrList.add(orgn);
+				//showWarning("extrList1","add1");
+			}
+			else{
+				extrList.add(input);
+				//showWarning("extrList2","add2");
+			}
+
 		}
 	}
 	return extrList;
@@ -1742,6 +1783,7 @@ extractOriginLbl(String inputLabel){
 	Pattern numberPat = Pattern.compile("\\(\\d+\\)");
 	Matcher numMatcher = numberPat.matcher(inputLabel);
 	if(numMatcher.find()){
+		//session label has only this patter at the end of the string
 		rtnLabel=rtnLabel.substring(0,rtnLabel.indexOf("("));
 	}
 	return rtnLabel;
@@ -1779,10 +1821,10 @@ saveAnsInSession(String sessionId, String typeflag){
 
 ansLblMng(ArrayList ans, String ansConsultant){
 	String ansLabel=ans.get(1);
-	//showWarning("ansOldlabel",ansLabel);
-	String [] ansLabelSplit=ansLabel.split("_");
+	//showWarning("ansLabel",ansLabel);
+	String [] ansLabelSplit=ansLabel.split("_");//split can't be done
 	String ansOldPs=ansLabelSplit[2];
-	//showWarning("ansOldPs",ansOldPs);
+	//showWarning("2","2");
 	if(!ansOldPs.equals(ansConsultant)){
 		ansLabelSplit[2]=ansConsultant;
 		StringBuilder sb=new StringBuilder();
@@ -1793,7 +1835,7 @@ ansLblMng(ArrayList ans, String ansConsultant){
 		}
 
 		String newAnsLabelSss=sb.toString();
-		//showWarning("newAnsLabelSss1",newAnsLabelSss);
+		//showWarning("3","3");
 
 		//here we need to check if the new generated answer label is duplicate label or not
 		tempAnsDuplicateList=new ArrayList();
@@ -1819,10 +1861,13 @@ ansLblMng(ArrayList ans, String ansConsultant){
 						duplicateOldLabel=tempAnsDuplicateList.get(0).get(1);
 						Matcher numMatcher = numberPat.matcher(duplicateOldLabel);
 						if(numMatcher.find()){
-							suffix=duplicateOldLabel.substring(duplicateOldLabel.indexOf("("),duplicateOldLabel.length());
+							//suffix=duplicateOldLabel.substring(duplicateOldLabel.indexOf("("),duplicateOldLabel.length());
+							suffix=getNumSuffix(duplicateOldLabel);
 							if(!suffix.equals("(1)"))
 							{
-								newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.indexOf("("))+"(1)";
+								int sLen=suffix.length();
+								newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.length()-sLen)+"(1)";
+								//newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.indexOf("("))+"(1)";
 								attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
 								dupEntityId=tempAnsDuplicateList.get(0).get(0);
 								saveArchEnt(dupEntityId, "AnswerToQuestionnaire", null, attributes);
@@ -1843,16 +1888,28 @@ ansLblMng(ArrayList ans, String ansConsultant){
 							tempLbl=tempAns.get(1);
 							Matcher numMatcher = numberPat.matcher(tempLbl);
 							if(numMatcher.find()){
+								tempSuffix=getNumSuffix(tempLabel);
+								tempSuffixStr=null;
+									if(tempSuffix!=null){
+										tempSuffixStr=tempSuffix.substring(tempSuffix.indexOf("(")+1, tempSuffix.length()-1);
+										int tempSuffixNum=Integer.parseInt(tempSuffixStr);
+										if(tempSuffixNum>maxSuffix){
+											maxSuffix=tempSuffixNum;
+										}
+								}
+								/*
 								tempSuffixStr=tempLbl.substring(tempLbl.indexOf("(")+1, tempLbl.length()-1);
 								int tempSuffixNum=Integer.parseInt(tempSuffixStr);
 								if(tempSuffixNum>maxSuffix){
 									maxSuffix=tempSuffixNum;
 								}
+								*/
 							}
 
 						}
 						maxSuffix=maxSuffix+1;
 						newAnsLabelSss=newAnsLabelSss+"("+maxSuffix+")";
+						//showWarning("4","4");
 					}
 				}
 
@@ -1872,11 +1929,14 @@ ansLblMng(ArrayList ans, String ansConsultant){
 						"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
 							"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
 						"and latestNonDeletedRelationship.Deleted IS NULL)))";
+						//showWarning("5","5");
 						fetchAll(loadFileForAnswerQuery, new FetchCallback() {
 					        onFetch(result) {
+					        	//showWarning("6","6");
 					        	fileListForAns=new ArrayList();
 					        	fileListForAns.clear();
 					        	fileListForAns.addAll(result);
+					        	//showWarning("7","7");
 					        	//showWarning("answerFileFetchDone","answerFileFetchDone");
 					        	for (file: fileListForAns){
 					        		String fileEntityId=file.get(0);
@@ -1889,7 +1949,9 @@ ansLblMng(ArrayList ans, String ansConsultant){
 					        		attributesForFile = createAttributeList();
 									attributesForFile.add(createEntityAttribute("FileID", null, null, newFileLabel, null));
 									saveArchEnt(fileEntityId, "File", null, attributesForFile);
+
 					        	}
+					        	//showWarning("8","8");
 					        }
 
 					        onError(message) {
@@ -2138,7 +2200,7 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 		        showToast("Session basic info changed");
 		    }
 		    onError(message) {
-		        showWarning("error",message);
+		        showWarning("error on updateSssNoPsChange1",message);
 		    }  
 		  });
 	}
@@ -2152,7 +2214,6 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 
 	//case 3: both sssInfo and sssAns changed PASS
 	else{
-		//TODO: bug here
 		saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 		    onSave(uuid, newRecord) {
 		    	ansListChange(sssAnsChange);
@@ -2161,7 +2222,7 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sss
 
 		    }
 		    onError(message) {
-		        showWarning("error",message);
+		        showWarning("error on updateSssNoPsChange2",message);
 		    }  
 		  });
 	}
@@ -2243,7 +2304,9 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 		    			}
 		    		
 		    		}//onSave(uuid, newRecord)
-
+		    		onError(message) {
+				        showWarning("error on updateSssPsChange1",message);
+				    }  
 				});
 			}
 		});
@@ -2251,7 +2314,6 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 	}//if sssLabelChange
 
 	else{
-			//new deleted answers
 		if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
 			ansListChange(sssAnsChange);
 			autoSaveSession("tail");
@@ -2266,7 +2328,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 			    	}
 			    }
 			    onError(message) {
-			        showWarning("error",message);
+			        showWarning("error on updateSssPsChange2",message);
 			    }  
 			  });
 		}
@@ -2361,14 +2423,16 @@ saveSession(String typeflag){
 							      	if (newRecord) {
 							      	  //saving answer list for this session
 										saveAnsInSession(sss_id,"newSss");
+										//showWarning("saveAnsInSession","saveAnsInSession");
 										savePsInSession(sss_id);
+										//showWarning("savePsInSession","savePsInSession");
 										autoSaveSession("tailNew");
 										showToast("New session contains answer(s) created");
 										saveNewSssToFieldTrip(sss_id);
 							      }
 							    }
 							    onError(message) {
-							        showWarning("error",message);
+							        showWarning("error on saveSession 1",message);
 							    }  
 							  });
 						}  
@@ -2856,8 +2920,6 @@ ansTypeChecking(String ques_id){
 	}
 }
 saveNewAnswer(){
-	//dealing with the situation when the answer does not have a file attached
-	
 	if(!ansOrNot){
 		attributes = createAttributeList();
 		
@@ -2868,10 +2930,13 @@ saveNewAnswer(){
 
 		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
 			onSave(uuid, newRecord){
+				//showWarning("saveArchEnt 1","saveArchEnt 1");
 				answer_id = uuid;
+				//showWarning("answer_id 1",answer_id);
 				current_answer_id=answer_id;
 				if (newRecord) {
 						for(file : files_in_current_ques){
+							//showWarning("file 1",file.get(0));
 							saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
 						}
 						
@@ -2880,23 +2945,31 @@ saveNewAnswer(){
 						newAnswer.add(hiddenAnsInfo.get("label"));
 						sss_answer_list.add(newAnswer);
 						populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+						//showWarning("populateList","populateList");
 						//if this is the second answer with a duplicate label
 						//the other answer label will be changed with a suffix (1)
 						if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
 							newLabel=dupAnsLblInfo.get(1);
+							showWarning("newLabel",newLabel);
 							ansEntityId=dupAnsLblInfo.get(0);
+							showWarning("ansEntityId",ansEntityId);
 							attributes = createAttributeList();
 							attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
 							saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
+							showWarning("AnswerToQuestionnaire","AnswerToQuestionnaire");
 							dupAnsLblChange=false;
 							dupAnsLblInfo.clear();
 						}
 						showToast("new answer created");
 						//cancelTabGroup("file", true);
 						autoSaveSession("head");
+						//showWarning("autoSaveSession 3","autoSaveSession 3");
 						nextQuestion(hiddenAnsInfo.get("ques_id"));
 					}
 			}
+			onError(message) {
+				showWarning("error on saveNewAnswer1",message);
+			}  
 		});
 	}
 	else{
@@ -2950,11 +3023,12 @@ saveNewAnswer(){
 						cancelTabGroup("survey", true);
 						//cancelTabGroup("answerToQuestion", true);
 						autoSaveSession("head");
+						//showWarning("autoSaveSession 1","autoSaveSession 1");
 						nextQuestion(curntQuesId);
 					}
 				}
 				onError(message) {
-					showWarning("error",message);
+					showWarning("error on saveNewAnswer2",message);
 				}  
 				});
 		}
@@ -3004,10 +3078,11 @@ saveNewAnswer(){
 								showToast("Answer Info Changed");
 								cancelTabGroup("survey", true);
 								autoSaveSession("head");
+								//showWarning("autoSaveSession 2","autoSaveSession 2");
 								
 						}
 						onError(message) {
-							showWarning("error",message);
+							showWarning("error on saveNewAnswer3 ",message);
 						}  
 						});
 			}
@@ -3033,7 +3108,11 @@ nextQuestion(String curntQuesId){
 		nextQuesContent=ques_in_current_quesnir.get(idxCrntQues+1).get(1);
 		showAlert("Next question","Do you want to go to the next question:\n"+nextQuesContent,"checkPersonAns(\""+nextQuesId+"\")","stayInCurrentPage()");
 	}
-
+	else{
+		if(hasView("survey/answerBasic/radioGrp")){
+			cancelTabGroup("survey",true);
+		}
+	}
 }
 
 viewOrDeleteFileReln(){
@@ -3848,10 +3927,18 @@ labelDeduplicate(String originLabel, String attriName, String fieldRef, String t
 					duplicateOldLabel=tempDuplicateList.get(0).get(1);
 					Matcher numMatcher = numberPat.matcher(duplicateOldLabel);
 					if(numMatcher.find()){
-						suffix=duplicateOldLabel.substring(duplicateOldLabel.indexOf("("),duplicateOldLabel.length());
-						if(!suffix.equals("(1)"))
-						{
-							newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.indexOf("("))+"(1)";
+						suffix=getNumSuffix(duplicateOldLabel);
+						//suffix=duplicateOldLabel.substring(duplicateOldLabel.indexOf("("),duplicateOldLabel.length());
+						if(suffix!=null){
+							if(!suffix.equals("(1)"))
+							{
+								//newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.indexOf("("))+"(1)";
+								int sLen=suffix.length();
+								newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.length()-sLen)+"(1)";
+							}
+						}
+						else{
+							newLabel=duplicateOldLabel+"(1)";
 						}
 					}
 					else{
@@ -3890,12 +3977,21 @@ labelDeduplicate(String originLabel, String attriName, String fieldRef, String t
 							//showWarning("numMatcher","numMatcher");
 							if(numMatcher.find()){
 								//showWarning("find","find");
-								tempSuffixStr=tempLabel.substring(tempLabel.indexOf("(")+1, tempLabel.length()-1);
-								//showWarning("tempSuffixStr",tempSuffixStr);
-								int tempSuffixNum=Integer.parseInt(tempSuffixStr);
-								if(tempSuffixNum>maxSuffix){
-									maxSuffix=tempSuffixNum;
+								tempSuffix=getNumSuffix(tempLabel);
+								tempSuffixStr=null;
+									if(tempSuffix!=null){
+										tempSuffixStr=tempSuffix.substring(tempSuffix.indexOf("(")+1, tempSuffix.length()-1);
+										int tempSuffixNum=Integer.parseInt(tempSuffixStr);
+										if(tempSuffixNum>maxSuffix){
+										maxSuffix=tempSuffixNum;
+									}
 								}
+								//tempSuffixStr=tempLabel.substring(tempLabel.indexOf("(")+1, tempLabel.length()-1);
+								//showWarning("tempSuffixStr",tempSuffixStr);
+								//int tempSuffixNum=Integer.parseInt(tempSuffixStr);
+								//if(tempSuffixNum>maxSuffix){
+									//maxSuffix=tempSuffixNum;
+								//}
 							}
 						}
 						maxSuffix=maxSuffix+1;
@@ -3927,14 +4023,26 @@ makeLabel(ArrayList result, String tempLbl, String tableName, String attriName){
 		Matcher numMatcher = numberPat.matcher(duplicateOldLabel);
 
 		if(numMatcher.find()){
-			suffix=duplicateOldLabel.substring(duplicateOldLabel.indexOf("("),duplicateOldLabel.length());
-			if(!suffix.equals("(1)"))
-			{
-				newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.indexOf("("))+"(1)";
+			suffix=getNumSuffix(duplicateOldLabel);
+			//suffix=duplicateOldLabel.substring(duplicateOldLabel.indexOf("("),duplicateOldLabel.length());
+			if(suffix!=null){
+				if(!suffix.equals("(1)"))
+					{
+						int sLen=suffix.length();
+						newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.length()-sLen)+"(1)";
+						//newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.indexOf("("))+"(1)";
+						attributes.add(createEntityAttribute(attriName, null, null, newLabel, null));
+						entityId=tempDuplicateList.get(0).get(0);
+						saveArchEnt(entityId, tableName, null, attributes);
+					}
+			}
+			else{
+				newLabel=duplicateOldLabel+"(1)";
 				attributes.add(createEntityAttribute(attriName, null, null, newLabel, null));
 				entityId=tempDuplicateList.get(0).get(0);
 				saveArchEnt(entityId, tableName, null, attributes);
 			}
+			
 		}
 		else{
 			newLabel=duplicateOldLabel+"(1)";
@@ -3950,11 +4058,20 @@ makeLabel(ArrayList result, String tempLbl, String tableName, String attriName){
 			tempLabel=temp.get(1);
 			Matcher numMatcher = numberPat.matcher(tempLabel);
 			if(numMatcher.find()){
-				tempSuffixStr=tempLabel.substring(tempLabel.indexOf("(")+1, tempLabel.length()-1);
-				int tempSuffixNum=Integer.parseInt(tempSuffixStr);
-				if(tempSuffixNum>maxSuffix){
-					maxSuffix=tempSuffixNum;
+				tempSuffix=getNumSuffix(tempLabel);
+				tempSuffixStr=null;
+					if(tempSuffix!=null){
+						tempSuffixStr=tempSuffix.substring(tempSuffix.indexOf("(")+1, tempSuffix.length()-1);
+						int tempSuffixNum=Integer.parseInt(tempSuffixStr);
+						if(tempSuffixNum>maxSuffix){
+							maxSuffix=tempSuffixNum;
+						}
 				}
+				//tempSuffixStr=tempLabel.substring(tempLabel.indexOf("(")+1, tempLabel.length()-1);
+				//int tempSuffixNum=Integer.parseInt(tempSuffixStr);
+				//if(tempSuffixNum>maxSuffix){
+				//	maxSuffix=tempSuffixNum;
+				//}
 			}
 		}
 		maxSuffix=maxSuffix+1;
@@ -4468,10 +4585,13 @@ saveNewPerson(String typeflag){
 									//suffix=duplicateOldLabel.substring(duplicateOldLabel.length()-3);
 									Matcher numMatcher = numberPat.matcher(duplicateOldLabel);
 									if(numMatcher.find()){
-										suffix=duplicateOldLabel.substring(duplicateOldLabel.indexOf("("),duplicateOldLabel.length());
+										//suffix=duplicateOldLabel.substring(duplicateOldLabel.indexOf("("),duplicateOldLabel.length());
+										suffix=getNumSuffix(duplicateOldLabel);
 										if(!suffix.equals("(1)"))
 										{
-											newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.indexOf("("))+"(1)";
+											int sLen=suffix.length();
+											newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.length()-sLen)+"(1)";
+											//newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.indexOf("("))+"(1)";
 											attributes.add(createEntityAttribute("PersonID", null, null, newLabel, null));
 											entityId=tempDuplicateList.get(0).get(0);
 											saveArchEnt(entityId, "Person", null, attributes);
@@ -4492,12 +4612,25 @@ saveNewPerson(String typeflag){
 										tempLabel=temp.get(1);
 										Matcher numMatcher = numberPat.matcher(tempLabel);
 										if(numMatcher.find()){
+											tempSuffix=getNumSuffix(tempLabel);
+											tempSuffixStr=null;
+											if(tempSuffix!=null){
+												tempSuffixStr=tempSuffix.substring(tempSuffix.indexOf("(")+1, tempSuffix.length()-1);
+												int tempSuffixNum=Integer.parseInt(tempSuffixStr);
+												if(tempSuffixNum>maxSuffix){
+													maxSuffix=tempSuffixNum;
+												}
+											}
+										}
+										/*
+										if(numMatcher.find()){
 											tempSuffixStr=tempLabel.substring(tempLabel.indexOf("(")+1, tempLabel.length()-1);
 											int tempSuffixNum=Integer.parseInt(tempSuffixStr);
 											if(tempSuffixNum>maxSuffix){
 												maxSuffix=tempSuffixNum;
 											}
 										}
+										*/
 									}
 									maxSuffix=maxSuffix+1;
 									personLabel=personLabel+"("+maxSuffix+")";
