@@ -1472,10 +1472,16 @@ searchQuestion(){
 	else {
 		
 		
-		searchQuestionQueryFirstHalf="select uuid, measure from latestNonDeletedAentValue where " +
-				"latestNonDeletedAentValue.Measure like '%"; 
-		searchQuestionQueryLastHalf="%' and latestNonDeletedAentValue.AttributeID = "+
-				"(select AttributeID from AttributeKey where AttributeName='QuesContent')";
+		searchQuestionQueryFirstHalf="select qId.measure, qContent.measure "+
+			"from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qContent "+
+			"where qContent.measure like '%"; 
+		searchQuestionQueryLastHalf="%' and qContent.AttributeID = "+
+				"(select AttributeID from AttributeKey where AttributeName='QuesContent') "+
+				"and qId.AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionUuid') "+
+				"and qId.uuid=qContent.uuid "+
+				"and qId.uuid in"+
+				"(select uuid from latestNonDeletedArchEntIdentifiers "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid'));";
 				
 						//"(select AttributeID from IdealAent where IdealAent.AentTypeID in "+
 						//"(select AEntTypeID from AEntType where AEntType.AEntTypeName= 'QuestionBank'));";
