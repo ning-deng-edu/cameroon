@@ -529,6 +529,9 @@ preNewSss(){
 	if(isNull(activeFieldTrip)){
 		showAlert("alert", "No active FieldTrip for this session\n"+"Do you want to continue create a new session?", "newSessionForAnswer(\"answer\",null)", "checkGoToFieldTrip()");
 	}
+	else{
+		newSessionForAnswer("answer",null);
+	}
 }
 checkGoToFieldTrip(){
 	showAlert("alert", "Do you want to create a fieldTrip?","createFieldTripInfoPage(\"new\")", "stayInCurrentPage()");
@@ -2456,8 +2459,8 @@ saveSession(String typeflag){
 saveNewSssToFieldTrip(String newSssId){
 	if(!isNull(activeFieldTrip)){
 		saveEntitiesToRel("Session and FieldTrip",activeFieldTrip.get(0),newSssId);
-	}
-	showToast("session is added to a fieldTrip");
+		showToast("session is added to a fieldTrip");
+	}	
 }
 
 /**Variables for answer**/
@@ -5117,6 +5120,7 @@ saveFieldTrip(){
 							        showToast("New fieldtrip record created");
 							        cancelTabGroup("fieldTrip",true);
 							        showTab("control/other_control");
+							        activeFieldTripCheck();
 							      }
 							    }
 							    onError(message) {
