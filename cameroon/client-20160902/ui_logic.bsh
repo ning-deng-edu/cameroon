@@ -1264,6 +1264,7 @@ showSession(){
 /**Emergency session preparation**/
 emrSssInfo=new HashMap();
 emrAnsInfo=new HashMap();
+Boolean emrSss=false;
 emrSssPrep(){
 	/***init sss vars***/
 	sss_id=null;
@@ -1292,7 +1293,9 @@ emrSssPrep(){
 	emrSssName="EmrSss"+currentDate;
 	emrSssPosition=null;
 	emrSssCnsltntName="UnspecilizedCnsltnt"+emrSssStartTime.replaceAll("[^0-9]","");
+	emrSssCnsltntId="0000000000000000010";
 	emrSssIntvName=username+emrSssStartTime.replaceAll("[^0-9]","");
+	emrSssIntvId="0000000000000000011";
 	emrSssLabel=null;
 	if (!isNull(currentPosition)){
     	emrSssLabel=emrSssIntvName+"_"+currentPosition.get(1)+"_"+currentPosition.get(2)+"_"+currentDate;
@@ -1312,18 +1315,44 @@ emrSssPrep(){
 			if(!isNull(result)){
 				tempEmrSssLabel = makeLabel(result, emrSssLabel,"Session","SessionID");
 				emrSssLabel=tempEmrSssLabel;
+				emrSssInfo.put("sssId", emrSssLabel);
 			}
 			//emrSssAttributes.add(createEntityAttribute("SessionID",null,null,emrSssLabel,null));
 		}  
 	});
-    /*
-    emrSssAttributes=createAttributeList();
-	emrSssAttributes.add(createEntityAttribute("SessionName",null,null,emrSssName,null));
-	emrSssAttributes.add(createEntityAttribute("SessionStartTimestamp",null,null,emrSssStartTime,null));
-	emrSssAttributes.add(createEntityAttribute("SessionLocation",null,null,emrSssPosition,null));
-	emrSssAttributes.add(createEntityAttribute("SessionDescription",null,null,"Emergence session",null));
-	*/
-	emrSssInfo.put("sssId", emrSssLabel);
+	loadCnsltntRoleIdQuery="select uuid from latestNonDeletedAentValue where "+
+	"AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
+	"and measure='consultant'";
+
+	loadItvwrRoleIdQuery="select uuid from latestNonDeletedAentValue where "+
+	"AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
+	"and measure='interviewer'";
+	fetchOne(loadCnsltntRoleIdQuery,new FetchCallback() {
+		onFetch(result) {
+			if (!isNull(result)) {	
+				emrSssCnsltnt=result.get(0)+"_"+emrSssCnsltntId+"_"+emrSssCnsltntName;
+				sssPersonRoleandNameList.add(emrSssCnsltnt);
+			}
+			fetchOne(loadItvwrRoleIdQuery,new FetchCallback() {
+				onFetch(result) {
+					if (!isNull(result)) {	
+						emrSssItvwr=result.get(0)+"_"+emrSssIntvId+"_"+emrSssIntvName;
+						sssPersonRoleandNameList.add(emrSssItvwr);
+					}
+				}
+				onError(message) {
+					showToast(message);
+				}
+			});
+		}
+		onError(message) {
+			showToast(message);
+		}
+	});   
+	
+
+	
+
 	emrSssInfo.put("sssName", emrSssName);
 	emrSssInfo.put("sssSttTime", emrSssStartTime);
 	emrSssInfo.put("sssLoc", emrSssPosition);
@@ -1355,25 +1384,202 @@ emrSssPrep(){
 	emrAnsInfo.clear();
 
 	/***basic info for answer***/
-	emrAnsLabel="unspecilizedQues"+"_Answer_"+emrSssCnsltntName+currentDate;
+	emrAnsLabel="emergencyQuestion"+"_Answer_"+emrSssCnsltntName+currentDate;
 	emrAnsStrtTime=emrSssStartTime;
-	ansLabelDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+
+	emrAnsLabelDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
 		"and (measure = '"+emrAnsLabel+"' or measure like '"+emrAnsLabel+"(%)')";
 
-	fetchAll(ansLabelDuplicateQuery,new FetchCallback() {
+	emrQuesNirIDQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+		"WHERE latestNonDeletedAentValue.AttributeID = "+
+		"(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
+		"AND latestNonDeletedAentValue.uuid IN "+
+		"(SELECT uuid from latestNonDeletedAentValue WHERE latestNonDeletedAentValue.AttributeID= "+
+			"(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+			"AND latestNonDeletedAentValue.measure = "+
+			"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+				"(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+				"and latestNonDeletedAentValue.measure = 'Emergency')) GROUP BY uuid;";
+
+	emrQuesIDQuery="select qId.measure"+
+		            "from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qProp "+
+		            "where qId.AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesUuid') "+
+		            "and qProp.AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesPropDefID') "+
+		            "and qId.uuid=qProp.uuid"+
+		            "and qProp.measure=(select qPropDef.uuid from latestNonDeletedAentValue qPropDef where "+
+		            					"qPropDef.AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesPropDefName') "+
+		            					"and qPropDef.measure='EmergencySession')";
+	fetchOne(emrQuesNirIDQuery,new FetchCallback() {
+		onFetch(emrQuesNirResult) {
+			if (!isNull(emrQuesNirResult)) {	
+				emrAnsInfo.put("quesnir_id",emrQuesNirResult.get(0));
+			}
+			else{
+				emrAnsInfo.put("quesnir_id","0000000000000000000");
+			}
+		}
+		onError(message) {
+			showToast(message);
+		}
+	});   
+
+	fetchOne(emrQuesIDQuery,new FetchCallback() {
+		onFetch(emrQuesResult) {
+			if (!isNull(emrQuesResult)) {
+				emrAnsInfo.put("ques_id",emrQuesResult.get(0));
+			}
+			else{
+				emrAnsInfo.put("ques_id","0000000000000000001");
+			}
+		}
+		onError(message) {
+			showToast(message);
+		}
+	});         					
+
+	fetchAll(emrAnsLabelDuplicateQuery,new FetchCallback() {
 		onFetch(result) {
 			if(!isNull(result)){
 				tempAnsLabel=makeLabel(result,emrAnsLabel,"AnswerToQuestionnaire","AnswerLabel");
 				emrAnsLabel=tempAnsLabel;
 			}
 			emrAnsInfo.add("start_time",emrAnsStrtTime);
-			emrAnsInfo.add("ansLabel",emrAnsLabel);
+			emrAnsInfo.add("label",emrAnsLabel);
 			newFile("answer","Audio");
-			attachAudioToField("file/fileInfo/audioFileContent");			
-			ansOrNot=false;
+			emrSss=true;
 		}
 		});
+}
+saveEmrFile(String ref, String fileListViewRef, String tabGroupRef, String fileType){
+	if(isNull(getFieldValue(fileListViewRef))){	
+		showWarning("Warning","File not recorded");
+		return;
+	}
+	else{
+			saveTabGroup(tabGroupRef,current_answer_file_id, null, null, new SaveCallback() {
+			onSave(uuid, newRecord) {
+				current_answer_file_id = uuid;
+				//showWarning("current_answer_file_id",current_answer_file_id);
+				if (newRecord) {	
+					//showWarning("newRecord","newRecord");	
+					newFile=new ArrayList();
+					newFile.add(current_answer_file_id);
+					newFile.add(getFieldValue(ref));
+					files_in_current_ques.add(newFile);
+								
+					//Adding new file and file type for changing fileID
+					newFileType=new ArrayList();
+					newFileType.add(current_answer_file_id);
+					newFileType.add(fileType);
+					file_and_fileType.add(newFileType);
+
+					if(dupFileLblChange && !isNull(dupFileLblInfo)){
+						newLabel=dupFileLblInfo.get(1);
+						entityId=dupFileLblInfo.get(0);
+						attributes = createAttributeList();
+						attributes.add(createEntityAttribute("FileID", null, null, newLabel, null));
+						saveArchEnt(entityId, "File", null, attributes);
+						dupFileLblChange=false;
+						dupFileLblInfo.clear();
+					}	
+					saveNewEmrAnswer();
+
+					cancelTabGroup(tabGroupRef, true);
+				}
+			}
+			onError(message) {
+				showWarning("error",message);
+			}  
+			});
+	}
+}
+saveNewEmrAnswer(){
+	attributes = createAttributeList();	
+	attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, emrAnsInfo.get("quesnir_id"), null));
+	attributes.add(createEntityAttribute("AnswerQuestionID", null, null, emrAnsInfo.get("ques_id"), null));
+	attributes.add(createEntityAttribute("AnswerLabel", null, null, emrAnsInfo.get("label"), null));
+	attributes.add(createEntityAttribute("AnswerStartTime", null, null, emrAnsInfo.get("start_time"), null));
+
+	saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
+		onSave(uuid, newRecord){
+			answer_id = uuid;
+			//showWarning("answer_id 1",answer_id);
+			current_answer_id=answer_id;
+			if (newRecord) {
+					for(file : files_in_current_ques){
+						//showWarning("file 1",file.get(0));
+						saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
+					}
+					
+					newAnswer=new ArrayList();
+					newAnswer.add(answer_id);
+					newAnswer.add(emrAnsInfo.get("label"));
+					sss_answer_list.add(newAnswer);
+
+					if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
+						newLabel=dupAnsLblInfo.get(1);
+						ansEntityId=dupAnsLblInfo.get(0);
+						attributes = createAttributeList();
+						attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
+						saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
+						dupAnsLblChange=false;
+						dupAnsLblInfo.clear();
+					}
+					showToast("new emergency answer created");
+					saveEmrSss();
+				}
+		}
+		onError(message) {
+			showWarning("error on saveNewEmrAnswer1",message);
+		}  
+	});
+}
+saveEmrSss(){
+		attributes = createAttributeList();
+
+		attributes.add(createEntityAttribute("SessionID", null, null, emrSssInfo.get("sssId"), null));
+		attributes.add(createEntityAttribute("SessionName", null, null, emrSssInfo.get("sssName"), null));
+		attributes.add(createEntityAttribute("SessionStartTimestamp", null, null, emrSssInfo.get("sssSttTime"), null));
+		attributes.add(createEntityAttribute("SessionLocation", null, null, emrSssInfo.get("sssLoc"), null));
+		attributes.add(createEntityAttribute("SessionDescription", null, null, "Emergency session", null));
+
+		saveArchEnt(null, "Session", null, attributes, new SaveCallback(){
+			onSave(uuid, newRecord){
+				sss_id = uuid;
+				//TODO: here not right
+				for(answer:sss_answer_list){
+					saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
+				}
+				saveEmrPsInSss(sss_id);
+				autoSaveSession("tailNew");
+				showToast("New emergency session created");
+				saveNewSssToFieldTrip(sss_id);
+
+			}
+			onError(message) {
+				showWarning("error on saveNewAnswer1",message);
+			}  
+		});
+}
+saveEmrPsInSss(String sessionId){
+	for(int i=0;i<sssPersonRoleandNameList.size();i++){
+		String psInfoId=personInSss.get(0i).get(0);
+		String [] psInfoIdSplit=psInfoId.split("_");
+		String tempPsRoleID=psInfoIdSplit[0];
+		String tempPsID=psInfoIdSplit[1]+"_"+psInfoIdSplit[2];
+		sssPsRoleAttributes= createAttributeList();
+		sssPsRoleAttributes.add(createEntityAttribute("SessionIDforPerson", null, null, sessionId, null));
+		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, tempPsID, null));
+		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, tempPsRoleID, null));
+		saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
+		if(i==0){
+			saveEntitiesToRel("Session and Consultant",sessionId,tempPsID);
+		}
+		else{
+			saveEntitiesToRel("Session and Person",sessionId,tempPsID);
+		}
+	}
 }
 
 loadSessionList(String typeflag){
@@ -2572,6 +2778,7 @@ saveSession(String typeflag){
 		break;
 	}
 }
+
 /***saving new session to active fieldTrip***/
 saveNewSssToFieldTrip(String newSssId){
 	if(!isNull(activeFieldTrip)){
@@ -3218,6 +3425,7 @@ saveNewAnswer(){
 	}
 }
 
+
 nextQuestion(String curntQuesId){
 	//showWarning("curntQuesId",curntQuesId);
 	int idxCrntQues=-1;
@@ -3480,9 +3688,13 @@ newFile(String typeFlag, String fileType){
 			fileCategory=getFieldValue("survey/answerFile/file_Category");
 			tempAnsID=getFieldValue("survey/answerHidden/answerLabel");
 		}
-		else{
+		else if(!fileType.equals("emr")){
 			fileCategory=fileType;
 	        tempAnsID=hiddenAnsInfo.get("label");
+		}
+		else{
+			fileCategory=fileType;
+	        tempAnsID=emrAnsInfo.get("label");
 		}
 			answerFile=true;
 			current_answer_file_id=null;	
@@ -3541,6 +3753,20 @@ newFile(String typeFlag, String fileType){
 					setFieldValue("file/fileHidden/sketchFileStartTime", getCurrentTime());
 					
 					break;
+				case "emr":		
+					//Generate audio file creation ui pages
+				 	//createAudioFilePage("new");
+					createFilePage("audio","attachAudioToField(\"file/fileInfo/audioFileContent\")",
+						"saveEmrFile(\"file/fileHidden/audioFileID\",\"file/fileInfo/audioFileContent\",\"file\",\"Audio\")");
+					newTabGroup("file");
+
+					String tempAudioID=tempAnsID+"_Audio";
+					labelDeduplicate(tempAudioID,"FileID","file/fileHidden/audioFileID","file");
+
+					setFieldValue("file/fileHidden/audioFileCreator",username);
+					setFieldValue("file/fileHidden/audioFileType","Audio");
+					setFieldValue("file/fileHidden/audioFileStartTime", getCurrentTime());
+				break;
 				default:
 					showWarning("Invalid category","Please select a valid file category");
 				break;
@@ -4113,12 +4339,6 @@ labelDeduplicate(String originLabel, String attriName, String fieldRef, String t
 										maxSuffix=tempSuffixNum;
 									}
 								}
-								//tempSuffixStr=tempLabel.substring(tempLabel.indexOf("(")+1, tempLabel.length()-1);
-								//showWarning("tempSuffixStr",tempSuffixStr);
-								//int tempSuffixNum=Integer.parseInt(tempSuffixStr);
-								//if(tempSuffixNum>maxSuffix){
-									//maxSuffix=tempSuffixNum;
-								//}
 							}
 						}
 						maxSuffix=maxSuffix+1;
