@@ -312,6 +312,7 @@ userSearch(){
 }
 /***Survey Control***/
 onEvent("control/survey_control/New_Survey","click","preNewSss()");
+onEvent("control/survey_control/EMR_Survey","click","emrSssPrep()");
 onEvent("control/survey_control","show","loadSessionList(\"answer\")");
 onEvent("control/survey_control/surveyList","click","loadSessionInfo(\"answer\")");
 
@@ -1318,6 +1319,11 @@ emrSssPrep(){
 				tempEmrSssLabel = makeLabel(result, emrSssLabel,"Session","SessionID");
 				emrSssLabel=tempEmrSssLabel;
 				emrSssInfo.put("sssId", emrSssLabel);
+				showWarning("emrSssInfo.put(sssId","emrSssInfo.put(sssId");
+			}
+			else{
+				emrSssInfo.put("sssId", emrSssLabel);
+				showWarning("emrSssInfo.put(null","emrSssInfo.put(null");
 			}
 			//emrSssAttributes.add(createEntityAttribute("SessionID",null,null,emrSssLabel,null));
 		}  
@@ -1338,6 +1344,7 @@ emrSssPrep(){
 				newPsInEmrSss.add(emrSssCnsltntId);
 				newPsInEmrSss.add(emrSssCnsltntName);
 				emrPsInfo.add(newPsInEmrSss);
+				showWarning("emrPsInfo.add(newPsInEmrSss);","emrPsInfo.add(newPsInEmrSss);");
 				//sssPersonRoleandNameList.add(emrSssCnsltnt);
 			}
 			fetchOne(loadItvwrRoleIdQuery,new FetchCallback() {
@@ -1349,6 +1356,7 @@ emrSssPrep(){
 						newPsInEmrSss.add(emrSssIntvId);
 						newPsInEmrSss.add(emrSssIntvName);
 						emrPsInfo.add(newPsInEmrSss);
+						showWarning("emrPsInfo.add(InewPsInEmrSss);","emrPsInfo.add(InewPsInEmrSss);");
 						//sssPersonRoleandNameList.add(emrSssItvwr);
 					}
 				}
@@ -1368,6 +1376,7 @@ emrSssPrep(){
 	emrSssInfo.put("sssName", emrSssName);
 	emrSssInfo.put("sssSttTime", emrSssStartTime);
 	emrSssInfo.put("sssLoc", emrSssPosition);
+	showWarning("emrSssInfo.put(","emrSssInfo.put(");
 	/***init ans vars***/
 	selected_answer_interviewer.clear();
 	selected_answer_interviewee.clear();
@@ -1414,18 +1423,19 @@ emrSssPrep(){
 				"(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
 				"and latestNonDeletedAentValue.measure = 'Emergency')) GROUP BY uuid;";
 
-	emrQuesIDQuery="select qId.measure"+
+	emrQuesIDQuery="select qId.measure"+	
 		            "from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qProp "+
 		            "where qId.AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesUuid') "+
 		            "and qProp.AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesPropDefID') "+
 		            "and qId.uuid=qProp.uuid"+
 		            "and qProp.measure=(select qPropDef.uuid from latestNonDeletedAentValue qPropDef where "+
 		            					"qPropDef.AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesPropDefName') "+
-		            					"and qPropDef.measure='EmergencySession')";
+		            					"and qPropDef.measure='EmergencyQuestion')";
 	fetchOne(emrQuesNirIDQuery,new FetchCallback() {
 		onFetch(emrQuesNirResult) {
 			if (!isNull(emrQuesNirResult)) {	
 				emrAnsInfo.put("quesnir_id",emrQuesNirResult.get(0));
+				showWarning("quesnir_id.put(","quesnir_id.put(");
 			}
 			else{
 				emrAnsInfo.put("quesnir_id","0000000000000000000");
@@ -1440,6 +1450,7 @@ emrSssPrep(){
 		onFetch(emrQuesResult) {
 			if (!isNull(emrQuesResult)) {
 				emrAnsInfo.put("ques_id",emrQuesResult.get(0));
+				showWarning("ques_id.put(","ques_id.put(");
 			}
 			else{
 				emrAnsInfo.put("ques_id","0000000000000000001");
@@ -1450,19 +1461,19 @@ emrSssPrep(){
 		}
 	});         					
 
-	fetchAll(emrAnsLabelDuplicateQuery,new FetchCallback() {
-		onFetch(result) {
-			if(!isNull(result)){
-				tempAnsLabel=makeLabel(result,emrAnsLabel,"AnswerToQuestionnaire","AnswerLabel");
-				emrAnsLabel=tempAnsLabel;
-			}
+	//fetchAll(emrAnsLabelDuplicateQuery,new FetchCallback() {
+		//onFetch(result) {
+			//if(!isNull(result)){
+				//tempAnsLabel=makeLabel(result,emrAnsLabel,"AnswerToQuestionnaire","AnswerLabel");
+				//emrAnsLabel=tempAnsLabel;
+			//}
 			emrAnsInfo.put("start_time",emrAnsStrtTime);
 			emrAnsInfo.put("label",emrAnsLabel);
 			//emrSss=true;
-			newFile("answer","Audio");
+			newFile("answer","emr");
 			
-		}
-		});
+		//}
+		//});
 }
 
 saveEmrFile(String ref, String fileListViewRef, String tabGroupRef, String fileType){
@@ -1471,147 +1482,8 @@ saveEmrFile(String ref, String fileListViewRef, String tabGroupRef, String fileT
 		return;
 	}
 	else{
-			saveTabGroup(tabGroupRef,current_answer_file_id, null, null, new SaveCallback() {
-			onSave(uuid, newRecord) {
-				current_answer_file_id = uuid;
-				//showWarning("current_answer_file_id",current_answer_file_id);
-				if (newRecord) {	
-					//showWarning("newRecord","newRecord");	
-					newFile=new ArrayList();
-					newFile.add(current_answer_file_id);
-					newFile.add(getFieldValue(ref));
-					files_in_current_ques.add(newFile);
-								
-					//Adding new file and file type for changing fileID
-					newFileType=new ArrayList();
-					newFileType.add(current_answer_file_id);
-					newFileType.add(fileType);
-					file_and_fileType.add(newFileType);
-
-					if(dupFileLblChange && !isNull(dupFileLblInfo)){
-						newLabel=dupFileLblInfo.get(1);
-						entityId=dupFileLblInfo.get(0);
-						attributes = createAttributeList();
-						attributes.add(createEntityAttribute("FileID", null, null, newLabel, null));
-						saveArchEnt(entityId, "File", null, attributes);
-						dupFileLblChange=false;
-						dupFileLblInfo.clear();
-					}	
-					saveNewEmrAnswer();
-
-					cancelTabGroup(tabGroupRef, true);
-				}
-			}
-			onError(message) {
-				showWarning("error",message);
-			}  
-			});
+			
 	}
-}
-saveNewEmrAnswer(){
-	attributes = createAttributeList();	
-	attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, emrAnsInfo.get("quesnir_id"), null));
-	attributes.add(createEntityAttribute("AnswerQuestionID", null, null, emrAnsInfo.get("ques_id"), null));
-	attributes.add(createEntityAttribute("AnswerLabel", null, null, emrAnsInfo.get("label"), null));
-	attributes.add(createEntityAttribute("AnswerStartTime", null, null, emrAnsInfo.get("start_time"), null));
-
-	saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
-		onSave(uuid, newRecord){
-			answer_id = uuid;
-			//showWarning("answer_id 1",answer_id);
-			current_answer_id=answer_id;
-			if (newRecord) {
-					for(file : files_in_current_ques){
-						//showWarning("file 1",file.get(0));
-						saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
-					}
-					
-					newAnswer=new ArrayList();
-					newAnswer.add(answer_id);
-					newAnswer.add(emrAnsInfo.get("label"));
-					sss_answer_list.add(newAnswer);
-					
-					if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
-						newLabel=dupAnsLblInfo.get(1);
-						ansEntityId=dupAnsLblInfo.get(0);
-						attributes = createAttributeList();
-						attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
-						saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
-						dupAnsLblChange=false;
-						dupAnsLblInfo.clear();
-					}
-					
-					showToast("new emergency answer created");
-					saveEmrSss();
-				}
-		}
-		onError(message) {
-			showWarning("error on saveNewEmrAnswer1",message);
-		}  
-	});
-}
-saveEmrSss(){
-		attributes = createAttributeList();
-
-		attributes.add(createEntityAttribute("SessionID", null, null, emrSssInfo.get("sssId"), null));
-		attributes.add(createEntityAttribute("SessionName", null, null, emrSssInfo.get("sssName"), null));
-		attributes.add(createEntityAttribute("SessionStartTimestamp", null, null, emrSssInfo.get("sssSttTime"), null));
-		attributes.add(createEntityAttribute("SessionLocation", null, null, emrSssInfo.get("sssLoc"), null));
-		attributes.add(createEntityAttribute("SessionDescription", null, null, "Emergency session", null));
-
-		saveArchEnt(null, "Session", null, attributes, new SaveCallback(){
-			onSave(uuid, newRecord){
-				sss_id = uuid;
-				//TODO: here not right
-				for(answer:sss_answer_list){
-					saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
-				}
-				saveEmrPsInSss(sss_id);
-				autoSaveSession("tailNew");
-				showToast("New emergency session created");
-				saveNewSssToFieldTrip(sss_id);
-
-			}
-			onError(message) {
-				showWarning("error on saveNewAnswer1",message);
-			}  
-		});
-}
-
-saveEmrPsInSss(String sessionId){
-	//save new consultant first
-	psAttributes=createAttributeList(); 
-	psAttributes.add(createEntityAttribute("PersonID", null, null, emrPsInfo.get(0).get(2)+"_0000-00-00", null));
-	psAttributes.add(createEntityAttribute("PersonName", null, null, emrPsInfo.get(0).get(2), null));
-	psAttributes.add(createEntityAttribute("PersonDOB", null, null, "0000-00-00", null));
-	psAttributes.add(createEntityAttribute("PersonRole", null, null, emrPsInfo.get(0).get(0), null));
-	psAttributes.add(createEntityAttribute("PersonPhotoDescription", null, null, "Emergency session person", null));
-	psAttributes.add(createEntityAttribute("PersonIntroQuenirDesp", null, null, "Emergency session person", null));
-	saveArchEnt(null, "Person", null, psAttributes, new SaveCallback() {
-		onSave(psUuid,newRecord) {
-			newPsInEmrSss=new ArrayList();
-			newPsInEmrSss.add(emrPsInfo.get(0).get(0));
-			newPsInEmrSss.add(psUuid);
-			newPsInEmrSss.add(emrPsInfo.get(0),get(2));
-			emrPsInfo.set(0, newPsInEmrSss);
-
-			for(int i=0;i<emrPsInfo.size();i++){
-				sssPsRoleAttributes= createAttributeList();
-				sssPsRoleAttributes.add(createEntityAttribute("SessionIDforPerson", null, null, sessionId, null));
-				sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, emrPsInfo.get(i).get(1), null));
-				sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, emrPsInfo.get(i).get(0), null));
-				saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
-
-				if(i==0){
-					saveEntitiesToRel("Session and Consultant",sessionId,emrPsInfo.get(i).get(1));
-				}
-				else{
-					saveEntitiesToRel("Session and Interviewer",sessionId,emrPsInfo.get(i).get(1));
-				}
-
-			}
-		}  
-	});
 }
 
 loadSessionList(String typeflag){

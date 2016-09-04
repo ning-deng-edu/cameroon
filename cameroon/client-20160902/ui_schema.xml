@@ -43,6 +43,7 @@
                 <control>         
                     <survey_control>
                         <New_Survey/>
+                        <EMR_Survey/>
                          <container7>
                             <child1>
                                 <survey_keyword/>
@@ -269,6 +270,10 @@
             <!--No input here-->
             <trigger ref="New_Survey" faims_style_class="faims-blue">
                 <label>New Session</label>
+            </trigger>
+
+            <trigger ref="EMR_Survey" faims_style_class="faims-blue">
+                <label>EMR Session</label>
             </trigger>
             
             <group ref="container7" faims_style="orientation">
