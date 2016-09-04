@@ -260,6 +260,7 @@ login() {
             user = new User(result.get(0),result.get(1),result.get(2),result.get(3));
             setUser(user);
             username = result.get(1) + " " + result.get(2);
+            userid=result.get(0);
             showTabGroup("control");
             activeFieldTripCheck();
         }
@@ -1264,6 +1265,7 @@ showSession(){
 /**Emergency session preparation**/
 emrSssInfo=new HashMap();
 emrAnsInfo=new HashMap();
+emrPsInfo=new ArrayList();
 Boolean emrSss=false;
 emrSssPrep(){
 	/***init sss vars***/
@@ -1285,7 +1287,7 @@ emrSssPrep(){
 	sssOldIntvReln.clear();
 	quesRecordingType.clear();
 	emrSssInfo.clear();
-
+    emrPsInfo.clear();
 	/***basic info for a session***/
 	takePoint();
 	currentDate=getCurrentDate();
@@ -1295,7 +1297,7 @@ emrSssPrep(){
 	emrSssCnsltntName="UnspecilizedCnsltnt"+emrSssStartTime.replaceAll("[^0-9]","");
 	emrSssCnsltntId="0000000000000000010";
 	emrSssIntvName=username+emrSssStartTime.replaceAll("[^0-9]","");
-	emrSssIntvId="0000000000000000011";
+	emrSssIntvId=userid;
 	emrSssLabel=null;
 	if (!isNull(currentPosition)){
     	emrSssLabel=emrSssIntvName+"_"+currentPosition.get(1)+"_"+currentPosition.get(2)+"_"+currentDate;
@@ -1330,14 +1332,24 @@ emrSssPrep(){
 	fetchOne(loadCnsltntRoleIdQuery,new FetchCallback() {
 		onFetch(result) {
 			if (!isNull(result)) {	
-				emrSssCnsltnt=result.get(0)+"_"+emrSssCnsltntId+"_"+emrSssCnsltntName;
-				sssPersonRoleandNameList.add(emrSssCnsltnt);
+				emrSssCnsltnt=result.get(0)+"_"+emrSssCnsltntName;
+				newPsInEmrSss=new ArrayList();
+				newPsInEmrSss.add(result.get(0));
+				newPsInEmrSss.add(emrSssCnsltntId);
+				newPsInEmrSss.add(emrSssCnsltntName);
+				emrPsInfo.add(newPsInEmrSss);
+				//sssPersonRoleandNameList.add(emrSssCnsltnt);
 			}
 			fetchOne(loadItvwrRoleIdQuery,new FetchCallback() {
 				onFetch(result) {
 					if (!isNull(result)) {	
 						emrSssItvwr=result.get(0)+"_"+emrSssIntvId+"_"+emrSssIntvName;
-						sssPersonRoleandNameList.add(emrSssItvwr);
+						newPsInEmrSss=new ArrayList();
+						newPsInEmrSss.add(result.get(0));
+						newPsInEmrSss.add(emrSssIntvId);
+						newPsInEmrSss.add(emrSssIntvName);
+						emrPsInfo.add(newPsInEmrSss);
+						//sssPersonRoleandNameList.add(emrSssItvwr);
 					}
 				}
 				onError(message) {
@@ -1444,13 +1456,14 @@ emrSssPrep(){
 				tempAnsLabel=makeLabel(result,emrAnsLabel,"AnswerToQuestionnaire","AnswerLabel");
 				emrAnsLabel=tempAnsLabel;
 			}
-			emrAnsInfo.add("start_time",emrAnsStrtTime);
-			emrAnsInfo.add("label",emrAnsLabel);
+			emrAnsInfo.put("start_time",emrAnsStrtTime);
+			emrAnsInfo.put("label",emrAnsLabel);
 			newFile("answer","Audio");
 			emrSss=true;
 		}
 		});
 }
+
 saveEmrFile(String ref, String fileListViewRef, String tabGroupRef, String fileType){
 	if(isNull(getFieldValue(fileListViewRef))){	
 		showWarning("Warning","File not recorded");
@@ -1516,7 +1529,7 @@ saveNewEmrAnswer(){
 					newAnswer.add(answer_id);
 					newAnswer.add(emrAnsInfo.get("label"));
 					sss_answer_list.add(newAnswer);
-
+					
 					if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
 						newLabel=dupAnsLblInfo.get(1);
 						ansEntityId=dupAnsLblInfo.get(0);
@@ -1526,6 +1539,7 @@ saveNewEmrAnswer(){
 						dupAnsLblChange=false;
 						dupAnsLblInfo.clear();
 					}
+					
 					showToast("new emergency answer created");
 					saveEmrSss();
 				}
@@ -1562,24 +1576,41 @@ saveEmrSss(){
 			}  
 		});
 }
+
 saveEmrPsInSss(String sessionId){
-	for(int i=0;i<sssPersonRoleandNameList.size();i++){
-		String psInfoId=personInSss.get(0i).get(0);
-		String [] psInfoIdSplit=psInfoId.split("_");
-		String tempPsRoleID=psInfoIdSplit[0];
-		String tempPsID=psInfoIdSplit[1]+"_"+psInfoIdSplit[2];
-		sssPsRoleAttributes= createAttributeList();
-		sssPsRoleAttributes.add(createEntityAttribute("SessionIDforPerson", null, null, sessionId, null));
-		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, tempPsID, null));
-		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, tempPsRoleID, null));
-		saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
-		if(i==0){
-			saveEntitiesToRel("Session and Consultant",sessionId,tempPsID);
-		}
-		else{
-			saveEntitiesToRel("Session and Person",sessionId,tempPsID);
-		}
-	}
+	//save new consultant first
+	psAttributes=createAttributeList(); 
+	psAttributes.add(createEntityAttribute("PersonID", null, null, emrPsInfo.get(0).get(2)+"_0000-00-00", null));
+	psAttributes.add(createEntityAttribute("PersonName", null, null, emrPsInfo.get(0).get(2), null));
+	psAttributes.add(createEntityAttribute("PersonDOB", null, null, "0000-00-00", null));
+	psAttributes.add(createEntityAttribute("PersonRole", null, null, emrPsInfo.get(0).get(0), null));
+	psAttributes.add(createEntityAttribute("PersonPhotoDescription", null, null, "Emergency session person", null));
+	psAttributes.add(createEntityAttribute("PersonIntroQuenirDesp", null, null, "Emergency session person", null));
+	saveArchEnt(null, "Person", null, psAttributes, new SaveCallback() {
+		onSave(psUuid,newRecord) {
+			newPsInEmrSss=new ArrayList();
+			newPsInEmrSss.add(emrPsInfo.get(0).get(0));
+			newPsInEmrSss.add(psUuid);
+			newPsInEmrSss.add(emrPsInfo.get(0),get(2));
+			emrPsInfo.set(0, newPsInEmrSss);
+
+			for(int i=0;i<emrPsInfo.size();i++){
+				sssPsRoleAttributes= createAttributeList();
+				sssPsRoleAttributes.add(createEntityAttribute("SessionIDforPerson", null, null, sessionId, null));
+				sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, emrPsInfo.get(i).get(1), null));
+				sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, emrPsInfo.get(i).get(0), null));
+				saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
+
+				if(i==0){
+					saveEntitiesToRel("Session and Consultant",sessionId,emrPsInfo.get(i).get(1));
+				}
+				else{
+					saveEntitiesToRel("Session and Interviewer",sessionId,emrPsInfo.get(i).get(1));
+				}
+
+			}
+		}  
+	});
 }
 
 loadSessionList(String typeflag){
@@ -1601,7 +1632,7 @@ loadSessionList(String typeflag){
         }
     });
 }
-
+//TODO: DEAL WITH THE EMERGENCY SESSION READING BACK
 loadSessionInfo(String typeFlag){
 	switch (typeFlag){
 	case "answer":
