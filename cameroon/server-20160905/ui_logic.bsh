@@ -1904,7 +1904,6 @@ saveNewQuestion(){
 				for(eleDel: quesPropChange.get("DELETE")){
 					//showWarning("uuid",eleDel.get(1));
 					deleteArchEnt(eleDel.get(1));
-					showWarning("DELETE","DELETE");
 				}
 				for(eleAdd:quesPropChange.get("ADD")){
 					quesPropAttributes= createAttributeList();
@@ -2662,16 +2661,22 @@ person_id=getListItemValue();
 /*** Language ***/
 onEvent("control/language_control/New_Language","click","newLanguage()");
 onEvent("language/languageInfo/Finish_New_Language","click","saveNewLanguage()");
+onEvent("language/languageInfo","show","loadLangType(\"new\")");
 onEvent("control/language_control","show","loadLanguage()");
 onEvent("control/language_control/languageList","click","loadLanguageInfo()");
 language_id=null;
+originLangProp=new ArrayList();
+newLangProp=new ArrayList();
+candLangProp=new ArrayList();
 newLanguage(){
 	language_id=null;
+	candLangProp.clear();
+	originLangProp.clear();
+	newLangProp.clear();
 	newTabGroup("language");
 	onEvent("language", "show", "showTab(\"language/languageInfo\");");  
 }
 saveNewLanguage(){
-
 	if(isNull(getFieldValue("language/languageInfo/languageName"))){
 		showWarning("Validation Error", "You must fill in the Language Name before you can continue");
         return;
@@ -2702,17 +2707,21 @@ saveNewLanguage(){
 
 				setFieldValue("language/languageInfo/languageID",tempLangLabel);
 			}
+			crntLangTypeId=getFieldValue("language/languageInfo/languageType");
 			saveTabGroup("language", language_id, null, null, new SaveCallback() {
 				onSave(uuid, newRecord) {
 				      language_id = uuid;
 				      if (newRecord) {
-				    	 
+				      	//String langTypeID=getFieldValue("language/languageInfo/languageType");
+				      	//showWarning("langTypeID",crntLangTypeId);
+				    	attributes=createAttributeList();
+				    	attributes.add(createEntityAttribute("LanguageTypeID", null, null, crntLangTypeId, null));
+				    	saveArchEnt(language_id, "Language", null, attributes);
 				        showToast("New record created");
 				        cancelTabGroup("language",true);
 				        showTab("control/language_control");
 				      }
 					  else{
-						//language_id=null;
 						showToast("Record changed");
 					  }
 			    }
@@ -2720,17 +2729,23 @@ saveNewLanguage(){
 			        showWarning("error",message);
 			    } 
 			});
+			if((language_id!=null) && (!isNull(originLangProp))){
+				newLangProp.add(crntLangTypeId);
+				Hashtable langPropChange=listChange(newLangProp,originLangProp);
+				if(langPropChange.containsKey("ADD")){
+					attributes=createAttributeList();
+			    	attributes.add(createEntityAttribute("LanguageTypeID", null, null, crntLangTypeId, null));
+			    	saveArchEnt(language_id, "Language", null, attributes);
+			    	showToast("language type changed");
+				}
+				
+			}
 		}
 	});
 }
 
 loadLanguage(){
 	language_id=null;
-	//"SELECT uuid, group_concat(coalesce(measure, ''),' - ') as response " +
-    //"FROM (select * from latestNonDeletedArchentIdentifiers) " +
-    //"WHERE aenttypename = 'Language' " +
-    //"GROUP BY uuid " +
-    //"order by response;"
 	fetchAll(loadAllLanguageQuery, new FetchCallback() {
         onFetch(result) {
             populateList("control/language_control/languageList", result);
@@ -2750,6 +2765,52 @@ language_id=getListItemValue();
 	showTabGroup("language", language_id, new FetchCallback() {
         onFetch(result) {
             language=result;
+            loadLangPropQuery="select lProp.measure from latestNonDeletedAentValue as lProp "+
+            "where lProp.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageTypeID') "+
+            "and lProp.uuid='"+language_id+"'";
+            fetchAll(loadAllLangTypeQuery, new FetchCallback() {
+			onFetch(result) {
+				candLangProp.clear();
+				candLangProp.addAll(result);
+				fetchOne(loadLangPropQuery,new FetchCallback() {
+					onFetch(propResult) {
+						if(!isNull(propResult)){
+							tempPropList=new ArrayList();
+							tempPropList.clear();
+							//showWarning("isNull","isNull");
+							String tempProp=propResult.get(0);
+							//showWarning("tempProp",tempProp);
+							originLangProp.clear();
+							originLangProp.addAll(propResult);
+							newLangProp.clear();
+
+							for(prop: candLangProp){
+								if(prop.get(0).equals(tempProp)){
+									//showWarning("prop",prop.get(1));
+									tempPropList.add(prop);
+								}
+							}
+							for(prop: candLangProp){
+								if(!(prop.get(0).equals(tempProp))){
+									//showWarning("prop",prop.get(1));
+									tempPropList.add(prop);
+								}
+							}
+							populateDropDown("language/languageInfo/languageType", tempPropList);
+						}
+						else{
+							showWarning("Out-of-date data","The property of the language is not using anymore");
+						}
+						
+						}
+						onError(message) {
+    						showToast(message);
+  					}
+				});
+				}
+			});
+            
+
             showToast("Loaded language"+language.getId());            
         }
         onError(message) {
