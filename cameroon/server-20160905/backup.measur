@@ -1,0 +1,83 @@
+select lang.uuid, lang.measure, quesContent.measure from latestNonDeletedAentValue lang, latestNonDeletedAentValue quesContent 
+where lang.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesLangUuid')
+and quesContent.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesContent')
+and lang.uuid=quesContent.uuid
+and lang.uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') and measure=question_id);
+
+
+	        //createLangSel();
+	        fetchAll(loadAllLanguageQuery,
+			new FetchCallback() {
+				onFetch(result) {
+					//if(!isNull(result)){
+					canLangList.addAll(result);
+					createLangSel();
+					populateCheckBoxGroup("questionBank/questionInfo/langVer",canLangList);
+
+					langsForQuesQuery="select RelationshipID, uuid from latestNonDeletedAentReln "+
+				        "where uuid <>'"+question_id+"' and RelationshipID in "+
+				        "(select RelationshipID from latestNonDeletedAentReln "+
+				        "where uuid='"+question_id+"' and RelationshipID in "+
+				        "(select RelationshipID from latestNonDeletedRelationship "+
+				        "where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Question and Language') "+
+				        "and latestNonDeletedRelationship.Deleted IS NULL))";
+/*
+				    langVerForQuesQuery="select measure,uuid from latestNonDeletedAentValue where "+
+			        	"AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesLangUuid')"+
+			        	"and uuid = (select uuid from latestNonDeletedArchEntIdentifiers "+
+			        	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
+			        	"and measure='"+question_id+"')";
+*/
+			        langVerForQuesQuery="select lang.uuid, lang.measure, quesContent.measure from latestNonDeletedAentValue lang, latestNonDeletedAentValue quesContent "+
+						        	"where lang.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesLangUuid') "+
+						        	"and quesContent.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesContent') "+
+									"and lang.uuid=quesContent.uuid "+
+									"and lang.uuid in "+
+									"(select uuid from latestNonDeletedArchEntIdentifiers "+
+									"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
+									"and measure='"+question_id+"'')";
+								}
+				    fetchAll(langVerForQuesQuery,new FetchCallback() {
+						onFetch(langResult) {
+							if(!isNull(langResult)){
+								oldLangList.clear();
+								oldLangList.addAll(langResult);
+							    
+								selLangList.clear();
+								//selLangList.addAll(langResult);
+								//for(lang:oldLangList){
+									//setFieldValue("questionBank/questionInfo/langVer",lang.get(1));
+									//TODO:write query here and fetch
+									/*
+									langVerForQuesQuery="select measure,uuid from latestNonDeletedAentValue where "+
+							    	"AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesContent')"+
+							    	"and uuid ="+
+							    	"(select uuid from latestNonDeletedAentValue where "+
+						        	"AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesLangUuid')"+
+						        	"and measure="+lang.get(1)+
+						        	"and uuid in (select uuid from latestNonDeletedArchEntIdentifiers "+
+						        	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
+						        	"and measure='"+question_id+"'))";
+						        	*/
+						        	langVerForQuesQuery="select lang.uuid, lang.measure, quesContent.measure from latestNonDeletedAentValue lang, latestNonDeletedAentValue quesContent "+
+						        	"where lang.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesLangUuid') "+
+						        	"and quesContent.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesContent') "+
+									"and lang.uuid=quesContent.uuid "+
+									"and lang.uuid in "+
+									"(select uuid from latestNonDeletedArchEntIdentifiers "+
+									"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
+									"and measure='"+question_id+"'')";
+								//}
+								
+							}
+							else{
+								showWarning("Out-of-date data","You may still using old data");
+							}													
+						}
+						onError(message) {
+							showToast(message);
+						}
+					});
+
+				}  
+			});	
