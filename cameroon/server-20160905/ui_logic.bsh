@@ -74,6 +74,11 @@ loadAllQuesPropQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesPropDefName') "+
 		"GROUP BY uuid;";
+
+loadAllLangTypeQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+		"WHERE latestNonDeletedAentValue.AttributeID "+
+		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='LangTypeName') "+
+		"GROUP BY uuid;";
 /***Enable data and file syncing***/
 addActionBarItem("sync", new ToggleActionButtonCallback() {
     actionOnLabel() {
@@ -2752,7 +2757,123 @@ language_id=getListItemValue();
         }
     });
 }
+/***language type***/
+onEvent("control/other_control/langType_Control","click","showTabGroup(\"langType_control\")");
+onEvent("langType_control/langType_control_info","show","loadLangType(\"def\")");
+onEvent("langType_control/langType_control_info/New_LangType","click","newLangType()");
+onEvent("langType_control/langType_control_info/langTypeList","click","loadLangTypeInfo()");
+onEvent("langType_control/langType_control_info/langTypeList","click","loadLangTypeInfo()");
+onEvent("langType/langType_info/SaveLangType","click","langTypePreCheck()");
 
+langTypeId=null;
+langType=new ArrayList();
+loadLangType(String typeFlag){
+	fetchAll(loadAllLangTypeQuery,
+	new FetchCallback() {
+        onFetch(result) {
+			if (!isNull(result)) {
+				langType.clear();
+				langType.addAll(result);
+				if(typeFlag.equals("def")){
+					populateList("langType_control/langType_control_info/langTypeList",langType);
+				}
+				else{
+					populateDropDown("language/languageInfo/languageType",langType);
+				}
+				
+			}
+			else{
+				if(!typeFlag.equals("def")){
+					showAlert("Language Type data", "There is no available language type yet\n"+"Do you want to create new type now?", "newLangType()", "stayInCurrentPage()");
+				}
+				
+			}
+			
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+newLangType(){
+	langTypeId=null;
+	newTabGroup("langType");
+}
+
+loadLangTypeInfo(){
+	langTypeId=getListItemValue();
+	if(isNull(langTypeId)){
+		showWarning("Invalid data","No type selected");
+		return;
+	}
+	showTabGroup("langType", langTypeId, new FetchCallback() {
+        onFetch(result) {
+        	tempPop=new ArrayList();
+        	tempPop.clear();
+        	populateList("langType/langType_info/duplicateLangTypeList",tempPop);
+            showToast("Loaded type"+result.getId());  
+            //showWarning("intro?",result.getClass().getName());          
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+
+}
+
+langTypePreCheck(){
+		String newTypeName=getFieldValue("langType/langType_info/langTypeName").trim();
+		//showWarning("newTypeName",newTypeName);
+		if(isNull(newTypeName)){
+			showWarning("Incomplete data", "You must input questionnaire name");
+			return;
+		}
+		else{
+
+			langTypeCheckQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+								"WHERE latestNonDeletedAentValue.AttributeID "+
+								"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='LangTypeName') "+
+								"AND latestNonDeletedAentValue.measure like '%"+newTypeName+"%'; ";
+			//showWarning("quesnirTypeCheckQuery","quesnirTypeCheckQuery");					
+			fetchAll(langTypeCheckQuery,
+				new FetchCallback() {
+					onFetch(result) {
+						if (!isNull(result)) {
+							populateList("langType/langType_info/duplicateLangTypeList",result);
+							showAlert("Language Type data", "This could be a duplicate type\n"+"The possible existing type is listed in the list\n"+"Do you still want to save this type?", "saveLangType()", "stayInCurrentPage()");
+						}
+						else{
+							saveLangType();
+						}
+					}
+			       
+				onError(message) {
+					showToast(message);
+				}
+				});
+		}	
+	
+}
+saveLangType(){
+	saveTabGroup("langType", langTypeId, null, null, new SaveCallback() {
+		onSave(uuid, newRecord) {
+			langTypeId = uuid;
+			//showWarning("saveQuesnirType",quesnirTypeId);
+			if (newRecord) {
+				showToast("New record created");
+			    cancelTabGroup("langType",true);
+			}
+			else{
+				showToast("Record changed");
+			}
+		}
+		onError(message) {
+			showWarning("error",message);
+		}  
+		});
+
+}
 /*** PersonRole ***/
 onEvent("control/other_control/Role_Control","click","showTabGroup(\"role_control\")");
 onEvent("role_control/role_control_info/New_Role","click","newRole()");
@@ -2802,6 +2923,7 @@ loadTypeInfo(){
     });
 
 }
+
 /*** Search Page ***/
 //Add entity types
 entityTypes = new ArrayList();

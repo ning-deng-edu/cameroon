@@ -201,6 +201,14 @@
                   </languageInfo>
                 </language>
 
+                <langType>
+                    <langType_info>
+                        <langTypeName/>
+                        <SaveLangType/>
+                        <duplicateLangTypeList/>
+                    </langType_info>
+                </langType>
+
                 <role_control>
                   <role_control_info>
                     <New_Role/>
@@ -564,14 +572,6 @@
           <input ref="questionID" faims_attribute_name="QuestionID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
           <label>Question label</label>
         </input>
-        
-          <!--select1 ref="questionType"  faims_certainty="false" faims_annotation="false">
-          <label>Question Type</label>
-          <item>
-            <label>placeholder</label>
-            <value>placeholder</value>
-          </item>
-          </select1-->
       
        
        
@@ -582,35 +582,6 @@
             <value>placeholder</value>
           </item>
           </select1>
-          
-          <!--group ref="container1" faims_style="orientation">
-          <label></label>
-          <group ref="child1" faims_style="even">
-            <label></label>
-           <select1 ref="langVersion" faims_certainty="false" faims_annotation="false">
-                <label>Versions</label>
-                <item>
-                <label>placeholder</label>
-                <value>placeholder</value>
-            </item>
-            </select1>
-          </group>
-       <group ref="child2" faims_style="even">
-            <label></label>
-           <select1 ref="languageSel" faims_certainty="false" faims_annotation="false">
-             <label>Select</label>
-             <item>
-                <label>placeholder</label>
-                <value>placeholder</value>
-            </item>
-           </select1>
-          </group>      
-        </group>
-
-        <trigger ref="Finish_New_Question" faims_style_class="faims-blue">
-                <label>Save Question</label>
-        </trigger-->
-        
        
        
         </group>
@@ -803,6 +774,30 @@
                 <label>Save Language</label>
             </trigger>
       </group>
+    </group>
+
+     <group ref="langType" faims_archent_type="LangTypeDef">
+        <label>Language Type</label>      
+        
+        <group ref="langType_info">
+          <label>Language Type</label>
+          
+          <input ref="langTypeName" faims_attribute_name="LangTypeName" faims_attribute_type="measure" faims_certainty="false" faims_annotation="true" faims_style_class="required">
+            <label>Questionnaire type name</label>
+          </input>
+         
+           <trigger ref="SaveLangType" faims_style_class="faims-blue">
+            <label>Save</label>
+          </trigger>  
+
+          <select1 appearance="compact" ref="duplicateLangTypeList" faims_style_class="menu-list">
+                <label>Duplicate records</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
+        </group>        
     </group>
 
       <group ref="role_control">
