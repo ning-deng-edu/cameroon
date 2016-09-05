@@ -48,6 +48,14 @@ loadAllLanguageQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID')) "+
 	"GROUP BY uuid;";
 
+loadAllLWCLanguageQuery="select lang.uuid, lang.measure from latestNonDeletedAentValue as lang, latestNonDeletedAentValue as lProp "+
+"where lang.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageName') "+
+"and lProp.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageTypeID') "+
+"and lang.uuid=lProp.uuid "+
+"and lProp.measure=(select lPropDef.uuid from latestNonDeletedAentValue as lPropDef where lPropDef.AttributeID=(select AttributeID from AttributeKey where AttributeName='LangTypeName') "+
+"and lPropDef.measure='LWC') "+
+"and lang.uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID')) group by lang.uuid;";
+
 loadAllPersonQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonID') "+
@@ -1750,7 +1758,7 @@ initialQuestionCreation(){
 createQuesLangVer(){
 	canLangList.clear();
 	selLangList.clear();
-	fetchAll(loadAllLanguageQuery,new FetchCallback() {
+	fetchAll(loadAllLWCLanguageQuery,new FetchCallback() {
 		onFetch(result) {
 			canLangList.addAll(result);
 			int langCount=0;
