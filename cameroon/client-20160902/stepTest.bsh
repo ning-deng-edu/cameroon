@@ -1267,6 +1267,7 @@ showSession(){
 emrSssInfo=new HashMap();
 emrAnsInfo=new HashMap();
 emrPsInfo=new ArrayList();
+Boolean emrIveExist=false;
 //Boolean emrSss=false;
 emrSssPrep(){
 	/***init sss vars***/
@@ -1289,6 +1290,7 @@ emrSssPrep(){
 	quesRecordingType.clear();
 	emrSssInfo.clear();
     emrPsInfo.clear();
+    emrIveExist=false;
 	/***basic info for a session***/
 	takePoint();
 	currentDate=getCurrentDate();
@@ -1300,34 +1302,34 @@ emrSssPrep(){
 	emrSssIntvName=username+emrSssStartTime.replaceAll("[^0-9]","");
 	emrSssIntvId=userid;
 	emrSssLabel=null;
-	if (!isNull(currentPosition)){
-    	emrSssLabel=emrSssIntvName+"_"+currentPosition.get(1)+"_"+currentPosition.get(2)+"_"+currentDate;
-    	emrSssPosition=currentPosition.get(0);
-    	//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation",currentPosition.get(0));
-    }
-    else{
-    	emrSssLabel=emrSssIntvName+"_"+"unknownLat"+"_"+"unknownLong"+"_"+currentDate;
-    	emrSssPosition="GPS not available";
-    	//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation","GPS not available");
-    }
-    sssDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
-				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
-				"and (measure = '"+emrSssLabel+"' or measure like '"+emrSssLabel+"(%)')";
-	fetchAll(sssDuplicateQuery,new FetchCallback() {
+	checkPsInDbQuery="select uuid from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+			"and measure='"+username+"'";
+	fetchOne(checkPsInDbQuery,new FetchCallback() {
 		onFetch(result) {
-			if(!isNull(result)){
-				tempEmrSssLabel = makeLabel(result, emrSssLabel,"Session","SessionID");
-				emrSssLabel=tempEmrSssLabel;
-				emrSssInfo.put("sssId", emrSssLabel);
-				//showWarning("emrSssInfo.put(sssId",emrSssLabel);
+			if (isNull(result)) {	
+				emrIveExist=true;
+			}
+
+			if (!isNull(currentPosition)){
+				emrSssLabel=username+"_"+currentPosition.get(1)+"_"+currentPosition.get(2)+"_"+currentDate;
+				emrSssPosition=currentPosition.get(0);
+				emrSssInfo.put("sssLoc", emrSssPosition);
+			//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation",currentPosition.get(0));
 			}
 			else{
-				emrSssInfo.put("sssId", emrSssLabel);
-				//showWarning("emrSssInfo.put(null",emrSssLabel);
+				emrSssLabel=username+"_"+"unknownLat"+"_"+"unknownLong"+"_"+currentDate;
+				emrSssPosition="GPS not available";
+				emrSssInfo.put("sssLoc", emrSssPosition);
+			//setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation","GPS not available");
 			}
-			//emrSssAttributes.add(createEntityAttribute("SessionID",null,null,emrSssLabel,null));
-		}  
+			emrSssInfo.put("sssId", emrSssLabel);
+		}
+		onError(message) {
+			showToast(message);
+		}
 	});
+	
+    
 	loadCnsltntRoleIdQuery="select uuid from latestNonDeletedAentValue "+
 	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
 	"and measure ='consultant'";
@@ -1376,7 +1378,7 @@ emrSssPrep(){
 
 	emrSssInfo.put("sssName", emrSssName);
 	emrSssInfo.put("sssSttTime", emrSssStartTime);
-	emrSssInfo.put("sssLoc", emrSssPosition);
+	
 	//showWarning("emrSssInfo.put(","emrSssInfo.put(");
 	/***init ans vars***/
 	selected_answer_interviewer.clear();
@@ -1547,33 +1549,48 @@ saveNewEmrAnswer(){
 }
 
 saveEmrSss(){
-		attributes = createAttributeList();
-
-		attributes.add(createEntityAttribute("SessionID", null, null, emrSssInfo.get("sssId"), null));
-		attributes.add(createEntityAttribute("SessionName", null, null, emrSssInfo.get("sssName"), null));
-		attributes.add(createEntityAttribute("SessionStartTimestamp", null, null, emrSssInfo.get("sssSttTime"), null));
-		attributes.add(createEntityAttribute("SessionLocation", null, null, emrSssInfo.get("sssLoc"), null));
-		attributes.add(createEntityAttribute("SessionDescription", null, null, "Emergency session", null));
-
-		saveArchEnt(null, "Session", null, attributes, new SaveCallback(){
-			onSave(uuid, newRecord){
-				sss_id = uuid;
-				for(answer:sss_answer_list){
-					saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
-				}
-				saveEmrPsInSss(sss_id);
-				autoSaveSession("emr");
-				showToast("New emergency session created");
-				saveNewSssToFieldTrip(sss_id);
+	sssDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+		"and (measure = '"+ emrSssInfo.get("sssId")+"' or measure like '"+ emrSssInfo.get("sssId")+"(%)')";
+	fetchAll(sssDuplicateQuery,new FetchCallback() {
+		onFetch(dupResult) {
+			if(!isNull(dupResult)){
+				tempEmrSssLabel = makeLabel(dupResult, emrSssInfo.get("sssId"),"Session","SessionID");
+				emrSssInfo.remove("sssId");
+				emrSssInfo.put("sssId", tempEmrSssLabel);
+				//showWarning("emrSssInfo.put(sssId",tempEmrSssLabel);
 			}
-			onError(message) {
-				showWarning("error on saveEmrSss",message);
-			}  
-		});
+			attributes = createAttributeList();
+
+			attributes.add(createEntityAttribute("SessionID", null, null, emrSssInfo.get("sssId"), null));
+			attributes.add(createEntityAttribute("SessionName", null, null, emrSssInfo.get("sssName"), null));
+			attributes.add(createEntityAttribute("SessionStartTimestamp", null, null, emrSssInfo.get("sssSttTime"), null));
+			attributes.add(createEntityAttribute("SessionLocation", null, null, emrSssInfo.get("sssLoc"), null));
+			attributes.add(createEntityAttribute("SessionDescription", null, null, "Emergency session", null));
+
+			saveArchEnt(null, "Session", null, attributes, new SaveCallback(){
+				onSave(uuid, newRecord){
+					sss_id = uuid;
+					for(answer:sss_answer_list){
+						saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
+					}
+					saveEmrPsInSss(sss_id);
+					autoSaveSession("emr");
+					showToast("New emergency session created");
+					saveNewSssToFieldTrip(sss_id);
+				}
+				onError(message) {
+					showWarning("error on saveEmrSss",message);
+				}  
+			});
+			//emrSssAttributes.add(createEntityAttribute("SessionID",null,null,emrSssLabel,null));
+		}  
+	});
 }
 
 saveEmrPsInSss(String sessionId){
-	//save new consultant first
+	//save new consultant
+	sssPersonRoleNameListOrigin.clear();
 	psAttributes=createAttributeList(); 
 	psAttributes.add(createEntityAttribute("PersonID", null, null, emrPsInfo.get(0).get(2)+"_0000-00-00", null));
 	psAttributes.add(createEntityAttribute("PersonName", null, null, emrPsInfo.get(0).get(2), null));
@@ -1581,32 +1598,86 @@ saveEmrPsInSss(String sessionId){
 	psAttributes.add(createEntityAttribute("PersonRole", null, null, emrPsInfo.get(0).get(0), null));
 	psAttributes.add(createEntityAttribute("PersonPhotoDescription", null, null, "Emergency session person", null));
 	psAttributes.add(createEntityAttribute("PersonIntroQuenirDesp", null, null, "Emergency session person", null));
-	showWarning("psAttributes", "1."+emrPsInfo.get(0).get(2)+"_0000-00-00\n"+"2."+emrPsInfo.get(0).get(2)+"\n"+"4."+ emrPsInfo.get(0).get(0)+"\n");
+	//showWarning("psAttributes", "1."+emrPsInfo.get(0).get(2)+"_0000-00-00\n"+"2."+emrPsInfo.get(0).get(2)+"\n"+"4."+ emrPsInfo.get(0).get(0)+"\n");
 	saveArchEnt(null, "Person", null, psAttributes, new SaveCallback() {
 		onSave(psUuid,newRecord) {
 			newPsInEmrSss=new ArrayList();
 			newPsInEmrSss.add(emrPsInfo.get(0).get(0));
+			//showWarning("newPsInEmrSss","roleid:"+emrPsInfo.get(0).get(0));
 			newPsInEmrSss.add(psUuid);
-			newPsInEmrSss.add(emrPsInfo.get(0),get(2));
+			//showWarning("newPsInEmrSss","psuuid:"+psUuid);
+			newPsInEmrSss.add(emrPsInfo.get(0).get(2));
+			//showWarning("newPsInEmrSss","psName:"+(emrPsInfo.get(0).get(2));
 			emrPsInfo.set(0, newPsInEmrSss);
-			sssPersonRoleNameListOrigin.clear();
-			for(int i=0;i<emrPsInfo.size();i++){
+			//showWarning("emrPsInfo.set(0)","psUuid:"+psUuid);
+			sssPsCnslAttributes= createAttributeList();
+			sssPsCnslAttributes.add(createEntityAttribute("SessionIDforPerson", null, null, sessionId, null));
+			sssPsCnslAttributes.add(createEntityAttribute("SessionPersonName", null, null, emrPsInfo.get(0).get(1), null));
+			sssPsCnslAttributes.add(createEntityAttribute("SessionPersonRole", null, null, emrPsInfo.get(0).get(0), null));
+			//showWarning("sssPsCnslAttributes",sessionId+":"+emrPsInfo.get(0).get(1)+":"+emrPsInfo.get(0).get(0));
+			saveArchEnt(null, "SessionPerson", null, sssPsCnslAttributes);
+			//showWarning("SessionPerson","SessionPerson");
+			saveEntitiesToRel("Session and Consultant",sessionId,emrPsInfo.get(0).get(1));
+			//showWarning("saveEntitiesToRel","saveEntitiesToRel");
+			sssPersonRoleNameListOrigin.add(emrPsInfo.get(0).get(0)+"_"+emrPsInfo.get(0).get(1));
+			//showWarning("sssPersonRoleNameListOrigin","sssPersonRoleNameListOrigin");
+
+			//checkPsInDbQuery="select uuid from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+			//"and measure='"+username+"'";
+			
+			//fetchOne(checkPsInDbQuery,new FetchCallback() {
+				//onFetch(result) {
+			if(!emrIveExist){
+				iPsAttributes=createAttributeList(); 
+				iPsAttributes.add(createEntityAttribute("PersonID", null, null, username+"_0000-00-00", null));
+				iPsAttributes.add(createEntityAttribute("PersonName", null, null, username, null));
+				iPsAttributes.add(createEntityAttribute("PersonDOB", null, null, "0000-00-00", null));
+				iPsAttributes.add(createEntityAttribute("PersonRole", null, null, emrPsInfo.get(1).get(0), null));
+				iPsAttributes.add(createEntityAttribute("PersonPhotoDescription", null, null, "Emergency session person", null));
+				iPsAttributes.add(createEntityAttribute("PersonIntroQuenirDesp", null, null, "Emergency session person", null));
+				//showWarning("iPsAttributes", "1."+username+"_0000-00-00\n"+"2."+username+"\n"+"4."+ emrPsInfo.get(1).get(0)+"\n");
+				saveArchEnt(null, "Person", null, iPsAttributes, new SaveCallback() {
+					onSave(iPsUuid,newRecord) {
+						newIPsInEmrSss=new ArrayList();
+						newIPsInEmrSss.add(emrPsInfo.get(1).get(0));
+						newIPsInEmrSss.add(iPsUuid);
+						newIPsInEmrSss.add(username);
+						emrPsInfo.set(1, newIPsInEmrSss);
+						//sssPersonRoleNameListOrigin.clear();
+						sssPsRoleAttributes= createAttributeList();
+						sssPsRoleAttributes.add(createEntityAttribute("SessionIDforPerson", null, null, sessionId, null));
+						sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, emrPsInfo.get(1).get(1), null));
+						sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, emrPsInfo.get(1).get(0), null));
+						saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
+						saveEntitiesToRel("Session and Interviewer",sessionId,emrPsInfo.get(1).get(1));
+						sssPersonRoleNameListOrigin.add(emrPsInfo.get(1).get(0)+"_"+emrPsInfo.get(1).get(1));
+						emrIveExist=false;
+					}  
+				});
+			}
+			else{
+				newPsInEmrSss=new ArrayList();
+				newPsInEmrSss.add(emrPsInfo.get(1).get(0));
+				newPsInEmrSss.add(result.get(0));
+				newPsInEmrSss.add(username);
+				emrPsInfo.set(1, newPsInEmrSss);
+				//sssPersonRoleNameListOrigin.clear();
 				sssPsRoleAttributes= createAttributeList();
 				sssPsRoleAttributes.add(createEntityAttribute("SessionIDforPerson", null, null, sessionId, null));
-				sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, emrPsInfo.get(i).get(1), null));
-				sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, emrPsInfo.get(i).get(0), null));
+				sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, emrPsInfo.get(1).get(1), null));
+				sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, emrPsInfo.get(1).get(0), null));
 				saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
-
-				if(i==0){
-					saveEntitiesToRel("Session and Consultant",sessionId,emrPsInfo.get(i).get(1));
-				}
-				else{
-					saveEntitiesToRel("Session and Interviewer",sessionId,emrPsInfo.get(i).get(1));
-				}
-				sssPersonRoleNameListOrigin.addAll(emrPsInfo.get(i).get(0)+"_"+emrPsInfo.get(i).get(1));
+				saveEntitiesToRel("Session and Interviewer",sessionId,emrPsInfo.get(1).get(1));
+				sssPersonRoleNameListOrigin.add(emrPsInfo.get(1).get(0)+"_"+emrPsInfo.get(1).get(1));
 			}
-		}  
+				//}
+				
+			//});   
+		}
 	});
+	//check if the current interviwer exisits in the db
+	
+	
 }
 loadSessionList(String typeflag){
 	fetchAll(loadAllSessionIDQuery, new FetchCallback() {
