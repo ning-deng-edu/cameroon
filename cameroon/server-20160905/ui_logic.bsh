@@ -49,12 +49,17 @@ loadAllLanguageQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 	"GROUP BY uuid;";
 
 loadAllLWCLanguageQuery="select lang.uuid, lang.measure from latestNonDeletedAentValue as lang, latestNonDeletedAentValue as lProp "+
-"where lang.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageName') "+
-"and lProp.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageTypeID') "+
-"and lang.uuid=lProp.uuid "+
-"and lProp.measure=(select lPropDef.uuid from latestNonDeletedAentValue as lPropDef where lPropDef.AttributeID=(select AttributeID from AttributeKey where AttributeName='LangTypeName') "+
-"and lPropDef.measure='LWC') "+
-"and lang.uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID')) group by lang.uuid;";
+	"where lang.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageName') "+
+	"and lProp.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageTypeID') "+
+	"and lang.uuid=lProp.uuid "+
+	"and lProp.measure=(select lPropDef.uuid from latestNonDeletedAentValue as lPropDef where lPropDef.AttributeID=(select AttributeID from AttributeKey where AttributeName='LangTypeName') "+
+	"and lPropDef.measure='LWC') "+
+	"and lang.uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID')) group by lang.uuid;";
+
+loadEngUuiQuery="select uuid from latestNonDeletedAentValue "+
+	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageName') "+
+	"and measure ='English' "+
+	"and uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID'))";
 
 loadAllPersonQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
@@ -1745,7 +1750,7 @@ initialQuestionCreation(){
 	selLangList.clear();
 	candidatePropList.clear();
 	if(isNull(question_id)){
-		createQuesLangVer();
+		createQuesLangVer("new");
 		fetchAll(loadAllQuesPropQuery,new FetchCallback() {
 			onFetch(result) {
 				candidatePropList.addAll(result);
@@ -1755,7 +1760,7 @@ initialQuestionCreation(){
 	}
 }
 
-createQuesLangVer(){
+createQuesLangVer(String typeflag){
 	canLangList.clear();
 	selLangList.clear();
 	fetchAll(loadAllLWCLanguageQuery,new FetchCallback() {
@@ -1798,6 +1803,19 @@ createQuesLangVer(){
 				langCount++;
 			}
 			refreshTabgroupCSS("questionBank");
+			if(typeflag.equals("new")){
+				fetchOne(loadEngUuiQuery,new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+							for(int i=0;i<canLangList.size();i++){
+								setFieldValue("questionBank/questionInfo/langc" + i,result.get(0));
+							}
+							
+						}
+					}  
+				});
+				
+			}
 		}  
 	});	
 }
@@ -2021,7 +2039,7 @@ loadQuestionInfo(){
 			showToast("No Question selected");
 			return;
 		}
-		createQuesLangVer();
+		createQuesLangVer("load");
 		showTabGroup("questionBank", question_id, new FetchCallback() {
 	        onFetch(result) {
 	        
