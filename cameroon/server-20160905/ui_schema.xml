@@ -532,7 +532,7 @@
                 <label></label>
 
                    <input ref="keywordOfQuestion" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
-                    <label>Kkeyword</label>
+                    <label>Keyword</label>
                 </input>
               </group>
 
