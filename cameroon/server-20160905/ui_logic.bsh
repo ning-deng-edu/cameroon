@@ -40,7 +40,7 @@ loadAllEngQuesContentQuery="select qId.measure, qCntt.measure from latestNonDele
 		"where eng.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageName') "+
 		"and eng.measure='English' "+
 		"and eng.uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID')))";
-		
+
 loadAllQuestionnaireQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 	"WHERE latestNonDeletedAentValue.AttributeID "+
 	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
@@ -631,7 +631,7 @@ initializeQuestionSelect(){
 		//showWarning("no id","new questionnaire");
 		//populateList("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
 
-		fetchAll(loadAllEngQuestionQuery,
+		fetchAll(loadAllEngQuesContentQuery,
 		new FetchCallback() {
 			//showWarning("fetched",finished_questionnaire_id);
 			onFetch(result) {
@@ -783,7 +783,7 @@ initializeQuestionSelect(){
 						if (!isNull(result)) {
 						tempQuestionList.addAll(result);
 
-						fetchAll(loadAllEngQuestionQuery,
+						fetchAll(loadAllEngQuesContentQuery,
 							new FetchCallback() {
 								onFetch(result) {
 									if (!isNull(result)) {
@@ -1733,7 +1733,7 @@ onEvent("control/question_control/New_Question","click","newQuestion()");
 onEvent("control/question_control","show","loadQuestionBank()");
 onEvent("questionBank/questionInfo/","show","initialQuestionCreation()");
 onEvent("control/question_control/questionList","click","loadQuestionInfo()");
-
+onEvent("control/question_control/lang_sel", "click","searchQuestionByLang()");
 //indicates of there is selected question
 question_id=null;
 //All candidate lanaguages
@@ -2027,13 +2027,22 @@ loadQuestionBank(){
 	
 	//deprecated query: 
 	/*The fetchAll query returns the uuid and the question content of all the questions*/
-	fetchAll(loadAllEngQuestionQuery,
+	fetchAll(loadAllEngQuesContentQuery,
 	new FetchCallback() {
         onFetch(result) {
 			if (!isNull(result)) {
 				questionBankList.addAll(result);
 			}
 			populateList("control/question_control/questionList", questionBankList);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+    fetchAll(loadAllLWCLanguageQuery, new FetchCallback() {
+        onFetch(langResult) {
+			populateDropDown("control/question_control/lang_sel", langResult);
         }
 
         onError(message) {
@@ -2148,6 +2157,31 @@ loadQuestionInfo(){
 	    });
 }
 
+searchQuestionByLang(){
+	String quesLangId=getFieldValue("control/question_control/lang_sel");
+
+	loadQuesContentByLanguageQuery="select qId.measure, qCntt.measure from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qCntt, latestNonDeletedAentValue as qLang "+
+	"where qId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
+	"and qCntt.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesContent') "+
+	"and qLang.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesLangUuid') "+
+	"and qId.uuid=qCntt.uuid "+
+	"and qCntt.uuid=qLang.uuid "+
+	"and qLang.measure='"+quesLangId+"'";
+
+	fetchAll(loadQuesContentByLanguageQuery,
+	new FetchCallback() {
+        onFetch(result) {
+			populateList("control/question_control/questionList", result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+
+
+
+}
 /*** Person AND PersonRole***/
 onEvent("control/user_control/New_User","click","newPerson()");
 onEvent("person/personInfo/Finish_New_Person","click","saveNewPerson()");

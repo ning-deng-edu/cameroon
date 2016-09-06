@@ -45,6 +45,7 @@
                     <question_control>
                         <!--newQuestionContent/-->
                         <New_Question/>
+                        <lang_sel/>
                         <questionList/>
                     </question_control>
                     <!--user tab,used for manipulate user info-->
@@ -325,6 +326,13 @@
             <trigger ref="New_Question" faims_style_class="faims-blue">
                 <label>New Question</label>
             </trigger>
+            <select1 ref="lang_sel" faims_annotation="false" faims_certainty="false">
+              <label>Select language</label>
+              <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+            </select1>
             <!--TODO: in ui_styling.css add quesion-list class-->
             <select1 appearance="compact" faims_annotation="false" faims_certainty="false" ref="questionList" faims_style_class="question-list">
                 <label>Tap to view question</label>
