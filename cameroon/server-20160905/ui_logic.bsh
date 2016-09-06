@@ -30,6 +30,17 @@ loadAllEngQuestionQuery="select qId.measure, qContent.measure "+
 	"(select uuid from latestNonDeletedArchEntIdentifiers "+
 	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid'));";
 
+loadAllEngQuesContentQuery="select qId.measure, qCntt.measure from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qCntt, latestNonDeletedAentValue as qLang "+
+	"where qId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
+	"and qCntt.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesContent') "+
+	"and qLang.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesLangUuid') "+
+	"and qId.uuid=qCntt.uuid "+
+	"and qCntt.uuid=qLang.uuid "+
+	"and qLang.measure=(select eng.uuid from latestNonDeletedAentValue as eng "+
+		"where eng.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageName') "+
+		"and eng.measure='English' "+
+		"and eng.uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID')))";
+		
 loadAllQuestionnaireQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 	"WHERE latestNonDeletedAentValue.AttributeID "+
 	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
