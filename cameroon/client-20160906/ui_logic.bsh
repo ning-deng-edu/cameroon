@@ -69,7 +69,6 @@ loadAllSurveyQuery="select uuid,measure from "+
 			"(select AttributeID from AttributeKey where AttributeName='QuestionnaireName')) t2 "+
 		"on t2.uuid=t1.quesnirid );";
 
-
 loadAllFileQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='FileName') "+
@@ -155,11 +154,12 @@ loadAllRoleQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 		"WHERE latestNonDeletedAentValue.AttributeID =( SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonRoleName') "+
 		"AND uuid in (SELECT uuid FROM latestNonDeletedAentValue "+
 			"WHERE AttributeID= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='RoleDataOnClient') AND measure ='Yes');";
-			
+
 loadAllLangTypeQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='LangTypeName') "+
 		"GROUP BY uuid;";
+
 loadAllUserQuery="select userid, fname || ' ' || lname from user where userdeleted is null";
 
 
@@ -3003,7 +3003,50 @@ createChkListPage(String tempQuesId){
 			});
 	}
 }
+createLangIntroPage(String tempQuesId){
+	fetchAll(loadAllLanguageQuery,new FetchCallback() {
+		onFetch(result) {
+			canLangList=new ArrayList();
+			canLangList.clear();
+			canLangList.addAll(result);
+			int langCount=0;
+			int langSize=canLangList.size();
+			for(lang:canLangList){
+				String langID=lang.get(0);
+				String langName=lang.get(1);
 
+				style1="orientation";
+				style2="even";
+				style3="large";
+				
+				if(hasView("survey/answerBasic/Finish_LangIntro")){
+					removeAllViewsAndContainers("survey");
+				}
+
+				executeViewTask(new ViewTask(){
+					doTask(){
+						createContainer("survey/answerBasic/lang_c"+langCount, "orientation","survey/answerBasic");
+						createContainer("survey/answerBasic/langName_c" + langCount, "even", "survey/answerBasic/lang_c" + langCount);
+        				createContainer("survey/answerBasic/quesInput_c" + langCount, "even", "survey/answerBasic/lang_c" + langCount);
+    
+  						createView("survey/answerBasic/langc" + langCount, createViewDef().createCheckboxGroup().addChoice(langName, langID), "survey/answerBasic/langName_c" + langCount);  					
+    					createView("survey/answerBasic/quesc" + langCount, createViewDef().createButton().setLabel("Next").setStyleCss("faims-blue"), "survey/answerBasic/quesInput_c" + langCount);
+
+        				
+						if(langCount==langSize-1){
+							createView("survey/answerBasic/Finish_LangIntro", createViewDef().createButton().setLabel("Finish").setStyleCss("faims-blue"), "survey/answerBasic");	
+							//onEvent("questionBank/questionInfo/Finish_New_Question","click","saveNewQuestion()");	
+						}
+						
+					}
+				});
+				langCount++;
+				
+			}
+			refreshTabgroupCSS("survey");
+		}  
+	});
+}
 /**Functions for answer**/
 loadAnswerInfo(){
 
@@ -3198,6 +3241,10 @@ startNewAnswer(String typeflag){
     		setFieldValue("survey/answerBasic/quesText", tempChkQues);
     	}
     }	
+    else if(typeflag.equals("lan")){
+		createLangIntroPage(current_question_id);
+		newTabGroup("survey");
+    }
     else{
     	hiddenAnsInfo.put("quesnir_id",current_quesnir_id);
 		hiddenAnsInfo.put("ques_id",current_question_id);
@@ -3352,6 +3399,9 @@ ansTypeChecking(String ques_id){
 				break;
 				case "CheckList":
 					answerType="chk";
+				break;
+				case "LangIntro":
+					answerType="lan";
 				break;
 				default:
 					answerType="non";
