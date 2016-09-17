@@ -1006,15 +1006,14 @@ fetchAll(loadQuesContentandOrderQuery, new FetchCallback() {
 quesnir_ques_reln_query="select uuid from latestNonDeletedArchEntIdentifiers "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
 		"and measure='"+current_quesnir_id+"' ";
-queslabel_quesnir_query="select uuid,measure from latestNonDeletedAentValue "+ 
-				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
-				"and uuid in "+
-	 			"(select uuid from AentReln where RelationshipID in "+
-				"(select RelationshipID from AEntReln where AEntReln.uuid='"+current_quesnir_id+"' "+
-	 			"AND RelationshipID in "+
-				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
-	 			"(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and Question') "+
-				"and latestNonDeletedRelationship.Deleted IS NULL))) group by uuid";
+queslabel_quesnir_query="select uuid, measure from latestNonDeletedAentValue "+
+"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
+"and uuid in (select measure from latestNonDeletedArchEntIdentifiers "+
+"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
+"and measure in (select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+"where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"'))";
 /*sngleQuesRecordingTypeQuery="select measure from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefName') "+
 	"and uuid in (select measure from latestNonDeletedAentValue "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefID') "+
@@ -1039,6 +1038,7 @@ quesRecordingTypeQuery="select t2.quId, t1.prName from "+
 		"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
 	"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"')) t2 "+
 	"on t1.prId=t2.qPropId";
+
 fetchAll(quesnir_ques_reln_query, new FetchCallback() {
 	onFetch(relnResult) {
 		if(!isNull(relnResult)){
@@ -1061,8 +1061,8 @@ fetchAll(queslabel_quesnir_query, new FetchCallback() {
 });
 fetchAll(quesRecordingTypeQuery, new FetchCallback() {
     onFetch(result) {
-        recording.clear();
-        recording.addAll(result);
+        quesRecordingType.clear();
+        quesRecordingType.addAll(result);
     }
 });
 }
@@ -3345,15 +3345,14 @@ loadAnswerFromQuesInQuesnir(String ques_id){
 	}
 	
 	else{
-		queslabel_quesnir_query="select uuid,measure from latestNonDeletedAentValue "+ 
-				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
-				"and uuid in "+
-	 			"(select uuid from AentReln where RelationshipID in "+
-				"(select RelationshipID from AEntReln where AEntReln.uuid="+current_quesnir_id+" "+
-	 			"AND RelationshipID in "+
-				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
-	 			"(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and Question') "+
-				"and latestNonDeletedRelationship.Deleted IS NULL))) group by uuid";
+		queslabel_quesnir_query="select uuid, measure from latestNonDeletedAentValue "+
+			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
+			"and uuid in (select measure from latestNonDeletedArchEntIdentifiers "+
+			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
+			"and measure in (select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+			"where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+			"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+			"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"'))";
 			fetchAll(queslabel_quesnir_query,
         				new FetchCallback() {
         					onFetch(result) {
@@ -3374,7 +3373,7 @@ loadAnswerFromQuesInQuesnir(String ques_id){
 										ansTypeChecking(current_question_id);
 									}
 									else{
-											showWarning("The data is outdated","Please exit the module and retry");
+										showWarning("The data is outdated","Please exit the module and retry");
 									}
         						}
         						else{
