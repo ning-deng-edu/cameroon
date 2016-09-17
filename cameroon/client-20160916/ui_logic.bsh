@@ -1047,7 +1047,6 @@ fetchAll(quesnir_ques_reln_query, new FetchCallback() {
 			quesListRelnOrigin.clear();
 			quesListRelnOrigin.addAll(relnResult);
 			}
-		}
 		else{
 			showWarning("Out-of-date Data","Some questions in this questionnaire may not be using anymore\n"+"Please contact the admin for further information");
 		}
