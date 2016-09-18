@@ -947,14 +947,21 @@ fetchOne(loadQuesnirTypeQuery,new FetchCallback() {
 		onFetch(typeResult) {
 			if (!isNull(typeResult)) {	
 				setFieldValue("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireType",typeResult.get(0));
+				if(typeResult.get(0).equals("LangIntroductory")){
+					sclngstPrep();
+				}
+				else{
+					regularQuesnirPrep();
+				}
 			}
 		}	       
 		onError(message) {
 			showToast(message);
 		}
 	});
-
-loadQuesContentandOrderQuery="select t1.quesId, t1.quesOrder || ' -'  || t2. quesContent as qOrderedContent "+
+}
+regularQuesnirPrep(){
+	loadQuesContentandOrderQuery="select t1.quesId, t1.quesOrder || ' -'  || t2. quesContent as qOrderedContent "+
 	            "from "+
 	            	"(select quId.measure as quesId, qOrder.measure as quesOrder "+
 	            	"from latestNonDeletedAentValue as quId, latestNonDeletedAentValue as qOrder "+
@@ -1065,8 +1072,8 @@ fetchAll(quesRecordingTypeQuery, new FetchCallback() {
         quesRecordingType.addAll(result);
     }
 });
-}
 
+}
 searchQuesInCrtQuesnir(){
 	String quesKeyword=null;
 
@@ -1282,6 +1289,122 @@ takePoint() {
 
 showSession(){
 	showTabGroup("sessionGroup");
+}
+/***Social ling quesnir***/
+loopQuesOrder=new ArrayList();
+sclngstPrep(){
+loadQuesContentandOrderQuery="select t1.quesId, t1.quesOrder || '-'  || t2. quesContent as qOrderedContent "+
+	            "from "+
+	            	"(select quId.measure as quesId, qOrder.measure as quesOrder "+
+	            	"from latestNonDeletedAentValue as quId, latestNonDeletedAentValue as qOrder "+
+	            	"where qOrder.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesOrderLocal') "+
+	            	"and quId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+	            	"and quId.uuid=qOrder.uuid and "+
+	            	"quId.measure in "+
+	            		"(select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+	            		"where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+	            		"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+	            		"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"')) t1 "+
+	            	"inner join "+
+	            	"(select qId.measure as quesId, qContent.measure as quesContent from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qContent "+
+	            	"where qContent.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesContent') "+
+	            	"and qId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
+	            	"and qId.uuid=qContent.uuid and qId.measure in "+
+	            		"(select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+	            		"where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+	            		"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+	            		"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"')) t2 "+
+	            	"on t1.quesId=t2.quesId "+
+	            "order by quesOrder asc";
+
+quesnir_ques_reln_query="select uuid from latestNonDeletedArchEntIdentifiers "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+		"and measure='"+current_quesnir_id+"' ";
+queslabel_quesnir_query="select uuid, measure from latestNonDeletedAentValue "+
+"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
+"and uuid in (select measure from latestNonDeletedArchEntIdentifiers "+
+"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
+"and measure in (select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+"where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"'))";
+
+quesRecordingTypeQuery="select t2.quId, t1.prName from "+
+	"(select pName.uuid as prId, pName.measure as prName from latestNonDeletedAentValue as pName "+
+		"where pName.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefName'))t1 "+
+	"inner join "+
+	"(select qId.measure as quId, qProp.measure as qPropId "+
+	"from latestNonDeletedArchEntIdentifiers as qId, latestNonDeletedAentValue as qProp "+
+	"where qId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
+	"and qProp.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefID') "+
+	"and qId.uuid=qProp.uuid "+
+	"and qId.measure in (select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+		"where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+		"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+	"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"')) t2 "+
+	"on t1.prId=t2.qPropId";
+
+fetchAll(loadQuesContentandOrderQuery, new FetchCallback() {
+    onFetch(result) {
+        ques_in_current_quesnir.clear();
+        ques_in_current_quesnir.addAll(result);
+        populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
+        String tempQuesStartId=null;
+        loopQuesOrder.clear();
+        fetchAll(quesRecordingTypeQuery, new FetchCallback() {
+		    onFetch(result) {
+		        quesRecordingType.clear();
+		        quesRecordingType.addAll(result);
+		        //find the starting point of the loop
+		        for(quesRec: quesRecordingType){
+		        	if (quesRec.get(1).equals("LangIntro")){
+		        		tempQuesStartId=quesRec.get(0);
+		        		break;
+		        	}
+		        }
+		        //showWarning("quesRec",tempQuesStartId);
+		        int tempStartingOrder=0;
+		        for(ques:ques_in_current_quesnir){
+		        	if(ques.get(0).equals(tempQuesStartId)){
+		        		//showWarning("ques.get(0)",ques.get(0));
+		        		String [] quesSplit=ques.get(1).split("-");
+		        		tempStartingOrder=Integer.parseInt(quesSplit[0]);
+		        		break;
+		        	}
+		        }
+		        //showWarning("ques",tempStartingOrder.toString());
+		        for(ques:ques_in_current_quesnir){
+		        	String [] quesSplit=ques.get(1).split("-");
+		        	if(Integer.parseInt(quesSplit[0])>tempStartingOrder){
+		        		loopQuesOrder.add(ques);
+		        	}
+		        }
+		        //showWarning("sclngstPrep",loopQuesOrder.size().toString());
+		    }
+		});
+    }
+});
+fetchAll(quesnir_ques_reln_query, new FetchCallback() {  
+	onFetch(relnResult) {
+		if(!isNull(relnResult)){
+			//showWarning("relnResult","relnResult");
+			quesListRelnOrigin=new ArrayList();
+			quesListRelnOrigin.clear();
+			quesListRelnOrigin.addAll(relnResult);
+			}
+		else{
+			showWarning("Out-of-date Data","Some questions in this questionnaire may not be using anymore\n"+"Please contact the admin for further information");
+		}
+		
+	}
+});
+fetchAll(queslabel_quesnir_query, new FetchCallback() {
+    onFetch(result) {
+        queslabel_current_quesnir.clear();
+        queslabel_current_quesnir.addAll(result);
+    }
+});
+
 }
 /**Emergency session preparation**/
 emrSssInfo=new HashMap();
@@ -3417,6 +3540,10 @@ ansTypeChecking(String ques_id){
 				break;
 				case "LangIntro":
 					answerType="lan";
+				break;
+				//loop question
+				case "Loop":
+					answerType="loo";
 				break;
 				default:
 					answerType="non";
