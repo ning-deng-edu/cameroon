@@ -3176,7 +3176,7 @@ createLangIntroPage(String tempQuesId){
   						createView("survey/answerBasic/langc" + langCount, createViewDef().createCheckboxGroup().addChoice(langName, langID), "survey/answerBasic/langName_c" + langCount);  
   						createView("survey/answerBasic/dec" + langCount, createViewDef().createDropDown(), "survey/answerBasic/degree_c" + langCount); 					
     					createView("survey/answerBasic/quesc" + langCount, createViewDef().createButton().setLabel("Next").setStyleCss("faims-blue"), "survey/answerBasic/quesInput_c" + langCount);
-
+    					onEvent("survey/answerBasic/quesc" + langCount,"click","startLoopQues(\""+langID+"\"v)");
         				
 						if(langCount==langSize-1){
 							createView("survey/answerBasic/Finish_LangIntro", createViewDef().createButton().setLabel("Finish").setStyleCss("faims-blue"), "survey/answerBasic");
@@ -3205,28 +3205,40 @@ reConstructLangIntro(){
 		removeView("survey/answerBasic/Finish_LangIntro");
 		removeView("survey/answerBasic/new_langInIntro");
 	}
+	tempChoice=new ArrayList();
+	for(int i=1;i<=5;i++){
+		tempChoice.add(new NameValuePair(i.toString(), i.toString()));
+	}
 	executeViewTask(new ViewTask(){
 		doTask(){
 			createContainer("survey/answerBasic/newLang_c"+newLangInLangIntro, "orientation","survey/answerBasic");
 			createContainer("survey/answerBasic/newlangCode_c" + newLangInLangIntro, "even", "survey/answerBasic/newLang_c" + newLangInLangIntro);
 			createContainer("survey/answerBasic/newLangName_c" + newLangInLangIntro, "even", "survey/answerBasic/newLang_c" + newLangInLangIntro);
-
+			createContainer("survey/answerBasic/newlangDeg_c" + newLangInLangIntro, "even", "survey/answerBasic/newLang_c" + newLangInLangIntro);
+			createContainer("survey/answerBasic/newLangNex_c" + newLangInLangIntro, "even", "survey/answerBasic/newLang_c" + newLangInLangIntro);
 
 			if(newLangInLangIntro==0){
 				createView("survey/answerBasic/newLangCodec" + newLangInLangIntro, createViewDef().createTextField().setLabel("Language code"), "survey/answerBasic/newlangCode_c" + newLangInLangIntro);  
 				createView("survey/answerBasic/newLangNamec" + newLangInLangIntro, createViewDef().createTextField().setLabel("Language name"), "survey/answerBasic/newLangName_c" + newLangInLangIntro); 
+
 			}
 			else{
 				createView("survey/answerBasic/newLangCodec" + newLangInLangIntro, createViewDef().createTextField(), "survey/answerBasic/newlangCode_c" + newLangInLangIntro);  
-				createView("survey/answerBasic/newLangNamec" + newLangInLangIntro, createViewDef().createTextField(), "survey/answerBasic/newLangName_c" + newLangInLangIntro); 
+				createView("survey/answerBasic/newLangNamec" + newLangInLangIntro, createViewDef().createTextField(), "survey/answerBasic/newLangName_c" + newLangInLangIntro);
 			}
-			
+				createView("survey/answerBasic/degc" + newLangInLangIntro, createViewDef().createDropDown(), "survey/answerBasic/newlangDeg_c" + newLangInLangIntro);
+				createView("survey/answerBasic/newLangNexc" + newLangInLangIntro, createViewDef().createButton().setLabel("Next").setStyleCss("faims-blue"), "survey/answerBasic/newLangNex_c" + newLangInLangIntro);
+				populateDropDown("survey/answerBasic/degc" + newLangInLangIntro, tempChoice);
+				
 				createView("survey/answerBasic/Finish_LangIntro", createViewDef().createButton().setLabel("Finish").setStyleCss("faims-blue"), "survey/answerBasic");
 				createView("survey/answerBasic/new_langInIntro", createViewDef().createButton().setLabel("New Language").setStyleCss("faims-blue"), "survey/answerBasic");	
 				onEvent("survey/answerBasic/new_langInIntro","click","reConstructLangIntro()");				
 		}
 	});
 	newLangInLangIntro++;
+}
+startLoopQues(String tempLangId){
+
 }
 /**Functions for answer**/
 loadAnswerInfo(){
