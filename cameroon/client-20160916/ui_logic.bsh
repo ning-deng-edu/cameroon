@@ -1292,6 +1292,7 @@ showSession(){
 }
 /***Social ling quesnir***/
 loopQuesOrder=new ArrayList();
+finLangAndQues=new ArrayList();
 sclngstPrep(){
 loadQuesContentandOrderQuery="select t1.quesId, t1.quesOrder || '-'  || t2. quesContent as qOrderedContent "+
 	            "from "+
@@ -1405,6 +1406,355 @@ fetchAll(queslabel_quesnir_query, new FetchCallback() {
         queslabel_current_quesnir.addAll(result);
     }
 });
+finLangAndQues.clear();
+}
+
+int newLangInLangIntro=0;
+String crntLangIntroId=null;
+createLangIntroPage(String tempQuesId){
+	fetchAll(loadAllLanguageQuery,new FetchCallback() {
+		onFetch(result) {
+			canLangList=new ArrayList();
+			canLangList.clear();
+			canLangList.addAll(result);
+			int langCount=0;
+			int langSize=canLangList.size();
+			crntLangIntroId=null;
+			newLangInLangIntro=0;
+			for(lang:canLangList){
+				String langID=lang.get(0);
+				String langName=lang.get(1);
+
+				style1="orientation";
+				style2="even";
+				style3="large";
+				
+				if(hasView("langIntroAns/answerBasic/Finish_LangIntro")){
+					removeAllViewsAndContainers("survey");
+				}
+
+				executeViewTask(new ViewTask(){
+					doTask(){
+						createContainer("langIntroAns/langIntroAnsInfo/lang_c"+langCount, "orientation","langIntroAns/langIntroAnsInfo");
+						createContainer("langIntroAns/langIntroAnsInfo/langName_c" + langCount, "even", "langIntroAns/langIntroAnsInfo/lang_c" + langCount);
+						createContainer("langIntroAns/langIntroAnsInfo/degree_c" + langCount, "even", "langIntroAns/langIntroAnsInfo/lang_c" + langCount);
+        				createContainer("langIntroAns/langIntroAnsInfo/quesInput_c" + langCount, "even", "langIntroAns/langIntroAnsInfo/lang_c" + langCount);
+
+    					
+  						createView("langIntroAns/langIntroAnsInfo/langc" + langCount, createViewDef().createCheckboxGroup().addChoice(langName, langID), "langIntroAns/langIntroAnsInfo/langName_c" + langCount);  
+  						createView("langIntroAns/langIntroAnsInfo/dec" + langCount, createViewDef().createDropDown(), "langIntroAns/langIntroAnsInfo/degree_c" + langCount); 					
+    					createView("langIntroAns/langIntroAnsInfo/quesc" + langCount, createViewDef().createButton().setLabel("Next").setStyleCss("faims-blue"), "langIntroAns/langIntroAnsInfo/quesInput_c" + langCount);
+    					onEvent("langIntroAns/langIntroAnsInfo/quesc" + langCount,"click","startLoopQues(\""+langID+"\")");
+        				
+						if(langCount==langSize-1){
+							createView("langIntroAns/langIntroAnsInfo/Finish_LangIntro", createViewDef().createButton().setLabel("Finish").setStyleCss("faims-blue"), "langIntroAns/langIntroAnsInfo");
+							createView("langIntroAns/langIntroAnsInfo/new_langInIntro", createViewDef().createButton().setLabel("New Language").setStyleCss("faims-blue"), "langIntroAns/langIntroAnsInfo");	
+							onEvent("langIntroAns/langIntroAnsInfo/new_langInIntro","click","reConstructLangIntro()");	
+						}
+						
+					}
+				});
+				langCount++;
+				
+			}
+			refreshTabgroupCSS("langIntroAns");
+			tempChoice=new ArrayList();
+			for(int i=1;i<=5;i++){
+				tempChoice.add(new NameValuePair(i.toString(), i.toString()));
+			}
+			for(int i=0; i<langSize;i++){
+				populateDropDown("langIntroAns/langIntroAnsInfo/dec"+i, tempChoice);
+			}
+		}  
+	});
+}
+reConstructLangIntro(){
+	if(hasView("survey/answerBasic/Finish_LangIntro")){
+		removeView("survey/answerBasic/Finish_LangIntro");
+		removeView("survey/answerBasic/new_langInIntro");
+	}
+	tempChoice=new ArrayList();
+	for(int i=1;i<=5;i++){
+		tempChoice.add(new NameValuePair(i.toString(), i.toString()));
+	}
+	executeViewTask(new ViewTask(){
+		doTask(){
+			createContainer("langIntroAns/langIntroAnsInfo/newLang_c"+newLangInLangIntro, "orientation","langIntroAns/langIntroAnsInfo");
+			createContainer("langIntroAns/langIntroAnsInfo/newlangCode_c" + newLangInLangIntro, "even", "langIntroAns/langIntroAnsInfo/newLang_c" + newLangInLangIntro);
+			createContainer("langIntroAns/langIntroAnsInfo/newLangName_c" + newLangInLangIntro, "even", "langIntroAns/langIntroAnsInfo/newLang_c" + newLangInLangIntro);
+			createContainer("langIntroAns/langIntroAnsInfo/newlangDeg_c" + newLangInLangIntro, "even", "langIntroAns/langIntroAnsInfo/newLang_c" + newLangInLangIntro);
+			createContainer("langIntroAns/langIntroAnsInfo/newLangNex_c" + newLangInLangIntro, "even", "langIntroAns/langIntroAnsInfo/newLang_c" + newLangInLangIntro);
+
+			if(newLangInLangIntro==0){
+				createView("langIntroAns/langIntroAnsInfo/newLangCodec" + newLangInLangIntro, createViewDef().createTextField().setLabel("Language code"), "langIntroAns/langIntroAnsInfo/newlangCode_c" + newLangInLangIntro);  
+				createView("langIntroAns/langIntroAnsInfo/newLangNamec" + newLangInLangIntro, createViewDef().createTextField().setLabel("Language name"), "langIntroAns/langIntroAnsInfo/newLangName_c" + newLangInLangIntro); 
+
+			}
+			else{
+				createView("langIntroAns/langIntroAnsInfo/newLangCodec" + newLangInLangIntro, createViewDef().createTextField(), "langIntroAns/langIntroAnsInfo/newlangCode_c" + newLangInLangIntro);  
+				createView("langIntroAns/langIntroAnsInfo/newLangNamec" + newLangInLangIntro, createViewDef().createTextField(), "langIntroAns/langIntroAnsInfo/newLangName_c" + newLangInLangIntro);
+			}
+				createView("langIntroAns/langIntroAnsInfo/degc" + newLangInLangIntro, createViewDef().createDropDown(), "langIntroAns/langIntroAnsInfo/newlangDeg_c" + newLangInLangIntro);
+				createView("langIntroAns/langIntroAnsInfo/newLangNexc" + newLangInLangIntro, createViewDef().createButton().setLabel("Next").setStyleCss("faims-blue"), "langIntroAns/langIntroAnsInfo/newLangNex_c" + newLangInLangIntro);
+				populateDropDown("langIntroAns/langIntroAnsInfo/degc" + newLangInLangIntro, tempChoice);
+				
+				createView("langIntroAns/langIntroAnsInfo/Finish_LangIntro", createViewDef().createButton().setLabel("Finish").setStyleCss("faims-blue"), "langIntroAns/langIntroAnsInfo");
+				createView("langIntroAns/langIntroAnsInfo/new_langInIntro", createViewDef().createButton().setLabel("New Language").setStyleCss("faims-blue"), "langIntroAns/langIntroAnsInfo");	
+				onEvent("langIntroAns/langIntroAnsInfo/new_langInIntro","click","reConstructLangIntro()");				
+		}
+	});
+	newLangInLangIntro++;
+}
+
+createLoopQuesList(){
+		if(!hasView("langIntroQues/langIntroQuesInfo/loopQues")){
+		removeAllViewsAndContainers("langIntroQues");
+		executeViewTask(new ViewTask() {
+	    doTask() {
+	        quesSelListDef=createViewDef().createList().setLabel("Questions").setStyleCss("questionQuestionnaire-list");
+	        createView("langIntroQues/langIntroQuesInfo/loopQues", quesSelListDef,"langIntroQues/langIntroQuesInfo");
+	        refreshTabgroupCSS("langIntroQues");
+	        onEvent("langIntroQues/langIntroQuesInfo/loopQues","click","startNewLoopAns()");
+	        populateList("langIntroQues/langIntroQuesInfo/loopQues",loopQuesOrder);
+	   		}
+			});
+	}
+
+}
+Boolean langIntro=false;
+
+
+startLoopQues(String tempLangId){
+	crntLangIntroId=tempLangId;
+	createLoopQuesList();
+}
+startNewLoopAns(){
+	String ques_id=getListItemValue();
+	if(ques_id==null){
+		showWarning("Invalid operation","Please select a question");
+		return;
+	}
+	else{
+		loadAnswerFromQuesInQuesnir(ques_id);
+		langIntro=true;
+		//finLangAndQues.clear();
+
+	}
+
+}
+saveLangIntroFile(String ref, String fileListViewRef, String tabGroupRef, String fileType){
+	saveTabGroup(tabGroupRef,current_answer_file_id, null, null, new SaveCallback() {
+		onSave(uuid, newRecord) {
+			current_answer_file_id = uuid;
+			//showWarning("current_answer_file_id",current_answer_file_id);
+			if (newRecord) {	
+				//showWarning("newRecord","newRecord");	
+				newFile=new ArrayList();
+				newFile.add(current_answer_file_id);
+				newFile.add(getFieldValue(ref));
+				files_in_current_ques.add(newFile);
+				for(file:files_in_current_ques){
+					if(file.get(0).equals("0000")){
+						files_in_current_ques.remove(file);
+						break;
+					}
+				}
+							
+				//Adding new file and file type for changing fileID
+				newFileType=new ArrayList();
+				newFileType.add(current_answer_file_id);
+				newFileType.add(fileType);
+				file_and_fileType.add(newFileType);
+
+				if(dupFileLblChange && !isNull(dupFileLblInfo)){
+					newLabel=dupFileLblInfo.get(1);
+					entityId=dupFileLblInfo.get(0);
+					attributes = createAttributeList();
+					attributes.add(createEntityAttribute("FileID", null, null, newLabel, null));
+					saveArchEnt(entityId, "File", null, attributes);
+					dupFileLblChange=false;
+					dupFileLblInfo.clear();
+				}	
+				if(ansOrNot){
+					populateList("survey/answerFile/answerFileList",files_in_current_ques);
+					showTab("survey/answerFile");
+				}
+				saveLangIntroAnswer();
+				cancelTabGroup(tabGroupRef, true);
+			}
+		}
+	});
+}
+saveLangIntroAnswer(){
+	if(!ansOrNot){
+		attributes = createAttributeList();
+		
+		attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, hiddenAnsInfo.get("quesnir_id"), null));
+		attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
+		attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
+		attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
+
+		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
+			onSave(uuid, newRecord){
+				//showWarning("saveArchEnt 1","saveArchEnt 1");
+				answer_id = uuid;
+				//showWarning("answer_id 1",answer_id);
+				current_answer_id=answer_id;
+				if (newRecord) {
+						for(file : files_in_current_ques){
+							//showWarning("file 1",file.get(0));
+							saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
+						}
+						
+						newAnswer=new ArrayList();
+						newAnswer.add(answer_id);
+						newAnswer.add(hiddenAnsInfo.get("label"));
+						sss_answer_list.add(newAnswer);
+						populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+						//showWarning("populateList","populateList");
+						//if this is the second answer with a duplicate label
+						//the other answer label will be changed with a suffix (1)
+						if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
+							newLabel=dupAnsLblInfo.get(1);
+							showWarning("newLabel",newLabel);
+							ansEntityId=dupAnsLblInfo.get(0);
+							showWarning("ansEntityId",ansEntityId);
+							attributes = createAttributeList();
+							attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
+							saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
+							showWarning("AnswerToQuestionnaire","AnswerToQuestionnaire");
+							dupAnsLblChange=false;
+							dupAnsLblInfo.clear();
+						}
+						showToast("new answer created");
+						tempLangAndQues=new ArrayList();
+						tempLangAndQues.add(crntLangIntroId);
+						tempLangAndQues.add(hiddenAnsInfo.get("ques_id"));
+						finLangAndQues.add(tempLangAndQues);
+						//cancelTabGroup("file", true);
+						autoSaveSession("head");
+						//showWarning("autoSaveSession 3","autoSaveSession 3");
+						nextLangQuestion(hiddenAnsInfo.get("ques_id"));
+					}
+			}
+			onError(message) {
+				showWarning("error on saveNewAnswer1",message);
+			}  
+		});
+	}
+	else{
+		if(isNull(getFieldValue("survey/answerBasic/answerText"))){
+			if(isNull(files_in_current_ques)){
+				showWarning("Warning","Please input answer text or adding an answer file");
+				return;
+			}
+			else if((files_in_current_ques.size()==1) && files_in_current_ques.get(0).get(0).equals("0000")){
+				showWarning("Warning","Please input answer text or adding an answer file");
+				return;
+			}
+			
+		}
+		
+		if(isNull(current_answer_id)){//create new answer
+			String newAnsLabel=getFieldValue("survey/answerHidden/answerLabel");
+			
+			saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
+				onSave(uuid, newRecord) {
+					answer_id = uuid;
+					//showWarning("answer_id",answer_id);
+					current_answer_id=answer_id;
+					//showWarning("current_answer_id",current_answer_id);
+
+					if (newRecord) {
+
+						for(file : files_in_current_ques){
+							saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
+						}
+						
+						newAnswer=new ArrayList();
+						newAnswer.add(answer_id);
+						newAnswer.add(newAnsLabel);
+						sss_answer_list.add(newAnswer);
+						
+						populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+						//if this is the second answer with a duplicate label
+						//the other answer label will be changed with a suffix (1)
+						if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
+							newLabel=dupAnsLblInfo.get(1);
+							ansEntityId=dupAnsLblInfo.get(0);
+							attributes = createAttributeList();
+							attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
+							saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
+							dupAnsLblChange=false;
+							dupAnsLblInfo.clear();
+						}
+						showToast("new answer created");
+						String curntQuesId=getFieldValue("survey/answerHidden/answerQuestionID");
+						cancelTabGroup("survey", true);
+						tempLangAndQues=new ArrayList();
+						tempLangAndQues.add(crntLangIntroId);
+						tempLangAndQues.add(curntQuesId);
+						finLangAndQues.add(tempLangAndQues);
+						//cancelTabGroup("answerToQuestion", true);
+						autoSaveSession("head");
+						//showWarning("autoSaveSession 1","autoSaveSession 1");
+						nextLangQuestion(curntQuesId);
+					}
+				}
+				onError(message) {
+					showWarning("error on saveNewAnswer2",message);
+				}  
+				});
+		}
+	}
+}
+nextLangQuestion(String crnQuesId){
+	int idxCrntQues=-1;
+	String nextQuesContent=null;
+	String nextQuesId=null;
+	for(int i=0;i<loopQuesOrder.size();i++){
+		if(curntQuesId.equals(loopQuesOrder.get(i).get(0))){
+			idxCrntQues=i;
+			break;
+		}
+	}
+	//showWarning("idxCrntQues",idxCrntQues.toString());
+	if(idxCrntQues!=loopQuesOrder.size()-1){
+		nextQuesId=loopQuesOrder.get(idxCrntQues+1).get(0);
+		nextQuesContent=loopQuesOrder.get(idxCrntQues+1).get(1);
+		showAlert("Next question","Do you want to go to the next question:\n"+nextQuesContent,"loadAnswerFromQuesInQuesnir(\""+nextQuesId+"\")","stayInCurrentPage()");
+	}
+	else{
+		checkAllLangIntroQues();
+	}
+}
+checkAllLangIntroQues(){
+	finLangIntroQues=new HashSet();
+	finLangIntroQues.clear();
+
+	for(ques: loopQuesOrder){
+		for(lang: finLangAndQues){
+			if(lang.get(0).equals(crntLangIntroId)){
+				if(lang.get(1).equals(ques.get(0))){
+					finLangIntroQues.add(ques.get(0));
+				}
+			}
+		}
+	}
+
+	if(finLangIntroQues.size()==loopQuesOrder.size()){
+		cancelTabGroup("langIntroQues",true);
+	}
+
+	else{
+		for(ques: loopQuesOrder){
+			if(!finLangIntroQues.contains(ques.get(0))){
+				nextQuesId=ques.get(0);
+				nextQuesContent=ques.get(1);
+				showAlert("Next question","Do you want to go to the next question:\n"+nextQuesContent,"loadAnswerFromQuesInQuesnir(\""+nextQuesId+"\")","stayInCurrentPage()");
+			}
+		}
+	}
 
 }
 /**Emergency session preparation**/
@@ -3143,103 +3493,7 @@ createChkListPage(String tempQuesId){
 			});
 	}
 }
-int newLangInLangIntro=0;
-createLangIntroPage(String tempQuesId){
-	fetchAll(loadAllLanguageQuery,new FetchCallback() {
-		onFetch(result) {
-			canLangList=new ArrayList();
-			canLangList.clear();
-			canLangList.addAll(result);
-			int langCount=0;
-			int langSize=canLangList.size();
-			newLangInLangIntro=0;
-			for(lang:canLangList){
-				String langID=lang.get(0);
-				String langName=lang.get(1);
 
-				style1="orientation";
-				style2="even";
-				style3="large";
-				
-				if(hasView("survey/answerBasic/Finish_LangIntro")){
-					removeAllViewsAndContainers("survey");
-				}
-
-				executeViewTask(new ViewTask(){
-					doTask(){
-						createContainer("survey/answerBasic/lang_c"+langCount, "orientation","survey/answerBasic");
-						createContainer("survey/answerBasic/langName_c" + langCount, "even", "survey/answerBasic/lang_c" + langCount);
-						createContainer("survey/answerBasic/degree_c" + langCount, "even", "survey/answerBasic/lang_c" + langCount);
-        				createContainer("survey/answerBasic/quesInput_c" + langCount, "even", "survey/answerBasic/lang_c" + langCount);
-
-    					
-  						createView("survey/answerBasic/langc" + langCount, createViewDef().createCheckboxGroup().addChoice(langName, langID), "survey/answerBasic/langName_c" + langCount);  
-  						createView("survey/answerBasic/dec" + langCount, createViewDef().createDropDown(), "survey/answerBasic/degree_c" + langCount); 					
-    					createView("survey/answerBasic/quesc" + langCount, createViewDef().createButton().setLabel("Next").setStyleCss("faims-blue"), "survey/answerBasic/quesInput_c" + langCount);
-    					onEvent("survey/answerBasic/quesc" + langCount,"click","startLoopQues(\""+langID+"\"v)");
-        				
-						if(langCount==langSize-1){
-							createView("survey/answerBasic/Finish_LangIntro", createViewDef().createButton().setLabel("Finish").setStyleCss("faims-blue"), "survey/answerBasic");
-							createView("survey/answerBasic/new_langInIntro", createViewDef().createButton().setLabel("New Language").setStyleCss("faims-blue"), "survey/answerBasic");	
-							onEvent("survey/answerBasic/new_langInIntro","click","reConstructLangIntro()");	
-						}
-						
-					}
-				});
-				langCount++;
-				
-			}
-			refreshTabgroupCSS("survey");
-			tempChoice=new ArrayList();
-			for(int i=1;i<=5;i++){
-				tempChoice.add(new NameValuePair(i.toString(), i.toString()));
-			}
-			for(int i=0; i<langSize;i++){
-				populateDropDown("survey/answerBasic/dec"+i, tempChoice);
-			}
-		}  
-	});
-}
-reConstructLangIntro(){
-	if(hasView("survey/answerBasic/Finish_LangIntro")){
-		removeView("survey/answerBasic/Finish_LangIntro");
-		removeView("survey/answerBasic/new_langInIntro");
-	}
-	tempChoice=new ArrayList();
-	for(int i=1;i<=5;i++){
-		tempChoice.add(new NameValuePair(i.toString(), i.toString()));
-	}
-	executeViewTask(new ViewTask(){
-		doTask(){
-			createContainer("survey/answerBasic/newLang_c"+newLangInLangIntro, "orientation","survey/answerBasic");
-			createContainer("survey/answerBasic/newlangCode_c" + newLangInLangIntro, "even", "survey/answerBasic/newLang_c" + newLangInLangIntro);
-			createContainer("survey/answerBasic/newLangName_c" + newLangInLangIntro, "even", "survey/answerBasic/newLang_c" + newLangInLangIntro);
-			createContainer("survey/answerBasic/newlangDeg_c" + newLangInLangIntro, "even", "survey/answerBasic/newLang_c" + newLangInLangIntro);
-			createContainer("survey/answerBasic/newLangNex_c" + newLangInLangIntro, "even", "survey/answerBasic/newLang_c" + newLangInLangIntro);
-
-			if(newLangInLangIntro==0){
-				createView("survey/answerBasic/newLangCodec" + newLangInLangIntro, createViewDef().createTextField().setLabel("Language code"), "survey/answerBasic/newlangCode_c" + newLangInLangIntro);  
-				createView("survey/answerBasic/newLangNamec" + newLangInLangIntro, createViewDef().createTextField().setLabel("Language name"), "survey/answerBasic/newLangName_c" + newLangInLangIntro); 
-
-			}
-			else{
-				createView("survey/answerBasic/newLangCodec" + newLangInLangIntro, createViewDef().createTextField(), "survey/answerBasic/newlangCode_c" + newLangInLangIntro);  
-				createView("survey/answerBasic/newLangNamec" + newLangInLangIntro, createViewDef().createTextField(), "survey/answerBasic/newLangName_c" + newLangInLangIntro);
-			}
-				createView("survey/answerBasic/degc" + newLangInLangIntro, createViewDef().createDropDown(), "survey/answerBasic/newlangDeg_c" + newLangInLangIntro);
-				createView("survey/answerBasic/newLangNexc" + newLangInLangIntro, createViewDef().createButton().setLabel("Next").setStyleCss("faims-blue"), "survey/answerBasic/newLangNex_c" + newLangInLangIntro);
-				populateDropDown("survey/answerBasic/degc" + newLangInLangIntro, tempChoice);
-				
-				createView("survey/answerBasic/Finish_LangIntro", createViewDef().createButton().setLabel("Finish").setStyleCss("faims-blue"), "survey/answerBasic");
-				createView("survey/answerBasic/new_langInIntro", createViewDef().createButton().setLabel("New Language").setStyleCss("faims-blue"), "survey/answerBasic");	
-				onEvent("survey/answerBasic/new_langInIntro","click","reConstructLangIntro()");				
-		}
-	});
-	newLangInLangIntro++;
-}
-startLoopQues(String tempLangId){
-
-}
 /**Functions for answer**/
 loadAnswerInfo(){
 
@@ -3436,7 +3690,7 @@ startNewAnswer(String typeflag){
     }	
     else if(typeflag.equals("lan")){
 		createLangIntroPage(current_question_id);
-		newTabGroup("survey");
+		newTabGroup("langIntroAns");
     }
     else{
     	hiddenAnsInfo.put("quesnir_id",current_quesnir_id);
@@ -3594,10 +3848,6 @@ ansTypeChecking(String ques_id){
 				break;
 				case "LangIntro":
 					answerType="lan";
-				break;
-				//loop question
-				case "Loop":
-					answerType="loo";
 				break;
 				default:
 					answerType="non";
@@ -4136,7 +4386,7 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 		return;
 	}
 	else{
-		if(answerFile){
+		if(answerFile & !langIntro){
 		//busyDialog = showBusy("saving data", "please wait");
 		saveTabGroup(tabGroupRef,current_answer_file_id, null, null, new SaveCallback() {
 			onSave(uuid, newRecord) {
@@ -4207,6 +4457,9 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 				showWarning("error",message);
 			}  
 			});
+		}
+		else if(langIntro){
+			saveLangIntroFile(ref, fileListViewRef, tabGroupRef, fileType);
 		}
 		else{
 			saveTabGroup(tabGroupRef,file_id, null, null, new SaveCallback() {

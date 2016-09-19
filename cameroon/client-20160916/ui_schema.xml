@@ -156,6 +156,16 @@
                     </fileInfo>
                 </file>
 
+                <langIntroQues>
+                    <langIntroQuesInfo>                      
+                    </langIntroQuesInfo>                                              
+                </langIntroQues>
+
+                <langIntroAns>
+                    <langIntroAnsInfo>                      
+                    </langIntroAnsInfo>                                              
+                </langIntroAns>
+
                 <personRoleSelect>
                     <personRoleSelectInfo>
                     </personRoleSelectInfo>
@@ -516,6 +526,20 @@
             </group>
     </group>
     
+    <group ref="langIntroQues">
+        <label>Questions</label>
+        <group ref="langIntroQuesInfo">
+            <label>Questions</label>
+        </group>
+    </group>
+
+     <group ref="langIntroAns">
+        <label>Answer</label>
+        <group ref="langIntroAnsInfo">
+            <label>Answer</label>
+        </group>
+    </group>
+                
     <group ref="file" faims_archent_type="File">
         <label>File</label>
         <group ref="fileHidden" faims_hidden="true">
