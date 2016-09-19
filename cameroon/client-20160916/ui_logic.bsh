@@ -961,7 +961,7 @@ fetchOne(loadQuesnirTypeQuery,new FetchCallback() {
 	});
 }
 regularQuesnirPrep(){
-	loadQuesContentandOrderQuery="select t1.quesId, t1.quesOrder || ' -'  || t2. quesContent as qOrderedContent "+
+	loadQuesContentandOrderQuery="select t1.quesId, t1.quesOrder || '-'  || t2. quesContent as qOrderedContent "+
 	            "from "+
 	            	"(select quId.measure as quesId, qOrder.measure as quesOrder "+
 	            	"from latestNonDeletedAentValue as quId, latestNonDeletedAentValue as qOrder "+
@@ -981,7 +981,9 @@ regularQuesnirPrep(){
 	            		"(select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
 	            		"where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
 	            		"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
-	            		"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"')) t2 "+
+	            		"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"')"+
+	            	"and qId.uuid in "+
+	            	"(select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid'))) t2 "+
 	            	"on t1.quesId=t2.quesId "+
 	            "order by quesOrder asc";
 /*select t1.quesId, t1.quesOrder || ' -'  || t2. quesContent as qOrderedContent 
@@ -1300,21 +1302,26 @@ loadQuesContentandOrderQuery="select t1.quesId, t1.quesOrder || '-'  || t2. ques
 	            	"from latestNonDeletedAentValue as quId, latestNonDeletedAentValue as qOrder "+
 	            	"where qOrder.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesOrderLocal') "+
 	            	"and quId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
-	            	"and quId.uuid=qOrder.uuid and "+
-	            	"quId.measure in "+
+	            	"and quId.uuid=qOrder.uuid "+
+	            	"and quId.measure in "+
 	            		"(select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
 	            		"where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
 	            		"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
-	            		"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"')) t1 "+
+	            		"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"')"+
+	            	"and quId.uuid in "+
+	            	"(select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID'))) t1 "+
 	            	"inner join "+
 	            	"(select qId.measure as quesId, qContent.measure as quesContent from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qContent "+
 	            	"where qContent.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesContent') "+
 	            	"and qId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
-	            	"and qId.uuid=qContent.uuid and qId.measure in "+
+	            	"and qId.uuid=qContent.uuid "+
+	            	"and qId.measure in "+
 	            		"(select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
 	            		"where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
 	            		"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
-	            		"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"')) t2 "+
+	            		"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"')"+
+	            	"and qId.uuid in "+
+	            	"(select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid'))) t2 "+
 	            	"on t1.quesId=t2.quesId "+
 	            "order by quesOrder asc";
 
@@ -1421,6 +1428,10 @@ createLangIntroPage(String tempQuesId){
 			int langSize=canLangList.size();
 			crntLangIntroId=null;
 			newLangInLangIntro=0;
+
+			if(hasView("langIntroAns/langIntroAnsInfo/Finish_LangIntro")){
+				removeAllViewsAndContainers("langIntroAns");
+			}
 			for(lang:canLangList){
 				String langID=lang.get(0);
 				String langName=lang.get(1);
@@ -1429,9 +1440,6 @@ createLangIntroPage(String tempQuesId){
 				style2="even";
 				style3="large";
 				
-				if(hasView("langIntroAns/answerBasic/Finish_LangIntro")){
-					removeAllViewsAndContainers("survey");
-				}
 
 				executeViewTask(new ViewTask(){
 					doTask(){
@@ -1469,9 +1477,9 @@ createLangIntroPage(String tempQuesId){
 	});
 }
 reConstructLangIntro(){
-	if(hasView("survey/answerBasic/Finish_LangIntro")){
-		removeView("survey/answerBasic/Finish_LangIntro");
-		removeView("survey/answerBasic/new_langInIntro");
+	if(hasView("langIntroAns/langIntroAnsInfo/Finish_LangIntro")){
+		removeView("langIntroAns/langIntroAnsInfo/Finish_LangIntro");
+		removeView("langIntroAns/langIntroAnsInfo/new_langInIntro");
 	}
 	tempChoice=new ArrayList();
 	for(int i=1;i<=5;i++){
@@ -1515,7 +1523,7 @@ createLoopQuesList(){
 	        createView("langIntroQues/langIntroQuesInfo/loopQues", quesSelListDef,"langIntroQues/langIntroQuesInfo");
 	        refreshTabgroupCSS("langIntroQues");
 	        onEvent("langIntroQues/langIntroQuesInfo/loopQues","click","startNewLoopAns()");
-	        populateList("langIntroQues/langIntroQuesInfo/loopQues",loopQuesOrder);
+	       
 	   		}
 			});
 	}
@@ -1527,6 +1535,8 @@ Boolean langIntro=false;
 startLoopQues(String tempLangId){
 	crntLangIntroId=tempLangId;
 	createLoopQuesList();
+	newTabGroup("langIntroQues");
+	populateList("langIntroQues/langIntroQuesInfo/loopQues",loopQuesOrder);
 }
 startNewLoopAns(){
 	String ques_id=getListItemValue();
