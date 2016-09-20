@@ -1613,27 +1613,27 @@ saveLangIntroAnswer(){
 		attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
 		attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
 		attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
-		//showWarning("attributes","attributes");
+		showWarning("attributes","attributes");
 		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
 			onSave(uuid, newRecord){
-				//showWarning("saveArchEnt 1","saveArchEnt 1");
+				showWarning("saveArchEnt 1","saveArchEnt 1");
 				answer_id = uuid;
-				//showWarning("answer_id 1",answer_id);
+				showWarning("answer_id 1",answer_id);
 				current_answer_id=answer_id;
-				//showWarning("current_answer_id",current_answer_id);
+				showWarning("current_answer_id",current_answer_id);
 				if (newRecord) {
 						for(file : files_in_current_ques){
-							//showWarning("file 1",file.get(0));
+							showWarning("file 1",file.get(0));
 							saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
 						}
-						//showWarning("Answer and File","Answer and File");
+						showWarning("Answer and File","Answer and File");
 						newAnswer=new ArrayList();
 						newAnswer.add(answer_id);
 						newAnswer.add(hiddenAnsInfo.get("label"));
 						sss_answer_list.add(newAnswer);
-						//showWarning("sss_answer_list and File","sss_answer_list");
+						showWarning("sss_answer_list and File","sss_answer_list");
 						populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-						//showWarning("populateList","populateList");
+						showWarning("populateList","populateList");
 						//if this is the second answer with a duplicate label
 						//the other answer label will be changed with a suffix (1)
 						if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
@@ -1648,13 +1648,13 @@ saveLangIntroAnswer(){
 							dupAnsLblChange=false;
 							dupAnsLblInfo.clear();
 						}
-						//showWarning("sssdupAnsLblChange","dupAnsLblChange");
+						showWarning("sssdupAnsLblChange","dupAnsLblChange");
 						showToast("new answer created");
 						tempLangAndQues=new ArrayList();
 						tempLangAndQues.add(crntLangIntroId);
 						tempLangAndQues.add(hiddenAnsInfo.get("ques_id"));
 						finLangAndQues.add(tempLangAndQues);
-						//showWarning("finLangAndQues",hiddenAnsInfo.get("ques_id"));
+						showWarning("finLangAndQues",hiddenAnsInfo.get("ques_id"));
 						//cancelTabGroup("file", true);
 						autoSaveSession("head");
 						showWarning("autoSaveSession saveLangIntroAnswer","autoSaveSession saveLangIntroAnswer");
@@ -1834,11 +1834,11 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
                 		String oldAns=result.get(0).get(1);
                 		//oldAns=oldAns+"-"+tempLangId;
                 		for(int i=0;i<canLangList.size();i++){
-                			String tempLang=getFieldValue("langIntroAns/langIntroAnsInfo/langName_c" + i).get(0).getName();
+                			String tempLang=getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i).get(0).getName();
                 			showWarning("tempLang",tempLang);
                 			if(tempLang!=null){
                 				if(tempLang.equals(tempLangId)){
-                					String deg=getFieldValue("langIntroAns/langIntroAnsInfo/degree_c" + i);
+                					String deg=getFieldValue("langIntroAns/langIntroAnsInfo/dec" + i);
                 					showWarning("deg",tempLang+deg);
                 					if(!oldAns.contains(tempLangId+"-"+deg)){
                 						if(!oldAns.contains(tempLangId)){
@@ -1887,13 +1887,14 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 
 		}
 		else{
+			//case passed
 			showWarning("saveNewLangIntroAns null","saveNewLangIntroAns null");
 			saveNewLangIntroAns(null,tempQuesnirId,tempQuesId,tempLangId);
 		}
 		
 	}
 	//change basic info of the lang intro query
-	else{
+	else{//case passed
 		String ansText=null;
 		StringBuilder sb=new StringBuilder();
 		selLang=getSelLangInIntro();
@@ -2047,14 +2048,16 @@ saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, St
 	attributes.add(createEntityAttribute("AnswerStartTime", null, null,getCurrentTime(), null));
 showWarning("attributes","attributes");
 	for(int i=0;i<canLangList.size();i++){
-		String tempLang=getFieldValue("langIntroAns/langIntroAnsInfo/langName_c" + i).get(0).getName();
+		String tempLang=getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i).get(0).getName();
 		showWarning("tempLang saveNewLangIntroAns",tempLang);
 		if(tempLang!=null){
 			if(tempLang.equals(tempLangId)){
-				String deg=getFieldValue("langIntroAns/langIntroAnsInfo/degree_c" + i);
+				String deg=getFieldValue("langIntroAns/langIntroAnsInfo/dec" + i);
 				tempLangId=tempLangId+"-"+deg;
 				showWarning("tempLang+deg saveNewLangIntroAns",tempLangId);
 				attributes.add(createEntityAttribute("AnswerText", null, null, tempLangId, null));
+				showWarning("attributesADD","attributes");
+				break;
 			}
 		}	
 	}
