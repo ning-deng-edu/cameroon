@@ -1671,9 +1671,9 @@ saveLangIntroAnswer(){
 							//showWarning("newLabel",newLabel);
 							ansEntityId=dupAnsLblInfo.get(0);
 							//showWarning("ansEntityId",ansEntityId);
-							attributes = createAttributeList();
-							attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
-							saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
+							dupAttributes = createAttributeList();
+							dupAttributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
+							saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, dupAttributes);
 							//showWarning("AnswerToQuestionnaire","AnswerToQuestionnaire");
 							dupAnsLblChange=false;
 							dupAnsLblInfo.clear();
@@ -1738,9 +1738,9 @@ saveLangIntroAnswer(){
 					if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
 						newLabel=dupAnsLblInfo.get(1);
 						ansEntityId=dupAnsLblInfo.get(0);
-						attributes = createAttributeList();
-						attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
-						saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
+						dupAttributes = createAttributeList();
+						dupAttributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
+						saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, dupAttributes);
 						dupAnsLblChange=false;
 						dupAnsLblInfo.clear();
 					}
@@ -1960,9 +1960,9 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 								//showWarning("newLabel",newLabel);
 								ansEntityId=dupAnsLblInfo.get(0);
 								//showWarning("ansEntityId",ansEntityId);
-								attributes = createAttributeList();
-								attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
-								saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
+								dupAttributes = createAttributeList();
+								dupAttributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
+								saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, dupAttributes);
 								//showWarning("AnswerToQuestionnaire","AnswerToQuestionnaire");
 								dupAnsLblChange=false;
 								dupAnsLblInfo.clear();
@@ -2035,9 +2035,9 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 											//showWarning("newLabel",newLabel);
 											ansEntityId=dupAnsLblInfo.get(0);
 											//showWarning("ansEntityId",ansEntityId);
-											attributes = createAttributeList();
-											attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
-											saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
+											dupAttributes = createAttributeList();
+											dupAttributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
+											saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, dupAttributes);
 											//showWarning("AnswerToQuestionnaire","AnswerToQuestionnaire");
 											dupAnsLblChange=false;
 											dupAnsLblInfo.clear();
@@ -2107,9 +2107,9 @@ saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, St
 						//showWarning("newLabel",newLabel);
 						ansEntityId=dupAnsLblInfo.get(0);
 						//showWarning("ansEntityId",ansEntityId);
-						attributes = createAttributeList();
-						attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
-						saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
+						dupAttributes = createAttributeList();
+						dupAttributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
+						saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, dupAttributes);
 						//showWarning("AnswerToQuestionnaire","AnswerToQuestionnaire");
 						dupAnsLblChange=false;
 						dupAnsLblInfo.clear();
@@ -2393,9 +2393,9 @@ saveNewEmrAnswer(){
 					if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
 						newLabel=dupAnsLblInfo.get(1);
 						ansEntityId=dupAnsLblInfo.get(0);
-						attributes = createAttributeList();
-						attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
-						saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
+						dupAttributes = createAttributeList();
+						dupAttributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
+						saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, dupAttributes);
 						dupAnsLblChange=false;
 						dupAnsLblInfo.clear();
 					}
@@ -4275,9 +4275,9 @@ saveNewAnswer(){
 							showWarning("newLabel",newLabel);
 							ansEntityId=dupAnsLblInfo.get(0);
 							showWarning("ansEntityId",ansEntityId);
-							attributes = createAttributeList();
-							attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
-							saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
+							dupAttributes = createAttributeList();
+							dupAttributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
+							saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, dupAttributes);
 							showWarning("AnswerToQuestionnaire","AnswerToQuestionnaire");
 							dupAnsLblChange=false;
 							dupAnsLblInfo.clear();
@@ -4604,65 +4604,65 @@ createFilePage(String fileType, String attachFunc, String saveFunc){
 	}
 	//Generate ui
 
-		removeAllViewsAndContainers("file");
-	 	executeViewTask(new ViewTask() {
-			doTask() { 
+	removeAllViewsAndContainers("file");
+ 	executeViewTask(new ViewTask() {
+		doTask() { 
 
-				//file hidden	
-		 	
-				idFileDef = createViewDef().createTextField().setLabel(uiLabelPrefix+" file label").setAttributeName("FileID").setAttributeType("measure").
-				setAnnotationEnabled(true).setReadOnly(true);
+			//file hidden	
+	 	
+			idFileDef = createViewDef().createTextField().setLabel(uiLabelPrefix+" file label").setAttributeName("FileID").setAttributeType("measure").
+			setAnnotationEnabled(true).setReadOnly(true);
 
-				typeViewDef=createViewDef().createTextField().setLabel("File type").setAttributeName("FileType").setAttributeType("measure").
-				setAnnotationEnabled(true).setReadOnly(true);
+			typeViewDef=createViewDef().createTextField().setLabel("File type").setAttributeName("FileType").setAttributeType("measure").
+			setAnnotationEnabled(true).setReadOnly(true);
 
-				creatorViewDef=createViewDef().createTextField().setLabel("Creator").setAttributeName("FileCreator").setAttributeType("measure").
-				setAnnotationEnabled(true).setReadOnly(true);
+			creatorViewDef=createViewDef().createTextField().setLabel("Creator").setAttributeName("FileCreator").setAttributeType("measure").
+			setAnnotationEnabled(true).setReadOnly(true);
 
-				startTimeViewDef=createViewDef().createTextField().setLabel("Start time").setAttributeName("FileStartTime").setAttributeType("measure").
-				setAnnotationEnabled(true).setReadOnly(true);
+			startTimeViewDef=createViewDef().createTextField().setLabel("Start time").setAttributeName("FileStartTime").setAttributeType("measure").
+			setAnnotationEnabled(true).setReadOnly(true);
 
-				endTimeViewDef=createViewDef().createTextField().setLabel("End time").setAttributeName("FileEndTime").setAttributeType("measure").
-				setAnnotationEnabled(true).setReadOnly(true);
+			endTimeViewDef=createViewDef().createTextField().setLabel("End time").setAttributeName("FileEndTime").setAttributeType("measure").
+			setAnnotationEnabled(true).setReadOnly(true);
 
-				if (fileType.equals("audio") || fileType.equals("sketch")){
-					fileContentViewDef=createViewDef().createFileGroup(true).setLabel(uiLabelPrefix).setAttributeName("FileContent").setAttributeType("measure").setAnnotationEnabled(true);
-				}
-				else if(fileType.equals("video")){
-					fileContentViewDef=createViewDef().createVideoGallery(true).setLabel("Video").setAttributeName("FileContent").setAttributeType("measure").setAnnotationEnabled(true);
-				}
-				else{
-					fileContentViewDef=createViewDef().createCameraGallery(true).setLabel("Photo").setAttributeName("FileContent").setAttributeType("measure").setAnnotationEnabled(true);
-				}
-				nameViewDef=createViewDef().createTextField().setLabel(uiLabelPrefix+" file name").setAttributeName("FileName").setAttributeType("measure");
+			if (fileType.equals("audio") || fileType.equals("sketch")){
+				fileContentViewDef=createViewDef().createFileGroup(true).setLabel(uiLabelPrefix).setAttributeName("FileContent").setAttributeType("measure").setAnnotationEnabled(true);
+			}
+			else if(fileType.equals("video")){
+				fileContentViewDef=createViewDef().createVideoGallery(true).setLabel("Video").setAttributeName("FileContent").setAttributeType("measure").setAnnotationEnabled(true);
+			}
+			else{
+				fileContentViewDef=createViewDef().createCameraGallery(true).setLabel("Photo").setAttributeName("FileContent").setAttributeType("measure").setAnnotationEnabled(true);
+			}
+			nameViewDef=createViewDef().createTextField().setLabel(uiLabelPrefix+" file name").setAttributeName("FileName").setAttributeType("measure");
 
-				createView("file/fileHidden/"+uiNamePrefix+"FileID", idFileDef,"file/fileHidden");
-				createView("file/fileHidden/"+uiNamePrefix+"FileType", typeViewDef,"file/fileHidden");
-				createView("file/fileHidden/"+uiNamePrefix+"FileCreator", creatorViewDef,"file/fileHidden");
-				createView("file/fileHidden/"+uiNamePrefix+"FileStartTime", startTimeViewDef,"file/fileHidden");
-				createView("file/fileHidden/"+uiNamePrefix+"FileEndTime", endTimeViewDef,"file/fileHidden");
-				createView("file/fileHidden/"+uiNamePrefix+"FileName", nameViewDef,"file/fileHidden");
+			createView("file/fileHidden/"+uiNamePrefix+"FileID", idFileDef,"file/fileHidden");
+			createView("file/fileHidden/"+uiNamePrefix+"FileType", typeViewDef,"file/fileHidden");
+			createView("file/fileHidden/"+uiNamePrefix+"FileCreator", creatorViewDef,"file/fileHidden");
+			createView("file/fileHidden/"+uiNamePrefix+"FileStartTime", startTimeViewDef,"file/fileHidden");
+			createView("file/fileHidden/"+uiNamePrefix+"FileEndTime", endTimeViewDef,"file/fileHidden");
+			createView("file/fileHidden/"+uiNamePrefix+"FileName", nameViewDef,"file/fileHidden");
 
-				//non-hidden page
-				newBtnViewDef=createViewDef().createButton().setLabel("New "+ uiLabelPrefix);
+			//non-hidden page
+			newBtnViewDef=createViewDef().createButton().setLabel("New "+ uiLabelPrefix);
 
-				pathTextViewDef=createViewDef().createTextField().setLabel(uiLabelPrefix+" file path").setAttributeName("FilePath").setAttributeType("measure").
-				setAnnotationEnabled(true).setReadOnly(true);
+			pathTextViewDef=createViewDef().createTextField().setLabel(uiLabelPrefix+" file path").setAttributeName("FilePath").setAttributeType("measure").
+			setAnnotationEnabled(true).setReadOnly(true);
 
-				saveBtnViewDef=createViewDef().createButton().setLabel("Save "+ uiLabelPrefix);
-				//createView("file/fileInfo/"+uiNamePrefix+"FileName", nameViewDef,"file/fileInfo");
+			saveBtnViewDef=createViewDef().createButton().setLabel("Save "+ uiLabelPrefix);
+			//createView("file/fileInfo/"+uiNamePrefix+"FileName", nameViewDef,"file/fileInfo");
 
-				
-				createView("file/fileInfo/"+uiNamePrefix+"FileContent", fileContentViewDef,"file/fileInfo");
-				createView("file/fileInfo/Take_"+uiLabelPrefix+"_File", newBtnViewDef,"file/fileInfo");
-				createView("file/fileInfo/"+uiNamePrefix+"FilePath", pathTextViewDef,"file/fileInfo");
-				createView("file/fileInfo/Save_New_"+uiLabelPrefix, saveBtnViewDef,"file/fileInfo");
+			
+			createView("file/fileInfo/"+uiNamePrefix+"FileContent", fileContentViewDef,"file/fileInfo");
+			createView("file/fileInfo/Take_"+uiLabelPrefix+"_File", newBtnViewDef,"file/fileInfo");
+			createView("file/fileInfo/"+uiNamePrefix+"FilePath", pathTextViewDef,"file/fileInfo");
+			createView("file/fileInfo/Save_New_"+uiLabelPrefix, saveBtnViewDef,"file/fileInfo");
 
-			    onEvent("file/fileInfo/Take_"+uiLabelPrefix+"_File","click",attachFunc);
-				//onEvent("file/fileInfo/Save_New_"+uiLabelPrefix,"click","saveFileFromAnswer(\"file/fileInfo/"+uiNamePrefix+"FileName\",\"file/fileInfo/"+uiNamePrefix+"FileContent\",\"file\",uiLabelPrefix)");
-				onEvent("file/fileInfo/Save_New_"+uiLabelPrefix,"click",saveFunc);
-				}
-		});
+		    onEvent("file/fileInfo/Take_"+uiLabelPrefix+"_File","click",attachFunc);
+			//onEvent("file/fileInfo/Save_New_"+uiLabelPrefix,"click","saveFileFromAnswer(\"file/fileInfo/"+uiNamePrefix+"FileName\",\"file/fileInfo/"+uiNamePrefix+"FileContent\",\"file\",uiLabelPrefix)");
+			onEvent("file/fileInfo/Save_New_"+uiLabelPrefix,"click",saveFunc);
+			}
+	});
 }
 /**File functions**/
 Boolean emrOrNot=false;
