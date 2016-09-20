@@ -1657,7 +1657,7 @@ saveLangIntroAnswer(){
 						//showWarning("finLangAndQues",hiddenAnsInfo.get("ques_id"));
 						//cancelTabGroup("file", true);
 						autoSaveSession("head");
-						saveLangIntroAnswer("ans",hiddenAnsInfo.get("quesnir_id"),hiddenAnsInfo.get("ques_id"),crntLangIntroId);
+						saveLangIntroQuesAnswer("ans",hiddenAnsInfo.get("quesnir_id"),hiddenAnsInfo.get("ques_id"),crntLangIntroId);
 						
 
 						//showWarning("autoSaveSession 3","autoSaveSession 3");
@@ -1725,7 +1725,7 @@ saveLangIntroAnswer(){
 						finLangAndQues.add(tempLangAndQues);
 						//cancelTabGroup("answerToQuestion", true);
 						autoSaveSession("head");
-						saveLangIntroAnswer("ans",curntQuesnirId,curntQuesId,crntLangIntroId);
+						saveLangIntroQuesAnswer("ans",curntQuesnirId,curntQuesId,crntLangIntroId);
 						
 						//showWarning("autoSaveSession 1","autoSaveSession 1");
 						nextLangQuestion(curntQuesId);
@@ -1804,7 +1804,7 @@ getSelLangInIntro(){
 
 saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId, String tempLangId){
 	if(typeflag!=null){
-		if(sss_id!=null){
+		if(sss_id!=null){//only need to append the current lang and degree to the existing answerText
 			loadPsLangIntroQuery="select psAns.uuid, psAns.measure from latestNonDeletedAentValue as psAns, latestNonDeletedAentValue as ansQuesnir, latestNonDeletedAentValue as ansQues "+
 				"where psAns.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerText') "+
 				"and ansQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
@@ -1828,19 +1828,23 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
                 		//oldAns=oldAns+"-"+tempLangId;
                 		for(int i=0;i<canLangList.size();i++){
                 			String tempLang=getFieldValue("langIntroAns/langIntroAnsInfo/langName_c" + i).get(0).getName();
+                			showWarning("tempLang",tempLang);
                 			if(tempLang!=null){
                 				if(tempLang.equals(tempLangId)){
                 					String deg=getFieldValue("langIntroAns/langIntroAnsInfo/degree_c" + i);
+                					showWarning("deg",tempLang+deg);
                 					if(!oldAns.contains(tempLangId+"-"+deg)){
                 						if(!oldAns.contains(tempLangId)){
                 							oldAns=oldAns+"_"+tempLangId+"-"+deg;
+                							showWarning("oldAns",oldAns);
                 						}
                 						else{
                 							String[] oldAnsSPlit=oldAns.split("_");
                 							for(int i=0;i<oldAnsSPlit.length;i++){
                 								if(oldAnsSPlit[i].contains(tempLangId)){
-                									String newAnsPart=oldAnsSPlit[i].substring(0,oldAnsSPlit[i].length-2)+"-"+deg;
+                									String newAnsPart=oldAnsSPlit[i].substring(0,oldAnsSPlit[i].length-2)+deg;
                 									oldAnsSPlit[i]=newAnsPart;
+                									showWarning("oldAnsSPlit[i]",oldAnsSPlit[i]);
                 									break;
                 								}
                 							}
@@ -1851,10 +1855,12 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 												sb.append(lbl);
 											}
 											oldAns=sb.toString();
+											showWarning("oldAnsSPlit[i]oldAns",oldAns);
                 						}
                 						attributes = createAttributeList();
 	                					attributes.add(createEntityAttribute("AnswerText", null, null, oldAns, null));
 	                					saveArchEnt(result.get(0).get(0), "AnswerToQuestionnaire", null, attributes);
+	                					showWarning("saveArchEnt","saveArchEnt");
                 					}
                 					
                 				}
@@ -1882,6 +1888,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 		String ansText=null;
 		StringBuilder sb=new StringBuilder();
 		selLang=getSelLangInIntro();
+		showWarning("selLang","selLang");
 		for(lang: selLang){
 			if(sb.length()>0){
 				sb.append("_");
@@ -1889,6 +1896,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 			sb.append(lang.get(0)+"-"+lang.get(1));
 		}
 		ansText=sb.toString();
+		showWarning("ansText",ansText);
 		if(sss_id==null){
 			attributes = createAttributeList();
 		
@@ -1960,6 +1968,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
                 			attributes = createAttributeList();
         					attributes.add(createEntityAttribute("AnswerText", null, null, ansText, null));
         					saveArchEnt(result.get(0).get(0), "AnswerToQuestionnaire", null, attributes);
+        					showWarning("result",result.get(0).get(0));
                 		}
 
                 	}
@@ -2026,7 +2035,7 @@ saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, St
 	attributes.add(createEntityAttribute("AnswerQuestionID", null, null,tempQuesId, null));
 	attributes.add(createEntityAttribute("AnswerLabel", null, null,langIntroAnsLabel, null));
 	attributes.add(createEntityAttribute("AnswerStartTime", null, null,getCurrentTime(), null));
-
+showWarning("attributes","attributes");
 	for(int i=0;i<canLangList.size();i++){
 		String tempLang=getFieldValue("langIntroAns/langIntroAnsInfo/langName_c" + i).get(0).getName();
 		if(tempLang!=null){
@@ -2037,6 +2046,7 @@ saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, St
 			}
 		}	
 	}
+	showWarning("tempLangId",tempLangId);
 	saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
 		onSave(uuid, newRecord){
 			//showWarning("saveArchEnt 1","saveArchEnt 1");
@@ -2068,6 +2078,7 @@ saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, St
 					}
 					//showWarning("sssdupAnsLblChange","dupAnsLblChange");
 					if(typeflag==null){
+						showWarning("typeflag","typeflag==null");
 						autoSaveSession("head");
 					}
 				}
