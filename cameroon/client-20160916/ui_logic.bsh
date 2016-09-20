@@ -1422,10 +1422,10 @@ finLangAndQues.clear();
 int newLangInLangIntro=0;
 String crntLangIntroId=null;
 String langIntroAnsLabel=null;
+canLangList=new ArrayList();
 createLangIntroPage(String tempQuesnirId,String tempQuesId){
 	fetchAll(loadAllLanguageQuery,new FetchCallback() {
 		onFetch(result) {
-			canLangList=new ArrayList();
 			canLangList.clear();
 			canLangList.addAll(result);
 			int langCount=0;
@@ -1657,15 +1657,16 @@ saveLangIntroAnswer(){
 						//showWarning("finLangAndQues",hiddenAnsInfo.get("ques_id"));
 						//cancelTabGroup("file", true);
 						autoSaveSession("head");
+						showWarning("autoSaveSession saveLangIntroAnswer","autoSaveSession saveLangIntroAnswer");
 						saveLangIntroQuesAnswer("ans",hiddenAnsInfo.get("quesnir_id"),hiddenAnsInfo.get("ques_id"),crntLangIntroId);
 						
 
-						//showWarning("autoSaveSession 3","autoSaveSession 3");
+						
 						nextLangQuestion(hiddenAnsInfo.get("ques_id"));
 					}
 			}
 			onError(message) {
-				showWarning("error on saveNewAnswer1",message);
+				showWarning("error on saveLangIntroAnswer1",message);
 			}  
 		});
 	}
@@ -1789,14 +1790,19 @@ checkAllLangIntroQues(){
 
 }
 getSelLangInIntro(){
+	//showWarning("getSelLangInIntro","getSelLangInIntro");
 	returnLangVer=new ArrayList();
 	returnLangVer.clear();
 	for(int i=0;i<canLangList.size();i++){
-		if(!isNull(getFieldValue("langIntroAns/langIntroAnsInfo/langName_c" + i))){
+		if(!isNull(getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i))){
+			//showWarning("!isNull","!isNull");
 			tempLangVer=new ArrayList();
-			tempLangVer.add(getFieldValue("langIntroAns/langIntroAnsInfo/langName_c" + i).get(0).getName());
-			tempLangVer.add(getFieldValue("langIntroAns/langIntroAnsInfo/degree_c" + i));
+			tempLangVer.add(getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i).get(0).getName());
+			//showWarning("getFieldValue1","getFieldValue1");
+			tempLangVer.add(getFieldValue("langIntroAns/langIntroAnsInfo/dec" + i));
+			//showWarning("getFieldValue2","getFieldValue2");
 			returnLangVer.add(tempLangVer);
+			//showWarning("returnLangVer","returnLangVer");
 		}
 	}
 	return returnLangVer;
@@ -1823,6 +1829,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 
 			fetchOne(loadPsLangIntroQuery, new FetchCallback() {
                 onFetch(result) {
+                	showWarning("onresult","onresult");
                 	if(!isNull(result)){
                 		String oldAns=result.get(0).get(1);
                 		//oldAns=oldAns+"-"+tempLangId;
@@ -1868,6 +1875,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
                 		}
                 	}
                 	else{
+                		showWarning("saveNewLangIntroAns(s)","saveNewLangIntroAns(s)");
                 		saveNewLangIntroAns("s",tempQuesnirId,tempQuesId,tempLangId);
                 	}
                 }
@@ -1879,6 +1887,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 
 		}
 		else{
+			showWarning("saveNewLangIntroAns null","saveNewLangIntroAns null");
 			saveNewLangIntroAns(null,tempQuesnirId,tempQuesId,tempLangId);
 		}
 		
@@ -1888,7 +1897,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 		String ansText=null;
 		StringBuilder sb=new StringBuilder();
 		selLang=getSelLangInIntro();
-		showWarning("selLang","selLang");
+		//showWarning("selLang","selLang");
 		for(lang: selLang){
 			if(sb.length()>0){
 				sb.append("_");
@@ -1896,7 +1905,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 			sb.append(lang.get(0)+"-"+lang.get(1));
 		}
 		ansText=sb.toString();
-		showWarning("ansText",ansText);
+		//showWarning("ansText",ansText);
 		if(sss_id==null){
 			attributes = createAttributeList();
 		
@@ -1939,11 +1948,11 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 						}
 				}
 				onError(message) {
-					showWarning("error on saveLangIntroQuesAnswer",message);
+					showWarning("error on saveLangIntroQuesAnswer typeFlag==null1",message);
 				}  
 			});
 		}
-		else{
+		else{//case passed
 			loadPsLangIntroQuery="select psAns.uuid, psAns.measure from latestNonDeletedAentValue as psAns, latestNonDeletedAentValue as ansQuesnir, latestNonDeletedAentValue as ansQues "+
 				"where psAns.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerText') "+
 				"and ansQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
@@ -2011,9 +2020,10 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 											dupAnsLblInfo.clear();
 										}
 									}
+									autoSaveSession("head");
 							}
 							onError(message) {
-								showWarning("error on saveLangIntroQuesAnswer",message);
+								showWarning("error on saveLangIntroQuesAnswer typeflag==null2",message);
 							}  
 						});
         			}
@@ -2038,10 +2048,12 @@ saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, St
 showWarning("attributes","attributes");
 	for(int i=0;i<canLangList.size();i++){
 		String tempLang=getFieldValue("langIntroAns/langIntroAnsInfo/langName_c" + i).get(0).getName();
+		showWarning("tempLang saveNewLangIntroAns",tempLang);
 		if(tempLang!=null){
 			if(tempLang.equals(tempLangId)){
 				String deg=getFieldValue("langIntroAns/langIntroAnsInfo/degree_c" + i);
 				tempLangId=tempLangId+"-"+deg;
+				showWarning("tempLang+deg saveNewLangIntroAns",tempLangId);
 				attributes.add(createEntityAttribute("AnswerText", null, null, tempLangId, null));
 			}
 		}	
@@ -2049,7 +2061,7 @@ showWarning("attributes","attributes");
 	showWarning("tempLangId",tempLangId);
 	saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
 		onSave(uuid, newRecord){
-			//showWarning("saveArchEnt 1","saveArchEnt 1");
+			showWarning("saveArchEnt saveNewLangIntroAns","saveArchEnt saveNewLangIntroAns");
 			answer_id = uuid;
 			//showWarning("answer_id 1",answer_id);
 			current_answer_id=answer_id;
