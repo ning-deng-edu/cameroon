@@ -1662,6 +1662,7 @@ saveLangIntroAnswer(){
 						sss_answer_list.add(newAnswer);
 						//showWarning("sss_answer_list and File","sss_answer_list");
 						populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+						autoSaveSession("head");
 						//showWarning("populateList","populateList");
 						//if this is the second answer with a duplicate label
 						//the other answer label will be changed with a suffix (1)
@@ -1685,9 +1686,11 @@ saveLangIntroAnswer(){
 						finLangAndQues.add(tempLangAndQues);
 						//showWarning("finLangAndQues",hiddenAnsInfo.get("ques_id"));
 						//cancelTabGroup("file", true);
-						autoSaveSession("head");
+						
 						//showWarning("autoSaveSession saveLangIntroAnswer","autoSaveSession saveLangIntroAnswer");
-						saveLangIntroQuesAnswer("ans",hiddenAnsInfo.get("quesnir_id"),hiddenAnsInfo.get("ques_id"),crntLangIntroId);
+						if(tempLangAndQues.size()!=1){
+							saveLangIntroQuesAnswer("ans",hiddenAnsInfo.get("quesnir_id"),hiddenAnsInfo.get("ques_id"),crntLangIntroId);
+						}
 						nextLangQuestion(hiddenAnsInfo.get("ques_id"));
 					}
 			}
@@ -2115,7 +2118,7 @@ saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, St
 						saveFurtherFileAndAnswer(tempInfo.get(0),tempInfo.get(1),tempInfo.get(2),tempInfo.get(3));
 					}
 					
-					//showWarning("sssdupAnsLblChange","dupAnsLblChange");
+					//showWarning("saveNewLangIntroAns","saveNewLangIntroAns");
 					
 				}
 		}
@@ -4600,7 +4603,7 @@ createFilePage(String fileType, String attachFunc, String saveFunc){
 		break;
 	}
 	//Generate ui
-	if(!hasView("file/fileHidden/"+uiNamePrefix+"FileID")){
+
 		removeAllViewsAndContainers("file");
 	 	executeViewTask(new ViewTask() {
 			doTask() { 
@@ -4660,12 +4663,13 @@ createFilePage(String fileType, String attachFunc, String saveFunc){
 				onEvent("file/fileInfo/Save_New_"+uiLabelPrefix,"click",saveFunc);
 				}
 		});
-	}
 }
 /**File functions**/
+Boolean emrOrNot=false;
 newFile(String typeFlag, String fileType){
 	String fileCategory=null;
 	String tempAnsID=null;
+	emrOrNot=false;
 	switch (typeFlag){
 		case "answer":
 		if(fileType==null){
@@ -4741,6 +4745,7 @@ newFile(String typeFlag, String fileType){
 				case "emr":		
 					//Generate audio file creation ui pages
 				 	//createAudioFilePage("new");
+					emrOrNot=true;
 					createFilePage("audio","attachAudioToField(\"file/fileInfo/audioFileContent\")",
 						"saveEmrFile(\"file/fileHidden/audioFileID\",\"file/fileInfo/audioFileContent\",\"file\",\"Audio\")");
 					newTabGroup("file");
