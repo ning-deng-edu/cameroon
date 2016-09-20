@@ -580,6 +580,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	emrAnsInfo.clear();
 	emrPsInfo.clear();
 	emrIveExist=false;
+
 	newTabGroup("sessionForAnswer");
 	String currentTime=getCurrentTime();
     //currentDateTimeArray=currentTime.toString().split("\\s+");
@@ -1559,6 +1560,34 @@ startNewLoopAns(){
 	}
 
 }
+saveLangIntro(String ref, String fileListViewRef, String tabGroupRef, String fileType){
+	if(finLangAndQues.size()<1){
+		ArrayList tempInfo=new ArrayList();
+		tempInfo.add(ref);
+		tempInfo.add(fileListViewRef);
+		tempInfo.add(tabGroupRef);
+		tempInfo.add(fileType);
+		if(!ansOrNot){
+			saveNewLangIntroAns("s",hiddenAnsInfo.get("quesnir_id"),hiddenAnsInfo.get("ques_id"),crntLangIntroId,tempInfo);
+		}
+		else{
+			String curntQuesId=getFieldValue("survey/answerHidden/answerQuestionID");
+			String curntQuesnirId=getFieldValue("survey/answerHidden/answerQuestionnaireID");
+			saveNewLangIntroAns("s",curntQuesnirId,curntQuesId,crntLangIntroId,tempInfo);
+		}
+	}
+	else{
+		saveFurtherFileAndAnswer(ref, fileListViewRef,tabGroupRef,fileType);
+	}
+}
+saveFurtherFileAndAnswer(String ref, String fileListViewRef, String tabGroupRef, String fileType){
+	if(!ansOrNot){
+		saveLangIntroFile(ref, fileListViewRef,tabGroupRef,fileType);
+	}
+	else{
+//todo:
+	}
+}
 saveLangIntroFile(String ref, String fileListViewRef, String tabGroupRef, String fileType){
 	//showWarning(ref, fileListViewRef+":"+tabGroupRef+":"+fileType);
 	saveTabGroup(tabGroupRef,current_answer_file_id, null, null, new SaveCallback() {
@@ -1613,27 +1642,27 @@ saveLangIntroAnswer(){
 		attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
 		attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
 		attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
-		showWarning("attributes","attributes");
+		//showWarning("attributes","attributes");
 		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
 			onSave(uuid, newRecord){
-				showWarning("saveArchEnt 1","saveArchEnt 1");
-				answer_id = uuid;
-				showWarning("answer_id 1",answer_id);
-				current_answer_id=answer_id;
-				showWarning("current_answer_id",current_answer_id);
+				//showWarning("saveArchEnt 1","saveArchEnt 1");
+				//answer_id = uuid;
+				//showWarning("answer_id 1",answer_id);
+				//current_answer_id=answer_id;
+				//showWarning("current_answer_id",current_answer_id);
 				if (newRecord) {
 						for(file : files_in_current_ques){
-							showWarning("file 1",file.get(0));
-							saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
+							//showWarning("file 1",file.get(0));
+							saveEntitiesToRel("Answer and File",uuid,file.get(0));		
 						}
-						showWarning("Answer and File","Answer and File");
+						//showWarning("Answer and File","Answer and File");
 						newAnswer=new ArrayList();
-						newAnswer.add(answer_id);
+						newAnswer.add(uuid);
 						newAnswer.add(hiddenAnsInfo.get("label"));
 						sss_answer_list.add(newAnswer);
-						showWarning("sss_answer_list and File","sss_answer_list");
+						//showWarning("sss_answer_list and File","sss_answer_list");
 						populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-						showWarning("populateList","populateList");
+						//showWarning("populateList","populateList");
 						//if this is the second answer with a duplicate label
 						//the other answer label will be changed with a suffix (1)
 						if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
@@ -1648,20 +1677,17 @@ saveLangIntroAnswer(){
 							dupAnsLblChange=false;
 							dupAnsLblInfo.clear();
 						}
-						showWarning("sssdupAnsLblChange","dupAnsLblChange");
+						//showWarning("sssdupAnsLblChange","dupAnsLblChange");
 						showToast("new answer created");
 						tempLangAndQues=new ArrayList();
 						tempLangAndQues.add(crntLangIntroId);
 						tempLangAndQues.add(hiddenAnsInfo.get("ques_id"));
 						finLangAndQues.add(tempLangAndQues);
-						showWarning("finLangAndQues",hiddenAnsInfo.get("ques_id"));
+						//showWarning("finLangAndQues",hiddenAnsInfo.get("ques_id"));
 						//cancelTabGroup("file", true);
 						autoSaveSession("head");
-						showWarning("autoSaveSession saveLangIntroAnswer","autoSaveSession saveLangIntroAnswer");
+						//showWarning("autoSaveSession saveLangIntroAnswer","autoSaveSession saveLangIntroAnswer");
 						saveLangIntroQuesAnswer("ans",hiddenAnsInfo.get("quesnir_id"),hiddenAnsInfo.get("ques_id"),crntLangIntroId);
-						
-
-						
 						nextLangQuestion(hiddenAnsInfo.get("ques_id"));
 					}
 			}
@@ -1682,61 +1708,63 @@ saveLangIntroAnswer(){
 			}
 			
 		}
+
+		String newAnsLabel=getFieldValue("survey/answerHidden/answerLabel");
 		
-		if(isNull(current_answer_id)){//create new answer
-			String newAnsLabel=getFieldValue("survey/answerHidden/answerLabel");
-			
-			saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
-				onSave(uuid, newRecord) {
-					answer_id = uuid;
-					//showWarning("answer_id",answer_id);
-					current_answer_id=answer_id;
-					//showWarning("current_answer_id",current_answer_id);
+		saveTabGroup("survey", null, null, null, new SaveCallback() {
+			onSave(uuid, newRecord) {
+				//answer_id = uuid;
+				//showWarning("answer_id",answer_id);
+				//current_answer_id=answer_id;
+				//showWarning("current_answer_id",current_answer_id);
 
-					if (newRecord) {
+				if (newRecord) {
 
-						for(file : files_in_current_ques){
-							saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
-						}
-						
-						newAnswer=new ArrayList();
-						newAnswer.add(answer_id);
-						newAnswer.add(newAnsLabel);
-						sss_answer_list.add(newAnswer);
-						
-						populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-						//if this is the second answer with a duplicate label
-						//the other answer label will be changed with a suffix (1)
-						if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
-							newLabel=dupAnsLblInfo.get(1);
-							ansEntityId=dupAnsLblInfo.get(0);
-							attributes = createAttributeList();
-							attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
-							saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
-							dupAnsLblChange=false;
-							dupAnsLblInfo.clear();
-						}
-						showToast("new answer created");
-						String curntQuesId=getFieldValue("survey/answerHidden/answerQuestionID");
-						String curntQuesnirId=getFieldValue("survey/answerHidden/answerQuestionnaireID");
-						cancelTabGroup("survey", true);
-						tempLangAndQues=new ArrayList();
-						tempLangAndQues.add(crntLangIntroId);
-						tempLangAndQues.add(curntQuesId);
-						finLangAndQues.add(tempLangAndQues);
-						//cancelTabGroup("answerToQuestion", true);
-						autoSaveSession("head");
-						saveLangIntroQuesAnswer("ans",curntQuesnirId,curntQuesId,crntLangIntroId);
-						
-						//showWarning("autoSaveSession 1","autoSaveSession 1");
-						nextLangQuestion(curntQuesId);
+					for(file : files_in_current_ques){
+						saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
 					}
+					
+					newAnswer=new ArrayList();
+					newAnswer.add(uuid);
+					newAnswer.add(newAnsLabel);
+					sss_answer_list.add(newAnswer);
+					
+					populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+					//if this is the second answer with a duplicate label
+					//the other answer label will be changed with a suffix (1)
+					if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
+						newLabel=dupAnsLblInfo.get(1);
+						ansEntityId=dupAnsLblInfo.get(0);
+						attributes = createAttributeList();
+						attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
+						saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
+						dupAnsLblChange=false;
+						dupAnsLblInfo.clear();
+					}
+					showToast("new answer created");
+					String curntQuesId=getFieldValue("survey/answerHidden/answerQuestionID");
+					String curntQuesnirId=getFieldValue("survey/answerHidden/answerQuestionnaireID");
+					cancelTabGroup("survey", true);
+					tempLangAndQues=new ArrayList();
+					tempLangAndQues.add(crntLangIntroId);
+					tempLangAndQues.add(curntQuesId);
+					finLangAndQues.add(tempLangAndQues);
+					//cancelTabGroup("answerToQuestion", true);
+					
+					autoSaveSession("head");
+					saveLangIntroQuesAnswer("ans",curntQuesnirId,curntQuesId,crntLangIntroId);
+
+					
+					
+					//showWarning("autoSaveSession 1","autoSaveSession 1");
+					nextLangQuestion(curntQuesId);
 				}
-				onError(message) {
-					showWarning("error on saveNewAnswer2",message);
-				}  
-				});
-		}
+			}
+			onError(message) {
+				showWarning("error on saveNewAnswer2",message);
+			}  
+			});
+		
 	}
 }
 nextLangQuestion(String crnQuesId){
@@ -1829,21 +1857,21 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 
 			fetchOne(loadPsLangIntroQuery, new FetchCallback() {
                 onFetch(result) {
-                	showWarning("onresult","onresult");
+                	//showWarning("onresult","onresult");
                 	if(!isNull(result)){
                 		String oldAns=result.get(0).get(1);
                 		//oldAns=oldAns+"-"+tempLangId;
                 		for(int i=0;i<canLangList.size();i++){
                 			String tempLang=getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i).get(0).getName();
-                			showWarning("tempLang",tempLang);
+                			//showWarning("tempLang",tempLang);
                 			if(tempLang!=null){
                 				if(tempLang.equals(tempLangId)){
                 					String deg=getFieldValue("langIntroAns/langIntroAnsInfo/dec" + i);
-                					showWarning("deg",tempLang+deg);
+                					//showWarning("deg",tempLang+deg);
                 					if(!oldAns.contains(tempLangId+"-"+deg)){
                 						if(!oldAns.contains(tempLangId)){
                 							oldAns=oldAns+"_"+tempLangId+"-"+deg;
-                							showWarning("oldAns",oldAns);
+                							//showWarning("oldAns",oldAns);
                 						}
                 						else{
                 							String[] oldAnsSPlit=oldAns.split("_");
@@ -1851,7 +1879,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
                 								if(oldAnsSPlit[i].contains(tempLangId)){
                 									String newAnsPart=oldAnsSPlit[i].substring(0,oldAnsSPlit[i].length-2)+deg;
                 									oldAnsSPlit[i]=newAnsPart;
-                									showWarning("oldAnsSPlit[i]",oldAnsSPlit[i]);
+                									//showWarning("oldAnsSPlit[i]",oldAnsSPlit[i]);
                 									break;
                 								}
                 							}
@@ -1862,21 +1890,17 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 												sb.append(lbl);
 											}
 											oldAns=sb.toString();
-											showWarning("oldAnsSPlit[i]oldAns",oldAns);
+											//showWarning("oldAnsSPlit[i]oldAns",oldAns);
                 						}
                 						attributes = createAttributeList();
 	                					attributes.add(createEntityAttribute("AnswerText", null, null, oldAns, null));
 	                					saveArchEnt(result.get(0).get(0), "AnswerToQuestionnaire", null, attributes);
-	                					showWarning("saveArchEnt","saveArchEnt");
+	                					//showWarning("saveArchEnt","saveArchEnt");
                 					}
                 					
                 				}
                 			}	
                 		}
-                	}
-                	else{
-                		showWarning("saveNewLangIntroAns(s)","saveNewLangIntroAns(s)");
-                		saveNewLangIntroAns("s",tempQuesnirId,tempQuesId,tempLangId);
                 	}
                 }
 
@@ -1885,11 +1909,6 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
                 }
             });
 
-		}
-		else{
-			//case passed
-			showWarning("saveNewLangIntroAns null","saveNewLangIntroAns null");
-			saveNewLangIntroAns(null,tempQuesnirId,tempQuesId,tempLangId);
 		}
 		
 	}
@@ -1978,7 +1997,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
                 			attributes = createAttributeList();
         					attributes.add(createEntityAttribute("AnswerText", null, null, ansText, null));
         					saveArchEnt(result.get(0).get(0), "AnswerToQuestionnaire", null, attributes);
-        					showWarning("result",result.get(0).get(0));
+        					//showWarning("result",result.get(0).get(0));
                 		}
 
                 	}
@@ -2000,7 +2019,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 								//showWarning("current_answer_id",current_answer_id);
 								if (newRecord) {
 										newAnswer=new ArrayList();
-										newAnswer.add(answer_id);
+										newAnswer.add(uuid);
 										newAnswer.add(langIntroAnsLabel);
 										sss_answer_list.add(newAnswer);
 										//showWarning("sss_answer_list and File","sss_answer_list");
@@ -2039,43 +2058,44 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 	}
 }
 
-saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, String tempLangId){
+saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, String tempLangId, ArrayList tempInfo){
 	attributes = createAttributeList();
 		
 	attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null,tempQuesnirId, null));
 	attributes.add(createEntityAttribute("AnswerQuestionID", null, null,tempQuesId, null));
 	attributes.add(createEntityAttribute("AnswerLabel", null, null,langIntroAnsLabel, null));
 	attributes.add(createEntityAttribute("AnswerStartTime", null, null,getCurrentTime(), null));
-showWarning("attributes","attributes");
+
+//showWarning("attributes","attributes");
 	for(int i=0;i<canLangList.size();i++){
 		String tempLang=getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i).get(0).getName();
-		showWarning("tempLang saveNewLangIntroAns",tempLang);
+		//showWarning("tempLang saveNewLangIntroAns",tempLang);
 		if(tempLang!=null){
 			if(tempLang.equals(tempLangId)){
 				String deg=getFieldValue("langIntroAns/langIntroAnsInfo/dec" + i);
 				tempLangId=tempLangId+"-"+deg;
-				showWarning("tempLang+deg saveNewLangIntroAns",tempLangId);
+				//showWarning("tempLang+deg saveNewLangIntroAns",tempLangId);
 				attributes.add(createEntityAttribute("AnswerText", null, null, tempLangId, null));
-				showWarning("attributesADD","attributes");
+				//showWarning("attributesADD","attributes");
 				break;
 			}
 		}	
 	}
-	showWarning("tempLangId",tempLangId);
+	//showWarning("tempLangId",tempLangId);
 	saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
 		onSave(uuid, newRecord){
-			showWarning("saveArchEnt saveNewLangIntroAns","saveArchEnt saveNewLangIntroAns");
-			answer_id = uuid;
+			//showWarning("saveArchEnt saveNewLangIntroAns","saveArchEnt saveNewLangIntroAns");
 			//showWarning("answer_id 1",answer_id);
-			current_answer_id=answer_id;
+			//current_answer_id=uuid;
 			//showWarning("current_answer_id",current_answer_id);
 			if (newRecord) {
 					newAnswer=new ArrayList();
-					newAnswer.add(answer_id);
+					newAnswer.add(uuid);
 					newAnswer.add(langIntroAnsLabel);
 					sss_answer_list.add(newAnswer);
 					//showWarning("sss_answer_list and File","sss_answer_list");
 					populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+					//autoSaveSession("head");
 					//showWarning("populateList","populateList");
 					//if this is the second answer with a duplicate label
 					//the other answer label will be changed with a suffix (1)
@@ -2091,11 +2111,12 @@ showWarning("attributes","attributes");
 						dupAnsLblChange=false;
 						dupAnsLblInfo.clear();
 					}
-					//showWarning("sssdupAnsLblChange","dupAnsLblChange");
-					if(typeflag==null){
-						showWarning("typeflag","typeflag==null");
-						autoSaveSession("head");
+					if(!isNull(tempInfo)){
+						saveFurtherFileAndAnswer(tempInfo.get(0),tempInfo.get(1),tempInfo.get(2),tempInfo.get(3));
 					}
+					
+					//showWarning("sssdupAnsLblChange","dupAnsLblChange");
+					
 				}
 		}
 		onError(message) {
@@ -2214,9 +2235,6 @@ emrSssPrep(){
 		}
 	});   
 	
-
-	
-
 	emrSssInfo.put("sssName", emrSssName);
 	emrSssInfo.put("sssSttTime", emrSssStartTime);
 	
@@ -3086,6 +3104,7 @@ saveAnsInSession(String sessionId, String typeflag){
 	if(typeflag.equals("newSss")){
 		for(answer:sss_answer_list){
 			saveEntitiesToRel("Answer and Session",sessionId,answer.get(0));
+			//showWarning(sessionId,answer.get(0));
 		}
 	}
 	//else we just need to check the labels
@@ -3434,6 +3453,7 @@ ansListChange(Hashtable sssAnsChange){
 		sssNewAddedAns= sssAnsChange.get("PUREADD");
 		for(answer:sssNewAddedAns){
 			saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
+			//showWarning(sss_id,"new added:"+answer.get(0));
 		}//for(answer:sss_answer_list)
 	}
 	else if (sssAnsChange.containsKey("PUREDELETE")){
@@ -3708,6 +3728,7 @@ saveSession(String typeflag){
 										autoSaveSession("tailNew");
 										showToast("New session contains answer(s) created");
 										saveNewSssToFieldTrip(sss_id);
+
 							      }
 							    }
 							    onError(message) {
@@ -4639,7 +4660,6 @@ createFilePage(String fileType, String attachFunc, String saveFunc){
 				onEvent("file/fileInfo/Save_New_"+uiLabelPrefix,"click",saveFunc);
 				}
 		});
-
 	}
 }
 /**File functions**/
@@ -4819,7 +4839,7 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 			});
 		}
 		else if(langIntro){
-			saveLangIntroFile(ref, fileListViewRef, tabGroupRef, fileType);
+			saveLangIntro(ref, fileListViewRef, tabGroupRef, fileType);
 		}
 		else{
 			saveTabGroup(tabGroupRef,file_id, null, null, new SaveCallback() {
