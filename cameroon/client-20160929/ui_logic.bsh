@@ -1299,7 +1299,9 @@ showSession(){
 /***Social ling quesnir***/
 loopQuesOrder=new ArrayList();
 finLangAndQues=new ArrayList();
+langIntroQuesUuid=null;
 sclngstPrep(){
+langIntroQuesUuid=null;
 loadQuesContentandOrderQuery="select t1.quesId, t1.quesOrder || '-'  || t2. quesContent as qOrderedContent "+
 	            "from "+
 	            	"(select quId.measure as quesId, qOrder.measure as quesOrder "+
@@ -1332,6 +1334,7 @@ loadQuesContentandOrderQuery="select t1.quesId, t1.quesOrder || '-'  || t2. ques
 quesnir_ques_reln_query="select uuid from latestNonDeletedArchEntIdentifiers "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
 		"and measure='"+current_quesnir_id+"' ";
+
 queslabel_quesnir_query="select uuid, measure from latestNonDeletedAentValue "+
 "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
 "and uuid in (select measure from latestNonDeletedArchEntIdentifiers "+
@@ -1371,6 +1374,7 @@ fetchAll(loadQuesContentandOrderQuery, new FetchCallback() {
 		        for(quesRec: quesRecordingType){
 		        	if (quesRec.get(1).equals("LangIntro")){
 		        		tempQuesStartId=quesRec.get(0);
+		        		langIntroQuesUuid=tempQuesStartId;
 		        		break;
 		        	}
 		        }
@@ -1688,6 +1692,7 @@ saveLangIntroAnswer(){
 						
 						showWarning("finLangAndQues()",finLangAndQues.size().toString());
 						if(finLangAndQues.size()>1){
+							//todo: just check the sociolinguistic question's id
 							saveLangIntroQuesAnswer("ans",hiddenAnsInfo.get("quesnir_id"),hiddenAnsInfo.get("ques_id"),crntLangIntroId);
 						}
 						nextLangQuestion(hiddenAnsInfo.get("ques_id"));
@@ -1843,6 +1848,7 @@ getSelLangInIntro(){
 
 saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId, String tempLangId){
 	if(typeflag!=null){
+		showWarning("langIntroQuesUuid",langIntroQuesUuid);
 		if(sss_id!=null){//only need to append the current lang and degree to the existing answerText
 			loadPsLangIntroQuery="select psAns.uuid, psAns.measure from latestNonDeletedAentValue as psAns, latestNonDeletedAentValue as ansQuesnir, latestNonDeletedAentValue as ansQues "+
 				"where psAns.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerText') "+
@@ -1851,7 +1857,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 				"and psAns.uuid=ansQuesnir.uuid "+
 				"and ansQuesnir.uuid=ansQues.uuid "+
 				"and ansQuesnir.measure='"+tempQuesnirId+"' "+
-				"and ansQues.measure='"+tempQuesId+"' "+
+				"and ansQues.measure='"+langIntroQuesUuid+"' "+
 				"and psAns.uuid in "+
 				"(select uuid from AentReln where RelationshipID in "+
 				"(select RelationshipID from AEntReln where AEntReln.uuid='"+sss_id+"' "+
@@ -1868,6 +1874,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
                 		String oldAns=result.get(1);
                 		showWarning("oldAns",oldAns);
                 		for(int i=0;i<canLangList.size();i++){
+                			showWarning("ith loop","i="+i.toString());
                 			String tempLang=getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i).get(0).getName();
                 			showWarning("tempLang",tempLang);
                 			if(tempLang!=null){
@@ -1903,6 +1910,9 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 	                					saveArchEnt(result.get(0), "AnswerToQuestionnaire", null, attributes);
 	                					showWarning("saveArchEnt","saveArchEnt");
                 					}
+                					else{
+                						showWarning("same answer","same answer");
+                					}
                 					
                 				}
                 			}	
@@ -1936,7 +1946,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 			attributes = createAttributeList();
 		
 			attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null,tempQuesnirId, null));
-			attributes.add(createEntityAttribute("AnswerQuestionID", null, null,tempQuesId, null));
+			attributes.add(createEntityAttribute("AnswerQuestionID", null, null,langIntroQuesUuid, null));
 			attributes.add(createEntityAttribute("AnswerLabel", null, null,langIntroAnsLabel, null));
 			attributes.add(createEntityAttribute("AnswerStartTime", null, null,getCurrentTime(), null));
 		
@@ -1986,7 +1996,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 				"and psAns.uuid=ansQuesnir.uuid "+
 				"and ansQuesnir.uuid=ansQues.uuid "+
 				"and ansQuesnir.measure='"+tempQuesnirId+"' "+
-				"and ansQues.measure='"+tempQuesId+"' "+
+				"and ansQues.measure='"+langIntroQuesUuid+"' "+
 				"and psAns.uuid in "+
 				"(select uuid from AentReln where RelationshipID in "+
 				"(select RelationshipID from AEntReln where AEntReln.uuid='"+sss_id+"' "+
@@ -2011,7 +2021,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
         				attributes = createAttributeList();
 		
 						attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null,tempQuesnirId, null));
-						attributes.add(createEntityAttribute("AnswerQuestionID", null, null,tempQuesId, null));
+						attributes.add(createEntityAttribute("AnswerQuestionID", null, null,langIntroQuesUuid, null));
 						attributes.add(createEntityAttribute("AnswerLabel", null, null,langIntroAnsLabel, null));
 						attributes.add(createEntityAttribute("AnswerStartTime", null, null,getCurrentTime(), null));
 					
@@ -2068,7 +2078,8 @@ saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, St
 	attributes = createAttributeList();
 		
 	attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null,tempQuesnirId, null));
-	attributes.add(createEntityAttribute("AnswerQuestionID", null, null,tempQuesId, null));
+	attributes.add(createEntityAttribute("AnswerQuestionID", null, null,langIntroQuesUuid, null));
+	showWarning("AnswerQuestionIDIntroAns",langIntroQuesUuid);
 	attributes.add(createEntityAttribute("AnswerLabel", null, null,langIntroAnsLabel, null));
 	attributes.add(createEntityAttribute("AnswerStartTime", null, null,getCurrentTime(), null));
 
