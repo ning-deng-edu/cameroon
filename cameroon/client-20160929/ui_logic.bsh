@@ -757,7 +757,7 @@ preLoadAnswerInfo(String tempAnswerId){
 					onFetch(langIntroQuesResult) {
 						if (!isNull(langIntroQuesResult)) {	
 							if(ansQuesIdResult.get(0).equals(langIntroQuesResult.get(0))){
-								loadLangIntroAnsInfo();
+								loadLangIntroAnsInfo(tempAnswerId);
 							}
 							else{
 								loadAnswerInfo();
@@ -2177,8 +2177,86 @@ saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, St
 
 }
 
-loadLangIntroAnsInfo(){
+loadLangIntroAnsInfo(String tempAnsId){
+	//step1: query the quesnir, ques id and the answer text
+	loadAnsInfoQuery="select ansQuesnir.measure, ansQues.measure, answer.measure "+
+	"from latestNonDeletedAentValue as ansQuesnir, latestNonDeletedAentValue as ansQues, latestNonDeletedAentValue as answer "+
+	"where ansQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+	"and ansQues.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionID') "+
+	"and answer.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerText') "+
+	"and ansQuesnir.uuid=ansQues.uuid "+
+	"and ansQues.uuid=answer.uuid "+
+	"and answer.uuid='"+tempAnsId+"'"; 
+
+	fetchOne(loadAnsInfoQuery,new FetchCallback() {
+		onFetch(ansInfoResult) {
+			if (!isNull(ansInfoResult)) {
+			//step 2: create the ui	
+				createLangIntroPage(ansInfoResult.get(0),ansInfoResult.get(1));
+				ArrayList langDegList=ansTextSplit("L", ansInfoResult.get(2), "_");
+				if(canLangList.size()==0){
+					fetchAll(loadAllLanguageQuery,new FetchCallback() {
+						onFetch(result) {
+							canLangList.clear();
+							canLangList.addAll(result);
+							showLangIntroAnsPage(langDegList);
+						}
+					});
+				}
+				else{
+					showLangIntroAnsPage(langDegList);
+				}		
+			}
+		}
+		onError(message) {
+			showToast(message);
+		}
+	});
+}
+showLangIntroAnsPage(ArrayList langDegList){
+	newTabGroup("langIntroAns");
+	//showWarning("canLangList",canLangList.size().toString());
+	//step 3: analyze the answerText and map it to the ui
 	
+	//showWarning("langDegList",langDegList.size().toString());
+
+	for(lang: langDegList){
+		//showWarning("lang",lang.get(0));
+		for(int i=0;i<canLangList.size();i++){
+			//showWarning("canlang",canLangList.get(i).get(0));
+			setFieldValue("langIntroAns/langIntroAnsInfo/langc" + i, lang.get(0));
+			//showWarning("langID",lang.get(0));
+		}
+	}
+	for(int i=0;i<canLangList.size();i++){
+		if(!isNull(getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i))){
+			String templangID=getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i).get(0).getName();
+			for(lang:langDegList){
+				if(lang.get(0).equals(templangID)){
+					setFieldValue("langIntroAns/langIntroAnsInfo/dec" + i,lang.get(1));
+					//showWarning("langDeg",lang.get(1));
+				}
+			}
+		}
+	}
+}
+ansTextSplit(String typeFlag, String tempAnsText, String splitSymbol){
+	String [] answerTextSplit=tempAnsText.split(splitSymbol);
+	ArrayList returnArrayList=new ArrayList();
+	returnArrayList.clear();
+	if(typeFlag.equals("L")){
+		for (int i=0;i<answerTextSplit.length; i++){
+			String [] answerPartSplit=answerTextSplit[i].split("-");
+			ArrayList answerPartInfo=new ArrayList();
+			answerPartInfo.clear();
+			answerPartInfo.add(answerPartSplit[0]);
+			//showWarning("langid",answerPartSplit[0]);
+			answerPartInfo.add(answerPartSplit[1]);
+			//showWarning("langdeg",answerPartSplit[1]);
+			returnArrayList.add(answerPartInfo);
+		}
+	}
+	return returnArrayList;
 }
 /**Emergency session preparation**/
 emrSssInfo=new HashMap();
