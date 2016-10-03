@@ -1340,6 +1340,7 @@ showSession(){
 loopQuesOrder=new ArrayList();
 finLangAndQues=new ArrayList();
 langIntroQuesUuid=null;
+
 sclngstPrep(){
 langIntroQuesUuid=null;
 loadQuesContentandOrderQuery="select t1.quesId, t1.quesOrder || '-'  || t2. quesContent as qOrderedContent "+
@@ -1468,7 +1469,7 @@ int newLangInLangIntro=0;
 String crntLangIntroId=null;
 String langIntroAnsLabel=null;
 canLangList=new ArrayList();
-createLangIntroPage(String tempQuesnirId,String tempQuesId){
+createLangIntroPage(String tempQuesnirId,String tempQuesId, String typeflag, ArrayList tempLangDeg){
 	fetchAll(loadAllLanguageQuery,new FetchCallback() {
 		onFetch(result) {
 			canLangList.clear();
@@ -1479,9 +1480,8 @@ createLangIntroPage(String tempQuesnirId,String tempQuesId){
 			langIntroAnsLabel=null;
 			newLangInLangIntro=0;
 
-			if(hasView("langIntroAns/langIntroAnsInfo/Finish_LangIntro")){
-				removeAllViewsAndContainers("langIntroAns");
-			}
+			removeAllViewsAndContainers("langIntroAns");
+			
 			for(lang:canLangList){
 				String langID=lang.get(0);
 				String langName=lang.get(1);
@@ -1523,6 +1523,9 @@ createLangIntroPage(String tempQuesnirId,String tempQuesId){
 			}
 			for(int i=0; i<langSize;i++){
 				populateDropDown("langIntroAns/langIntroAnsInfo/dec"+i, tempChoice);
+			}
+			if(typeflag.equals("L")){
+				showLangIntroAnsPage(tempLangDeg);
 			}
 		}  
 	});
@@ -1692,6 +1695,7 @@ saveLangIntroAnswer(){
 		attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
 		//showWarning("label",hiddenAnsInfo.get("label"));
 		attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
+		attributes.add(createEntityAttribute("AnswerText", null, null, crntLangIntroId, null));
 		//showWarning("start_time",hiddenAnsInfo.get("start_time"));
 		//showWarning("attributes","attributes");
 		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
@@ -1745,16 +1749,22 @@ saveLangIntroAnswer(){
 		});
 	}
 	else{
-		if(isNull(getFieldValue("survey/answerBasic/answerText"))){
-			if(isNull(files_in_current_ques)){
-				showWarning("Warning","Please input answer text or adding an answer file");
-				return;
-			}
-			else if((files_in_current_ques.size()==1) && files_in_current_ques.get(0).get(0).equals("0000")){
-				showWarning("Warning","Please input answer text or adding an answer file");
-				return;
-			}
+
+		if(isNull(files_in_current_ques)){
+			showWarning("Warning","Please input answer text or adding an answer file");
+			return;
+		}
+		else if((files_in_current_ques.size()==1) && files_in_current_ques.get(0).get(0).equals("0000")){
+			showWarning("Warning","Please input answer text or adding an answer file");
+			return;
+		}
 			
+		if(!isNull(getFieldValue("survey/answerBasic/answerText"))){
+			setFieldValue("survey/answerBasic/answerText", getFieldValue("survey/answerBasic/answerText")+":"+crntLangIntroId);
+		}
+
+		else{
+			setFieldValue("survey/answerBasic/answerText", crntLangIntroId);
 		}
 
 		String newAnsLabel=getFieldValue("survey/answerHidden/answerLabel");
@@ -1793,9 +1803,6 @@ saveLangIntroAnswer(){
 					
 					autoSaveSession("head");
 					saveLangIntroQuesAnswer("ans",curntQuesnirId,curntQuesId,crntLangIntroId);
-
-					
-					
 					//showWarning("autoSaveSession 1","autoSaveSession 1");
 					nextLangQuestion(curntQuesId);
 				}
@@ -2042,12 +2049,14 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 			fetchOne(loadPsLangIntroQuery, new FetchCallback() {
                 onFetch(result) {
                 	if(!isNull(result)){
-                		String oldAns=result.get(0).get(1);
+                		showWarning("!isNull","!isNull");
+                		String oldAns=result.get(1);
+                		showWarning("!oldAns",oldAns);
                 		if(!oldAns.equals(ansText)){
                 			attributes = createAttributeList();
         					attributes.add(createEntityAttribute("AnswerText", null, null, ansText, null));
-        					saveArchEnt(result.get(0).get(0), "AnswerToQuestionnaire", null, attributes);
-        					//showWarning("result",result.get(0).get(0));
+        					saveArchEnt(result.get(0), "AnswerToQuestionnaire", null, attributes);
+        					showWarning("saveArchEntattributes",result.get(0));
                 		}
 
                 	}
@@ -2179,7 +2188,7 @@ saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, St
 
 loadLangIntroAnsInfo(String tempAnsId){
 	//step1: query the quesnir, ques id and the answer text
-	loadAnsInfoQuery="select ansQuesnir.measure, ansQues.measure, answer.measure "+
+	loadAnsInfoQuery="select ansQuesnir.measure, ansQues.measure, answer.measure, answer.uuid "+
 	"from latestNonDeletedAentValue as ansQuesnir, latestNonDeletedAentValue as ansQues, latestNonDeletedAentValue as answer "+
 	"where ansQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
 	"and ansQues.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionID') "+
@@ -2191,32 +2200,45 @@ loadLangIntroAnsInfo(String tempAnsId){
 	fetchOne(loadAnsInfoQuery,new FetchCallback() {
 		onFetch(ansInfoResult) {
 			if (!isNull(ansInfoResult)) {
-			//step 2: create the ui	
-				createLangIntroPage(ansInfoResult.get(0),ansInfoResult.get(1));
+				//step 2: create the ui	
 				ArrayList langDegList=ansTextSplit("L", ansInfoResult.get(2), "_");
+				createLangIntroPage(ansInfoResult.get(0),ansInfoResult.get(1), "L", langDegList);
+				//step 3: prepare for possible changes
+				sclngChangePrep(ansInfoResult.get(0));
+				
+				
+				/*
+				
 				if(canLangList.size()==0){
 					fetchAll(loadAllLanguageQuery,new FetchCallback() {
 						onFetch(result) {
 							canLangList.clear();
 							canLangList.addAll(result);
+							showTabGroup("langIntroAns");
 							showLangIntroAnsPage(langDegList);
+							showToast("loaded answer info"+ansInfoResult.get(3));
 						}
 					});
 				}
 				else{
+					showTabGroup("langIntroAns");
 					showLangIntroAnsPage(langDegList);
-				}		
+					showToast("loaded answer info"+ansInfoResult.get(3));
+				}
+				*/
+						
 			}
 		}
 		onError(message) {
 			showToast(message);
 		}
 	});
+
 }
 showLangIntroAnsPage(ArrayList langDegList){
-	newTabGroup("langIntroAns");
+	showTabGroup("langIntroAns");
 	//showWarning("canLangList",canLangList.size().toString());
-	//step 3: analyze the answerText and map it to the ui
+	//step 4: analyze the answerText and map it to the ui
 	
 	//showWarning("langDegList",langDegList.size().toString());
 
@@ -2239,6 +2261,7 @@ showLangIntroAnsPage(ArrayList langDegList){
 			}
 		}
 	}
+
 }
 ansTextSplit(String typeFlag, String tempAnsText, String splitSymbol){
 	String [] answerTextSplit=tempAnsText.split(splitSymbol);
@@ -2257,6 +2280,131 @@ ansTextSplit(String typeFlag, String tempAnsText, String splitSymbol){
 		}
 	}
 	return returnArrayList;
+}
+
+sclngChangePrep(String crntQuesnirId){
+langIntroQuesUuid=null;
+loadQuesContentandOrderQuery="select t1.quesId, t1.quesOrder || '-'  || t2. quesContent as qOrderedContent "+
+	            "from "+
+	            	"(select quId.measure as quesId, qOrder.measure as quesOrder "+
+	            	"from latestNonDeletedAentValue as quId, latestNonDeletedAentValue as qOrder "+
+	            	"where qOrder.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesOrderLocal') "+
+	            	"and quId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+	            	"and quId.uuid=qOrder.uuid "+
+	            	"and quId.measure in "+
+	            		"(select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+	            		"where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+	            		"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+	            		"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+crntQuesnirId+"')"+
+	            	"and quId.uuid in "+
+	            	"(select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID'))) t1 "+
+	            	"inner join "+
+	            	"(select qId.measure as quesId, qContent.measure as quesContent from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qContent "+
+	            	"where qContent.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesContent') "+
+	            	"and qId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
+	            	"and qId.uuid=qContent.uuid "+
+	            	"and qId.measure in "+
+	            		"(select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+	            		"where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+	            		"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+	            		"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+crntQuesnirId+"')"+
+	            	"and qId.uuid in "+
+	            	"(select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid'))) t2 "+
+	            	"on t1.quesId=t2.quesId "+
+	            "order by quesOrder asc";
+
+quesnir_ques_reln_query="select uuid from latestNonDeletedArchEntIdentifiers "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+		"and measure='"+crntQuesnirId+"' ";
+
+queslabel_quesnir_query="select uuid, measure from latestNonDeletedAentValue "+
+"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
+"and uuid in (select measure from latestNonDeletedArchEntIdentifiers "+
+"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
+"and measure in (select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+"where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+crntQuesnirId+"'))";
+
+quesRecordingTypeQuery="select t2.quId, t1.prName from "+
+	"(select pName.uuid as prId, pName.measure as prName from latestNonDeletedAentValue as pName "+
+		"where pName.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefName'))t1 "+
+	"inner join "+
+	"(select qId.measure as quId, qProp.measure as qPropId "+
+	"from latestNonDeletedArchEntIdentifiers as qId, latestNonDeletedAentValue as qProp "+
+	"where qId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
+	"and qProp.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefID') "+
+	"and qId.uuid=qProp.uuid "+
+	"and qId.measure in (select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+		"where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+		"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+	"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+crntQuesnirId+"')) t2 "+
+	"on t1.prId=t2.qPropId";
+
+fetchAll(loadQuesContentandOrderQuery, new FetchCallback() {
+    onFetch(result) {
+        ques_in_current_quesnir.clear();
+        ques_in_current_quesnir.addAll(result);
+
+        String tempQuesStartId=null;
+        loopQuesOrder.clear();
+        fetchAll(quesRecordingTypeQuery, new FetchCallback() {
+		    onFetch(result) {
+		        quesRecordingType.clear();
+		        quesRecordingType.addAll(result);
+		        //find the starting point of the loop
+		        for(quesRec: quesRecordingType){
+		        	if (quesRec.get(1).equals("LangIntro")){
+		        		tempQuesStartId=quesRec.get(0);
+		        		langIntroQuesUuid=tempQuesStartId;
+		        		break;
+		        	}
+		        }
+		        //showWarning("quesRec",tempQuesStartId);
+		        int tempStartingOrder=0;
+		        for(ques:ques_in_current_quesnir){
+		        	if(ques.get(0).equals(tempQuesStartId)){
+		        		//showWarning("ques.get(0)",ques.get(0));
+		        		String [] quesSplit=ques.get(1).split("-");
+		        		tempStartingOrder=Integer.parseInt(quesSplit[0]);
+		        		break;
+		        	}
+		        }
+		        //showWarning("ques",tempStartingOrder.toString());
+		        for(ques:ques_in_current_quesnir){
+		        	String [] quesSplit=ques.get(1).split("-");
+		        	if(Integer.parseInt(quesSplit[0])>tempStartingOrder){
+		        		loopQuesOrder.add(ques);
+		        	}
+		        }
+		        //showWarning("sclngstPrep",loopQuesOrder.size().toString());
+		    }
+		});
+    }
+});
+
+fetchAll(quesnir_ques_reln_query, new FetchCallback() {  
+	onFetch(relnResult) {
+		if(!isNull(relnResult)){
+			//showWarning("relnResult","relnResult");
+			quesListRelnOrigin=new ArrayList();
+			quesListRelnOrigin.clear();
+			quesListRelnOrigin.addAll(relnResult);
+			}
+		else{
+			showWarning("Out-of-date Data","Some questions in this questionnaire may not be using anymore\n"+"Please contact the admin for further information");
+		}
+		
+	}
+});
+fetchAll(queslabel_quesnir_query, new FetchCallback() {
+    onFetch(result) {
+        queslabel_current_quesnir.clear();
+        queslabel_current_quesnir.addAll(result);
+    }
+});
+finLangAndQues.clear();
+//todo: need to add a query for finished language and question ids
 }
 /**Emergency session preparation**/
 emrSssInfo=new HashMap();
@@ -4190,7 +4338,7 @@ startNewAnswer(String typeflag){
     	}
     }	
     else if(typeflag.equals("lan")){
-		createLangIntroPage(current_quesnir_id,current_question_id);
+		createLangIntroPage(current_quesnir_id,current_question_id, "N",null);
 
 		ansLabelDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
