@@ -1660,7 +1660,7 @@ saveLangIntroAnswer(){
 				//answer_id = uuid;
 				//showWarning("answer_id 1",answer_id);
 				//current_answer_id=answer_id;
-				showWarning("1.saveArchEntAnswerToQuestionnaire",uuid);
+				//showWarning("1.saveArchEntAnswerToQuestionnaire",uuid);
 				if (newRecord) {
 						for(file : files_in_current_ques){
 							//showWarning("2.file 1",file.get(0));
@@ -1690,7 +1690,7 @@ saveLangIntroAnswer(){
 						//showWarning("6.finLangAndQues",hiddenAnsInfo.get("ques_id"));
 						//cancelTabGroup("file", true);
 						
-						showWarning("finLangAndQues()",finLangAndQues.size().toString());
+						//showWarning("finLangAndQues()",finLangAndQues.size().toString());
 						if(finLangAndQues.size()>1){
 							//todo: just check the sociolinguistic question's id
 							saveLangIntroQuesAnswer("ans",hiddenAnsInfo.get("quesnir_id"),hiddenAnsInfo.get("ques_id"),crntLangIntroId);
@@ -1848,7 +1848,7 @@ getSelLangInIntro(){
 
 saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId, String tempLangId){
 	if(typeflag!=null){
-		showWarning("langIntroQuesUuid",langIntroQuesUuid);
+		//showWarning("langIntroQuesUuid",langIntroQuesUuid);
 		if(sss_id!=null){//only need to append the current lang and degree to the existing answerText
 			loadPsLangIntroQuery="select psAns.uuid, psAns.measure from latestNonDeletedAentValue as psAns, latestNonDeletedAentValue as ansQuesnir, latestNonDeletedAentValue as ansQues "+
 				"where psAns.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerText') "+
@@ -1868,23 +1868,21 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 
 			fetchOne(loadPsLangIntroQuery, new FetchCallback() {
                 onFetch(result) {
-                	showWarning("onresult","loadPsLangIntroQuery");
+                	//showWarning("onresult","loadPsLangIntroQuery");
                 	if(!isNull(result)){
-                		showWarning("!isNull","!isNull");
+                		
                 		String oldAns=result.get(1);
-                		showWarning("oldAns",oldAns);
+                		//showWarning("oldAns",oldAns);
                 		for(int i=0;i<canLangList.size();i++){
-                			showWarning("ith loop","i="+i.toString());
-                			String tempLang=getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i).get(0).getName();
-                			showWarning("tempLang",tempLang);
-                			if(tempLang!=null){
+                			if(!isNull(getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i))){
+                				String tempLang=getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i).get(0).getName();
                 				if(tempLang.equals(tempLangId)){
                 					String deg=getFieldValue("langIntroAns/langIntroAnsInfo/dec" + i);
-                					showWarning("deg",tempLang+deg);
+                					//showWarning("deg",tempLang+"-"+deg);
                 					if(!oldAns.contains(tempLangId+"-"+deg)){
                 						if(!oldAns.contains(tempLangId)){
                 							oldAns=oldAns+"_"+tempLangId+"-"+deg;
-                							showWarning("oldAns2",oldAns);
+                							//showWarning("oldAns2",oldAns);
                 						}
                 						else{
                 							String[] oldAnsSPlit=oldAns.split("_");
@@ -1892,7 +1890,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
                 								if(oldAnsSPlit[i].contains(tempLangId)){
                 									String newAnsPart=oldAnsSPlit[i].substring(0,oldAnsSPlit[i].length-2)+deg;
                 									oldAnsSPlit[i]=newAnsPart;
-                									showWarning("oldAnsSPlit[i]",oldAnsSPlit[i]);
+                									//showWarning("oldAnsSPlit[i]",oldAnsSPlit[i]);
                 									break;
                 								}
                 							}
@@ -1903,17 +1901,13 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 												sb.append(lbl);
 											}
 											oldAns=sb.toString();
-											showWarning("oldAnsSPlit[i]oldAns",oldAns);
+											//showWarning("oldAnsSPlit[i]oldAns",oldAns);
                 						}
                 						attributes = createAttributeList();
 	                					attributes.add(createEntityAttribute("AnswerText", null, null, oldAns, null));
 	                					saveArchEnt(result.get(0), "AnswerToQuestionnaire", null, attributes);
-	                					showWarning("saveArchEnt","saveArchEnt");
+	                					//showWarning("saveArchEnt","saveArchEnt");
                 					}
-                					else{
-                						showWarning("same answer","same answer");
-                					}
-                					
                 				}
                 			}	
                 		}
@@ -2079,7 +2073,7 @@ saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, St
 		
 	attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null,tempQuesnirId, null));
 	attributes.add(createEntityAttribute("AnswerQuestionID", null, null,langIntroQuesUuid, null));
-	showWarning("AnswerQuestionIDIntroAns",langIntroQuesUuid);
+	//showWarning("AnswerQuestionIDIntroAns",langIntroQuesUuid);
 	attributes.add(createEntityAttribute("AnswerLabel", null, null,langIntroAnsLabel, null));
 	attributes.add(createEntityAttribute("AnswerStartTime", null, null,getCurrentTime(), null));
 
