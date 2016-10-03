@@ -733,7 +733,47 @@ checkDelOrView(){
 		showWarning("Error","Can't find this answer, please contact the admin");
 		return;
 	}
-	showAlert("View File Info","Do you want to view answer info?","loadAnswerInfo()","delAnsInSssAlert(\""+current_answer_id+"\")");
+	showAlert("View File Info","Do you want to view answer info?","preLoadAnswerInfo(\""+current_answer_id+"\")","delAnsInSssAlert(\""+current_answer_id+"\")");
+}
+
+preLoadAnswerInfo(String tempAnswerId){
+	loadLangIntroQuesIDQuery="select langIntroQues.measure from latestNonDeletedAentValue as langIntroQues, latestNonDeletedAentValue as QuesType "+
+	"where langIntroQues.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
+	"and QuesType.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefID') "+
+	"and langIntroQues.uuid=QuesType.uuid and QuesType.measure="+
+	"(select QuesTypeID.uuid from latestNonDeletedAentValue as QuesTypeID "+
+	"where QuesTypeID.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefName') "+
+	"and QuesTypeID.measure='LangIntro')";
+
+
+	loadAnswerQuesIdQuery="select measure from latestNonDeletedAentValue where "+
+	"AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionID') "+
+	"and uuid='"+tempAnswerId+"'";
+
+	fetchOne(loadAnswerQuesIdQuery,new FetchCallback() {
+		onFetch(ansQuesIdResult) {
+			if (!isNull(ansQuesIdResult)) {	
+				fetchOne(loadLangIntroQuesIDQuery,new FetchCallback() {
+					onFetch(langIntroQuesResult) {
+						if (!isNull(langIntroQuesResult)) {	
+							if(ansQuesIdResult.get(0).equals(langIntroQuesResult.get(0))){
+								loadLangIntroAnsInfo();
+							}
+							else{
+								loadAnswerInfo();
+							}
+						}
+					}	       
+					onError(message) {
+						showToast(message);
+					}
+				});
+			}
+		}	       
+		onError(message) {
+			showToast(message);
+		}
+	});
 }
 
 delAnsInSssAlert(String toDelId){
@@ -2135,6 +2175,10 @@ saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, St
 		}  
 	});
 
+}
+
+loadLangIntroAnsInfo(){
+	
 }
 /**Emergency session preparation**/
 emrSssInfo=new HashMap();
