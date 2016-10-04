@@ -1470,11 +1470,13 @@ int newLangInLangIntro=0;
 String crntLangIntroId=null;
 String langIntroAnsLabel=null;
 canLangList=new ArrayList();
+newTempLangList=new ArrayList();
 createLangIntroPage(String tempQuesnirId,String tempQuesId, String typeflag, ArrayList tempLangDeg){
 	fetchAll(loadAllLanguageQuery,new FetchCallback() {
 		onFetch(result) {
 			canLangList.clear();
 			canLangList.addAll(result);
+			newTempLangList.clear();
 			int langCount=0;
 			int langSize=canLangList.size();
 			crntLangIntroId=null;
@@ -1851,6 +1853,11 @@ saveNewLangInScln(String langPos){
 			saveArchEnt(null, "Language", null, langAttributes, new SaveCallback(){
 				onSave(uuid, newRecord){
 					//showWarning("saveArchEnt 1","saveArchEnt 1");
+					tempNewLang=new ArrayList();
+					tempNewLang.add(langPos);
+					tempNewLang.add(uuid);
+					tempNewLang.add(langName);
+					newTempLangList.add(tempNewLang);
 					showToast("The new language is saved as 'temp' type");
 					startLoopQues(uuid);
 					
@@ -1964,6 +1971,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
                 		
                 		String oldAns=result.get(1);
                 		//showWarning("oldAns",oldAns);
+                		//TODO: add scanning new added lang here
                 		for(int i=0;i<canLangList.size();i++){
                 			if(!isNull(getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i))){
                 				String tempLang=getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i).get(0).getName();
