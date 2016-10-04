@@ -1530,6 +1530,7 @@ createLangIntroPage(String tempQuesnirId,String tempQuesId, String typeflag, Arr
 		}  
 	});
 }
+
 reConstructLangIntro(){
 	if(hasView("langIntroAns/langIntroAnsInfo/Finish_LangIntro")){
 		removeView("langIntroAns/langIntroAnsInfo/Finish_LangIntro");
@@ -1558,11 +1559,13 @@ reConstructLangIntro(){
 			}
 				createView("langIntroAns/langIntroAnsInfo/degc" + newLangInLangIntro, createViewDef().createDropDown(), "langIntroAns/langIntroAnsInfo/newlangDeg_c" + newLangInLangIntro);
 				createView("langIntroAns/langIntroAnsInfo/newLangNexc" + newLangInLangIntro, createViewDef().createButton().setLabel("Next").setStyleCss("faims-blue"), "langIntroAns/langIntroAnsInfo/newLangNex_c" + newLangInLangIntro);
+				
 				populateDropDown("langIntroAns/langIntroAnsInfo/degc" + newLangInLangIntro, tempChoice);
 				
 				createView("langIntroAns/langIntroAnsInfo/Finish_LangIntro", createViewDef().createButton().setLabel("Finish").setStyleCss("faims-blue"), "langIntroAns/langIntroAnsInfo");
 				createView("langIntroAns/langIntroAnsInfo/new_langInIntro", createViewDef().createButton().setLabel("New Language").setStyleCss("faims-blue"), "langIntroAns/langIntroAnsInfo");	
-				onEvent("langIntroAns/langIntroAnsInfo/new_langInIntro","click","reConstructLangIntro()");				
+				onEvent("langIntroAns/langIntroAnsInfo/new_langInIntro","click","reConstructLangIntro()");		
+				onEvent("langIntroAns/langIntroAnsInfo/newLangNexc" + newLangInLangIntro, "saveNewLangInScln(\""+newLangInLangIntro+"\")");		
 		}
 	});
 	newLangInLangIntro++;
@@ -1825,6 +1828,43 @@ saveDupAns(){
 		dupAnsLblChange=false;
 		dupAnsLblInfo.clear();
 	}
+}
+
+saveNewLangInScln(String langPos){
+	//get the language code and language name
+	String langCode=getFieldValue("langIntroAns/langIntroAnsInfo/newLangCodec" + langPos);
+	String langName=getFieldValue("langIntroAns/langIntroAnsInfo/newLangNamec" + langPos);
+
+	langAttributes=createAttributeList();
+	langAttributes.add(createEntityAttribute("LanguageID", null, null,langCode, null));
+	langAttributes.add(createEntityAttribute("LanguageName", null, null,langName, null));
+
+	loadTempLangTypeIDQuery="select uuid from latestNonDeletedAentValue "+
+	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='LangTypeName') "+
+	"and measure='temp'";
+
+	fetchOne(loadTempLangTypeIDQuery,new FetchCallback() {
+		onFetch(result) {
+			if(!isNull(result)){
+				langAttributes.add(createEntityAttribute("LanguageTypeID", null, null,result.get(0), null));
+			}
+			saveArchEnt(null, "Language", null, langAttributes, new SaveCallback(){
+				onSave(uuid, newRecord){
+					//showWarning("saveArchEnt 1","saveArchEnt 1");
+					showToast("The new language is saved as 'temp' type");
+					startLoopQues(uuid);
+					
+				}
+				onError(message) {
+					showWarning("error on saveArchEnt Language",message);
+				}  
+			});
+		}
+		onError(message) {
+			showToast(message);
+		}
+	});
+	
 }
 nextLangQuestion(String crnQuesId){
 	int idxCrntQues=-1;
