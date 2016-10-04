@@ -506,7 +506,7 @@ createQuesSel(){
 	    	 
 	        refreshTabgroupCSS("questionnaireInfo");
 	        //showTabGroup("fieldTrip");
-	        onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","checkPersonAns(null)");
+	        onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","checkClickValidity(null)");
 	        onEvent("questionnaireInfo/surveyQuestionnaire/ques_Search","click","searchQuesInCrtQuesnir()");
 	   		}
 			});
@@ -1162,6 +1162,26 @@ searchQuesInCrtQuesnir(){
 	}	
 }
 
+checkClickValidity(String tempQuesId){
+	String tempQuesUuid=null;
+	if(tempQuesId==null){
+		tempQuesUuid=getListItemValue();
+	}
+	else
+	{
+		tempQuesUuid=tempQuesId;
+	}
+	if(!isNull(loopQuesOrder)){
+		for(ques:loopQuesOrder){
+			if(ques.get(0).equals(tempQuesUuid)){
+				showWarning("Unselectable question","Please start with the 'known languages' question for answering this question");
+				return;
+			}
+		}
+	}
+	checkPersonAns(tempQuesUuid);
+}
+
 checkPersonAns(String tempQuesId){
 	if(tempQuesId==null){
 		quesId=getListItemValue();
@@ -1206,22 +1226,32 @@ checkPersonAns(String tempQuesId){
 			"and latestNonDeletedRelationship.Deleted IS NULL)))";
 			fetchAll(loadPersonAnswerQuery,new FetchCallback() {
 		        onFetch(result) {
+		        	//showWarning("loadPersonAnswerQueryresult","loadPersonAnswerQueryresult");
 		        	Boolean rep=false;
 		        	tempAnsQues.addAll(result);
+		        	//showWarning("tempAnsQues.addAll(result);","tempAnsQues.addAll(result);");
 		        	if(!isNull(tempAnsQues)){	 
+		        		//showWarning("!isNull(tempAnsQues)","!isNull(tempAnsQues)");
 		        		for (ansQues :tempAnsQues){
-		        			if (ansQues.get(0).equals(quesId))
-		        			{	
-		        				rep=true;
-		        				checkDuplicateAns(true, tempQuesId);
-		        				break;
+		        			//showWarning("ansQues",ansQues.get(0));
+		        			if(!isNull(ansQues.get(0))){
+		        				if (ansQues.get(0).equals(quesId))
+				        			{	
+				        				rep=true;
+				        				checkDuplicateAns(true, tempQuesId);
+				        				break;
+				        			}
 		        			}
+		        			
 		        		}
+		        		//showWarning("rep",rep.toString());
 		        		if(!rep){
+		        			//showWarning("loadAnswerFromQuesInQuesnir","rep.false");
 		        			loadAnswerFromQuesInQuesnir(tempQuesId);
 		        		}       		
 					}
 					else{
+						//showWarning("loadAnswerFromQuesInQuesnir","nullresult");
 						loadAnswerFromQuesInQuesnir(tempQuesId);
 					}
 		        }
