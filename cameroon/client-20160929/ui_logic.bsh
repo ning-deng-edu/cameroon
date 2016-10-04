@@ -1595,14 +1595,14 @@ startLoopQues(String tempLangId){
 
 startNewLoopAns(){
 	String ques_id=getListItemValue();
-	showWarning("ques_id",ques_id);
+	//showWarning("ques_id",ques_id);
 	if(ques_id==null){
 		showWarning("Invalid operation","Please select a question");
 		return;
 	}
 	else{
 		langIntro=true;
-		showWarning("langIntro",langIntro.toString());
+		//showWarning("langIntro",langIntro.toString());
 		loadAnswerFromQuesInQuesnir(ques_id);
 	}
 
@@ -2211,7 +2211,7 @@ loadLangIntroAnsInfo(String tempAnsId){
 				createLangIntroPage(ansInfoResult.get(0),ansInfoResult.get(1), "L", langDegList);
 				//step 3: prepare for possible changes
 				current_quesnir_id=ansInfoResult.get(0);
-				showWarning("current_quesnir_id",current_quesnir_id);
+				//showWarning("current_quesnir_id",current_quesnir_id);
 				loadQuesnirNameQuery="select measure from latestNonDeletedAentValue where "+
 				"AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireName') "+
 				"and uuid='"+current_quesnir_id+"'";
@@ -2219,7 +2219,7 @@ loadLangIntroAnsInfo(String tempAnsId){
 					onFetch(result) {
 						if(!isNull(result)){
 							current_quesnir_name=result.get(0);
-							showWarning("current_quesnir_name",current_quesnir_name);
+							//showWarning("current_quesnir_name",current_quesnir_name);
 						}
 					}
 					onError(message) {
@@ -4435,7 +4435,7 @@ loadAnswerFromQuesInQuesnir(String ques_id){
 	}
 	if(ques_id==null || ques_id.equals("null")){
 		current_question_id=getListItemValue();
-		showWarning("current_question_idL",current_question_id);
+		//showWarning("current_question_idL",current_question_id);
 	}
 	else
 	{
@@ -4450,7 +4450,7 @@ loadAnswerFromQuesInQuesnir(String ques_id){
 			break;
 		}
 	}
-	showWarning("current_question_content",current_question_content);
+	//showWarning("current_question_content",current_question_content);
 	if(isNull(current_question_content)){
 		showWarning("No question content available","Can't get the question content, please contact the admin");
 		return;
@@ -4464,10 +4464,10 @@ loadAnswerFromQuesInQuesnir(String ques_id){
 			break;
 		}
 	}
-	showWarning("quesLabelRead",quesLabelRead.toString());
+	//showWarning("quesLabelRead",quesLabelRead.toString());
 
 	if(quesLabelRead){
-		showWarning("ansTypeChecking","ansTypeCheckingenter");
+		//showWarning("ansTypeChecking","ansTypeCheckingenter");
 		ansTypeChecking(current_question_id);
 	}
 	
@@ -4482,12 +4482,12 @@ loadAnswerFromQuesInQuesnir(String ques_id){
 			"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"'))";
 			fetchAll(queslabel_quesnir_query, new FetchCallback() {
 					onFetch(result) {
-						showWarning("queslabel_quesnir_query","queslabel_quesnir_query");
+						//showWarning("queslabel_quesnir_query","queslabel_quesnir_query");
 						if (!isNull(result)) {	
-							showWarning("!nullqueslabel_quesnir_query","queslabel_quesnir_query");
+							//showWarning("!nullqueslabel_quesnir_query","queslabel_quesnir_query");
 							queslabel_current_quesnir.clear();
 							queslabel_current_quesnir.addAll(result);
-							showWarning("!queslabel_current_quesniraddall","queslabel_quesnir_query");
+							//showWarning("!queslabel_current_quesniraddall","queslabel_quesnir_query");
 							for(quesLabel: queslabel_current_quesnir){
 								if(quesLabel.get(0).equals(current_question_id))
 								{
@@ -4496,7 +4496,7 @@ loadAnswerFromQuesInQuesnir(String ques_id){
 									break;
 								}
 							}
-							showWarning("!queslabel_current_quesnirquesLabelRead",quesLabelRead.toString());
+							//showWarning("!queslabel_current_quesnirquesLabelRead",quesLabelRead.toString());
 							for(quesLabel: queslabel_current_quesnir){
 								if(quesLabelRead){
 									ansTypeChecking(current_question_id);
@@ -4520,14 +4520,14 @@ loadAnswerFromQuesInQuesnir(String ques_id){
 }
 
 ansTypeChecking(String ques_id){
-	showWarning("ansTypeChecking",ques_id);
+	//showWarning("ansTypeChecking",ques_id);
 	String answerType=null;
 	String recordingType=null;
 	for(ques: quesRecordingType){
-		showWarning("quesType",ques.get(0));
+		//showWarning("quesType",ques.get(0));
 		if(ques.get(0).equals(ques_id)){
 			recordingType=ques.get(1);
-			showWarning("quesTypename",ques.get(1));
+			//showWarning("quesTypename",ques.get(1));
 			switch(recordingType){
 				case "Audio_Required":
 					answerType="aud";
@@ -4554,7 +4554,7 @@ ansTypeChecking(String ques_id){
 					answerType="non";
 				break;
 			}
-			showWarning("answerType",answerType);
+			//showWarning("answerType",answerType);
 			startNewAnswer(answerType);
 			break;
 		}
