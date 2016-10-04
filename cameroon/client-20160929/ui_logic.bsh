@@ -1561,13 +1561,14 @@ reConstructLangIntro(){
 			}
 				createView("langIntroAns/langIntroAnsInfo/degc" + newLangInLangIntro, createViewDef().createDropDown(), "langIntroAns/langIntroAnsInfo/newlangDeg_c" + newLangInLangIntro);
 				createView("langIntroAns/langIntroAnsInfo/newLangNexc" + newLangInLangIntro, createViewDef().createButton().setLabel("Next").setStyleCss("faims-blue"), "langIntroAns/langIntroAnsInfo/newLangNex_c" + newLangInLangIntro);
-				
+				String langPosition=newLangInLangIntro.toString();
+				onEvent("langIntroAns/langIntroAnsInfo/newLangNexc" + newLangInLangIntro,"click", "saveNewLangInScln(\""+langPosition+"\")");		
 				populateDropDown("langIntroAns/langIntroAnsInfo/degc" + newLangInLangIntro, tempChoice);
 				
 				createView("langIntroAns/langIntroAnsInfo/Finish_LangIntro", createViewDef().createButton().setLabel("Finish").setStyleCss("faims-blue"), "langIntroAns/langIntroAnsInfo");
 				createView("langIntroAns/langIntroAnsInfo/new_langInIntro", createViewDef().createButton().setLabel("New Language").setStyleCss("faims-blue"), "langIntroAns/langIntroAnsInfo");	
 				onEvent("langIntroAns/langIntroAnsInfo/new_langInIntro","click","reConstructLangIntro()");		
-				onEvent("langIntroAns/langIntroAnsInfo/newLangNexc" + newLangInLangIntro, "saveNewLangInScln(\""+newLangInLangIntro+"\")");		
+				
 		}
 	});
 	newLangInLangIntro++;
@@ -1942,10 +1943,12 @@ getSelLangInIntro(){
 	}
 	return returnLangVer;
 }
+
 getNewTempLang(){
 	returnNewTempLang=new ArrayList();
 	returnNewTempLang.clear();
 	for(int i=0;i<newTempLangList.size();i++){
+		showWarning("newTempLangList",newTempLangList.size().toString());
 		String langPos=newTempLangList.get(i).get(0);
 		String langCode=getFieldValue("langIntroAns/langIntroAnsInfo/newLangCodec" + langPos);
 		String langName=getFieldValue("langIntroAns/langIntroAnsInfo/newLangNamec" + langPos);
@@ -1955,11 +1958,13 @@ getNewTempLang(){
 			attributes = createAttributeList();
 			attributes.add(createEntityAttribute("LanguageName", null, null, langName, null));
 			saveArchEnt(newTempLangList.get(i).get(1), "Language", null, attributes);
+			showWarning("saveArchEnt",newTempLangList.get(i).get(1)+":"+langName);
 		}
 		if(!langCode.equals(newTempLangList.get(i).get(3))){
 			attributes = createAttributeList();
 			attributes.add(createEntityAttribute("LanguageID", null, null, langCode, null));
 			saveArchEnt(newTempLangList.get(i).get(1), "Language", null, attributes);
+			showWarning("saveArchEnt",newTempLangList.get(i).get(1)+":"+langCode);
 		}
 		//save the returning arraylist
 		tempNewLangArr=new ArrayList();
@@ -1967,7 +1972,31 @@ getNewTempLang(){
 		tempNewLangArr.add(langDeg);
 		returnNewTempLang.add(tempNewLangArr);
 	}
+	showWarning("fornewTempLangList","newTempLangList");
 	return returnNewTempLang;
+}
+
+getLangIntroAnsText(){
+	selLang=getSelLangInIntro();
+	createdNewLang=getNewTempLang();
+	showWarning("createdNewLang","createdNewLang");
+	allLangList=new ArrayList();
+	allLangList.clear();
+	allLangList.addAll(selLang);
+	allLangList.addAll(createdNewLang);
+
+	String ansText=null;
+	StringBuilder sb=new StringBuilder();
+
+	for(lang: allLangList){
+		if(sb.length()>0){
+			sb.append("_");
+		}
+		sb.append(lang.get(0)+"-"+lang.get(1));
+	}
+	ansText=sb.toString();
+	showWarning("ansText",ansText);
+	return ansText;
 }
 
 saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId, String tempLangId){
@@ -1998,8 +2027,23 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
                 	if(!isNull(result)){
                 		
                 		String oldAns=result.get(1);
+                		String ansText=null;
+                		ansText=getLangIntroAnsText();
+                		if(ansText==null){
+							showWarning("Application error","the answer is not correctly generated, please contact the admin");
+							return;
+						}
+
+            			if(!oldAns.equals(ansText)){
+            				showWarning("!oldAns",oldAns+":"+ansText);
+            				attributes = createAttributeList();
+        					attributes.add(createEntityAttribute("AnswerText", null, null, ansText, null));
+        					saveArchEnt(result.get(0), "AnswerToQuestionnaire", null, attributes);
+            			}
+                		
                 		//showWarning("oldAns",oldAns);
                 		//TODO: add scanning new added lang here
+                		/*
                 		for(int i=0;i<canLangList.size();i++){
                 			if(!isNull(getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i))){
                 				String tempLang=getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i).get(0).getName();
@@ -2038,6 +2082,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
                 				}
                 			}	
                 		}
+                		*/
                 	}
                 }
 
@@ -2051,6 +2096,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 	}
 	//change basic info of the lang intro query
 	else{//case passed
+		/*
 		String ansText=null;
 		StringBuilder sb=new StringBuilder();
 		selLang=getSelLangInIntro();
@@ -2061,7 +2107,15 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 			}
 			sb.append(lang.get(0)+"-"+lang.get(1));
 		}
+
 		ansText=sb.toString();
+		*/
+		String ansText=null;
+		ansText=getLangIntroAnsText();
+		if(ansText==null){
+			showWarning("Application error","the answer is not correctly generated, please contact the admin");
+			return;
+		}
 		//showWarning("ansText",ansText);
 		if(sss_id==null){
 			attributes = createAttributeList();
@@ -2208,7 +2262,18 @@ saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, St
 	attributes.add(createEntityAttribute("AnswerLabel", null, null,langIntroAnsLabel, null));
 	attributes.add(createEntityAttribute("AnswerStartTime", null, null,getCurrentTime(), null));
 
+	String ansText=null;
+	ansText=getLangIntroAnsText();
+
+	if(ansText==null){
+		showWarning("Application error","unable to generate correct answer, please contact the admin");
+		return;
+	}
+	showWarning("ansText-saveNewLangIntroAns",ansText);
+	attributes.add(createEntityAttribute("AnswerText", null, null, ansText, null));
+
 //showWarning("attributes","attributes");
+	/*
 	for(int i=0;i<canLangList.size();i++){
 		String tempLang=getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i).get(0).getName();
 		//showWarning("tempLang saveNewLangIntroAns",tempLang);
@@ -2223,6 +2288,7 @@ saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, St
 			}
 		}	
 	}
+	*/
 	//showWarning("tempLangId",tempLangId);
 	saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
 		onSave(uuid, newRecord){
