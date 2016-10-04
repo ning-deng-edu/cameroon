@@ -1704,11 +1704,12 @@ saveLangIntroAnswer(){
 		//showWarning("label",hiddenAnsInfo.get("label"));
 		attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
 		attributes.add(createEntityAttribute("AnswerText", null, null, crntLangIntroId, null));
+		//showWarning("AnswerText",crntLangIntroId);
 		//showWarning("start_time",hiddenAnsInfo.get("start_time"));
-		//showWarning("attributes","attributes");
+		
 		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
 			onSave(uuid, newRecord){
-				//showWarning("saveArchEnt 1","saveArchEnt 1");
+				//showWarning("saveArchEnt 1","saveLangIntroAnswer 1");
 				//answer_id = uuid;
 				//showWarning("answer_id 1",answer_id);
 				//current_answer_id=answer_id;
@@ -1751,7 +1752,7 @@ saveLangIntroAnswer(){
 					}
 			}
 			onError(message) {
-				showWarning("Error happened, re-saving",message);
+				showWarning("Error happened, re-saving",message+"\n"+"please report this to the admin\n"+"click ok to continue");
 				saveLangIntroAnswer();
 			}  
 		});
@@ -1816,7 +1817,7 @@ saveLangIntroAnswer(){
 				}
 			}
 			onError(message) {
-				showWarning("error on saveNewAnswer2",message);
+				showWarning("error on saveLangIntroAnswer",message);
 			}  
 			});
 		
@@ -1948,7 +1949,7 @@ getNewTempLang(){
 	returnNewTempLang=new ArrayList();
 	returnNewTempLang.clear();
 	for(int i=0;i<newTempLangList.size();i++){
-		showWarning("newTempLangList",newTempLangList.size().toString());
+	//	showWarning("newTempLangList",newTempLangList.size().toString());
 		String langPos=newTempLangList.get(i).get(0);
 		String langCode=getFieldValue("langIntroAns/langIntroAnsInfo/newLangCodec" + langPos);
 		String langName=getFieldValue("langIntroAns/langIntroAnsInfo/newLangNamec" + langPos);
@@ -1958,13 +1959,13 @@ getNewTempLang(){
 			attributes = createAttributeList();
 			attributes.add(createEntityAttribute("LanguageName", null, null, langName, null));
 			saveArchEnt(newTempLangList.get(i).get(1), "Language", null, attributes);
-			showWarning("saveArchEnt",newTempLangList.get(i).get(1)+":"+langName);
+			//showWarning("saveArchEnt",newTempLangList.get(i).get(1)+":"+langName);
 		}
 		if(!langCode.equals(newTempLangList.get(i).get(3))){
 			attributes = createAttributeList();
 			attributes.add(createEntityAttribute("LanguageID", null, null, langCode, null));
 			saveArchEnt(newTempLangList.get(i).get(1), "Language", null, attributes);
-			showWarning("saveArchEnt",newTempLangList.get(i).get(1)+":"+langCode);
+			//showWarning("saveArchEnt",newTempLangList.get(i).get(1)+":"+langCode);
 		}
 		//save the returning arraylist
 		tempNewLangArr=new ArrayList();
@@ -1972,14 +1973,14 @@ getNewTempLang(){
 		tempNewLangArr.add(langDeg);
 		returnNewTempLang.add(tempNewLangArr);
 	}
-	showWarning("fornewTempLangList","newTempLangList");
+	//showWarning("fornewTempLangList","newTempLangList");
 	return returnNewTempLang;
 }
 
 getLangIntroAnsText(){
 	selLang=getSelLangInIntro();
 	createdNewLang=getNewTempLang();
-	showWarning("createdNewLang","createdNewLang");
+	//showWarning("createdNewLang","createdNewLang");
 	allLangList=new ArrayList();
 	allLangList.clear();
 	allLangList.addAll(selLang);
@@ -1995,7 +1996,7 @@ getLangIntroAnsText(){
 		sb.append(lang.get(0)+"-"+lang.get(1));
 	}
 	ansText=sb.toString();
-	showWarning("ansText",ansText);
+	//showWarning("ansText",ansText);
 	return ansText;
 }
 
@@ -2020,7 +2021,6 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 				"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
 	 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
 				"and latestNonDeletedRelationship.Deleted IS NULL)))";
-
 			fetchOne(loadPsLangIntroQuery, new FetchCallback() {
                 onFetch(result) {
                 	//showWarning("onresult","loadPsLangIntroQuery");
@@ -2035,7 +2035,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 						}
 
             			if(!oldAns.equals(ansText)){
-            				showWarning("!oldAns",oldAns+":"+ansText);
+            				//showWarning("!oldAns",oldAns+":"+ansText);
             				attributes = createAttributeList();
         					attributes.add(createEntityAttribute("AnswerText", null, null, ansText, null));
         					saveArchEnt(result.get(0), "AnswerToQuestionnaire", null, attributes);
@@ -2269,7 +2269,7 @@ saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, St
 		showWarning("Application error","unable to generate correct answer, please contact the admin");
 		return;
 	}
-	showWarning("ansText-saveNewLangIntroAns",ansText);
+	//showWarning("ansText-saveNewLangIntroAns",ansText);
 	attributes.add(createEntityAttribute("AnswerText", null, null, ansText, null));
 
 //showWarning("attributes","attributes");
