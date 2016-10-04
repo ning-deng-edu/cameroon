@@ -1748,7 +1748,8 @@ saveLangIntroAnswer(){
 							//todo: just check the sociolinguistic question's id
 							saveLangIntroQuesAnswer("ans",hiddenAnsInfo.get("quesnir_id"),hiddenAnsInfo.get("ques_id"),crntLangIntroId);
 						}
-						nextLangQuestion(hiddenAnsInfo.get("ques_id"),crntLangIntroId);
+						//nextLangQuestion(hiddenAnsInfo.get("ques_id"),crntLangIntroId);
+						checkAllLangIntroQues(crntLangIntroId);
 					}
 			}
 			onError(message) {
@@ -1813,7 +1814,9 @@ saveLangIntroAnswer(){
 					autoSaveSession("head");
 					saveLangIntroQuesAnswer("ans",curntQuesnirId,curntQuesId,crntLangIntroId);
 					//showWarning("autoSaveSession 1","autoSaveSession 1");
-					nextLangQuestion(curntQuesId,crntLangIntroId);
+					//nextLangQuestion(curntQuesId,crntLangIntroId);
+					checkAllLangIntroQues(crntLangIntroId);
+
 				}
 			}
 			onError(message) {
@@ -1911,7 +1914,7 @@ checkAllLangIntroQues(String tempCurntLangId){
 	String unfinQuesId=null;
 	int unfinQuesIdx=-1;
 	for(int i=0;i<loopQuesOrder.size();i++){
-		showWarning("ques", loopQuesOrder.get(i).get(0));
+		//showWarning("ques", loopQuesOrder.get(i).get(0));
 		if(curntLangIntroQues.contains(loopQuesOrder.get(i).get(0))){
 			continue;
 		}
@@ -1929,7 +1932,7 @@ checkAllLangIntroQues(String tempCurntLangId){
 	else{
 		nextQuesId=loopQuesOrder.get(unfinQuesIdx).get(0);
 		nextQuesContent=loopQuesOrder.get(unfinQuesIdx).get(1);
-		showAlert("Next question","Do you want to go to the unfinished question:\n"+nextQuesContent,"loadAnswerFromQuesInQuesnir(\""+nextQuesId+"\")","stayInCurrentPage()");
+		showAlert("Next question","Do you want to go to the next unfinished question:\n"+nextQuesContent,"loadAnswerFromQuesInQuesnir(\""+nextQuesId+"\")","stayInCurrentPage()");
 	}
 
 }
