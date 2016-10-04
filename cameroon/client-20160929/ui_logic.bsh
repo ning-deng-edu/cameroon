@@ -1748,7 +1748,7 @@ saveLangIntroAnswer(){
 							//todo: just check the sociolinguistic question's id
 							saveLangIntroQuesAnswer("ans",hiddenAnsInfo.get("quesnir_id"),hiddenAnsInfo.get("ques_id"),crntLangIntroId);
 						}
-						nextLangQuestion(hiddenAnsInfo.get("ques_id"));
+						nextLangQuestion(hiddenAnsInfo.get("ques_id"),crntLangIntroId);
 					}
 			}
 			onError(message) {
@@ -1813,7 +1813,7 @@ saveLangIntroAnswer(){
 					autoSaveSession("head");
 					saveLangIntroQuesAnswer("ans",curntQuesnirId,curntQuesId,crntLangIntroId);
 					//showWarning("autoSaveSession 1","autoSaveSession 1");
-					nextLangQuestion(curntQuesId);
+					nextLangQuestion(curntQuesId,crntLangIntroId);
 				}
 			}
 			onError(message) {
@@ -1876,7 +1876,8 @@ saveNewLangInScln(String langPos){
 	});
 	
 }
-nextLangQuestion(String crnQuesId){
+
+nextLangQuestion(String crnQuesId, String tempCurntLangId){
 	int idxCrntQues=-1;
 	String nextQuesContent=null;
 	String nextQuesId=null;
@@ -1893,39 +1894,46 @@ nextLangQuestion(String crnQuesId){
 		showAlert("Next question","Do you want to go to the next question:\n"+nextQuesContent,"loadAnswerFromQuesInQuesnir(\""+nextQuesId+"\")","stayInCurrentPage()");
 	}
 	else{
-		checkAllLangIntroQues();
+		checkAllLangIntroQues(tempCurntLangId);
 	}
 }
-checkAllLangIntroQues(){
-	finLangIntroQues=new HashSet();
-	finLangIntroQues.clear();
 
-	for(ques: loopQuesOrder){
-		for(lang: finLangAndQues){
-			if(lang.get(0).equals(crntLangIntroId)){
-				if(lang.get(1).equals(ques.get(0))){
-					finLangIntroQues.add(ques.get(0));
-				}
-			}
+checkAllLangIntroQues(String tempCurntLangId){
+	curntLangIntroQues=new ArrayList();
+	curntLangIntroQues.clear();
+
+	for(ques: finLangAndQues){
+		if(ques.get(0).equals(tempCurntLangId)){
+			curntLangIntroQues.add(ques.get(1));
 		}
 	}
 
-	if(finLangIntroQues.size()==loopQuesOrder.size()){
+	String unfinQuesId=null;
+	int unfinQuesIdx=-1;
+	for(int i=0;i<loopQuesOrder.size();i++){
+		showWarning("ques", loopQuesOrder.get(i).get(0));
+		if(curntLangIntroQues.contains(loopQuesOrder.get(i).get(0))){
+			continue;
+		}
+		else{
+			unfinQuesId=loopQuesOrder.get(i).get(0);
+			unfinQuesIdx=i;
+			break;
+		}
+	}
+
+	if(unfinQuesId==null || unfinQuesIdx==-1){
 		cancelTabGroup("langIntroQues",true);
-		//cancelTabGroup("langIntroQues",true);
 	}
 
 	else{
-		for(ques: loopQuesOrder){
-			if(!finLangIntroQues.contains(ques.get(0))){
-				nextQuesId=ques.get(0);
-				nextQuesContent=ques.get(1);
-				showAlert("Next question","Do you want to go to the next question:\n"+nextQuesContent,"loadAnswerFromQuesInQuesnir(\""+nextQuesId+"\")","stayInCurrentPage()");
-			}
-		}
+		nextQuesId=loopQuesOrder.get(unfinQuesIdx).get(0);
+		nextQuesContent=loopQuesOrder.get(unfinQuesIdx).get(1);
+		showAlert("Next question","Do you want to go to the unfinished question:\n"+nextQuesContent,"loadAnswerFromQuesInQuesnir(\""+nextQuesId+"\")","stayInCurrentPage()");
 	}
 
 }
+
 getSelLangInIntro(){
 	//showWarning("getSelLangInIntro","getSelLangInIntro");
 	returnLangVer=new ArrayList();
