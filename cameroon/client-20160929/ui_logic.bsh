@@ -1857,6 +1857,7 @@ saveNewLangInScln(String langPos){
 					tempNewLang.add(langPos);
 					tempNewLang.add(uuid);
 					tempNewLang.add(langName);
+					tempNewLang.add(langCode);
 					newTempLangList.add(tempNewLang);
 					showToast("The new language is saved as 'temp' type");
 					startLoopQues(uuid);
@@ -1940,6 +1941,33 @@ getSelLangInIntro(){
 		}
 	}
 	return returnLangVer;
+}
+getNewTempLang(){
+	returnNewTempLang=new ArrayList();
+	returnNewTempLang.clear();
+	for(int i=0;i<newTempLangList.size();i++){
+		String langPos=newTempLangList.get(i).get(0);
+		String langCode=getFieldValue("langIntroAns/langIntroAnsInfo/newLangCodec" + langPos);
+		String langName=getFieldValue("langIntroAns/langIntroAnsInfo/newLangNamec" + langPos);
+		String langDeg=getFieldValue("langIntroAns/langIntroAnsInfo/degc" + langPos);
+		//save changed languages
+		if(!langName.equals(newTempLangList.get(i).get(2))){
+			attributes = createAttributeList();
+			attributes.add(createEntityAttribute("LanguageName", null, null, langName, null));
+			saveArchEnt(newTempLangList.get(i).get(1), "Language", null, attributes);
+		}
+		if(!langCode.equals(newTempLangList.get(i).get(3))){
+			attributes = createAttributeList();
+			attributes.add(createEntityAttribute("LanguageID", null, null, langCode, null));
+			saveArchEnt(newTempLangList.get(i).get(1), "Language", null, attributes);
+		}
+		//save the returning arraylist
+		tempNewLangArr=new ArrayList();
+		tempNewLangArr.add(newTempLangList.get(i).get(1));//add the uuid of the language
+		tempNewLangArr.add(langDeg);
+		returnNewTempLang.add(tempNewLangArr);
+	}
+	return returnNewTempLang;
 }
 
 saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId, String tempLangId){
@@ -2917,7 +2945,7 @@ loadSessionList(String typeflag){
         }
     });
 }
-//TODO: DEAL WITH THE EMERGENCY SESSION READING BACK
+
 loadSessionInfo(String typeFlag){
 	switch (typeFlag){
 	case "answer":
