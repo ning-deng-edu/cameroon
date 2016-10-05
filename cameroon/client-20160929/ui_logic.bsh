@@ -1622,7 +1622,7 @@ createLoopQuesList(){
 	        quesSelListDef=createViewDef().createList().setLabel("Questions").setStyleCss("questionQuestionnaire-list");
 	        createView("langIntroQues/langIntroQuesInfo/loopQues", quesSelListDef,"langIntroQues/langIntroQuesInfo");
 	        refreshTabgroupCSS("langIntroQues");
-	        onEvent("langIntroQues/langIntroQuesInfo/loopQues","click","startNewLoopAns()");
+	        onEvent("langIntroQues/langIntroQuesInfo/loopQues","click","checkAnsweredLangQues()");
 	       
 	   		}
 			});
@@ -1639,8 +1639,35 @@ startLoopQues(String tempLangId){
 	populateList("langIntroQues/langIntroQuesInfo/loopQues",loopQuesOrder);
 }
 
-startNewLoopAns(){
-	String ques_id=getListItemValue();
+checkAnsweredLangQues(){
+	String toAnsQuesId=getListItemValue();
+	Boolean rep=false;
+	if(!isNull(finLangAndQues)){
+		for(ques:finLangAndQues){
+			if((ques.get(0).equals(crntLangIntroId))&& (ques.get(1).equals(toAnsQuesId))){
+				rep=true;
+				showAlert("Answered question","The consultant(s) already answered this question for this language\n"+"Do you still want to continue?","startNewLoopAns(\""+toAnsQuesId+"\")","stayInCurrentPage()");
+				break;
+			}
+		}
+		if(!rep){
+			startNewLoopAns(toAnsQuesId);
+		}
+		
+	}
+	else{
+		startNewLoopAns(toAnsQuesId);
+	}
+}
+
+startNewLoopAns(String tempQuesId){
+	String ques_id=null;
+	if(tempQuesId==null){
+		ques_id=getListItemValue();
+	}
+	else{
+		ques_id=tempQuesId;
+	}
 	//showWarning("ques_id",ques_id);
 	if(ques_id==null){
 		showWarning("Invalid operation","Please select a question");
@@ -2186,6 +2213,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
                 			attributes = createAttributeList();
         					attributes.add(createEntityAttribute("AnswerText", null, null, ansText, null));
         					saveArchEnt(result.get(0), "AnswerToQuestionnaire", null, attributes);
+        					showToast("answer updated");
         					//showWarning("saveArchEntattributes",result.get(0));
                 		}
 
@@ -2227,6 +2255,7 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 											//showWarning("AnswerToQuestionnaire","AnswerToQuestionnaire");
 											dupAnsLblChange=false;
 											dupAnsLblInfo.clear();
+
 										}
 									}
 									autoSaveSession("head");
@@ -2548,8 +2577,6 @@ answeredLangQuesPrep(ArrayList quesIdList){
 		        		tempQuesLang.add(quesLang.get(2));
 		        		finLangAndQues.add(tempQuesLang);
 		        	}
-		        	//why this ran twice?
-		        	//showWarning("finLangAndQues",finLangAndQues.size().toString());
 		        }
 		    }
 		});
