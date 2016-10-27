@@ -3015,7 +3015,21 @@ loadSessionList(String typeflag){
         }
     });
 }
+loadSessionListByQuesnirType(String typeflag, String typeId){
 
+	loadSessionByTypeQuery="select uuid,measure from latestNonDeletedAentValue where "+
+	"latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+	"and uuid in "+
+	"(select uuid from AentReln where RelationshipID "+
+	"in (select RelationshipID from AEntReln where AEntReln.uuid in "+
+	"(select uuid from latestNonDeletedAentValue "+
+	"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+	"and measure IN (select uuid from latestNonDeletedAentValue "+
+	"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') and "+
+	"measure ='"+typeId+"')) "+
+	"AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+	"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') and latestNonDeletedRelationship.Deleted IS NULL)))";
+}
 loadSessionInfo(String typeFlag){
 	switch (typeFlag){
 	case "answer":
@@ -3036,17 +3050,17 @@ loadSessionInfo(String typeFlag){
 				"and latestNonDeletedRelationship.Deleted IS NULL)))";
 
 		loadSessionTypeNamesQuery="select measure from latestNonDeletedAentValue "+
-		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
-		"and uuid in "+
-		"(select measure from latestNonDeletedAentValue "+
-		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
-		"and uuid in (select measure from latestNonDeletedAentValue "+
-		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
-		"and uuid in (select uuid from AentReln where RelationshipID in "+
-		"(select RelationshipID from AEntReln where AEntReln.uuid='"+sss_id+"' "+
-		"AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
-		"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
-		"and latestNonDeletedRelationship.Deleted IS NULL))) group by measure))";
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+			"and uuid in "+
+			"(select measure from latestNonDeletedAentValue "+
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+			"and uuid in (select measure from latestNonDeletedAentValue "+
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+			"and uuid in (select uuid from AentReln where RelationshipID in "+
+			"(select RelationshipID from AEntReln where AEntReln.uuid='"+sss_id+"' "+
+			"AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+			"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL))) group by measure))";
 
 		loadAnsSssRelnQuery="select RelationshipID, uuid from latestNonDeletedAentReln where uuid <> '"+sss_id+
 		"' and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='"+sss_id+
@@ -3115,7 +3129,25 @@ loadSessionInfo(String typeFlag){
 	            showToast(message);
 	        }
 	    });
-	    
+
+	    fetchAll(loadSessionTypeNamesQuery, new FetchCallback() {
+	        onFetch(result) {
+	        	if(!isNull(result)){
+	        		StringBuilder sb=new StringBuilder();
+	        		for (re:result){
+	        			if (sb.length()>0)
+	        			{
+	        				sb.append(",");
+	        			}
+	        			sb.append(re.toString());
+	        		}
+	        	}
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+
 		showTabGroup("sessionForAnswer", sss_id, new FetchCallback() {
 	        onFetch(result) {
 				sssOriginInfo.clear();
