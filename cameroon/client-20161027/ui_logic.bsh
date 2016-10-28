@@ -360,7 +360,7 @@ quesRecordingType=new ArrayList();
 //busyDialog=null;
 
 /***session dynamic ui page generation***/
-createMainSessionPage(){
+createMainSessionPage(String typeflag){
 	if(!hasView("sessionForAnswer/sssHidden/sssID")){
 		removeAllViewsAndContainers("sessionForAnswer");
 		executeViewTask(new ViewTask() {
@@ -378,11 +378,15 @@ createMainSessionPage(){
     		
     		sssLocViewDef=createViewDef().createTextField().setLabel("GPS").setAttributeName("SessionLocation").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
     		sssDescViewDef=createViewDef().createTextField().setLabel("Description").setAttributeName("SessionDescription").setAttributeType("measure").setAnnotationEnabled(true);
-    		  
-    		
+
     		createView("sessionForAnswer/sssAnsBasicInfo/sssLocation",sssLocViewDef,"sessionForAnswer/sssAnsBasicInfo");	
     		createView("sessionForAnswer/sssAnsBasicInfo/sssDescription",sssDescViewDef,"sessionForAnswer/sssAnsBasicInfo");
-    	
+    		
+    		if(typeflag.equals("s")){
+    			sssTypeViewDef=createViewDef().createTextField().setLabel("Type").setAnnotationEnabled(false).setReadOnly(true);
+    			createView("sessionForAnswer/sssAnsBasicInfo/sssType",sssTypeViewDef,"sessionForAnswer/sssAnsBasicInfo");
+    		} 
+    		
     		//sssPersonInfo page
 	        style1 = "orientation";
 	        style2 = "even";
@@ -546,7 +550,7 @@ checkGoToFieldTrip(){
 	showAlert("alert", "Do you want to create a fieldTrip?","createFieldTripInfoPage(\"new\")", "stayInCurrentPage()");
 }
 newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
-	createMainSessionPage();
+	createMainSessionPage("n");
 	if(typeflag.equals("answer")){
 		introAns=false;
 		introPsMark=null;
@@ -3053,7 +3057,7 @@ loadSessionInfo(String typeFlag){
 			showWarning("Invalid session","No session is selected or session is not available");
 			return;
 		}
-		createMainSessionPage();
+		createMainSessionPage("s");
 		loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
 				"and uuid in "+
@@ -3145,23 +3149,6 @@ loadSessionInfo(String typeFlag){
 	        }
 	    });
 
-	    fetchAll(loadSessionTypeNamesQuery, new FetchCallback() {
-	        onFetch(result) {
-	        	if(!isNull(result)){
-	        		StringBuilder sb=new StringBuilder();
-	        		for (re:result){
-	        			if (sb.length()>0)
-	        			{
-	        				sb.append(",");
-	        			}
-	        			sb.append(re.toString());
-	        		}
-	        	}
-	        }
-	        onError(message) {
-	            showToast(message);
-	        }
-	    });
 
 		showTabGroup("sessionForAnswer", sss_id, new FetchCallback() {
 	        onFetch(result) {
@@ -3185,6 +3172,27 @@ loadSessionInfo(String typeFlag){
 	                    showToast(message);
 	                }
 	            });
+	        	fetchAll(loadSessionTypeNamesQuery, new FetchCallback() {
+			        onFetch(result) {
+			        	if(!isNull(result)){
+			        		StringBuilder sb=new StringBuilder();
+			        		for (re:result){
+			        			if (sb.length()>0)
+			        			{
+			        				sb.append(",");
+			        			}
+			        			sb.append(re.toString());
+			        		}
+			        		setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssType",sb.toString());
+			        	}
+			        	else{
+			        		setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssType","");
+			        	}
+			        }
+			        onError(message) {
+			            showToast(message);
+			        }
+			    });
 
 				sssPersonRoleNameListOrigin.clear();
 	            sssPersonRoleandNameList.clear();
