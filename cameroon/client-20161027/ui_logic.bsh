@@ -1749,7 +1749,7 @@ saveLangIntroFile(String ref, String fileListViewRef, String tabGroupRef, String
 					showTab("survey/answerFile");
 				}
 				//showWarning("ansOrNot","ansOrNot");
-				saveLangIntroAnswer();
+				saveLangIntroAnswer(0);
 				cancelTabGroup(tabGroupRef, true);
 			}
 		}
@@ -1759,7 +1759,7 @@ saveLangIntroFile(String ref, String fileListViewRef, String tabGroupRef, String
 	});
 }
 //point here is not allow the user to operate too fast
-saveLangIntroAnswer(){
+saveLangIntroAnswer(int loopCount){
 	if(!ansOrNot){
 		attributes = createAttributeList();
 		
@@ -1822,7 +1822,13 @@ saveLangIntroAnswer(){
 			onError(message) {
 				//showWarning("Error happened, re-saving",message+"\n"+"please report this to the admin\n"+"click ok to continue");
 				//Problem here, potential infinite loop
-				saveLangIntroAnswer();
+				if(loopCount<=4){
+					saveLangIntroAnswer(loopCount++);
+				}
+				else{
+					showWarning("Error happened, re-saving failed",message+"\n"+"please report this to the admin\n"+"click ok to continue");
+				}
+				
 			}  
 		});
 	}
@@ -3029,6 +3035,15 @@ loadSessionListByQuesnirType(String typeflag, String typeId){
 	"measure ='"+typeId+"')) "+
 	"AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
 	"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') and latestNonDeletedRelationship.Deleted IS NULL)))";
+
+	fetchAll(loadSessionByTypeQuery, new FetchCallback() {
+	        onFetch(result) {
+	        	populateList("sessionGroup/sessionInfo/sessionList");
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
 }
 loadSessionInfo(String typeFlag){
 	switch (typeFlag){
