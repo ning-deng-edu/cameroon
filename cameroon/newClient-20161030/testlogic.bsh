@@ -17,6 +17,11 @@ String userid;
 
 loadAllUserQuery="select userid, fname || ' ' || lname from user where userdeleted is null";
 
+loadAllSessionIDQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers " +
+		"WHERE AttributeID "+
+		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionID') "+
+		"GROUP BY uuid;";
+
 /***User***/
 onEvent("user/usertab/users", "click", "login()");
 loadUsers() {
@@ -120,6 +125,8 @@ createFieldTripControlPage(){
 			createView("control/other_control/fieldTripList", fTListDef,"control/other_control");
 
 	        refreshTabgroupCSS("control");
+
+	        onEvent("control/other_control/fieldTrip_New_bn","click","createFieldTripInfoPage(\"new\")");
 			}
 	    
 		});
@@ -183,9 +190,9 @@ createLanguageControlPage(){
 
 			createView("control/language_control/languageList", langListDef,"control/language_control");
 
-			onEvent("control/language_control/New_Language","click","newLanguage()");
-
 	        refreshTabgroupCSS("control");
+
+	        onEvent("control/language_control/New_Language","click","newLanguage()");
 			}
 	    
 		});
@@ -234,7 +241,6 @@ createQueryControlPage(){
 				createView("control/querytest/query", queryViewDef,"control/querytest");
 				createView("control/querytest/Submit", queryButtonDef,"control/querytest");
 				refreshTabgroupCSS("control");
-				 refreshTabgroupCSS("control");
 			}
 	    
 		});
@@ -284,4 +290,100 @@ newLanguage(){
 	newLangProp.clear();
 	createLanguageGroupPage();
 	newTabGroup("language");
+}
+
+
+/*** FieldTrip ***/
+/*** FieldTrip UI ***/
+createFieldTripInfoPage(String typeflag){
+	if(!hasView("fieldTrip/fieldTripBasicInfo/fieldTripID")){
+		removeAllViewsAndContainers("fieldTrip");
+		executeViewTask(new ViewTask() {
+	    doTask() {
+	    	
+	    	//basic info page
+	    	idTextViewDef = createViewDef().createTextField().setLabel("FieldTrip label").setAttributeName("FieldTripID").setAttributeType("measure").
+	    	setAnnotationEnabled(true).setReadOnly(true);
+	    	nameTextViewDef=createViewDef().createTextField().setLabel("FieldTrip name").setAttributeName("FieldTripName").setAttributeType("measure").
+	    	setAnnotationEnabled(true);
+	    	descTextViewDef=createViewDef().createTextField().setLabel("Description").setAttributeName("FieldTripDescription").setAttributeType("measure").
+	    	setAnnotationEnabled(true);
+	    	startDateDef = createViewDef().createDatePicker().setLabel("Start Date");
+	    	endDateDef = createViewDef().createDatePicker().setLabel("End Date");
+	    	createView("fieldTrip/fieldTripBasicInfo/fieldTripID", idTextViewDef,"fieldTrip/fieldTripBasicInfo");
+	        createView("fieldTrip/fieldTripBasicInfo/fieldTripName", nameTextViewDef,"fieldTrip/fieldTripBasicInfo");
+	        createView("fieldTrip/fieldTripBasicInfo/fieldTripDesc", descTextViewDef,"fieldTrip/fieldTripBasicInfo");
+	        createView("fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker", startDateDef,"fieldTrip/fieldTripBasicInfo");
+	        createView("fieldTrip/fieldTripBasicInfo/fieldTripEndDatePicker", endDateDef,"fieldTrip/fieldTripBasicInfo");
+
+	    	//session page
+	        style1 = "orientation";
+	        style2 = "even";
+	    	createContainer("fieldTrip/fieldTripSession/field_session_ct", "orientation");
+	    	createContainer("fieldTrip/fieldTripSession/child1", "even", "fieldTrip/fieldTripSession/field_session_ct");
+	        createContainer("fieldTrip/fieldTripSession/child2", "even", "fieldTrip/fieldTripSession/field_session_ct");
+	        
+	        ftFileListDef=createViewDef().createList().setLabel("Session").setStyleCss("session-file-list");
+	        ftSelFileListDef=createViewDef().createList().setLabel("Select session").setStyleCss("session-file-list");
+	        ftSaveBtnDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+	        createView("fieldTrip/fieldTripSession/fieldTripFileList", ftFileListDef,"fieldTrip/fieldTripSession/child1");
+	        createView("fieldTrip/fieldTripSession/fieldTripFileSelectionList", ftSelFileListDef,"fieldTrip/fieldTripSession/child2");
+	        createView("fieldTrip/fieldTripSession/Finish_New_FieldTrip", ftSaveBtnDef,"fieldTrip/fieldTripSession");
+	        refreshTabgroupCSS("fieldTrip");
+
+	        onEvent("fieldTrip/fieldTripSession/fieldTripFileSelectionList","click","addItemToTargetList(candidate_session_fieldTrip,\"fieldTripSession\",null)");
+	        //No delete function for client
+	        onEvent("fieldTrip/fieldTripSession/fieldTripFileList","click","deleteItemFromTargetList(selected_session_fieldTrip,\"fieldTripSession\",null)");
+	        onEvent("fieldTrip/fieldTripSession/Finish_New_FieldTrip","click","saveFieldTrip()");
+	        //fieldTripBasicInfoHidden page
+	        startdateViewDef = createViewDef().createTextField().setLabel("startdate").setAttributeName("FieldTripStartTime").setAttributeType("measure");
+	        enddateViewDef = createViewDef().createTextField().setLabel("enddate").setAttributeName("FieldTripEndTime").setAttributeType("measure");
+	        createView("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp", startdateViewDef,"fieldTrip/fieldTripBasicInfoHidden");
+	        createView("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp", enddateViewDef,"fieldTrip/fieldTripBasicInfoHidden");
+	        
+	   		}
+			});
+
+		if(typeflag.equals("new")){
+			startNewFieldTrip();
+		}
+
+	}
+	else{
+		//showTabGroup("fieldTrip");
+		if(typeflag.equals("new")){
+			startNewFieldTrip();
+		}
+	}
+}
+
+fieldTrip_id=null;
+selected_session_fieldTrip=new ArrayList();
+candidate_session_fieldTrip=new ArrayList();
+original_session_fieldTrip=new ArrayList();
+fieldTripInfoOrigin=new ArrayList();
+fieldTripInfoNew=new ArrayList();
+
+startNewFieldTrip(){
+	fieldTrip_id=null;
+	selected_session_fieldTrip.clear();
+	candidate_session_fieldTrip.clear();
+	original_session_fieldTrip.clear();
+	fieldTripInfoOrigin.clear();
+	fieldTripInfoNew.clear();
+	currentDateTimeArray=new ArrayList();
+	
+	newTabGroup("fieldTrip");
+	
+	fetchAll(loadAllSessionIDQuery, new FetchCallback() {
+        onFetch(result) {
+        	candidate_session_fieldTrip.addAll(result);
+            populateList("fieldTrip/fieldTripSession/fieldTripFileSelectionList", candidate_session_fieldTrip);
+            populateList("fieldTrip/fieldTripSession/fieldTripFileList", selected_session_fieldTrip);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
 }

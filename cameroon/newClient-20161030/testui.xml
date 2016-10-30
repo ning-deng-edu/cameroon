@@ -65,6 +65,15 @@
                   </languageInfo>
                 </language>
 
+                 <fieldTrip>
+                    <fieldTripBasicInfo>
+                    </fieldTripBasicInfo>
+                    <fieldTripSession>
+                    </fieldTripSession>
+                    <fieldTripBasicInfoHidden>
+                    </fieldTripBasicInfoHidden>
+                </fieldTrip>
+
             </faims>
         </instance>
       
@@ -163,6 +172,20 @@
         <group ref="languageInfo" faims_scrollable="false">
             <label>Language Info</label>
         </group>
+    </group>
+
+
+     <group ref="fieldTrip" faims_archent_type="FieldTrip">
+        <label>FieldTrip</label>
+        <group ref="fieldTripBasicInfo">
+          <label>Basic Info</label>
+      </group>
+      <group ref="fieldTripSession">
+          <label>Sessions</label>
+      </group>
+      <group ref="fieldTripBasicInfoHidden" faims_hidden="true">
+          <label>Hidden</label>
+      </group>
     </group>
   
  </h:body>
