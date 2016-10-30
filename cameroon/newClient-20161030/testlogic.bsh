@@ -1,0 +1,287 @@
+import java.util.concurrent.Callable;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import android.util.Log;
+import java.io.File;
+import java.lang.Character;
+import java.lang.StringBuffer;
+
+//import java.lang.*;
+/*** 'Editable' - you can edit the code below based on the needs ***/
+User user; // don't touch
+String userid;
+
+loadAllUserQuery="select userid, fname || ' ' || lname from user where userdeleted is null";
+
+/***User***/
+onEvent("user/usertab/users", "click", "login()");
+loadUsers() {
+    fetchAll(loadAllUserQuery, new FetchCallback() {
+        onFetch(result) {
+            populateList("user/usertab/users", result);
+        }
+    });
+}
+
+loadUsers();
+
+String username = "";
+String device = "";
+
+login() {
+    fetchOne("select userid,fname,lname,email from user where userid='" + getListItemValue() + "';", new FetchCallback() {
+        onFetch(result) {
+            user = new User(result.get(0),result.get(1),result.get(2),result.get(3));
+            setUser(user);
+            username = result.get(1) + " " + result.get(2);
+            userid=result.get(0);
+            showTabGroup("control");
+            createControlGroupView();
+        }
+    });
+}
+
+createControlGroupView(){
+	createSurveyControlPage();
+	createFieldTripControlPage();
+	createPersonControlPage();
+	createLanguageControlPage();
+	createFileControlPage();
+	createQueryControlPage();
+}
+createSurveyControlPage(){
+	if(!hasView("control/survey_control/surveyList")){
+		executeViewTask(new ViewTask() {
+    	doTask() { 
+    		style1 = "orientation";
+	        style2 = "even";
+	    	createContainer("control/survey_control/surveyButtonCtn", "orientation");
+	    	createContainer("control/survey_control/surveyButtonChild1", "even", "control/survey_control/surveyButtonCtn");
+	        createContainer("control/survey_control/surveyButtonChild2", "even", "control/survey_control/surveyButtonCtn");
+
+	    	createContainer("control/survey_control/surveySearchCtn", "orientation");  	
+			createContainer("control/survey_control/surveySearchChild1", "even", "control/survey_control/surveySearchCtn");
+	        createContainer("control/survey_control/surveySearchChild2", "even", "control/survey_control/surveySearchCtn");
+	        createContainer("control/survey_control/surveySearchChild3", "even", "control/survey_control/surveySearchCtn");
+
+	        emrSssButtonDef = createViewDef().createButton().setLabel("Emr").setStyleCss("faims-blue");
+	        newSssButtonDef = createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+
+	        createView("control/survey_control/EMR_Survey", emrSssButtonDef,"control/survey_control/surveyButtonChild1");
+	        createView("control/survey_control/New_Survey", newSssButtonDef,"control/survey_control/surveyButtonChild2");
+
+	        searchKeywordViewDef=createViewDef().createTextField().setLabel("keyword").setAnnotationEnabled(false);
+	       	sssTypeViewDef=createViewDef().createDropDown().setLabel("Type").setAnnotationEnabled(false);
+	       	searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
+	        sssListDef=createViewDef().createList().setLabel("Session").setAnnotationEnabled(false).setStyleCss("file-list");
+
+	        createView("control/survey_control/survey_keyword", searchKeywordViewDef,"control/survey_control/surveySearchChild1");
+	        createView("control/survey_control/survey_type", sssTypeViewDef,"control/survey_control/surveySearchChild2");
+	        createView("control/survey_control/Survey_Search", searchButtonDef,"control/survey_control/surveySearchChild3");
+
+			createView("control/survey_control/surveyList", sssListDef,"control/survey_control");
+
+	        refreshTabgroupCSS("control");
+			}
+	    
+		});
+	}
+}
+
+createFieldTripControlPage(){
+	if(!hasView("control/other_control/fieldTripList")){
+		executeViewTask(new ViewTask() {
+    	doTask() { 
+    		style1 = "orientation";
+	        style2 = "even";
+
+	
+
+	        newFTButtonDef = createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+
+	        createView("control/other_control/fieldTrip_New_bn", newFTButtonDef,"control/other_control");
+
+	        createContainer("control/other_control/fieldTripSearchCtn", "orientation");  	
+			createContainer("control/other_control/fieldTripSearchChild1", "even", "control/other_control/fieldTripSearchCtn");
+	        createContainer("control/other_control/fieldTripSearchChild2", "even", "control/other_control/fieldTripSearchCtn");
+
+	        searchKeywordViewDef=createViewDef().createTextField().setLabel("keyword").setAnnotationEnabled(false);
+	       	searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
+
+	        fTListDef=createViewDef().createList().setLabel("FieldTrip").setAnnotationEnabled(false).setStyleCss("survey-list");
+
+	        createView("control/other_control/fieldTrip_Search_kw", searchKeywordViewDef,"control/other_control/fieldTripSearchChild1");
+	        createView("control/other_control/fieldTrip_Search_bn", searchButtonDef,"control/other_control/fieldTripSearchChild2");
+
+			createView("control/other_control/fieldTripList", fTListDef,"control/other_control");
+
+	        refreshTabgroupCSS("control");
+			}
+	    
+		});
+	}
+}
+
+createPersonControlPage(){
+	if(!hasView("control/user_control/userList")){
+		executeViewTask(new ViewTask() {
+    	doTask() { 
+    		style1 = "orientation";
+	        style2 = "even";
+
+	        newPsButtonDef = createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+
+	        createView("control/user_control/New_User", newPsButtonDef,"control/user_control");
+
+	        createContainer("control/user_control/psSearchCtn", "orientation");  	
+			createContainer("control/user_control/psSearchChild1", "even", "control/user_control/psSearchCtn");
+	        createContainer("control/user_control/psSearchChild2", "even", "control/user_control/psSearchCtn");
+
+	        searchKeywordViewDef=createViewDef().createTextField().setLabel("keyword").setAnnotationEnabled(false);
+	       	searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
+
+	        pSListDef=createViewDef().createList().setLabel("Person").setAnnotationEnabled(false).setStyleCss("file-list");
+
+	        createView("control/user_control/person_keyword", searchKeywordViewDef,"control/user_control/psSearchChild1");
+	        createView("control/user_control/Person_Search", searchButtonDef,"control/user_control/psSearchChild2");
+
+			createView("control/user_control/userList", pSListDef,"control/user_control");
+
+	        refreshTabgroupCSS("control");
+			}
+	    
+		});
+	}
+}
+
+createLanguageControlPage(){
+	if(!hasView("control/language_control/languageList")){
+		executeViewTask(new ViewTask() {
+    	doTask() { 
+    		style1 = "orientation";
+	        style2 = "even";
+
+	        newLangButtonDef = createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+
+	        createView("control/language_control/New_Language", newLangButtonDef,"control/language_control");
+
+	        createContainer("control/language_control/langSearchCtn", "orientation");  	
+			createContainer("control/language_control/langSearchChild1", "even", "control/language_control/langSearchCtn");
+	        createContainer("control/language_control/langSearchChild2", "even", "control/language_control/langSearchCtn");
+
+	        searchKeywordViewDef=createViewDef().createTextField().setLabel("keyword").setAnnotationEnabled(false);
+	       	searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
+
+	        langListDef=createViewDef().createList().setLabel("Language").setAnnotationEnabled(false).setStyleCss("file-list");
+
+	        createView("control/language_control/person_keyword", searchKeywordViewDef,"control/language_control/langSearchChild1");
+	        createView("control/language_control/Person_Search", searchButtonDef,"control/language_control/langSearchChild2");
+
+			createView("control/language_control/languageList", langListDef,"control/language_control");
+
+			onEvent("control/language_control/New_Language","click","newLanguage()");
+
+	        refreshTabgroupCSS("control");
+			}
+	    
+		});
+	}
+}
+
+createFileControlPage(){
+	if(!hasView("control/file_control/fileList")){
+		executeViewTask(new ViewTask() {
+    	doTask() { 
+    		style1 = "orientation";
+	        style2 = "even";
+
+	        createContainer("control/file_control/fileSearchCtn", "orientation");  	
+			createContainer("control/file_control/fileSearchChild1", "even", "control/file_control/fileSearchCtn");
+	        createContainer("control/file_control/fileSearchChild2", "even", "control/file_control/fileSearchCtn");
+	        createContainer("control/file_control/fileSearchChild3", "even", "control/file_control/fileSearchCtn");
+			
+			fileTypeViewDef=createViewDef().createDropDown().setLabel("Type").setAnnotationEnabled(false);
+	        searchKeywordViewDef=createViewDef().createTextField().setLabel("keyword").setAnnotationEnabled(false);
+	       	searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
+
+	        fileListDef=createViewDef().createList().setLabel("File").setAnnotationEnabled(false).setStyleCss("file-list");
+
+	        createView("control/file_control/fileCategorySelect", fileTypeViewDef,"control/file_control/fileSearchChild1");
+	        createView("control/file_control/file_keyword", searchKeywordViewDef,"control/file_control/fileSearchChild2");
+	        createView("control/file_control/File_Search", searchButtonDef,"control/file_control/fileSearchChild3");
+
+			createView("control/file_control/fileList", fileListDef,"control/file_control");
+
+	        refreshTabgroupCSS("control");
+			}
+	    
+		});
+	}
+}
+
+/**********Temp function, to be remove for official version************/
+createQueryControlPage(){
+	if(!hasView("control/querytest/Submit")){
+			executeViewTask(new ViewTask() {
+	    	doTask() { 
+				queryViewDef=createViewDef().createTextField().setLabel("query").setAnnotationEnabled(false);
+				queryButtonDef = createViewDef().createButton().setLabel("Submit").setStyleCss("faims-blue");
+
+				createView("control/querytest/query", queryViewDef,"control/querytest");
+				createView("control/querytest/Submit", queryButtonDef,"control/querytest");
+				refreshTabgroupCSS("control");
+				 refreshTabgroupCSS("control");
+			}
+	    
+		});
+	}
+
+}
+
+/**********Temp function, to be remove for official version************/
+
+/*** Language ***/
+/*** Language UI ***/
+createLanguageGroupPage(){
+	if(!hasView("language/languageInfo/Finish_New_Language")){
+		executeViewTask(new ViewTask() {
+    	doTask() {
+
+    		langIDViewDef=createViewDef().createTextField().setAttributeName("LanguageID").setAttributeType("measure").setLabel("Language code").setAnnotationEnabled(true).setStyleCss("required");
+    		langNameViewDef=createViewDef().createTextField().setAttributeName("LanguageName").setAttributeType("measure").setLabel("Language name").setAnnotationEnabled(true).setStyleCss("required");
+			langotherNameViewDef=createViewDef().createTextField().setAttributeName("LanguageOtherNames").setAttributeType("measure").setLabel("Language other name(s)").setAnnotationEnabled(true);
+			langTypeViewDef=createViewDef().createDropDown().setLabel("Language type").setAnnotationEnabled(false);
+	        
+	       	finButtonDef = createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+
+	        createView("language/languageInfo/languageID", langIDViewDef,"language/languageInfo/");
+	        createView("language/languageInfo/languageName", langNameViewDef,"language/languageInfo/");
+	        createView("language/languageInfo/languageOtherNames", langotherNameViewDef,"language/languageInfo/");
+			createView("language/languageInfo/languageType", langTypeViewDef,"language/languageInfo/");
+			createView("language/languageInfo/Finish_New_Language", finButtonDef,"language/languageInfo/");
+
+	        refreshTabgroupCSS("language");
+			}
+	    
+		});
+	}
+}
+
+
+language_id=null;
+originLangProp=new ArrayList();
+newLangProp=new ArrayList();
+candLangProp=new ArrayList();
+
+newLanguage(){
+	language_id=null;
+	candLangProp.clear();
+	originLangProp.clear();
+	newLangProp.clear();
+	createLanguageGroupPage();
+	newTabGroup("language");
+}
