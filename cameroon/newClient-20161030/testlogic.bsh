@@ -247,9 +247,313 @@ createQueryControlPage(){
 	}
 
 }
-
 /**********Temp function, to be remove for official version************/
+/*** Session questionnaire list***/
 
+createQuesnirList(){
+	if(!hasView("questionnaireListAll/questionnaireListInfo/questionnaireListInDB")){
+		removeAllViewsAndContainers("questionnaireListAll");
+		executeViewTask(new ViewTask() {
+    	doTask() { 	
+	        style1 = "orientation";
+	        style2 = "even";
+	    	createContainer("questionnaireListAll/questionnaireListInfo/quesnirLsCt", "orientation");
+	    	createContainer("questionnaireListAll/questionnaireListInfo/child1", "even", "questionnaireListAll/questionnaireListInfo/quesnirLsCt");
+	        createContainer("questionnaireListAll/questionnaireListInfo/child2", "even", "questionnaireListAll/questionnaireListInfo/quesnirLsCt");
+
+	        searchTextViewDef = createViewDef().createTextField().setLabel("Keyword").setInfoEnabled(true);
+	        searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
+	        
+	        quesnirListDef=createViewDef().createList().setLabel("Questionnaires").setStyleCss("questionnaire-list");
+
+	        createView("questionnaireListAll/questionnaireListInfo/quesnir_keyword", searchTextViewDef,"questionnaireListAll/questionnaireListInfo/child1");
+	        createView("questionnaireListAll/questionnaireListInfo/quesnir_Search", searchButtonDef,"questionnaireListAll/questionnaireListInfo/child2");
+	   
+	        createView("questionnaireListAll/questionnaireListInfo/questionnaireListInDB", quesnirListDef,"questionnaireListAll/questionnaireListInfo");
+
+	        refreshTabgroupCSS("questionnaireListAll");
+
+	        onEvent("questionnaireListAll","show","loadAllQuesnir()");
+
+	        onEvent("questionnaireListAll/questionnaireListInfo/questionnaireListInDB","click","loadQuesnirInfo()");
+	    }
+		});
+	}
+}
+
+createQuesSel(){
+	if(!hasView("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireID")){
+		removeAllViewsAndContainers("questionnaireInfo");
+		executeViewTask(new ViewTask() {
+	    doTask() {
+	    	hideQuesnirId=createViewDef().createTextField().setLabel("currentQuesnirID").setReadOnly(true);
+	    	idTextViewDef = createViewDef().createTextField().setLabel("Questionnaire label").setAttributeName("QuestionnaireID").setAttributeType("measure").setAnnotationEnabled(false).setReadOnly(true);
+	    	nameTextViewDef=createViewDef().createTextField().setLabel("Questionnaire name").setAttributeName("QuestionnaireName").setAttributeType("measure").setAnnotationEnabled(false).setReadOnly(true);
+	    	typeTextViewDef=createViewDef().createTextField().setLabel("Questionnaire type").setAnnotationEnabled(false).setReadOnly(true);
+	    	descTextViewDef=createViewDef().createTextField().setLabel("Questionnaire description").setAttributeName("QuestionnaireDescription").setAttributeType("measure").setAnnotationEnabled(false).setReadOnly(true);
+	    	createView("questionnaireInfo/surveyQuesnirHidden/currentQuesnirID",hideQuesnirId,"questionnaireInfo/surveyQuesnirHidden");
+	    	createView("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireID",idTextViewDef,"questionnaireInfo/surveyQuesnirHidden");
+	        createView("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireName",nameTextViewDef,"questionnaireInfo/surveyQuesnirHidden");
+	        createView("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireType",typeTextViewDef,"questionnaireInfo/surveyQuesnirHidden");
+	        createView("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireDescription", descTextViewDef,"questionnaireInfo/surveyQuesnirHidden");
+	    		    	
+
+	        quesSelListDef=createViewDef().createList().setLabel("Questions").setStyleCss("questionQuestionnaire-list");
+
+	        style1 = "orientation";
+	        style2 = "even";
+	        createContainer("questionnaireInfo/surveyQuestionnaire/quesSelCt", "orientation");
+	    	createContainer("questionnaireInfo/surveyQuestionnaire/child1", "even", "questionnaireInfo/surveyQuestionnaire/quesSelCt");
+	        createContainer("questionnaireInfo/surveyQuestionnaire/child2", "even", "questionnaireInfo/surveyQuestionnaire/quesSelCt");
+
+	    	searchTextViewDef = createViewDef().createTextField().setLabel("Keyword").setInfoEnabled(true);
+	        searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
+
+			createView("questionnaireInfo/surveyQuestionnaire/ques_keyword", searchTextViewDef,"questionnaireInfo/surveyQuestionnaire/child1");
+	        createView("questionnaireInfo/surveyQuestionnaire/ques_Search", searchButtonDef,"questionnaireInfo/surveyQuestionnaire/child2");
+	        createView("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", quesSelListDef,"questionnaireInfo/surveyQuestionnaire");
+	    	 
+	        refreshTabgroupCSS("questionnaireInfo");
+	        //showTabGroup("fieldTrip");
+	        onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","checkClickValidity(null)");
+	        onEvent("questionnaireInfo/surveyQuestionnaire/ques_Search","click","searchQuesInCrtQuesnir()");
+	   		}
+		});
+	}
+}
+
+/*** session ui ***/
+createMainSessionPage(String typeflag){
+	if(!hasView("sessionForAnswer/sssHidden/sssID")){
+		removeAllViewsAndContainers("sessionForAnswer");
+		executeViewTask(new ViewTask() {
+    	doTask() { 
+    		//sssHidden page
+    		sssIdViewDef= createViewDef().createTextField().setLabel("Session label").setAttributeName("SessionID").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+    		sssStartTimeViewDef=createViewDef().createTextField().setLabel("Start time").setAttributeName("SessionStartTimestamp").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+    		sssEndTimeViewDef=createViewDef().createTextField().setLabel("End time").setAttributeName("SessionEndTimestamp").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+    		sssNameViewDef=createViewDef().createTextField().setLabel("Session name").setAttributeName("SessionName").setAttributeType("measure").setAnnotationEnabled(true);
+    		createView("sessionForAnswer/sssHidden/sssID",sssIdViewDef,"sessionForAnswer/sssHidden"); 
+    		createView("sessionForAnswer/sssHidden/sssStartTimetamp",sssStartTimeViewDef,"sessionForAnswer/sssHidden");
+    		createView("sessionForAnswer/sssHidden/sssEndTimestamp",sssEndTimeViewDef,"sessionForAnswer/sssHidden");
+    		createView("sessionForAnswer/sssHidden/sssName",sssNameViewDef,"sessionForAnswer/sssHidden");		
+    		//sssAnsBasicInfo page   
+    		
+    		sssLocViewDef=createViewDef().createTextField().setLabel("GPS").setAttributeName("SessionLocation").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+    		sssDescViewDef=createViewDef().createTextField().setLabel("Description").setAttributeName("SessionDescription").setAttributeType("measure").setAnnotationEnabled(true);
+
+    		createView("sessionForAnswer/sssAnsBasicInfo/sssLocation",sssLocViewDef,"sessionForAnswer/sssAnsBasicInfo");	
+    		createView("sessionForAnswer/sssAnsBasicInfo/sssDescription",sssDescViewDef,"sessionForAnswer/sssAnsBasicInfo");
+    		
+    		if(typeflag.equals("s")){
+    			sssTypeViewDef=createViewDef().createTextField().setLabel("Type").setAnnotationEnabled(false).setReadOnly(true);
+    			createView("sessionForAnswer/sssAnsBasicInfo/sssType",sssTypeViewDef,"sessionForAnswer/sssAnsBasicInfo");
+    		} 
+    		
+    		//sssPersonInfo page
+	        style1 = "orientation";
+	        style2 = "even";
+	    	createContainer("sessionForAnswer/sssPersonInfo/sssPsSelCt", "orientation");
+	    	createContainer("sessionForAnswer/sssPersonInfo/sssPsSelCtchild1", "even", "sessionForAnswer/sssPersonInfo/sssPsSelCt");
+	        createContainer("sessionForAnswer/sssPersonInfo/sssPsSelCtchild2", "even", "sessionForAnswer/sssPersonInfo/sssPsSelCt");
+
+	    	createContainer("sessionForAnswer/sssPersonInfo/sssPsBtnCt", "orientation");  	
+			createContainer("sessionForAnswer/sssPersonInfo/sssPsBtnCtchild1", "even", "sessionForAnswer/sssPersonInfo/sssPsBtnCt");
+	        createContainer("sessionForAnswer/sssPersonInfo/sssPsBtnCtchild2", "even", "sessionForAnswer/sssPersonInfo/sssPsBtnCt");
+			
+		
+	        psRoleListDef=createViewDef().createDropDown().setLabel("Role in session").setAnnotationEnabled(false);
+	        psNameListDef=createViewDef().createDropDown().setLabel("Person name").setAnnotationEnabled(false);
+
+	        addPsButtonDef = createViewDef().createButton().setLabel("Add").setStyleCss("faims-blue");
+	        newPsButtonDef = createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+	        
+	        psListDef=createViewDef().createList().setLabel("Session person list").setAnnotationEnabled(false).setStyleCss("session-list");
+
+	        createView("sessionForAnswer/sssPersonInfo/sssPersonRole", psRoleListDef,"sessionForAnswer/sssPersonInfo/sssPsSelCtchild1");
+	        createView("sessionForAnswer/sssPersonInfo/sssPersonName", psNameListDef,"sessionForAnswer/sssPersonInfo/sssPsSelCtchild2");
+	   
+	        createView("sessionForAnswer/sssPersonInfo/Add_New_Person", newPsButtonDef,"sessionForAnswer/sssPersonInfo/sssPsBtnCtchild1");
+			createView("sessionForAnswer/sssPersonInfo/Add_Person", addPsButtonDef,"sessionForAnswer/sssPersonInfo/sssPsBtnCtchild2");
+
+			createView("sessionForAnswer/sssPersonInfo/sssPersonList", psListDef,"sessionForAnswer/sssPersonInfo");
+			
+			//sssAnsList page
+			saveSssButtonDef = createViewDef().createButton().setLabel("Save Session").setStyleCss("faims-blue");
+			newAnsButtonDef = createViewDef().createButton().setLabel("New Answer").setStyleCss("faims-blue");
+
+			//ansSelListDef=createViewDef().createList().setLabel("Selectable Answers").setAnnotationEnabled(false).setStyleCss("session-file-list");
+			ansListDef=createViewDef().createList().setLabel("Answers").setAnnotationEnabled(false).setStyleCss("session-file-list");
+
+			createView("sessionForAnswer/sssAnsList/Save_Session", saveSssButtonDef,"sessionForAnswer/sssAnsList");
+	        createView("sessionForAnswer/sssAnsList/New_Answer_In_Session", newAnsButtonDef,"sessionForAnswer/sssAnsList");
+
+	        //createView("sessionForAnswer/sssAnsList/sssAnsSelList", ansSelListDef,"sessionForAnswer/sssAnsList");
+	        createView("sessionForAnswer/sssAnsList/sssAnswerList", ansListDef,"sessionForAnswer/sssAnsList");
+
+	        refreshTabgroupCSS("sessionForAnswer");
+
+	        onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","checkNewAnsTime()");
+			onEvent("sessionForAnswer/sssAnsList/Save_Session","click","saveSession(\"answer\")");
+			onEvent("sessionForAnswer/sssPersonInfo/Add_Person","click","addPersonToSession()");
+			onEvent("sessionForAnswer/sssPersonInfo/sssPersonList","click","deletePersonInSession()");
+			onEvent("sessionForAnswer/sssPersonInfo/Add_New_Person","click","createPersonRolePage()");
+			onEvent("sessionForAnswer/sssPersonInfo","show","refreshPsAndRole()");
+			//onEvent("sessionForAnswer/sssAnsList/sssAnsSelList","click","addItemToTargetList(candidate_files_session,\"sessionFile\",null)");
+			onEvent("sessionForAnswer/sssAnsList/sssAnswerList","click","checkDelOrView()");
+
+			}
+	    
+		});
+	}
+}
+
+/*** Answer UI***/
+createAnswerPage(){
+	if(!hasView("survey/answerHidden/answerLabel")){
+		removeAllViewsAndContainers("survey");
+		executeViewTask(new ViewTask() {
+	    doTask() {
+	  		//answerHidden page
+	    	hideQuesnirId=createViewDef().createTextField().setLabel("Questionnaire id").setAttributeName("AnswerQuestionnaireID").setAttributeType("measure").setReadOnly(true);
+	    	hideQuesId=createViewDef().createTextField().setLabel("Question id").setAttributeName("AnswerQuestionID").setAttributeType("measure").setReadOnly(true);
+	    	ansLabelViewDef = createViewDef().createTextField().setLabel("Answer label").setAttributeName("AnswerLabel").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+	    	ansStartTimeViewDef=createViewDef().createTextField().setLabel("Start timestamp").setAttributeName("AnswerStartTime").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+	    	ansEndTimeViewDef=createViewDef().createTextField().setLabel("End timestamp").setAttributeName("AnswerEndTime").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+	    	createView("survey/answerHidden/answerQuestionnaireID",hideQuesnirId,"survey/answerHidden");
+	    	createView("survey/answerHidden/answerQuestionID",hideQuesId,"survey/answerHidden");
+	    	createView("survey/answerHidden/answerLabel",ansLabelViewDef,"survey/answerHidden");
+	        createView("survey/answerHidden/answerStartTimestamp",ansStartTimeViewDef,"survey/answerHidden");
+	        createView("survey/answerHidden/answerEndTimestamp",ansEndTimeViewDef,"survey/answerHidden");
+	    	//answerBasic page
+	    	
+	    	ansTextViewDef=createViewDef().createTextField().setLabel("Answer text").setAttributeName("AnswerText").setAttributeType("measure").setAnnotationEnabled(true);
+			createView("survey/answerBasic/answerText",ansTextViewDef,"survey/answerBasic");
+	    	
+	        
+	        //answerFile page
+			newAnsBtnDef = createViewDef().createButton().setLabel("Save Answer").setStyleCss("faims-blue");
+			fileCateDef = createViewDef().createDropDown().setLabel("File Category");
+			newFileBtnDef = createViewDef().createButton().setLabel("New File").setStyleCss("faims-blue");
+			fileListDef=createViewDef().createList().setLabel("Answer files").setStyleCss("answerFile-list");
+			createView("survey/answerFile/Finish_New_Answer",newAnsBtnDef,"survey/answerFile");
+	    	createView("survey/answerFile/file_Category",fileCateDef,"survey/answerFile");
+	        createView("survey/answerFile/Add_New_File",newFileBtnDef,"survey/answerFile");
+	        createView("survey/answerFile/answerFileList",fileListDef,"survey/answerFile");
+	        refreshTabgroupCSS("survey");
+			/**Events for answer**/
+			onEvent("survey/answerFile/Finish_New_Answer","click","saveNewAnswer()");
+			onEvent("survey/answerFile/Add_New_File","click","newFile(\"answer\",null)");
+			onEvent("survey/answerFile/answerFileList","click","viewOrDeleteFileReln()");
+	   		}
+			});
+	}
+}
+
+/*** Sociolingustic quesnir UI ***/
+createLoopQuesList(){
+		if(!hasView("langIntroQues/langIntroQuesInfo/loopQues")){
+		removeAllViewsAndContainers("langIntroQues");
+		executeViewTask(new ViewTask() {
+	    doTask() {
+	        quesSelListDef=createViewDef().createList().setLabel("Questions").setStyleCss("questionQuestionnaire-list");
+	        createView("langIntroQues/langIntroQuesInfo/loopQues", quesSelListDef,"langIntroQues/langIntroQuesInfo");
+	        refreshTabgroupCSS("langIntroQues");
+	        onEvent("langIntroQues/langIntroQuesInfo/loopQues","click","checkAnsweredLangQues()");
+	       
+	   		}
+			});
+	}
+
+}
+
+createLangIntroPage(String tempQuesnirId,String tempQuesId, String typeflag, ArrayList tempLangDeg){
+	fetchAll(loadAllLanguageQuery,new FetchCallback() {
+		onFetch(result) {
+			canLangList.clear();
+			canLangList.addAll(result);
+			newTempLangList.clear();
+			int langCount=0;
+			int langSize=canLangList.size();
+			crntLangIntroId=null;
+			langIntroAnsLabel=null;
+			newLangInLangIntro=0;
+
+			removeAllViewsAndContainers("langIntroAns");
+			
+			for(lang:canLangList){
+				String langID=lang.get(0);
+				String langName=lang.get(1);
+
+				style1="orientation";
+				style2="even";
+				style3="large";
+
+				executeViewTask(new ViewTask(){
+					doTask(){
+						createContainer("langIntroAns/langIntroAnsInfo/lang_c"+langCount, "orientation","langIntroAns/langIntroAnsInfo");
+						createContainer("langIntroAns/langIntroAnsInfo/langName_c" + langCount, "even", "langIntroAns/langIntroAnsInfo/lang_c" + langCount);
+						createContainer("langIntroAns/langIntroAnsInfo/degree_c" + langCount, "even", "langIntroAns/langIntroAnsInfo/lang_c" + langCount);
+        				createContainer("langIntroAns/langIntroAnsInfo/quesInput_c" + langCount, "even", "langIntroAns/langIntroAnsInfo/lang_c" + langCount);
+
+    					
+  						createView("langIntroAns/langIntroAnsInfo/langc" + langCount, createViewDef().createCheckboxGroup().addChoice(langName, langID), "langIntroAns/langIntroAnsInfo/langName_c" + langCount);  
+  						createView("langIntroAns/langIntroAnsInfo/dec" + langCount, createViewDef().createDropDown(), "langIntroAns/langIntroAnsInfo/degree_c" + langCount); 					
+    					createView("langIntroAns/langIntroAnsInfo/quesc" + langCount, createViewDef().createButton().setLabel("Next").setStyleCss("faims-blue"), "langIntroAns/langIntroAnsInfo/quesInput_c" + langCount);
+    					onEvent("langIntroAns/langIntroAnsInfo/quesc" + langCount,"click","startLoopQues(\""+langID+"\")");
+        				
+						if(langCount==langSize-1){
+							createView("langIntroAns/langIntroAnsInfo/Finish_LangIntro", createViewDef().createButton().setLabel("Finish").setStyleCss("faims-blue"), "langIntroAns/langIntroAnsInfo");
+							createView("langIntroAns/langIntroAnsInfo/new_langInIntro", createViewDef().createButton().setLabel("New Language").setStyleCss("faims-blue"), "langIntroAns/langIntroAnsInfo");	
+							onEvent("langIntroAns/langIntroAnsInfo/new_langInIntro","click","reConstructLangIntro()");	
+							onEvent("langIntroAns/langIntroAnsInfo/Finish_LangIntro","click","saveLangIntroQuesAnswer(null,\""+tempQuesnirId+"\",\""+tempQuesId+"\",null)");	
+						}
+						
+					}
+				});
+				langCount++;
+				
+			}
+			refreshTabgroupCSS("langIntroAns");
+			tempChoice=new ArrayList();
+			for(int i=1;i<=5;i++){
+				tempChoice.add(new NameValuePair(i.toString(), i.toString()));
+			}
+			for(int i=0; i<langSize;i++){
+				populateDropDown("langIntroAns/langIntroAnsInfo/dec"+i, tempChoice);
+			}
+			if(typeflag.equals("L")){
+				showLangIntroAnsPage(tempLangDeg);
+			}
+		}  
+	});
+}
+
+showLangIntroAnsPage(ArrayList langDegList){
+	showTabGroup("langIntroAns");
+	//step 4: analyze the answerText and map it to the ui
+
+	for(lang: langDegList){
+		//showWarning("lang",lang.get(0));
+		for(int i=0;i<canLangList.size();i++){
+			//showWarning("canlang",canLangList.get(i).get(0));
+			setFieldValue("langIntroAns/langIntroAnsInfo/langc" + i, lang.get(0));
+			//showWarning("langID",lang.get(0));
+		}
+	}
+	for(int i=0;i<canLangList.size();i++){
+		if(!isNull(getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i))){
+			String templangID=getFieldValue("langIntroAns/langIntroAnsInfo/langc" + i).get(0).getName();
+			for(lang:langDegList){
+				if(lang.get(0).equals(templangID)){
+					setFieldValue("langIntroAns/langIntroAnsInfo/dec" + i,lang.get(1));
+					//showWarning("langDeg",lang.get(1));
+				}
+			}
+		}
+	}
+
+}
 /*** Language ***/
 /*** Language UI ***/
 createLanguageGroupPage(){
@@ -386,4 +690,116 @@ startNewFieldTrip(){
             showToast(message);
         }
     });
+}
+
+/*** Person ***/ 
+/*** Person UI ***/
+createPersonRolePage(){
+	if(!hasView("personRoleSelect/personRoleSelectInfo/SearchRole")){
+		removeAllViewsAndContainers("personRoleSelect");
+	
+		executeViewTask(new ViewTask() {
+    	doTask() { 	
+	        style1 = "orientation";
+	        style2 = "even";
+	    	createContainer("personRoleSelect/personRoleSelectInfo/psRoleSelCtn", "orientation");
+	    	createContainer("personRoleSelect/personRoleSelectInfo/child1", "even", "personRoleSelect/personRoleSelectInfo/psRoleSelCtn");
+	        createContainer("personRoleSelect/personRoleSelectInfo/child2", "even", "personRoleSelect/personRoleSelectInfo/psRoleSelCtn");
+		
+			searchTextViewDef = createViewDef().createTextField().setLabel("Keyword");
+			searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
+			psRoleListDef=createViewDef().createDropDown().setLabel("Role List");
+			newPsBtnDef=createViewDef().createButton().setLabel("New Person").setStyleCss("faims-blue");
+			createView("personRoleSelect/personRoleSelectInfo/keywordOfRole", searchTextViewDef,"personRoleSelect/personRoleSelectInfo/child1");
+			createView("personRoleSelect/personRoleSelectInfo/SearchRole", searchButtonDef,"personRoleSelect/personRoleSelectInfo/child2");
+			createView("personRoleSelect/personRoleSelectInfo/PersonRoleSelectList", psRoleListDef,"personRoleSelect/personRoleSelectInfo");
+			createView("personRoleSelect/personRoleSelectInfo/CreateNewPerson", newPsBtnDef,"personRoleSelect/personRoleSelectInfo");
+	        refreshTabgroupCSS("personRoleSelect");
+	        onEvent("personRoleSelect/personRoleSelectInfo","show","loadRoles(\"newPerson\",\"personRoleSelect/personRoleSelectInfo/PersonRoleSelectList\")");
+			onEvent("personRoleSelect/personRoleSelectInfo/CreateNewPerson","click","newPersonByRole()");
+	        }
+		});
+
+	}
+	showTabGroup("personRoleSelect");
+}
+
+createPersonPage(){
+	if(!hasView("person/personInfoHide/personID")){
+		removeAllViewsAndContainers("person");
+	
+		executeViewTask(new ViewTask() {
+    	doTask() { 	
+
+    		//personInfoHide page
+    		psRoleIdViewDef = createViewDef().createTextField().setLabel("psRole").setAttributeName("PersonRole").setAttributeType("measure");
+    		createView("person/personInfoHide/personRoleId", psRoleIdViewDef,"person/personInfoHide");
+    		
+    		//personInfo page
+    		personIDViewDef= createViewDef().createTextField().setLabel("Person label").setAttributeName("PersonID").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+    		
+    		personNameViewDef=createViewDef().createTextField().setLabel("Person name").setAttributeName("PersonName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+  			
+    		personOtherNamesViewDef=createViewDef().createTextField().setLabel("Person Other Names").setAttributeName("PersonOtherNames").setAttributeType("measure").setAnnotationEnabled(true);
+   
+    		personDOBViewDef=createViewDef().createTextField().setLabel("Person DOB").setAttributeName("PersonDOB").setAttributeType("measure").setAnnotationEnabled(true);
+    	
+    		personRoleViewDef=createViewDef().createTextField().setLabel("Person general role").setReadOnly(true);
+   		
+   			personPhotoViewDef=createViewDef().createCameraGallery(true).setAttributeName("PersonPhoto").setAttributeType("measure").setAnnotationEnabled(true);
+   		
+   			takePhotoViewDef=createViewDef().createButton().setLabel("Take Photo").setStyleCss("faims-blue");
+    
+    		psPhotoDescViewDef=createViewDef().createTextField().setLabel("Photo decription").setAttributeName("PersonPhotoDescription").setAttributeType("measure").setAnnotationEnabled(true);
+
+    		takeIntroQuesnirViewDef=createViewDef().createButton().setLabel("Intro Questionnaire").setStyleCss("faims-blue");
+
+    		introDescViewDef=createViewDef().createTextField().setLabel("Intro quesnir description").setAttributeName("PersonIntroQuenirDesp").setAttributeType("measure").setAnnotationEnabled(true);
+
+	        finishNewPsViewDef=createViewDef().createButton().setLabel("Save Person").setStyleCss("faims-blue");
+
+		
+			createView("person/personInfoHide/personID", personIDViewDef,"person/personInfoHide");
+			createView("person/personInfoHide/personRoleName", personRoleViewDef,"person/personInfoHide");
+
+			createView("person/personInfo/personName", personNameViewDef,"person/personInfo");
+			createView("person/personInfo/personOtherNames", personOtherNamesViewDef,"person/personInfo");
+			createView("person/personInfo/personDOB", personDOBViewDef,"person/personInfo");
+			createView("person/personInfo/personPhoto", personPhotoViewDef,"person/personInfo");
+			createView("person/personInfo/Take_Photo", takePhotoViewDef,"person/personInfo");
+			createView("person/personInfo/personPhotoDesc", psPhotoDescViewDef,"person/personInfo");
+			createView("person/personInfo/Take_Intro_Quesnir", takeIntroQuesnirViewDef,"person/personInfo");
+			createView("person/personInfo/personIntroDesc", introDescViewDef,"person/personInfo");
+			createView("person/personInfo/Finish_New_Person", finishNewPsViewDef,"person/personInfo");
+
+	        refreshTabgroupCSS("person");
+
+	        onEvent("person/personInfo/Finish_New_Person","click","saveNewPerson(\"save\")");
+			onEvent("person/personInfo/Take_Intro_Quesnir","click","checkPersonIntroSession()");
+			onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
+	        }
+		});
+
+	}
+}
+
+/*** Person Intro Session ***/
+/*** Person Intro Session UI ***/
+createPsInTroSssPage(){
+	if(!hasView("introSssList/introSssInfo/intrSessionList")){
+		removeAllViewsAndContainers("introSssList");
+		executeViewTask(new ViewTask() {
+    	doTask() { 	
+   			newIntroSssViewDef=createViewDef().createButton().setLabel("New Session").setStyleCss("faims-blue");
+    
+    		psIntroSssListDef=createViewDef().createList().setLabel("Session").setStyleCss("survey-list");
+
+			createView("introSssList/introSssInfo/new_intro_sss", newIntroSssViewDef,"introSssList/introSssInfo");
+			createView("introSssList/introSssInfo/intrSessionList", psIntroSssListDef,"introSssList/introSssInfo");
+
+	        refreshTabgroupCSS("introSssList");
+	        }
+		});
+
+	}
 }

@@ -59,13 +59,63 @@
                     <querytest>
                     </querytest>
                 </control>
+
+                <questionnaireListAll>
+                   <questionnaireListInfo>
+                   </questionnaireListInfo> 
+                </questionnaireListAll>
+               
+                <questionnaireInfo>
+                    <surveyQuesnirHidden>
+                    </surveyQuesnirHidden>
+                    <surveyQuestionnaire>
+                    </surveyQuestionnaire>
+                </questionnaireInfo>
+
+                <sessionForAnswer>
+                  	<sssHidden>
+                  	</sssHidden>
+                    
+                    <sssAnsBasicInfo>
+                    </sssAnsBasicInfo>
+                    
+                    <sssPersonInfo>
+                    </sssPersonInfo>
+                    
+                    <sssAnsList>                     
+                    </sssAnsList>
+                </sessionForAnswer>
                 
+                <survey>
+                	<answerHidden>                      
+                    </answerHidden>
+                    
+                    <answerBasic>        
+                   	</answerBasic>   
+                                         
+                   	<answerFile>
+                   	</answerFile>                                              
+                </survey>                
+
+
+
+                <langIntroQues>
+                    <langIntroQuesInfo>                      
+                    </langIntroQuesInfo>                                              
+                </langIntroQues>
+
+                <langIntroAns>
+                    <langIntroAnsInfo>                      
+                    </langIntroAnsInfo>                                              
+                </langIntroAns>
+
+
                 <language>
                   <languageInfo>
                   </languageInfo>
                 </language>
 
-                 <fieldTrip>
+                <fieldTrip>
                     <fieldTripBasicInfo>
                     </fieldTripBasicInfo>
                     <fieldTripSession>
@@ -73,6 +123,32 @@
                     <fieldTripBasicInfoHidden>
                     </fieldTripBasicInfoHidden>
                 </fieldTrip>
+
+
+                <file>
+                   	<fileHidden>
+                  	</fileHidden>
+                    <fileInfo>
+                    </fileInfo>
+                </file>
+
+                <personRoleSelect>
+                    <personRoleSelectInfo>
+                    </personRoleSelectInfo>
+                </personRoleSelect>
+
+                <person>     
+                 	<personInfoHide>
+                	</personInfoHide>
+
+                	<personInfo>
+                  	</personInfo>
+                </person>
+
+                <introSssList>
+                    <introSssInfo>
+                    </introSssInfo>
+                </introSssList>
 
             </faims>
         </instance>
@@ -165,9 +241,79 @@
           <label>{query}</label>
         </group>
     </group>
-    
 
-     <group ref="language" faims_scrollable="false">
+
+    <group ref="questionnaireListAll" faims_scrollable="false">
+          <label>Questionnaire</label>
+           <group ref="questionnaireListInfo" faims_scrollable="false">
+            <label>Questionnaire</label>
+            </group>
+    </group>
+    
+    
+    <group ref="questionnaireInfo" faims_archent_type="Questionnaire" faims_scrollable="false">
+          <label>Questionnaire info</label>
+        <group ref="surveyQuesnirHidden" faims_hidden="true">
+            <label>currentQuesnirHiddenInfo</label>
+        </group>
+
+         <group ref="surveyQuestionnaire">
+            <label>Questionnaire info</label>
+        </group>
+    </group>
+      
+
+    <group ref="sessionForAnswer" faims_archent_type="Session" faims_scrollable="false">
+            <label>Session</label>
+            <group ref="sssHidden" faims_hidden="true">
+                <label>Session info</label>
+            </group>
+            <group ref="sssAnsBasicInfo">
+                <label>Session</label>
+            </group>
+         
+             <group ref="sssPersonInfo">
+                 <label>Person</label>
+             </group>
+
+            <group ref="sssAnsList">
+                 <label>Answers</label>
+            </group>
+    </group>    
+      
+    <group ref="survey" faims_archent_type="AnswerToQuestionnaire" faims_scrollable="false">
+        <label>Survey/Answer</label>
+        
+        
+        <group ref="answerHidden" faims_hidden="true">
+            <label></label>        
+        </group>
+        
+        <group ref="answerBasic">
+            <label>Basic Info</label>
+        </group>
+
+        <group ref="answerFile">
+             <label>Files</label>
+            </group>
+    </group>
+
+    <group ref="langIntroQues">
+        <label>Questions</label>
+        <group ref="langIntroQuesInfo">
+            <label>Questions</label>
+        </group>
+    </group>
+
+    <group ref="langIntroAns">
+        <label>Answer</label>
+        <group ref="langIntroAnsInfo">
+            <label>Answer</label>
+        </group>
+    </group>
+
+
+    <group ref="language" faims_scrollable="false">
         <label>Language</label>        
         <group ref="languageInfo" faims_scrollable="false">
             <label>Language Info</label>
@@ -187,6 +333,44 @@
           <label>Hidden</label>
       </group>
     </group>
+  	
+  	<group ref="file" faims_archent_type="File">
+        <label>File</label>
+        <group ref="fileHidden" faims_hidden="true">
+            <label>Basic Info</label>
+        </group>
+        <group ref="fileInfo">
+            <label>File Info</label>
+        </group>
+    </group>
   
+     <group ref="personRoleSelect">
+        <label>Person Role</label>  
+
+        <group ref="personRoleSelectInfo">
+          <label>Person General Role</label>
+        </group>
+
+    </group>
+
+        
+    <group ref="person" faims_archent_type="Person">
+        <label>Person</label>
+
+        <group ref="personInfoHide" faims_hidden="true">
+          <label>{PersonInfoHide}</label>
+        </group>
+        
+        <group ref="personInfo">
+          <label>Person Info</label>
+        </group>
+    </group>
+
+    <group ref="introSssList">
+        <label>Intro Session</label>
+        <group ref="introSssInfo" >
+            <label>Intro sessions</label>
+        </group>
+     </group>
  </h:body>
 </h:html>
