@@ -49,6 +49,66 @@ login() {
         }
     });
 }
+addActionBarItem("sync", new ToggleActionButtonCallback() {
+    actionOnLabel() {
+        "Disable Sync";
+    }
+    actionOn() {
+        setSyncEnabled(false);
+        setFileSyncEnabled(false);
+        showToast("Sync disabled.");
+    }
+    isActionOff() {
+        isSyncEnabled();
+    } 
+    actionOffLabel() {
+        "Enable Sync";
+    }
+    actionOff() {
+        setSyncEnabled(true);
+        setFileSyncEnabled(true);
+        showToast("Sync enabled.");
+    }
+});
+
+addActionBarItem("internal_gps", new ToggleActionButtonCallback() {
+    actionOnLabel() {
+        "{Internal_GPS_Enabled}";
+    }
+    actionOn() {
+        stopGPS();
+        showToast("{GPS_Disabled}");
+    }
+    isActionOff() {
+        isInternalGPSOn();
+    }
+    actionOffLabel() {
+        "{Internal_GPS_Disabled}";
+    }
+    actionOff() {
+        if(isExternalGPSOn()) {
+            stopGPS();
+        }
+        startInternalGPS();
+        showToast("{GPS_Enabled}");
+    }
+});
+
+startInternalGPS();
+onSyncEvent("onSyncStart()", "onSyncSuccess()", "onSyncFailure()");
+
+
+onSyncStart() {
+    showToast("sync started");
+}
+ 
+onSyncSuccess() {
+    showToast("sync success");
+}
+ 
+onSyncFailure() {
+    showToast("sync failed");
+}
 
 createControlGroupView(){
 	createSurveyControlPage();
@@ -193,6 +253,8 @@ createLanguageControlPage(){
 	        refreshTabgroupCSS("control");
 
 	        onEvent("control/language_control/New_Language","click","newLanguage()");
+	        onEvent("control/language_control","show","loadLanguage()");
+			onEvent("control/language_control/languageList","click","loadLanguageInfo()");
 			}
 	    
 		});
@@ -452,17 +514,17 @@ createAnswerPage(){
 
 /*** Sociolingustic quesnir UI ***/
 createLoopQuesList(){
-		if(!hasView("langIntroQues/langIntroQuesInfo/loopQues")){
-		removeAllViewsAndContainers("langIntroQues");
-		executeViewTask(new ViewTask() {
-	    doTask() {
-	        quesSelListDef=createViewDef().createList().setLabel("Questions").setStyleCss("questionQuestionnaire-list");
-	        createView("langIntroQues/langIntroQuesInfo/loopQues", quesSelListDef,"langIntroQues/langIntroQuesInfo");
-	        refreshTabgroupCSS("langIntroQues");
-	        onEvent("langIntroQues/langIntroQuesInfo/loopQues","click","checkAnsweredLangQues()");
-	       
-	   		}
-			});
+	if(!hasView("langIntroQues/langIntroQuesInfo/loopQues")){
+	removeAllViewsAndContainers("langIntroQues");
+	executeViewTask(new ViewTask() {
+    doTask() {
+        quesSelListDef=createViewDef().createList().setLabel("Questions").setStyleCss("questionQuestionnaire-list");
+        createView("langIntroQues/langIntroQuesInfo/loopQues", quesSelListDef,"langIntroQues/langIntroQuesInfo");
+        refreshTabgroupCSS("langIntroQues");
+        onEvent("langIntroQues/langIntroQuesInfo/loopQues","click","checkAnsweredLangQues()");
+       
+   		}
+		});
 	}
 
 }
@@ -575,27 +637,200 @@ createLanguageGroupPage(){
 			createView("language/languageInfo/Finish_New_Language", finButtonDef,"language/languageInfo/");
 
 	        refreshTabgroupCSS("language");
+
+	        onEvent("language/languageInfo/Finish_New_Language","click","saveLanguage()");
 			}
 	    
 		});
 	}
 }
 
-
+/*** Language variables ***/
 language_id=null;
 originLangProp=new ArrayList();
 newLangProp=new ArrayList();
 candLangProp=new ArrayList();
 
-newLanguage(){
+/*** Language queries ***/
+/***usage: scocialinguistic questionnaire answer, language * search, load language list ***/ 
+loadAllLanguageQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+	"WHERE latestNonDeletedAentValue.AttributeID "+
+	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='LanguageName') "+
+	"and uuid in "+
+	"(select uuid from latestNonDeletedArchEntIdentifiers "+
+	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID')) "+
+	"GROUP BY uuid;";
+/*** usage: language creation and update ***/
+loadAllLangTypeQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+		"WHERE latestNonDeletedAentValue.AttributeID "+
+		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='LangTypeName') "+
+		"GROUP BY uuid;";
+
+/*** Language events ***/
+
+initializeLangVar(){
 	language_id=null;
 	candLangProp.clear();
 	originLangProp.clear();
 	newLangProp.clear();
-	createLanguageGroupPage();
-	newTabGroup("language");
 }
 
+newLanguage(){
+	initializeLangVar();
+	createLanguageGroupPage();
+	newTabGroup("language");
+	fetchAll(loadAllLangTypeQuery, new FetchCallback() {
+		onFetch(result) {
+			candLangProp.clear();
+			candLangProp.addAll(result);
+			populateDropDown("language/languageInfo/languageType", candLangProp);
+
+		}
+		onError(message) {
+			showToast(message);
+		}
+	}); 
+}
+
+loadLanguage(){
+	initializeLangVar();
+	fetchAll(loadAllLanguageQuery, new FetchCallback() {
+        onFetch(result) {
+            populateList("control/language_control/languageList", result);
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+loadLanguageInfo(){
+	createLanguageGroupPage();
+	language_id=getListItemValue();
+	if(isNull(language_id)){
+		showToast("No Language selected");
+		return;
+	}
+	showTabGroup("language", language_id, new FetchCallback() {
+        onFetch(result) {
+            language=result;
+
+            loadLangPropQuery="select lProp.measure from latestNonDeletedAentValue as lProp "+
+            "where lProp.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageTypeID') "+
+            "and lProp.uuid='"+language_id+"'";
+           	
+           	fetchOne(loadLangPropQuery,new FetchCallback() {
+				onFetch(propResult) {
+					if(!isNull(propResult)){
+						String tempProp=propResult.get(0);
+						originLangProp.clear();
+						originLangProp.addAll(propResult);
+						newLangProp.clear();    
+
+						fetchAll(loadAllLangTypeQuery, new FetchCallback() {
+							onFetch(result) {
+								candLangProp.clear();
+								candLangProp.addAll(result);
+
+								tempPropList=new ArrayList();
+								tempPropList.addAll(result);
+
+								for(int i=0;i<tempPropList.size();i++){
+									if(tempPropList.get(i).get(0).equals(tempProp)){
+										Collections.swap(tempPropList,0,i);
+										break;
+									}
+								}
+								populateDropDown("language/languageInfo/languageType", tempPropList);
+
+							}
+							onError(message) {
+    							showToast(message);
+  							}
+						}); 
+		        	}
+		        	else{
+						showWarning("Out-of-date data","The property of the language is not using anymore");
+					}
+   				 }
+		   		onError(message) {
+	            	showToast(message);
+	        	}
+			});
+       		showToast("Loaded language"+language.getId());            
+       	}
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+
+saveLanguage(){
+
+	if(isNull(getFieldValue("language/languageInfo/languageName"))){
+		showWarning("Validation Error", "You must fill in the Language Name before you can continue");
+        return;
+	}
+	if(isNull(getFieldValue("language/languageInfo/languageID"))){
+		showWarning("Validation Error", "You must fill in the Language ID before you can continue");
+        return;
+	}
+	tempLangLabel=getFieldValue("language/languageInfo/languageID");
+	langDuplicateQuery=null;
+	if(language_id==null){
+		langDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID') "+
+				"and measure ='"+tempLangLabel+"' or measure like '"+tempLangLabel+"(%)'";
+	}
+	
+	else{
+		langDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID') "+
+				"and uuid<>'"+language_id+"' "+
+				"and measure ='"+tempLangLabel+"' or measure like '"+tempLangLabel+"(%)'";
+	}
+
+    fetchAll(langDuplicateQuery,new FetchCallback() {
+		onFetch(result) {
+			if(!isNull(result)){
+				tempLangLabel=nonDupLabelGen(result,tempLangLabel,"Language","LanguageID");
+				setFieldValue("language/languageInfo/languageID",tempLangLabel);
+			}
+
+			crntLangTypeId=getFieldValue("language/languageInfo/languageType");
+			saveTabGroup("language", language_id, null, null, new SaveCallback() {
+			    onSave(uuid, newRecord) {
+			      language_id = uuid;
+			      if (newRecord) {
+			      	attributes=createAttributeList();
+			    	attributes.add(createEntityAttribute("LanguageTypeID", null, null, crntLangTypeId, null));
+			    	saveArchEnt(language_id, "Language", null, attributes);
+					cancelTabGroup("language",true);
+			        showToast("New record created");
+			      }
+				  else{
+					showToast("Record changed");
+				  }
+			    }
+			    onError(message) {
+			        showWarning("error",message);
+			    }  
+			});
+			if((language_id!=null) && (!isNull(originLangProp))){
+				newLangProp.add(crntLangTypeId);
+				Hashtable langPropChange=listChange(newLangProp,originLangProp);
+				if(langPropChange.containsKey("ADD")){
+					attributes=createAttributeList();
+			    	attributes.add(createEntityAttribute("LanguageTypeID", null, null, crntLangTypeId, null));
+			    	saveArchEnt(language_id, "Language", null, attributes);
+			    	showToast("language type changed");
+				}
+			}
+		}
+	});
+	
+}
 
 /*** FieldTrip ***/
 /*** FieldTrip UI ***/
@@ -802,4 +1037,129 @@ createPsInTroSssPage(){
 		});
 
 	}
+}
+
+/*** Commom methods ***/
+getNumSuffix(String inputString){
+	String returnSuffix=null;
+	Pattern numberPat = Pattern.compile("\\(\\d+\\)");
+	Matcher numMatcher = numberPat.matcher(inputString);
+	Boolean suffixFind=numMatcher.find();
+	if(suffixFind){
+		String [] patternSplit=inputString.split("\\(");
+		Pattern numberPat2 = Pattern.compile("\\d+\\)");
+		Matcher numMatcher2 = numberPat2.matcher(patternSplit[patternSplit.length-1]);
+		if(numMatcher2.find()){
+			returnSuffix="("+patternSplit[patternSplit.length-1];
+		}
+	}
+	return returnSuffix;
+}
+
+//this function saves updated label for affected data
+nonDupLabelGen(ArrayList dupList, String tempLbl, String tableName, String attriName){
+	String rtnLbl=tempLbl;
+	int sizeOfDup=0;
+	Pattern numberPat = Pattern.compile("\\(\\d+\\)");
+	sizeOfDup=dupList.size();
+	//showWarning("size",sizeOfDup.toString());
+
+	if(sizeOfDup==0){
+		return rtnLbl;
+	}
+
+	if(sizeOfDup==1){
+		duplicateOldLabel=dupList.get(0).get(1);
+		Matcher numMatcher = numberPat.matcher(duplicateOldLabel);
+
+		String newLabel=null;
+		if(numMatcher.find()){
+			suffix=getNumSuffix(duplicateOldLabel);
+			if(suffix!=null){
+				if(!suffix.equals("(1)"))
+					{
+						int sLen=suffix.length();
+						newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.length()-sLen)+"(1)";
+					}
+			}
+			else{
+				newLabel=duplicateOldLabel+"(1)";
+			}
+		}
+		else{
+			newLabel=duplicateOldLabel+"(1)";
+			//showWarning("newLabel",newLabel);
+		}
+		if(newLabel!=null){
+			attributes = createAttributeList();
+			attributes.add(createEntityAttribute(attriName, null, null, newLabel, null));
+			entityId=dupList.get(0).get(0);
+			saveArchEnt(entityId, tableName, null, attributes);
+			//showWarning("attriName",attriName+tableName);
+		}
+		rtnLbl=rtnLbl+"(2)";
+	}
+
+	else{
+		int maxSuffix=0;
+		for(temp: dupList){
+			tempLabel=temp.get(1);
+			Matcher numMatcher = numberPat.matcher(tempLabel);
+			if(numMatcher.find()){
+				tempSuffix=getNumSuffix(tempLabel);
+				tempSuffixStr=null;
+					if(tempSuffix!=null){
+						int tempSuffixNum=Integer.parseInt(tempSuffix.replaceAll("[^0-9]", ""));
+						if(tempSuffixNum>maxSuffix){
+							maxSuffix=tempSuffixNum;
+						}
+				}
+			}
+		}
+		maxSuffix=maxSuffix+1;
+		rtnLbl=rtnLbl+"("+maxSuffix+")";
+	}
+	//showWarning("rtnLbl",rtnLbl);
+	return rtnLbl;
+}
+/*
+** Basic arraylist difference checking 
+** targetList: the updated list
+** sourceList: the old list
+*/
+
+listChange(ArrayList targetList,ArrayList sourceList){
+	Hashtable listChanges=new Hashtable();
+	target_list=new ArrayList();
+	source_list=new ArrayList();
+	target_diff_on_source=new ArrayList();
+	source_diff_on_target=new ArrayList();
+
+	target_list.addAll(targetList);
+	source_list.addAll(sourceList);
+
+	target_list.removeAll(source_list);
+	target_diff_on_source.addAll(target_list);//target - source
+
+	target_list.clear();
+	target_list.addAll(targetList);
+	source_list.removeAll(target_list);
+	source_diff_on_target.addAll(source_list);//source - target
+
+	if((target_diff_on_source.isEmpty()) && (source_diff_on_target.isEmpty())){
+		listChanges.put("EQUAL",targetList);//here can not put ("EQUAL",null)
+	}
+	else if((!target_diff_on_source.isEmpty()) && (source_diff_on_target.isEmpty())){
+		listChanges.put("PUREADD",target_diff_on_source);
+	}
+
+	else if((target_diff_on_source.isEmpty()) && (!source_diff_on_target.isEmpty())){
+		listChanges.put("PUREDELETE",source_diff_on_target);
+	}
+
+	else {
+		listChanges.put("ADD",target_diff_on_source);
+		listChanges.put("DELETE",source_diff_on_target);
+	}
+	return listChanges;
 }

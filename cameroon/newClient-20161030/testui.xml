@@ -313,7 +313,7 @@
     </group>
 
 
-    <group ref="language" faims_scrollable="false">
+    <group ref="language"  faims_archent_type="Language">
         <label>Language</label>        
         <group ref="languageInfo" faims_scrollable="false">
             <label>Language Info</label>
