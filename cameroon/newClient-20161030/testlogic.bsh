@@ -49,6 +49,7 @@ login() {
         }
     });
 }
+
 addActionBarItem("sync", new ToggleActionButtonCallback() {
     actionOnLabel() {
         "Disable Sync";
@@ -219,6 +220,11 @@ createPersonControlPage(){
 			createView("control/user_control/userList", pSListDef,"control/user_control");
 
 	        refreshTabgroupCSS("control");
+
+	        onEvent("control/user_control/New_User","click","createPersonRolePage()");
+	        onEvent("control/user_control","show","loadPerson()");
+	        onEvent("control/user_control/userList","click","loadPersonInfo(\"person\",null)");
+
 			}
 	    
 		});
@@ -469,7 +475,169 @@ createMainSessionPage(String typeflag){
 		});
 	}
 }
+/*** session variables ***/
+sss_id=null;
+sss_answer_list=new ArrayList();
+sss_interviewer_list=new ArrayList();//for recording interviewer list when creating session
+sssOriginInfo=new ArrayList();
+sssNewInfo=new ArrayList();
+original_sss_answer_list=new ArrayList();
+sssAnsRelnOrigin=new ArrayList();
+String sssLabel=null;//This is used for sssID interviewee changing
+sssAnswerInterviewerOrigin=new LinkedHashSet();
+sssAnswerInterviewerNew=new LinkedHashSet();//This is for generating sss label
+String sssLabelOld=null;
 
+Boolean introAns=false;//mark if a session is for introductory questionnaire answer collecting or not
+ArrayList newPersonForIntro=new ArrayList(); 
+
+sssPsInfoRelnOrigin=new ArrayList();
+sssPsInfoRelnNew=new ArrayList();
+sssPersonRoleNameListOrigin=new ArrayList();
+sssPersonRoleandNameList=new ArrayList();//selected person role
+personRoleList=new ArrayList();
+personList=new ArrayList();
+sssConsultantList=new LinkedHashSet();
+sssInterviewerList=new LinkedHashSet();
+sssConsultantIdList=new ArrayList();
+String introPsMark=null;//use for check if an intro ps is deleted from his/her intro session
+currentPosition=new ArrayList();
+
+candidate_files_session=new ArrayList();
+
+sssOldIntvReln=new ArrayList();
+sssOldCoslReln=new ArrayList();
+sssOldPsReln=new ArrayList();
+
+quesRecordingType=new ArrayList();
+
+initSessionVar(){
+	introAns=false;
+	introPsMark=null;
+	langIntro=false;
+	sss_id=null;
+	sssLabel=null;
+	sssLabelOld=null;
+	sss_answer_list.clear();
+	sssOriginInfo.clear();
+	sssNewInfo.clear();	
+	original_sss_answer_list.clear();
+	sssAnsRelnOrigin.clear();
+	sss_interviewer_list.clear();
+	sssConsultantList.clear();
+	sssConsultantIdList.clear();
+	sssInterviewerList.clear();
+	sssPersonRoleandNameList.clear();
+	sssOldPsReln.clear();
+	sssOldCoslReln.clear();
+	sssOldIntvReln.clear();
+	quesRecordingType.clear();
+	
+	personRoleList.clear();
+    personList.clear();
+    sssPersonRoleandNameList.clear();
+
+	emrSssInfo.clear();
+	emrAnsInfo.clear();
+	emrPsInfo.clear();
+	emrIveExist=false;
+
+	newLangInLangIntro=0;
+	crntLangIntroId=null;
+	langIntroAnsLabel=null;
+	canLangList.clear();
+	newTempLangList.clear();
+	loopQuesOrder.clear();
+	langIntro=false;
+}
+
+newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
+	createMainSessionPage("n");
+	initSessionVar();
+
+	if(typeflag.equals("answer")){
+		introAns=false;
+		introPsMark=null;
+	}
+	
+	else{
+		introAns=true;
+		newPersonForIntro.clear();
+		newPersonForIntro.add(newAddedPerson);
+	}
+	
+
+	newTabGroup("sessionForAnswer");
+	takePoint();
+
+	String currentTime=getCurrentTime();
+
+    String currentDate=getCurrentDate();
+    setFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp",currentTime);           
+
+    if (!isNull(currentPosition)){
+    	sssLabel="_"+currentPosition.get(1)+"_"+currentPosition.get(2)+"_"+currentDate;
+    	setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation",currentPosition.get(0));
+    }
+    else{
+    	sssLabel="_"+"unknownLat"+"_"+"unknownLong"+"_"+currentDate;
+    	setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation","GPS not available");
+    }
+    String tempSssLabelNew=username+sssLabel;
+
+    populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list); 
+    populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
+
+    fetchAll(loadAllRoleQuery, new FetchCallback() {
+        	onFetch(result) {
+				if (!isNull(result)) {
+					personRoleList.addAll(result);
+					populateDropDown("sessionForAnswer/sssPersonInfo/sssPersonRole", personRoleList);	
+
+					if(introAns){//if intro ans, add the current person to the list
+						for (psRole:personRoleList){
+							if(psRole.get(1).equals("consultant")){
+								String cosId=psRole.get(0);
+								introPsMark=cosId+"_"+newPersonForIntro.get(0).get(0);
+								introPs=new ArrayList();
+								introPs.add(introPsMark);
+								introPs.add(psRole.get(1)+"_"+newPersonForIntro.get(0).get(1));
+								sssPersonRoleandNameList.add(introPs);
+								populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList); 
+								break;
+							}
+							
+						}
+					}
+					fetchAll(loadAllPersonQuery,new FetchCallback() {
+			        	onFetch(fetchResult) {
+							if (!isNull(fetchResult)) {
+								personList.addAll(fetchResult);
+								populateDropDown("sessionForAnswer/sssPersonInfo/sssPersonName", personList);	
+								
+							}	
+							else{
+						    	showWarning("No person data","No person data is available, please contact the admin");
+								return;
+							}
+			       	 }
+
+			        	onError(message) {
+			            	showToast(message);
+			        	}
+			    	});
+				}	
+				else{
+			    	showWarning("No Role data","No role data is available, please contact the admin");
+					return;
+				}
+       	    }
+
+        	onError(message) {
+            	showToast(message);
+        	}
+    });
+}
 /*** Answer UI***/
 createAnswerPage(){
 	if(!hasView("survey/answerHidden/answerLabel")){
@@ -807,6 +975,7 @@ saveLanguage(){
 			    	attributes.add(createEntityAttribute("LanguageTypeID", null, null, crntLangTypeId, null));
 			    	saveArchEnt(language_id, "Language", null, attributes);
 					cancelTabGroup("language",true);
+					showTab("control/language_control");
 			        showToast("New record created");
 			      }
 				  else{
@@ -928,6 +1097,32 @@ startNewFieldTrip(){
 }
 
 /*** Person ***/ 
+/*** Person variables ***/
+person_id=null;
+personIntroSss=new ArrayList();
+currentPersonInfo=new ArrayList();//for creating intro session for a new added person or existing person
+originPersonInfo =new ArrayList();//for recording original loaded person info so that we can tell if a person's info has changed
+changedPersonInfo=new ArrayList();//for recording newest edited person info so that we can tell if a person's info has been changed
+role_list=new ArrayList();
+savePersonWfProperty=new ArrayList();
+role_id=null;
+
+/*** Person queries ***/
+/*** usage: create person, create session, session update (4 usages) ***/
+loadAllRoleQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+		"WHERE latestNonDeletedAentValue.AttributeID =( SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonRoleName') "+
+		"AND uuid in (SELECT uuid FROM latestNonDeletedAentValue "+
+			"WHERE AttributeID= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='RoleDataOnClient') AND measure ='Yes');";
+/*** usage: list person, create session, session update (3 usages)***/
+loadAllPersonQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+	"WHERE latestNonDeletedAentValue.AttributeID "+
+	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonName') "+
+	"GROUP BY uuid;";
+/*** usage: list person, search person (2 usages)***/
+loadAllPersonIDQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+		"WHERE latestNonDeletedAentValue.AttributeID "+
+		"IN (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonID') "+
+		"GROUP BY uuid;";
 /*** Person UI ***/
 createPersonRolePage(){
 	if(!hasView("personRoleSelect/personRoleSelectInfo/SearchRole")){
@@ -950,6 +1145,7 @@ createPersonRolePage(){
 			createView("personRoleSelect/personRoleSelectInfo/PersonRoleSelectList", psRoleListDef,"personRoleSelect/personRoleSelectInfo");
 			createView("personRoleSelect/personRoleSelectInfo/CreateNewPerson", newPsBtnDef,"personRoleSelect/personRoleSelectInfo");
 	        refreshTabgroupCSS("personRoleSelect");
+
 	        onEvent("personRoleSelect/personRoleSelectInfo","show","loadRoles(\"newPerson\",\"personRoleSelect/personRoleSelectInfo/PersonRoleSelectList\")");
 			onEvent("personRoleSelect/personRoleSelectInfo/CreateNewPerson","click","newPersonByRole()");
 	        }
@@ -959,6 +1155,217 @@ createPersonRolePage(){
 	showTabGroup("personRoleSelect");
 }
 
+loadRoles(String typeFlag, String populateRef){
+	fetchAll(loadAllRoleQuery,new FetchCallback() {
+		onFetch(result) {
+			role_list.clear();
+			role_list.addAll(result);
+			if(typeFlag.equals("newPerson")){
+				populateDropDown(populateRef, role_list);
+			}
+			else{
+				populateList(populateRef,role_list);
+			}
+		}  
+	});
+}
+
+initPersonVar(){
+	person_id=null;
+	personIntroSss.clear();
+	currentPersonInfo.clear();
+	originPersonInfo.clear();
+	changedPersonInfo.clear();
+	savePersonWfProperty.clear();
+	role_id=null;
+}
+
+loadPerson(){
+	person_id=null;
+	fetchAll(loadAllPersonIDQuery, new FetchCallback() {
+        onFetch(result) {
+            populateList("control/user_control/userList", result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+loadPersonInfo(String typeflag, String toShowPsId){
+	if(typeflag.equals("person")){
+		person_id=getListItemValue();
+	}
+	else{
+		person_id=toShowPsId;
+	}
+	if(isNull(person_id)){
+		showToast("No Person selected");
+		return;
+	}
+	createPersonPage();
+
+	showTabGroup("person", person_id, new FetchCallback() {
+        onFetch(result) {
+      
+        	String roleUuid=getFieldValue("person/personInfoHide/personRoleId");
+            checkPersonRoleQuery="SELECT measure from latestNonDeletedAentValue "+
+								"WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
+								"AND latestNonDeletedAentValue.AttributeID="+
+								"(select AttributeID from AttributeKey where AttributeName='PersonRoleName');";
+
+			checkRoleIntroQuery="SELECT measure from latestNonDeletedAentValue "+
+								"WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
+								"AND latestNonDeletedAentValue.AttributeID="+
+								"(select AttributeID from AttributeKey where AttributeName='RoleIntroAnsRequired');";
+
+			checkRolePhotoQuery="SELECT measure from latestNonDeletedAentValue "+
+								"WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
+								"AND latestNonDeletedAentValue.AttributeID="+
+								"(select AttributeID from AttributeKey where AttributeName='RolePhotoRequired');";
+
+        	fetchOne(checkPersonRoleQuery,new FetchCallback() {
+				onFetch(result) {
+					if(!isNull(result)){
+						setFieldValue("person/personInfoHide/personRoleName",result.get(0));	
+					}
+					else{
+						showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+					}
+				 
+				}  
+			});
+
+        	fetchOne(checkRoleIntroQuery,new FetchCallback() {
+				onFetch(result) {
+					if(!isNull(result)){
+						savePersonWfProperty.clear();
+						if(result.get(0).equals("Yes")){
+							savePersonWfProperty.add("Y");
+						}
+						else{
+							savePersonWfProperty.add("N");
+						}
+						fetchOne(checkRolePhotoQuery,new FetchCallback() {
+							onFetch(result) {
+								if(!isNull(result)){
+									if(result.get(0).equals("Yes")){
+										savePersonWfProperty.add("Y");
+									}
+									else{
+										savePersonWfProperty.add("N");
+									}
+									
+								}
+								else{
+									showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+								}
+							 
+							}  
+						});
+					}
+					else{
+						showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+					}
+				 
+				}  
+			});
+        	originPersonInfo.clear();
+        	originPersonInfo.add(getFieldValue("person/personInfoHide/personID"));
+        	originPersonInfo.add(getFieldValue("person/personInfo/personName"));
+        	originPersonInfo.add(getFieldValue("person/personInfo/personOtherNames"));
+        	originPersonInfo.add(getFieldValue("person/personInfo/personDOB"));
+        	originPersonInfo.add(getFieldValue("person/personInfo/personPhoto"));
+			originPersonInfo.add(getFieldValue("person/personInfo/personPhotoDesc"));
+			originPersonInfo.add(getFieldValue("person/personInfo/personIntroDesc"));
+
+           // person=result;
+            showToast("Loaded person"+result.getId());            
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+newPersonByRole(){
+	initPersonVar();
+
+	role_id=getFieldValue("personRoleSelect/personRoleSelectInfo/PersonRoleSelectList");
+	//showWarning("role_id",role_id);
+	roleInfo=new ArrayList();
+	Hashtable propertyInfo=new Hashtable();
+
+	String roleName=null;
+
+	if(isNull(role_id)){
+		showWarning("Invalid role","This role is invalid, please select another role for continue");
+		return;
+	}
+
+	for(role : role_list){
+		if(role.get(0).equals(role_id)){
+			roleName=role.get(1);
+			break;
+		}
+	}
+
+	if(isNull(roleName)){
+		showWarning("Invalid role","This role is invalid, please select another role for continue");
+		return;
+	}
+
+	roleInfo.add(role_id);
+	roleInfo.add(roleName);
+
+	checkRoleIntroQuery="SELECT measure from latestNonDeletedAentValue WHERE "+
+		"latestNonDeletedAentValue.AttributeID="+
+		"(select AttributeID from AttributeKey where AttributeKey.AttributeName='RoleIntroAnsRequired') "+
+		"AND latestNonDeletedAentValue.uuid='"+role_id+"';";
+
+	checkRolePhotoQuery="SELECT measure from latestNonDeletedAentValue WHERE "+
+		"latestNonDeletedAentValue.AttributeID="+
+		"(select AttributeID from AttributeKey where AttributeKey.AttributeName='RolePhotoRequired') "+
+		"AND latestNonDeletedAentValue.uuid='"+role_id+"';";
+
+	fetchOne(checkRoleIntroQuery,new FetchCallback() {
+		onFetch(result) {
+			if(!isNull(result)){
+				if(result.get(0).equals("Yes")){
+					propertyInfo.put("I","Y");
+				}
+				else{
+					propertyInfo.put("I","N");
+				}
+				fetchOne(checkRolePhotoQuery,new FetchCallback() {
+					onFetch(result) {
+						if(!isNull(result)){
+							if(result.get(0).equals("Yes")){
+								propertyInfo.put("P","Y");
+							}
+							else{
+								propertyInfo.put("P","N");
+							}
+							newPersonWithIntro(roleInfo,propertyInfo);
+						}
+						else{
+							showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+							return;
+						}
+					 
+					}  
+				});
+			}
+			else{
+				showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+				return;
+			}
+		 
+		}  
+	});	
+
+}
 createPersonPage(){
 	if(!hasView("person/personInfoHide/personID")){
 		removeAllViewsAndContainers("person");
@@ -971,32 +1378,20 @@ createPersonPage(){
     		createView("person/personInfoHide/personRoleId", psRoleIdViewDef,"person/personInfoHide");
     		
     		//personInfo page
-    		personIDViewDef= createViewDef().createTextField().setLabel("Person label").setAttributeName("PersonID").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
-    		
-    		personNameViewDef=createViewDef().createTextField().setLabel("Person name").setAttributeName("PersonName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
-  			
+    		personIDViewDef= createViewDef().createTextField().setLabel("Person label").setAttributeName("PersonID").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);  		
+    		personNameViewDef=createViewDef().createTextField().setLabel("Person name").setAttributeName("PersonName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");	
     		personOtherNamesViewDef=createViewDef().createTextField().setLabel("Person Other Names").setAttributeName("PersonOtherNames").setAttributeType("measure").setAnnotationEnabled(true);
-   
     		personDOBViewDef=createViewDef().createTextField().setLabel("Person DOB").setAttributeName("PersonDOB").setAttributeType("measure").setAnnotationEnabled(true);
-    	
     		personRoleViewDef=createViewDef().createTextField().setLabel("Person general role").setReadOnly(true);
-   		
    			personPhotoViewDef=createViewDef().createCameraGallery(true).setAttributeName("PersonPhoto").setAttributeType("measure").setAnnotationEnabled(true);
-   		
    			takePhotoViewDef=createViewDef().createButton().setLabel("Take Photo").setStyleCss("faims-blue");
-    
     		psPhotoDescViewDef=createViewDef().createTextField().setLabel("Photo decription").setAttributeName("PersonPhotoDescription").setAttributeType("measure").setAnnotationEnabled(true);
-
     		takeIntroQuesnirViewDef=createViewDef().createButton().setLabel("Intro Questionnaire").setStyleCss("faims-blue");
-
     		introDescViewDef=createViewDef().createTextField().setLabel("Intro quesnir description").setAttributeName("PersonIntroQuenirDesp").setAttributeType("measure").setAnnotationEnabled(true);
-
 	        finishNewPsViewDef=createViewDef().createButton().setLabel("Save Person").setStyleCss("faims-blue");
-
 		
 			createView("person/personInfoHide/personID", personIDViewDef,"person/personInfoHide");
 			createView("person/personInfoHide/personRoleName", personRoleViewDef,"person/personInfoHide");
-
 			createView("person/personInfo/personName", personNameViewDef,"person/personInfo");
 			createView("person/personInfo/personOtherNames", personOtherNamesViewDef,"person/personInfo");
 			createView("person/personInfo/personDOB", personDOBViewDef,"person/personInfo");
@@ -1009,7 +1404,7 @@ createPersonPage(){
 
 	        refreshTabgroupCSS("person");
 
-	        onEvent("person/personInfo/Finish_New_Person","click","saveNewPerson(\"save\")");
+	        onEvent("person/personInfo/Finish_New_Person","click","savePersonCheck(\"save\")");
 			onEvent("person/personInfo/Take_Intro_Quesnir","click","checkPersonIntroSession()");
 			onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
 	        }
@@ -1018,6 +1413,271 @@ createPersonPage(){
 	}
 }
 
+newPersonWithIntro(ArrayList roleflag, Hashtable propertyFlag){
+	createPersonPage();
+	person_id=null;
+	newTabGroup("person");
+	setFieldValue("person/personInfoHide/personRoleId",roleflag.get(0));
+	setFieldValue("person/personInfoHide/personRoleName",roleflag.get(1));
+	savePersonWfProperty.clear();
+	savePersonWfProperty.add(propertyFlag.get("I"));
+	savePersonWfProperty.add(propertyFlag.get("P"));
+}
+
+savePersonCheck(String typeflag){
+	if((isNull(getFieldValue("person/personInfo/personName"))) || (isNull(getFieldValue("person/personInfo/personDOB")))){
+		showWarning("Validation Error", "You must fill in the Person Name and Person DOB before you can continue");
+        return;
+	}
+	if(!timeValidation(getFieldValue("person/personInfo/personDOB"))){
+		showWarning("Invalid DOB","1.Datetime format should be yyyy-MM-dd \n"+"2.The value for date should be valid");
+		return;
+	}
+	if(savePersonWfProperty.get(1).equals("Y")){
+		if((isNull(getFieldValue("person/personInfo/personPhoto"))) && (isNull(getFieldValue("person/personInfo/personPhotoDesc")))){
+			showWarning("Validation Error", "You must either take person photo or write the reason of not taking photo");
+    		return;
+		}
+	}
+	//"save" click saving
+	if(!typeflag.equals("intro")){
+		if(savePersonWfProperty.get(0).equals("Y")){
+			if(person_id==null && (isNull(getFieldValue("person/personInfo/personIntroDesc")))){
+				showWarning("Validation Error", "You must either take person introductory questionnaire \n"+"or write the reason of not taking introductory questionnaire");
+        		return;
+			}
+			else if(person_id==null){
+				savePersonData(typeflag);
+			}
+			if(person_id!=null&&(isNull(getFieldValue("person/personInfo/personIntroDesc")))){
+				checkPsIntrSssQuery="select uuid,measure from latestNonDeletedArchEntIdentifiers "+
+					"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+					"and uuid in ( select uuid from AentReln "+
+						"where RelationshipID in(select RelationshipID from AentReln "+
+							"where RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+								"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session' ) "+
+								"and latestNonDeletedRelationship.Deleted IS NULL) "+
+					"and uuid in (select uuid from latestNonDeletedAentValue "+
+						"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+						"and latestNonDeletedAentValue.measure in(select uuid from latestNonDeletedAentValue "+
+							"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+							"and measure=(select uuid from latestNonDeletedAentValue "+
+								"where AttributeID= (select AttributeID from AttributeKey "+
+									"where AttributeName='QuesnirTypeName') and measure = 'Introductory'))))) "+
+					"and uuid in (select measure from latestNonDeletedArchEntIdentifiers "+
+						"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
+						"and uuid in (select uuid from latestNonDeletedAentValue "+
+							"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') "+
+							"and measure=(select uuid from latestNonDeletedAentValue "+
+								"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
+								"and measure='consultant') "+
+					"and uuid in (select uuid from latestNonDeletedAentValue "+
+						"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
+						"and measure ='"+person_id+"')));";
+	
+				fetchAll(checkPsIntrSssQuery,new FetchCallback() {
+		        	onFetch(result) {					        	
+						if(isNull(result)){
+							showWarning("Validation Error", "You must either take person introductory questionnaire \n"+"or write the reason of not taking introductory questionnaire");
+							return;
+						}
+						else{
+							savePersonData(typeflag);
+						}
+			        }
+			        onError(message) {
+			            showToast(message);
+			           
+			        }
+			    });
+			}
+			else{
+				savePersonData(typeflag);
+			}
+			
+		}
+		else{
+			savePersonData(typeflag);
+		}
+	}
+	else{
+		savePersonData(typeflag);
+	}
+}
+
+nameCamCaseConverter(String originName){
+	String camCase=null;
+	String [] originNameSplit=originName.split("\\s+");
+	StringBuffer sb=new StringBuffer();
+	for (part : originNameSplit){
+		if(part.length()>1){
+			sb.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+		}
+		else{
+			sb.append(Character.toUpperCase(part.charAt(0)));
+		}
+	}
+	camCase=sb.toString().trim();
+	return camCase;
+}
+
+savePersonData(String typeflag){
+	String personNameOrigin=getFieldValue("person/personInfo/personName");
+	String personNameCamCase=nameCamCaseConverter(personNameOrigin);
+	String personLabel=personNameCamCase+"_"+getFieldValue("person/personInfo/personDOB");
+
+	if(person_id!=null){
+		changedPersonInfo.clear();
+		changedPersonInfo.add(personLabel);
+		changedPersonInfo.add(personNameOrigin);
+		changedPersonInfo.add(getFieldValue("person/personInfo/personOtherNames"));
+		changedPersonInfo.add(getFieldValue("person/personInfo/personDOB"));
+		changedPersonInfo.add(getFieldValue("person/personInfo/personPhoto"));
+		changedPersonInfo.add(getFieldValue("person/personInfo/personPhotoDesc"));
+		changedPersonInfo.add(getFieldValue("person/personInfo/personIntroDesc"));
+
+		Hashtable personInfoChange=listChange(changedPersonInfo,originPersonInfo);
+		//NOTE THIS CASE IS NOT TESTED
+		if((personInfoChange.containsKey("EQUAL"))&& (typeflag.equals("intro"))){
+			newPersonIntro=new ArrayList();
+      		newPersonIntro.add(person_id);
+			newPersonIntro.add(personNameOrigin);
+			newSessionForAnswer("intro",newPersonIntro);
+			//TODO:  test for the new added return statement
+			return;
+		}
+		
+		else if((personInfoChange.containsKey("EQUAL"))&& (!typeflag.equals("intro"))){
+			showWarning("No changes","All data are saved");
+			return;
+		}
+	}
+	psDuplicateQuery=null;
+	if(person_id==null){
+		psDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonID') "+
+				"and (measure = '"+personLabel+"' or measure like '"+personLabel+"(%)')";
+	}
+	else{
+		psDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonID') "+
+				"and uuid<>"+person_id+" "+
+				"and (measure = '"+personLabel+"' or measure like '"+personLabel+"(%)')";
+	}
+
+	fetchAll(psDuplicateQuery,new FetchCallback() {
+		onFetch(result) {
+			if(!isNull(result)){
+				personLabel=nonDupLabelGen(result,personLabel,"Person","PersonID");
+			}
+			setFieldValue("person/personInfoHide/personID",personLabel);
+
+			saveTabGroup("person", person_id, null, null, new SaveCallback() {
+			    onSave(uuid, newRecord) {
+			      person_id = uuid;
+			      if(newRecord) {
+			      	newPersonIntro=new ArrayList();
+			      	newPersonIntro.add(person_id);
+					newPersonIntro.add(personNameOrigin);
+
+			      	if(typeflag.equals("intro")){
+			      		originPersonInfo.clear();
+			      		originPersonInfo.add(getFieldValue("person/personInfoHide/personID"));
+			        	originPersonInfo.add(getFieldValue("person/personInfo/personName"));
+			        	originPersonInfo.add(getFieldValue("person/personInfo/personOtherNames"));
+			        	originPersonInfo.add(getFieldValue("person/personInfo/personDOB"));
+			        	originPersonInfo.add(getFieldValue("person/personInfo/personPhoto"));
+						originPersonInfo.add(getFieldValue("person/personInfo/personPhotoDesc"));
+						originPersonInfo.add(getFieldValue("person/personInfo/personIntroDesc"));
+						newSessionForAnswer("intro",newPersonIntro);
+					}
+
+					else{
+			        	showToast("New record created");
+			        	cancelTabGroup("person",true);
+			     	    showTab("control/user_control");
+			    	}
+			      }
+				  else{
+					showToast("Record changed");	
+					if(typeflag.equals("intro")){
+						newPersonIntro=new ArrayList();
+			      		newPersonIntro.add(person_id);
+						newPersonIntro.add(personNameOrigin);
+						newSessionForAnswer("intro",newPersonIntro);
+					}
+				  }
+				  
+			    }
+			    onError(message) {
+			        showWarning("Error",message);
+			    }  
+			});
+		}
+		onError(message){
+			showWarning("Error",message);
+		}
+
+	});
+}
+
+//Get the intro session list for a person
+checkPersonIntroSession(){
+	if(person_id!=null){
+		checkPsIntrSssQuery="select uuid,measure from latestNonDeletedArchEntIdentifiers "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+		"and uuid in ( select uuid from AentReln "+
+			"where RelationshipID in(select RelationshipID from AentReln "+
+				"where RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+					"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session' ) "+
+					"and latestNonDeletedRelationship.Deleted IS NULL) "+
+		"and uuid in (select uuid from latestNonDeletedAentValue "+
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+			"and latestNonDeletedAentValue.measure in(select uuid from latestNonDeletedAentValue "+
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+				"and measure=(select uuid from latestNonDeletedAentValue "+
+					"where AttributeID= (select AttributeID from AttributeKey "+
+						"where AttributeName='QuesnirTypeName') and measure = 'Introductory'))))) "+
+		"and uuid in (select measure from latestNonDeletedArchEntIdentifiers "+
+			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
+			"and uuid in (select uuid from latestNonDeletedAentValue "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') "+
+				"and measure=(select uuid from latestNonDeletedAentValue "+
+					"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
+					"and measure='consultant') "+
+		"and uuid in (select uuid from latestNonDeletedAentValue "+
+			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
+			"and measure ='"+person_id+"')));";
+
+		fetchAll(checkPsIntrSssQuery, new FetchCallback() {
+	        onFetch(result) {
+	        		if(!isNull(result)){
+						personIntroSss.clear();
+						personIntroSss.addAll(result);
+						createPsInTroSssPage();
+						showTabGroup("introSssList");
+						populateList("introSssList/introSssInfo/intrSessionList",personIntroSss);
+						currentPersonInfo.clear();
+						currentPersonInfo.add(person_id);
+						currentPersonInfo.add(getFieldValue("person/personInfo/personName"));
+	        		}
+	        		else{
+	        			newPersonIntro=new ArrayList();
+			      		newPersonIntro.add(person_id);
+						newPersonIntro.add(getFieldValue("person/personInfo/personName"));
+	        			newSessionForAnswer("intro",newPersonIntro);
+	        		}
+	        	}
+	            
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+	}
+	else{
+		savePersonCheck("intro");
+	}
+}
 /*** Person Intro Session ***/
 /*** Person Intro Session UI ***/
 createPsInTroSssPage(){
@@ -1040,6 +1700,10 @@ createPsInTroSssPage(){
 }
 
 /*** Commom methods ***/
+/* 
+** Getting the (\\d+) number suffix of a string
+** inputString: the input string
+*/
 getNumSuffix(String inputString){
 	String returnSuffix=null;
 	Pattern numberPat = Pattern.compile("\\(\\d+\\)");
@@ -1056,13 +1720,18 @@ getNumSuffix(String inputString){
 	return returnSuffix;
 }
 
-//this function saves updated label for affected data
+/* 
+** Generating a non-dup label
+** dupList: the duplicate query result 
+** tempLbl: the label to be checking for duplicate
+** tableName: the table name for the label's update
+** attriName: the attribute name for the label's update
+*/
 nonDupLabelGen(ArrayList dupList, String tempLbl, String tableName, String attriName){
 	String rtnLbl=tempLbl;
 	int sizeOfDup=0;
 	Pattern numberPat = Pattern.compile("\\(\\d+\\)");
 	sizeOfDup=dupList.size();
-	//showWarning("size",sizeOfDup.toString());
 
 	if(sizeOfDup==0){
 		return rtnLbl;
@@ -1088,14 +1757,13 @@ nonDupLabelGen(ArrayList dupList, String tempLbl, String tableName, String attri
 		}
 		else{
 			newLabel=duplicateOldLabel+"(1)";
-			//showWarning("newLabel",newLabel);
+
 		}
 		if(newLabel!=null){
 			attributes = createAttributeList();
 			attributes.add(createEntityAttribute(attriName, null, null, newLabel, null));
 			entityId=dupList.get(0).get(0);
 			saveArchEnt(entityId, tableName, null, attributes);
-			//showWarning("attriName",attriName+tableName);
 		}
 		rtnLbl=rtnLbl+"(2)";
 	}
@@ -1162,4 +1830,129 @@ listChange(ArrayList targetList,ArrayList sourceList){
 		listChanges.put("DELETE",source_diff_on_target);
 	}
 	return listChanges;
+}
+/*
+** check if time is valid
+** startDateTime: the start date time
+** endDateTime: the end date time
+** flag: indicating the cases, which brings different requirements on time validation
+*/
+timeValidation(String startDateTime, String endDateTime, String flag){
+	switch(flag){
+		case ("sessionTime"):
+			DateFormat df=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			df.setLenient(false);
+			try{
+				Date sdt=df.parse(startDateTime);
+				Date edt=df.parse(endDateTime);	
+				if(sdt.getTime()>edt.getTime()){
+					return false;
+				}
+				
+			
+				else{
+					String [] startTime=startDateTime.split("\\s+");
+					String [] endTime=endDateTime.split("\\s+");
+					if(startTime[0].equals(endTime[0])){
+						return true;
+					}
+					else{
+						return false;
+					}
+				}
+			}
+			catch(Exception ex){
+				Log.e("error", ex.getMessage().toString());
+				return false;
+			}
+			break;
+			
+		case ("fieldTripTime"):
+			DateFormat df=new SimpleDateFormat("yyyy-MM-dd");
+			try{
+				Date sdt=df.parse(startDateTime);
+				Date edt=df.parse(endDateTime);
+				if(sdt.getTime()>edt.getTime()){
+					return false;
+				}
+			
+				else{
+					return true;
+				}
+			}
+			catch(Exception excption){
+				return false;
+			}
+			break;
+		}
+}
+/*
+** check if time is in valid format
+** startDateTime: input date time
+*/
+timeValidation(String startDateTime){	
+	String hyphenDateRegex="^\\d{4}[-]\\d{2}[-]\\d{2}$";
+	Pattern hyphenDatePattern=Pattern.compile(hyphenDateRegex);
+	Matcher hyphenDateMatcher=hyphenDatePattern.matcher(startDateTime);
+	if (hyphenDateMatcher.find()){		
+		DateFormat df=new SimpleDateFormat("yyyy-MM-dd");
+		df.setLenient(false);
+		Date sdt=null;
+		try{
+			sdt=df.parse(startDateTime);	
+		}
+		catch(Exception ex){
+			return false;
+		}
+		return true;
+	}
+return false;
+}
+
+dateParser(String sourceDate){
+	//convert dd/mm/yyyy to yyyy-mm-dd
+	String slashDateRegex="^\\d{2}[/]\\d{2}[/]\\d{4}$";
+	Pattern slashDatePattern=Pattern.compile(slashDateRegex);
+	Matcher slashDateMatcher=slashDatePattern.matcher(sourceDate);
+	if (slashDateMatcher.find()){
+		String [] dateParts=sourceDate.split("/");
+		String targetDate=dateParts[2]+"-"+dateParts[1]+"-"+dateParts[0];
+		return targetDate;
+	}
+	
+	String hyphenDateRegex="^\\d{4}[-]\\d{2}[-]\\d{2}$";
+	Pattern hyphenDatePattern=Pattern.compile(hyphenDateRegex);
+	Matcher hyphenDateMatcher=hyphenDatePattern.matcher(sourceDate);
+	if (hyphenDateMatcher.find()){
+		String [] hyphenDateParts=sourceDate.split("-");
+		String targetDate=hyphenDateParts[2]+"/"+hyphenDateParts[1]+"/"+hyphenDateParts[0];
+		return targetDate;
+	}
+	//convert yyyy-mm-dd to dd/mm/yy
+}
+
+dateCompare(String beginDate, String middleDate, String endDate){
+	DateFormat df=new SimpleDateFormat("yyyy-MM-dd");
+	try{
+		Date sdt=df.parse(beginDate);
+		Date edt=df.parse(endDate);
+		Date mdt=df.parse(middleDate);
+		if((sdt.getTime()<=mdt.getTime()) && (mdt.getTime()<=edt.getTime())){
+			return true;
+		}
+	
+		else{
+			return false;
+		}
+	}
+	catch(Exception excption){
+		//exception.printStackTrace();
+		return false;
+	}
+	return false;
+}
+
+extractLatestTime(ArrayList timeList){
+	Collections.sort(timeList);
+	return timeList.get(timeList.size()-1);
 }
