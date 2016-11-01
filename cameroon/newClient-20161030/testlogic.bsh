@@ -110,6 +110,30 @@ onSyncSuccess() {
 onSyncFailure() {
     showToast("sync failed");
 }
+/*** Thing to do when login ***/
+activeFieldTrip=new ArrayList();
+activeFieldTripCheck(){
+	String currentDate=getCurrentDate();
+	activeFieldTrip.clear();
+	//search for fieldTrip that this date is in
+	fieldTripSearchQuery="select uuid from latestNonDeletedAentValue "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripStartTime') "+
+		"and measure <='"+currentDate+"' and uuid in "+
+		"(select uuid from latestNonDeletedAentValue where "+
+		"AttributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripEndTime') "+
+		"and measure >='"+currentDate+"' and uuid in "+
+		"(select uuid from latestNonDeletedAentValue where "+
+		"AttributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripID') "+
+		"and measure like '"+username+"%'))";
+
+	fetchOne(fieldTripSearchQuery, new FetchCallback() {
+        onFetch(result) {
+           if(!isNull(result)){
+           		activeFieldTrip.addAll(result);
+           }
+        }
+    });
+}
 
 createControlGroupView(){
 	createSurveyControlPage();
@@ -119,6 +143,7 @@ createControlGroupView(){
 	createFileControlPage();
 	createQueryControlPage();
 }
+
 createSurveyControlPage(){
 	if(!hasView("control/survey_control/surveyList")){
 		executeViewTask(new ViewTask() {
@@ -152,6 +177,7 @@ createSurveyControlPage(){
 			createView("control/survey_control/surveyList", sssListDef,"control/survey_control");
 
 	        refreshTabgroupCSS("control");
+	        onEvent("control/survey_control/New_Survey","click","preNewSss()");
 			}
 	    
 		});
@@ -164,8 +190,6 @@ createFieldTripControlPage(){
     	doTask() { 
     		style1 = "orientation";
 	        style2 = "even";
-
-	
 
 	        newFTButtonDef = createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
 
@@ -475,6 +499,17 @@ createMainSessionPage(String typeflag){
 		});
 	}
 }
+preNewSss(){
+	if(isNull(activeFieldTrip)){
+		showAlert("alert", "No active FieldTrip for this session\n"+"Do you want to continue create a new session?", "newSessionForAnswer(\"answer\",null)", "checkGoToFieldTrip()");
+	}
+	else{
+		newSessionForAnswer("answer",null);
+	}
+}
+checkGoToFieldTrip(){
+	showAlert("alert", "Do you want to create a fieldTrip?","createFieldTripInfoPage(\"new\")", "stayInCurrentPage()");
+}
 /*** session variables ***/
 sss_id=null;
 sss_answer_list=new ArrayList();
@@ -573,16 +608,12 @@ takePoint() {
 
     } else {
         showToast("GPS Not initialized");
-        //return null;
     }
-    //return null;
 }
 
 newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	createMainSessionPage("n");
-	//showWarning("createMainSessionPage","createMainSessionPage");
 	initSessionVar();
-	//showWarning("initSessionVar","initSessionVar");
 	if(typeflag.equals("answer")){
 		introAns=false;
 		introPsMark=null;
@@ -618,55 +649,55 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 
 	//showWarning("populateList","populateList");
     fetchAll(loadAllRoleQuery, new FetchCallback() {
-        	onFetch(result) {
-				if (!isNull(result)) {
-					personRoleList.addAll(result);
-					populateDropDown("sessionForAnswer/sssPersonInfo/sssPersonRole", personRoleList);	
+    	onFetch(result) {
+			if (!isNull(result)) {
+				personRoleList.addAll(result);
+				populateDropDown("sessionForAnswer/sssPersonInfo/sssPersonRole", personRoleList);	
 
-					if(introAns){//if intro ans, add the current person to the list
-						for (psRole:personRoleList){
-							if(psRole.get(1).equals("consultant")){
-								String cosId=psRole.get(0);
-								introPsMark=cosId+"_"+newPersonForIntro.get(0).get(0);
-								introPs=new ArrayList();
-								introPs.add(introPsMark);
-								introPs.add(psRole.get(1)+"_"+newPersonForIntro.get(0).get(1));
-								sssPersonRoleandNameList.add(introPs);
-								populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList); 
-								break;
-							}
-							
+				if(introAns){//if intro ans, add the current person to the list
+					for (psRole:personRoleList){
+						if(psRole.get(1).equals("consultant")){
+							String cosId=psRole.get(0);
+							introPsMark=cosId+"_"+newPersonForIntro.get(0).get(0);
+							introPs=new ArrayList();
+							introPs.add(introPsMark);
+							introPs.add(psRole.get(1)+"_"+newPersonForIntro.get(0).get(1));
+							sssPersonRoleandNameList.add(introPs);
+							populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList); 
+							break;
 						}
-						//showWarning("psRole","psRole");
+						
 					}
-					fetchAll(loadAllPersonQuery,new FetchCallback() {
-			        	onFetch(fetchResult) {
-							if (!isNull(fetchResult)) {
-								personList.addAll(fetchResult);
-								populateDropDown("sessionForAnswer/sssPersonInfo/sssPersonName", personList);	
-								
-							}	
-							else{
-						    	showWarning("No person data","No person data is available, please contact the admin");
-								return;
-							}
-							//showWarning("loadAllPersonQuery","loadAllPersonQuery");
-			       	 	}
-
-			        	onError(message) {
-			            	showToast(message);
-			        	}
-			    	});
-				}	
-				else{
-			    	showWarning("No Role data","No role data is available, please contact the admin");
-					return;
+					//showWarning("psRole","psRole");
 				}
-       	    }
+				fetchAll(loadAllPersonQuery,new FetchCallback() {
+		        	onFetch(fetchResult) {
+						if (!isNull(fetchResult)) {
+							personList.addAll(fetchResult);
+							populateDropDown("sessionForAnswer/sssPersonInfo/sssPersonName", personList);	
+							
+						}	
+						else{
+					    	showWarning("No person data","No person data is available, please contact the admin");
+							return;
+						}
+						//showWarning("loadAllPersonQuery","loadAllPersonQuery");
+		       	 	}
 
-        	onError(message) {
-            	showToast(message);
-        	}
+		        	onError(message) {
+		            	showToast(message);
+		        	}
+		    	});
+			}	
+			else{
+		    	showWarning("No Role data","No role data is available, please contact the admin");
+				return;
+			}
+   	    }
+
+    	onError(message) {
+        	showToast(message);
+    	}
     });
 }
 /*** Answer UI***/
@@ -1996,4 +2027,9 @@ dateCompare(String beginDate, String middleDate, String endDate){
 extractLatestTime(ArrayList timeList){
 	Collections.sort(timeList);
 	return timeList.get(timeList.size()-1);
+}
+
+stayInCurrentPage()
+{
+	return;
 }
