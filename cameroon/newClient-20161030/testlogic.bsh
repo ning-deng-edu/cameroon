@@ -485,10 +485,10 @@ createMainSessionPage(String typeflag){
 
 	        refreshTabgroupCSS("sessionForAnswer");
 
-	        //onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","checkNewAnsTime()");
+	        onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","checkNewAnsTime()");
 			//onEvent("sessionForAnswer/sssAnsList/Save_Session","click","saveSession(\"answer\")");
-			//onEvent("sessionForAnswer/sssPersonInfo/Add_Person","click","addPersonToSession()");
-			//onEvent("sessionForAnswer/sssPersonInfo/sssPersonList","click","deletePersonInSession()");
+			onEvent("sessionForAnswer/sssPersonInfo/Add_Person","click","addPersonToSession()");
+			onEvent("sessionForAnswer/sssPersonInfo/sssPersonList","click","deletePersonInSession()");
 			//onEvent("sessionForAnswer/sssPersonInfo/Add_New_Person","click","createPersonRolePage()");
 			//onEvent("sessionForAnswer/sssPersonInfo","show","refreshPsAndRole()");
 			//onEvent("sessionForAnswer/sssAnsList/sssAnsSelList","click","addItemToTargetList(candidate_files_session,\"sessionFile\",null)");
@@ -499,6 +499,20 @@ createMainSessionPage(String typeflag){
 		});
 	}
 }
+checkNewAnsTime(){
+	sssTime=getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp");
+	sssDateTimeArray=sssTime.split("\\s+");
+    sssDate=sssDateTimeArray[0];
+
+	String crnDate=getCurrentDate();
+	if(!(sssDate.equals(crnDate))){
+		showAlert("alert", "You cannot add new answer to this session \n"+"Do you want to create a new session?", "preNewSss()", "stayInCurrentPage()");
+	}	
+	else{
+		showQuestionnaireList();
+	}
+}
+
 preNewSss(){
 	if(isNull(activeFieldTrip)){
 		showAlert("alert", "No active FieldTrip for this session\n"+"Do you want to continue create a new session?", "newSessionForAnswer(\"answer\",null)", "checkGoToFieldTrip()");
@@ -700,6 +714,274 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
     	}
     });
 }
+
+checkRolesInSession(){
+	psRoleSum=new LinkedHashSet();
+	sssConsultantList.clear();
+	sssInterviewerList.clear();
+
+	for(person : sssPersonRoleandNameList) {
+		String [] psInfo=person.get(1).split("_");
+		if(psInfo[0].equals("consultant")){
+			psRoleSum.add("consultant");
+			sssConsultantList.add(psInfo[1]);
+			String [] psInSssId=person.get(0).split("_");
+			tempPs=new ArrayList();
+			tempPs.add(psInSssId[1]);
+			tempPs.add(psInfo[1]);
+			sssConsultantIdList.add(tempPs);
+		}
+		else if(psInfo[0].equals("interviewer")){
+			psRoleSum.add("interviewer");
+			sssInterviewerList.add(psInfo[1]);
+		}
+	}
+	return psRoleSum;
+}
+
+addPersonToSession(){
+	String selectedRoleID=getFieldValue("sessionForAnswer/sssPersonInfo/sssPersonRole");
+	String selectedPersonID=getFieldValue("sessionForAnswer/sssPersonInfo/sssPersonName");
+	if((isNull(selectedRoleID))||(isNull(selectedPersonID))){
+		showWarning("Invalid data","No person role or person is selected");
+		return;
+	}
+
+	rolePerson=new ArrayList();
+	String psRoleNameId=selectedRoleID+"_"+selectedPersonID;
+	rolePerson.add(psRoleNameId);
+
+	String selectedRoleName=null;
+	String selectedPersonName=null;
+	//check duplication
+	for (existPs: sssPersonRoleandNameList){
+		if (existPs.get(0).equals(psRoleNameId)){
+			showWarning("Duplicate data","This person with this role is already in the list");
+			return;
+		}
+	}
+
+	for(role:personRoleList){
+		if(role.get(0).equals(selectedRoleID)){
+			selectedRoleName=role.get(1);
+			break;
+		}
+	}
+	for(person:personList){
+		if(person.get(0).equals(selectedPersonID)){
+			selectedPersonName=person.get(1);
+			break;
+		}
+
+	}
+	if((isNull(selectedRoleName))||(isNull(selectedPersonName))){
+		showWarning("Invalid data","Invalid role data or person data\n"+"you might be using stale data, please contact the Admin");
+		return;
+	}
+	rolePerson.add(selectedRoleName+"_"+selectedPersonName);
+	
+	if(selectedRoleName.equals("consultant")){
+		checkPersonIntro(selectedPersonID,rolePerson);
+	}
+	else{
+		sssPersonRoleandNameList.add(rolePerson);
+		populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
+	}
+}
+
+deletePersonInSession(){
+	String toDelPerson=getListItemValue();
+	if(introAns){
+		if (toDelPerson.equals(introPsMark)){
+			showWarning("Invalid operation","This person can not be deleted from this session");
+			return;
+		}
+	}
+	for(psInfo : sssPersonRoleandNameList){
+		if(psInfo.get(0).equals(toDelPerson)){
+			sssPersonRoleandNameList.remove(psInfo);
+			break;
+		}
+	}
+	populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
+}
+
+checkPersonIntro(String personID, ArrayList toAddPerson){
+	checkPsIntrSssQuery="select uuid,measure from latestNonDeletedArchEntIdentifiers "+
+			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+			"and uuid in ( select uuid from AentReln "+
+				"where RelationshipID in(select RelationshipID from AentReln "+
+					"where RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+						"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session' ) "+
+						"and latestNonDeletedRelationship.Deleted IS NULL) "+
+			"and uuid in (select uuid from latestNonDeletedAentValue "+
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+				"and latestNonDeletedAentValue.measure in(select uuid from latestNonDeletedAentValue "+
+					"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+					"and measure=(select uuid from latestNonDeletedAentValue "+
+						"where AttributeID= (select AttributeID from AttributeKey "+
+							"where AttributeName='QuesnirTypeName') and measure = 'Introductory'))))) "+
+			"and uuid in (select measure from latestNonDeletedArchEntIdentifiers "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
+				"and uuid in (select uuid from latestNonDeletedAentValue "+
+					"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') "+
+					"and measure=(select uuid from latestNonDeletedAentValue "+
+						"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
+						"and measure='consultant') "+
+			"and uuid in (select uuid from latestNonDeletedAentValue "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
+				"and measure ='"+personID+"')));";
+	
+	fetchAll(checkPsIntrSssQuery,new FetchCallback() {				        	
+		onFetch(result) {					        	
+			if(isNull(result)){
+				String toAddPsIdInfo=toAddPerson.get(0);
+				String toAddPsInfo=toAddPerson.get(1);
+
+				showAlert("alert", "This person has not answered introductory questionnaire \n"+"Do you still want to add this person?", 
+					"addPsToSssConfirm(\""+toAddPsIdInfo+"\", \""+toAddPsInfo+"\")", "addPersonIntro(\""+personID+"\")");
+			}
+			else
+			{	
+				sssPersonRoleandNameList.add(toAddPerson);
+				populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
+			}
+        }
+        onError(message) {
+            showToast(message);     
+        }
+	});
+}
+
+addPsToSssConfirm(String toAddPersonID, String toAddPersonName){
+	toAddPersonTemp=new ArrayList();
+	toAddPersonTemp.clear();
+	toAddPersonTemp.add(toAddPersonID);
+	toAddPersonTemp.add(toAddPersonName);
+	sssPersonRoleandNameList.add(toAddPersonTemp);
+	populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
+}
+addPersonIntro(String toAddIntroPersonId){
+	showAlert("alert", "Do you want to add introductory answer for this person?", "addPersonIntroAnswer(\""+toAddIntroPersonId+"\")", "stayInCurrentPage()");
+}
+
+addPersonIntroAnswer(String toAddIntroPersonId){
+	loadPersonInfo("sss",toAddIntroPersonId);
+}
+/*** Quesnir list variables ***/
+current_quesnir_id=null;
+current_question_id=null;
+current_quesnir_name=null;
+current_question_content=null;
+current_question_label=null;//label for generating answerID
+current_answer_file_id=null;
+current_answer_id=null;
+
+questionnaire_list=new ArrayList();
+ques_in_current_quesnir=new ArrayList();
+queslabel_current_quesnir=new ArrayList();
+survey_list=new ArrayList();
+
+initQuesNirListVar(){
+	current_quesnir_id=null;
+	current_question_id=null;
+	current_quesnir_name=null;
+	current_question_content=null;
+	current_answer_file_id=null;
+	current_answer_id=null;
+	current_question_label=null;
+	
+	ques_in_current_quesnir.clear();
+	survey_list.clear();
+	questionnaire_list.clear();
+	queslabel_current_quesnir.clear();
+	quesRecordingType.clear();
+}
+
+showQuestionnaireList(){
+	sssRoleInfo=checkRolesInSession();
+	if(!sssRoleInfo.contains("consultant")){
+		showWarning("No consultant","No consultant selected, please add consultant");
+		return;
+	}
+	else{
+		if(!sssRoleInfo.contains("interviewer")){
+			showWarning("No interviewer","No interviewer selected, please add interviewer");
+			return;
+		}
+	}
+	createQuesnirList();
+	initQuesNirListVar();
+	newTabGroup("questionnaireListAll");
+}
+/*** quesnir list queries***/
+/***usage: quesnir listing (1 usage)***/
+loadAllRegQuesnirQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+	"WHERE latestNonDeletedAentValue.AttributeID = "+
+	"(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
+	"AND latestNonDeletedAentValue.uuid IN "+
+	"(SELECT uuid from latestNonDeletedAentValue WHERE latestNonDeletedAentValue.AttributeID= "+
+		"(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+		"AND latestNonDeletedAentValue.measure NOT IN "+
+		"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+			"(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+			"and latestNonDeletedAentValue.measure = 'Introductory' "+ 
+			"or latestNonDeletedAentValue.measure = 'Emergency' "+
+			"or latestNonDeletedAentValue.measure = 'Sociolinguistic' "+
+			")) GROUP BY uuid;";
+
+/***usage: quesnir listing (1 usage)***/
+loadAllIntrQuesnirQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+	"WHERE latestNonDeletedAentValue.AttributeID = "+
+	"(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
+	"AND latestNonDeletedAentValue.uuid IN "+
+	"(SELECT uuid from latestNonDeletedAentValue WHERE latestNonDeletedAentValue.AttributeID= "+
+		"(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+		"AND latestNonDeletedAentValue.measure IN "+
+		"(select uuid from latestNonDeletedAentValue where latestNonDeletedAentValue.AttributeID="+
+			"(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+			"and latestNonDeletedAentValue.measure = 'Introductory' "+
+			"or latestNonDeletedAentValue.measure = 'Sociolinguistic' "+
+			")) GROUP BY uuid;";
+
+loadAllQuesnir(){
+	if(!introAns){
+		fetchAll(loadAllRegQuesnirQuery,new FetchCallback() {
+        	onFetch(result) {
+				if (!isNull(result)) {
+					populateList("questionnaireListAll/questionnaireListInfo/questionnaireListInDB", result);	
+					setFieldValue("questionnaireListAll/questionnaireListInfo/quesnir_keyword","*");
+				}	
+				else{
+			    	showWarning("No questionnaire","No questionnaire is available, please contact the admin");
+					return;
+				}
+       	 	}
+
+        	onError(message) {
+            	showToast(message);
+        	}
+    	});
+	}
+	else{
+		fetchAll(loadAllIntrQuesnirQuery,new FetchCallback() {
+        	onFetch(result) {
+				if (!isNull(result)) {
+					populateList("questionnaireListAll/questionnaireListInfo/questionnaireListInDB", result);	
+					setFieldValue("questionnaireListAll/questionnaireListInfo/quesnir_keyword","*");
+				}	
+				else{
+			    	showWarning("No questionnaire","No questionnaire is available, please contact the admin");
+					return;
+				}
+       	 }
+
+        	onError(message) {
+            	showToast(message);
+        	}
+    	});
+	}
+}
 /*** Answer UI***/
 createAnswerPage(){
 	if(!hasView("survey/answerHidden/answerLabel")){
@@ -752,7 +1034,6 @@ createLoopQuesList(){
         createView("langIntroQues/langIntroQuesInfo/loopQues", quesSelListDef,"langIntroQues/langIntroQuesInfo");
         refreshTabgroupCSS("langIntroQues");
         onEvent("langIntroQues/langIntroQuesInfo/loopQues","click","checkAnsweredLangQues()");
-       
    		}
 		});
 	}
