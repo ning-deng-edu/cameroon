@@ -461,14 +461,14 @@ createMainSessionPage(String typeflag){
 
 	        refreshTabgroupCSS("sessionForAnswer");
 
-	        onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","checkNewAnsTime()");
-			onEvent("sessionForAnswer/sssAnsList/Save_Session","click","saveSession(\"answer\")");
-			onEvent("sessionForAnswer/sssPersonInfo/Add_Person","click","addPersonToSession()");
-			onEvent("sessionForAnswer/sssPersonInfo/sssPersonList","click","deletePersonInSession()");
-			onEvent("sessionForAnswer/sssPersonInfo/Add_New_Person","click","createPersonRolePage()");
-			onEvent("sessionForAnswer/sssPersonInfo","show","refreshPsAndRole()");
+	        //onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","checkNewAnsTime()");
+			//onEvent("sessionForAnswer/sssAnsList/Save_Session","click","saveSession(\"answer\")");
+			//onEvent("sessionForAnswer/sssPersonInfo/Add_Person","click","addPersonToSession()");
+			//onEvent("sessionForAnswer/sssPersonInfo/sssPersonList","click","deletePersonInSession()");
+			//onEvent("sessionForAnswer/sssPersonInfo/Add_New_Person","click","createPersonRolePage()");
+			//onEvent("sessionForAnswer/sssPersonInfo","show","refreshPsAndRole()");
 			//onEvent("sessionForAnswer/sssAnsList/sssAnsSelList","click","addItemToTargetList(candidate_files_session,\"sessionFile\",null)");
-			onEvent("sessionForAnswer/sssAnsList/sssAnswerList","click","checkDelOrView()");
+			//onEvent("sessionForAnswer/sssAnsList/sssAnswerList","click","checkDelOrView()");
 
 			}
 	    
@@ -536,7 +536,7 @@ initSessionVar(){
 	personRoleList.clear();
     personList.clear();
     sssPersonRoleandNameList.clear();
-
+    /*
 	emrSssInfo.clear();
 	emrAnsInfo.clear();
 	emrPsInfo.clear();
@@ -549,12 +549,40 @@ initSessionVar(){
 	newTempLangList.clear();
 	loopQuesOrder.clear();
 	langIntro=false;
+	*/
+}
+
+takePoint() {
+	currentPosition.clear();
+    Object position = getGPSPosition();
+    
+    if (position != null ) {
+        latitude = position.getLatitude();
+        longitude = position.getLongitude();
+
+	    String latitudeString=latitude.toString();
+	    String longitudeString=longitude.toString();
+	    String currentPositionLong="lat:"+latitudeString+"long:"+longitudeString;
+	    String latitudeShort=latitudeString.substring(0,6);
+	    String longitudeShort=longitudeString.substring(0,6);
+	    currentPosition.clear();
+	    currentPosition.add(currentPositionLong);
+	    currentPosition.add(latitudeShort);
+	    currentPosition.add(longitudeShort);
+	    //return currentPosition;
+
+    } else {
+        showToast("GPS Not initialized");
+        //return null;
+    }
+    //return null;
 }
 
 newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	createMainSessionPage("n");
+	//showWarning("createMainSessionPage","createMainSessionPage");
 	initSessionVar();
-
+	//showWarning("initSessionVar","initSessionVar");
 	if(typeflag.equals("answer")){
 		introAns=false;
 		introPsMark=null;
@@ -566,7 +594,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 		newPersonForIntro.add(newAddedPerson);
 	}
 	
-
+	//showWarning("initSessionVar2","initSessionVar2");
 	newTabGroup("sessionForAnswer");
 	takePoint();
 
@@ -588,6 +616,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
     populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list); 
     populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
 
+	//showWarning("populateList","populateList");
     fetchAll(loadAllRoleQuery, new FetchCallback() {
         	onFetch(result) {
 				if (!isNull(result)) {
@@ -608,6 +637,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 							}
 							
 						}
+						//showWarning("psRole","psRole");
 					}
 					fetchAll(loadAllPersonQuery,new FetchCallback() {
 			        	onFetch(fetchResult) {
@@ -620,7 +650,8 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 						    	showWarning("No person data","No person data is available, please contact the admin");
 								return;
 							}
-			       	 }
+							//showWarning("loadAllPersonQuery","loadAllPersonQuery");
+			       	 	}
 
 			        	onError(message) {
 			            	showToast(message);
@@ -1589,6 +1620,7 @@ savePersonData(String typeflag){
 			        	originPersonInfo.add(getFieldValue("person/personInfo/personPhoto"));
 						originPersonInfo.add(getFieldValue("person/personInfo/personPhotoDesc"));
 						originPersonInfo.add(getFieldValue("person/personInfo/personIntroDesc"));
+						//showWarning("originPersonInfo","originPersonInfo");
 						newSessionForAnswer("intro",newPersonIntro);
 					}
 
@@ -1907,6 +1939,15 @@ timeValidation(String startDateTime){
 		return true;
 	}
 return false;
+}
+/*
+** get the current data through the system function of getCurrentTime()
+*/
+getCurrentDate(){
+	String currentTime=getCurrentTime();
+    currentDateTimeArray=currentTime.toString().split("\\s+");
+    String currentDate=currentDateTimeArray[0];
+    return currentDate;
 }
 
 dateParser(String sourceDate){
