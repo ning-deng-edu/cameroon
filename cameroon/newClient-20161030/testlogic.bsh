@@ -366,7 +366,6 @@ createQuesnirList(){
 	        refreshTabgroupCSS("questionnaireListAll");
 
 	        onEvent("questionnaireListAll","show","loadAllQuesnir()");
-
 	        onEvent("questionnaireListAll/questionnaireListInfo/questionnaireListInDB","click","loadQuesnirInfo()");
 	    }
 		});
@@ -489,15 +488,72 @@ createMainSessionPage(String typeflag){
 			//onEvent("sessionForAnswer/sssAnsList/Save_Session","click","saveSession(\"answer\")");
 			onEvent("sessionForAnswer/sssPersonInfo/Add_Person","click","addPersonToSession()");
 			onEvent("sessionForAnswer/sssPersonInfo/sssPersonList","click","deletePersonInSession()");
-			//onEvent("sessionForAnswer/sssPersonInfo/Add_New_Person","click","createPersonRolePage()");
-			//onEvent("sessionForAnswer/sssPersonInfo","show","refreshPsAndRole()");
+			onEvent("sessionForAnswer/sssPersonInfo/Add_New_Person","click","createPersonRolePage()");
+			onEvent("sessionForAnswer/sssPersonInfo","show","refreshPsAndRole()");
 			//onEvent("sessionForAnswer/sssAnsList/sssAnsSelList","click","addItemToTargetList(candidate_files_session,\"sessionFile\",null)");
-			//onEvent("sessionForAnswer/sssAnsList/sssAnswerList","click","checkDelOrView()");
+			onEvent("sessionForAnswer/sssAnsList/sssAnswerList","click","checkDelOrView()");
 
 			}
 	    
 		});
 	}
+}
+
+refreshPsAndRole(){
+	fetchAll(loadAllRoleQuery, new FetchCallback() {
+    	onFetch(result) {
+			if (!isNull(result)) {
+				personRoleList.clear();
+				personRoleList.addAll(result);
+				populateDropDown("sessionForAnswer/sssPersonInfo/sssPersonRole", personRoleList);	
+				fetchAll(loadAllPersonQuery,new FetchCallback() {
+		        	onFetch(fetchResult) {
+						if (!isNull(fetchResult)) {
+							personList.clear();
+							personList.addAll(fetchResult);
+							populateDropDown("sessionForAnswer/sssPersonInfo/sssPersonName", personList);	
+							
+						}	
+						else{
+					    	showWarning("No person data","No person data is available, please contact the admin");
+							return;
+						}
+		       	 }
+
+		        	onError(message) {
+		            	showToast(message);
+		        	}
+		    	});
+			}	
+			else{
+		    	showWarning("No Role data","No role data is available, please contact the admin");
+				return;
+			}
+   	    }
+
+    	onError(message) {
+        	showToast(message);
+    	}
+    });
+}
+
+checkDelOrView(){
+	current_answer_id=null;
+	current_answer_id=getListItemValue();
+
+	if(isNull(current_answer_id)){
+		showWarning("Error","Can't find this answer, please contact the admin");
+		return;
+	}
+	showAlert("View File Info","Do you want to view answer info?","preLoadAnswerInfo(\""+current_answer_id+"\")","delAnsInSssAlert(\""+current_answer_id+"\")");
+}
+
+preLoadAnswerInfo(String tempAnswerId){
+
+}
+
+delAnsInSssAlert(String toDelId){
+	showAlert("Delete File","Do you want to delete this answer from this session?","deleteItemFromTargetList(sss_answer_list,\"sessionFile\",\""+toDelId+"\")","stayInCurrentPage()");
 }
 checkNewAnsTime(){
 	sssTime=getFieldValue("sessionForAnswer/sssHidden/sssStartTimetamp");
@@ -599,6 +655,30 @@ initSessionVar(){
 	loopQuesOrder.clear();
 	langIntro=false;
 	*/
+}
+loadSessionListByQuesnirType(String typeflag,ArrayList typeIdList){
+	String typeIds=buildQuerySetCondition(typeIdList);
+	loadSessionByTypeQuery="select uuid,measure from latestNonDeletedAentValue where "+
+	"latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+	"and uuid in "+
+	"(select uuid from AentReln where RelationshipID "+
+	"in (select RelationshipID from AEntReln where AEntReln.uuid in "+
+	"(select uuid from latestNonDeletedAentValue "+
+	"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+	"and measure IN (select uuid from latestNonDeletedAentValue "+
+	"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') and "+
+	"measure IN'"+typeIds+"')) "+
+	"AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+	"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') and latestNonDeletedRelationship.Deleted IS NULL)))";
+
+	fetchAll(loadSessionByTypeQuery, new FetchCallback() {
+        onFetch(result) {
+        	populateList("sessionGroup/sessionInfo/sessionList");
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
 }
 
 takePoint() {
@@ -874,8 +954,7 @@ current_question_id=null;
 current_quesnir_name=null;
 current_question_content=null;
 current_question_label=null;//label for generating answerID
-current_answer_file_id=null;
-current_answer_id=null;
+
 
 questionnaire_list=new ArrayList();
 ques_in_current_quesnir=new ArrayList();
@@ -887,8 +966,6 @@ initQuesNirListVar(){
 	current_question_id=null;
 	current_quesnir_name=null;
 	current_question_content=null;
-	current_answer_file_id=null;
-	current_answer_id=null;
 	current_question_label=null;
 	
 	ques_in_current_quesnir.clear();
@@ -982,6 +1059,226 @@ loadAllQuesnir(){
     	});
 	}
 }
+
+loadQuesnirInfo(){
+	current_quesnir_id=getListItemValue();
+	
+	if(isNull(current_quesnir_id)){
+		showWarning("No questionnaire selected","No questionnaire is selected, please select a questionnaire");
+		return;
+	}
+	if(current_quesnir_id.equals("placeholder")){
+		showWarning("No questionnaire available","No questionnaire available, please contact the admin");
+		return;
+	}
+	else{
+		createQuesSel();
+		showTabGroup("questionnaireInfo", current_quesnir_id, new FetchCallback() {
+        	onFetch(result) {
+	        	setFieldValue("questionnaireInfo/surveyQuesnirHidden/currentQuesnirID",current_quesnir_id);
+	        	refreshQuesnirInfo();
+				current_quesnir_name=getFieldValue("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireName");
+				showToast("Loaded questionnaire"+result.getId());  
+
+        	}
+        	onError(message) {
+            	showToast(message);
+        	}
+       
+   	 	});
+		
+		
+	}
+}
+
+refreshQuesnirInfo(){
+	loadQuesnirTypeQuery="select measure from latestNonDeletedAentValue "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+		"and uuid=(select measure from latestNonDeletedAentValue where AttributeID="+
+			"(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+			"and uuid='"+current_quesnir_id+"')";
+
+	fetchOne(loadQuesnirTypeQuery,new FetchCallback() {
+			onFetch(typeResult) {
+				if (!isNull(typeResult)) {	
+					setFieldValue("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireType",typeResult.get(0));
+					if(typeResult.get(0).equals("Sociolinguistic")){
+						sclngstPrep();
+					}
+					else{
+						regularQuesnirPrep();
+					}
+				}
+			}	       
+			onError(message) {
+				showToast(message);
+			}
+	});
+}
+sclngstPrep(){
+
+}
+
+regularQuesnirPrep(){
+	loadQuesContentandOrderQuery="select t1.quesId, t1.quesOrder || '-'  || t2. quesContent as qOrderedContent "+
+	            "from "+
+	            	"(select quId.measure as quesId, qOrder.measure as quesOrder "+
+	            	"from latestNonDeletedAentValue as quId, latestNonDeletedAentValue as qOrder "+
+	            	"where qOrder.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesOrderLocal') "+
+	            	"and quId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+	            	"and quId.uuid=qOrder.uuid and "+
+	            	"quId.measure in "+
+	            		"(select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+	            		"where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+	            		"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+	            		"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"')) t1 "+
+	            	"inner join "+
+	            	"(select qId.measure as quesId, qContent.measure as quesContent from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qContent "+
+	            	"where qContent.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesContent') "+
+	            	"and qId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
+	            	"and qId.uuid=qContent.uuid and qId.measure in "+
+	            		"(select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+	            		"where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+	            		"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+	            		"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"')"+
+	            	"and qId.uuid in "+
+	            	"(select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid'))) t2 "+
+	            	"on t1.quesId=t2.quesId "+
+	            "order by quesOrder asc";
+
+	fetchAll(loadQuesContentandOrderQuery, new FetchCallback() {
+	        onFetch(result) {
+	            ques_in_current_quesnir.clear();
+	            ques_in_current_quesnir.addAll(result);
+	            populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
+	        }
+		});
+
+	queslabel_quesnir_query="select uuid, measure from latestNonDeletedAentValue "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
+		"and uuid in (select measure from latestNonDeletedArchEntIdentifiers "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
+		"and measure in (select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+		"where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+		"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+		"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"'))";
+
+	quesRecordingTypeQuery="select t2.quId, t1.prName from "+
+		"(select pName.uuid as prId, pName.measure as prName from latestNonDeletedAentValue as pName "+
+			"where pName.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefName'))t1 "+
+		"inner join "+
+		"(select qId.measure as quId, qProp.measure as qPropId "+
+		"from latestNonDeletedArchEntIdentifiers as qId, latestNonDeletedAentValue as qProp "+
+		"where qId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
+		"and qProp.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefID') "+
+		"and qId.uuid=qProp.uuid "+
+		"and qId.measure in (select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+			"where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+			"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+		"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"')) t2 "+
+		"on t1.prId=t2.qPropId";
+
+	fetchAll(queslabel_quesnir_query, new FetchCallback() {
+	    onFetch(result) {
+	        queslabel_current_quesnir.clear();
+	        queslabel_current_quesnir.addAll(result);
+	    }
+	});
+	fetchAll(quesRecordingTypeQuery, new FetchCallback() {
+	    onFetch(result) {
+	        quesRecordingType.clear();
+	        quesRecordingType.addAll(result);
+	    }
+	});
+
+}
+
+checkClickValidity(String tempQuesId){
+	String tempQuesUuid=null;
+	if(tempQuesId==null){
+		tempQuesUuid=getListItemValue();
+	}
+	else
+	{
+		tempQuesUuid=tempQuesId;
+	}
+	
+	if(loopQuesOrder!=null && !loopQuesOrder.isEmpty()){
+		for(ques:loopQuesOrder){
+			if(ques.get(0).equals(tempQuesUuid)){
+				showWarning("Unselectable question","Please start with the 'known languages' question for answering this question");
+				return;
+			}
+		}
+	}
+	checkPersonAns(tempQuesUuid);
+}
+
+checkPersonAns(String tempQuesId){
+	if(tempQuesId==null){
+		tempQuesId=getListItemValue();
+	}
+	
+	ArrayList consultantList=new ArrayList();
+	for (i=0;i<sssConsultantIdList.size();i++){	
+		consultantList.add(sssConsultantIdList.get(i).get(0));
+	}
+	String consultantListClause=buildQuerySetCondition(consultantList);
+
+	loadPersonAnswerQuery="select measure from latestNonDeletedAentValue "+
+		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionID') "+
+		"and uuid in (select uuid from AentReln where RelationshipID in (select RelationshipID from AEntReln where AEntReln.uuid in "+
+			"(select uuid from latestNonDeletedAentValue "+
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+				"and uuid in (select uuid from AentReln where RelationshipID "+
+					"in (select RelationshipID from AEntReln where AEntReln.uuid IN "+consultantListClause+
+						" AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+							"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Consultant') "+
+							"and latestNonDeletedRelationship.Deleted IS NULL)))) "+
+		"AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+			"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)))";
+	fetchAll(loadPersonAnswerQuery,new FetchCallback() {
+        onFetch(result) {
+        	//showWarning("loadPersonAnswerQueryresult","loadPersonAnswerQueryresult");
+        	Boolean rep=false;
+        	if(!isNull(result)){	 
+        		//showWarning("!isNull(tempAnsQues)","!isNull(tempAnsQues)");
+        		for (ansQues :result){
+        			//showWarning("ansQues",ansQues.get(0));
+        			if((!isNull(ansQues.get(0))) && (ansQues.get(0).equals(tempQuesId))){
+        				rep=true;
+        				checkDuplicateAns(true, tempQuesId);
+        				break;	
+        			}
+        		}
+        		//showWarning("rep",rep.toString());
+        		if(!rep){
+        			//showWarning("loadAnswerFromQuesInQuesnir","rep.false");
+        			loadAnswerFromQuesInQuesnir(tempQuesId);
+        		}       		
+			}
+			else{
+				//showWarning("loadAnswerFromQuesInQuesnir","nullresult");
+				loadAnswerFromQuesInQuesnir(tempQuesId);
+			}
+        }
+    });
+}
+checkDuplicateAns(Boolean dupOrNot, String tempQuesId){
+	if(dupOrNot){
+		if(sssConsultantIdList.size()==1){
+			showAlert("alert", sssConsultantIdList.get(0).get(1)+" has already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir(\""+tempQuesId+"\")", "stayInCurrentPage()");
+		}
+		else{
+			showAlert("alert", "Some consultants have already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir(\""+tempQuesId+"\")", "stayInCurrentPage()");
+		}
+	}
+	else{
+		loadAnswerFromQuesInQuesnir(tempQuesId);
+	}
+}
+
 /*** Answer UI***/
 createAnswerPage(){
 	if(!hasView("survey/answerHidden/answerLabel")){
@@ -1016,14 +1313,792 @@ createAnswerPage(){
 	        createView("survey/answerFile/answerFileList",fileListDef,"survey/answerFile");
 	        refreshTabgroupCSS("survey");
 			/**Events for answer**/
-			onEvent("survey/answerFile/Finish_New_Answer","click","saveNewAnswer()");
+			//onEvent("survey/answerFile/Finish_New_Answer","click","saveNewAnswer()");
 			onEvent("survey/answerFile/Add_New_File","click","newFile(\"answer\",null)");
 			onEvent("survey/answerFile/answerFileList","click","viewOrDeleteFileReln()");
 	   		}
 			});
 	}
 }
+createChkListPage(String tempQuesId){
+	if(!hasView("survey/answerBasic/radioGrp")){
+		removeAllViewsAndContainers("survey");
+		executeViewTask(new ViewTask() {
+	    doTask() {
+	    	quesContentDef = createViewDef().createTextField().setReadOnly(true);
+	    	ansSelDef=createViewDef().createRadioGroup();
+	    	newNextBtnDef = createViewDef().createButton().setLabel("Next").setStyleCss("faims-blue");
 
+			createView("survey/answerBasic/quesText",quesContentDef,"survey/answerBasic");
+	        createView("survey/answerBasic/radioGrp",ansSelDef,"survey/answerBasic");
+	        createView("survey/answerBasic/nextBtn",newNextBtnDef,"survey/answerBasic");
+
+	        refreshTabgroupCSS("survey");
+			/**Events for answer**/
+			tempChoice=new ArrayList();
+			tempChoice.add(new NameValuePair("Yes", "Y"));
+			tempChoice.add(new NameValuePair("No", "N"));
+			populateRadioGroup("survey/answerBasic/radioGrp",tempChoice);
+			onEvent("survey/answerBasic/nextBtn","click","nextQuestion(\""+tempQuesId+"\")");
+	   		}
+			});
+	}
+}
+/*** Answer variables ***/
+
+answerInfoOriginal=new ArrayList();
+answerInfoNew=new ArrayList();
+
+ansFileOriginReln=new ArrayList();
+
+ansLabelFstPart=null;//QuestionID+"Answer"
+ansLabelMidPart=null;//Interviewee("EtAl")
+ansLabelSndPart=null;//Date of interview
+
+tempAnsLabel=null;//tempAnsLabel, for trigger of changing answer label
+
+
+Boolean dupAnsLblChange=false;
+dupAnsLblInfo=new ArrayList();
+Boolean dupFileLblChange=false;
+dupFileLblInfo=new ArrayList();
+
+answer_id=null;//new answer_id
+
+current_answer_file_id=null;
+current_answer_id=null;
+
+files_in_current_ques=new ArrayList();
+files_origin=new ArrayList();
+file_and_fileType=new ArrayList();//Keep track of file types, used for changing file labels
+
+Boolean ansOrNot=true;//denoting if the answer has the answer ui page
+hiddenAnsInfo=new HashMap();// holding the answer info when no answer ui
+
+Boolean answerFile=false;//denoting whether user is viewing file from answer page
+
+initAnswerVar(){
+	answerInfoOriginal.clear();
+	answerInfoNew.clear();
+	
+	files_in_current_ques.clear();
+	file_and_fileType.clear();
+	files_origin.clear();
+	
+	answer_id=null;
+	current_answer_file_id=null;
+	current_answer_id=null;
+	answerFile=true;
+	ansLabelFstPart=null;
+	ansLabelSndPart=null;
+	ansLabelMidPart=null;
+	tempAnsLabel=null;
+	
+	dupAnsLblChange=false;
+	dupFileLblChange=false;
+	dupAnsLblInfo.clear();
+	dupFileLblInfo.clear();
+	hiddenAnsInfo.clear();
+}
+
+loadAnswerInfo(){
+	current_answer_id=getListItemValue();
+
+	if(isNull(current_answer_id)){
+		showWarning("Error","Can't find this answer, please contact the admin");
+		return;
+	}
+	else{
+		loadFileAnsRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+current_answer_id+" "+
+					"and RelationshipID in "+
+					"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
+					"and latestNonDeletedRelationship.Deleted IS NULL)";
+		
+		fetchAll(loadFileAnsRelnQuery, new FetchCallback() {
+	        onFetch(result) {
+	        	ansFileOriginReln.clear();
+	        	ansFileOriginReln.addAll(result);
+	        }
+
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+	
+	loadFileForAnswerQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileID') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+			"(select RelationshipID from AEntReln where AEntReln.uuid="+current_answer_id+" "+
+ 			"AND RelationshipID in "+
+			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+ 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)))";		
+
+	loadFileTypeQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileType') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+			"(select RelationshipID from AEntReln where AEntReln.uuid="+current_answer_id+" "+
+ 			"AND RelationshipID in "+
+			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+ 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)))";
+
+	loadFileStartTimeQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileStartTime') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+			"(select RelationshipID from AEntReln where AEntReln.uuid="+current_answer_id+" "+
+ 			"AND RelationshipID in "+
+			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+ 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)))";
+
+	loadFileEndTimeQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileEndTime') "+
+			"and uuid in "+
+ 			"(select uuid from AentReln where RelationshipID in "+
+			"(select RelationshipID from AEntReln where AEntReln.uuid="+current_answer_id+" "+
+ 			"AND RelationshipID in "+
+			"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+ 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
+			"and latestNonDeletedRelationship.Deleted IS NULL)))";
+	
+	fetchAll(loadFileForAnswerQuery, new FetchCallback() {
+        onFetch(result) {
+        	files_in_current_ques.clear();
+        	files_origin.clear();
+        	files_in_current_ques.addAll(result);
+        	files_origin.addAll(result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+
+    fetchAll(loadFileTypeQuery, new FetchCallback() {
+        onFetch(result) {
+        	file_and_fileType.clear();     	
+        	file_and_fileType.addAll(result);
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+    
+    createAnswerPage();
+	showTabGroup("survey", current_answer_id, new FetchCallback() {
+        onFetch(result) {
+			answerInfoOriginal.clear();
+        	populateList("survey/answerFile/answerFileList", files_in_current_ques);   	
+        	populateDropDown("survey/answerFile/file_Category",categoryTypes);
+        	answerInfoOriginal.add(getFieldValue("survey/answerHidden/answerLabel"));
+        	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerText"));
+        	answerInfoOriginal.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
+            showToast("Loaded answer"+result.getId());            
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+	}
+}
+
+startNewAnswer(String typeflag){
+	//showWarning("startNewAnswer","startNewAnswer");
+	initAnswerVar();
+	//showWarning("initAnswerVar","initAnswerVar");
+    String current_start_time=getCurrentTime();
+    String currentDate=getCurrentDate();
+   
+    ansLabelFstPart=current_question_label+"_"+"Answer_";
+    ansLabelSndPart="_"+currentDate;
+
+    Iterator itConsultant=sssConsultantList.iterator();
+    firstConsultant=itConsultant.next();
+    ansLabelMidPart=firstConsultant;
+   // showWarning("ansLabelMidPart",ansLabelMidPart);
+    if(sssConsultantList.size()>1){
+		ansLabelMidPart=ansLabelMidPart+"EtAl";
+    }
+
+    tempAnsLabel=ansLabelFstPart+ansLabelMidPart+ansLabelSndPart;
+   // showWarning("tempAnsLabel",tempAnsLabel);
+    switch(typeflag){
+    	case "non":
+    		startNewAnswerBasic(current_start_time);
+    	break;
+    	case "chk":
+    		startNewAnswerChk();
+    	break;
+    	case "lan":
+    		startNewAnswerLangIntro();
+    	break;
+    	default:
+    		//showWarning("default","default");
+    		startNewAnswerFile(typeflag, current_start_time);
+    	break;
+	}
+}
+
+startNewAnswerBasic(String current_start_time){
+	createAnswerPage();
+	newTabGroup("survey");
+	setFieldValue("survey/answerHidden/answerQuestionnaireID", current_quesnir_id);
+	setFieldValue("survey/answerHidden/answerQuestionID", current_question_id);
+	setFieldValue("survey/answerHidden/answerStartTimestamp", current_start_time);
+	
+	labelDeduplicate(tempAnsLabel,"AnswerLabel","survey/answerHidden/answerLabel","answer", dupAnsLblChange, dupAnsLblInfo);
+
+	populateList("survey/answerFile/answerFileList",files_in_current_ques);
+	populateDropDown("survey/answerFile/file_Category",categoryTypes);
+	ansOrNot=true;
+}
+
+startNewAnswerChk(){
+	String tempChkQues=null;
+	for(ques: ques_in_current_quesnir){
+		if(ques.get(0).equals(current_question_id)){
+			tempChkQues=ques.get(1);
+		}
+	}
+	if(tempChkQues!=null){
+		createChkListPage(current_question_id);
+		newTabGroup("survey");
+		setFieldValue("survey/answerBasic/quesText", tempChkQues);
+	}
+}
+
+startNewAnswerLangIntro(){
+	createLangIntroPage(current_quesnir_id,current_question_id, "N",null);
+		
+	ansLabelDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+	"and (measure = '"+tempAnsLabel+"' or measure like '"+tempAnsLabel+"(%)')";
+
+	fetchAll(ansLabelDuplicateQuery,new FetchCallback() {
+		onFetch(result) {
+			if(!isNull(result)){
+				tempAnsLabel=nonDupLabelGen(result,tempAnsLabel,null,null, false);
+				if(result.size()==1){
+					String newLabel=null;
+					ArrayList tempLabels=extractLabelToList(tempLabel);
+					if(tempLabels !=null && !tempLabels.isEmpty()){
+						tempAnsLabel=tempLabels.get(0);
+						if(tempLabels.size()>1){
+							newLabel=tempLabels.get(1);
+							dupAnsLblChange=true;
+							dupAnsLblInfo.add(result.get(0).get(0));
+							dupAnsLblInfo.add(newLabel);
+						}
+					}
+				}
+			}
+			langIntroAnsLabel=tempAnsLabel;
+			newTabGroup("langIntroAns");
+		}
+	});
+}
+
+startNewAnswerFile(String typeflag, String current_start_time){
+	hiddenAnsInfo.put("quesnir_id",current_quesnir_id);
+	hiddenAnsInfo.put("ques_id",current_question_id);
+	hiddenAnsInfo.put("start_time",current_start_time);
+	ansLabelDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+	"and (measure = '"+tempAnsLabel+"' or measure like '"+tempAnsLabel+"(%)')";
+
+	fetchAll(ansLabelDuplicateQuery,new FetchCallback() {
+		onFetch(result) {
+			if(!isNull(result)){
+				tempAnsLabel=nonDupLabelGen(result,tempAnsLabel,null,null, false);
+				showWarning("tempAnsLabelstartNewAnswerFile",tempAnsLabel);
+				if(result.size()==1){
+					String newLabel=null;
+					ArrayList tempLabels=extractLabelToList(tempLabel);
+					if(tempLabels !=null && !tempLabels.isEmpty()){
+						tempAnsLabel=tempLabels.get(0);
+						if(tempLabels.size()>1){
+							newLabel=tempLabels.get(1);
+							dupAnsLblChange=true;
+							dupAnsLblInfo.add(result.get(0).get(0));
+							dupAnsLblInfo.add(newLabel);
+						}
+					}
+				}
+			}
+			hiddenAnsInfo.put("label",tempAnsLabel);
+			//showWarning("hiddenAnsInfotempAnsLabelstartNewAnswerFile",startNewAnswerFile);
+			switch(typeflag){
+				case "aud":
+					newFile("answer","Audio");
+					attachAudioToField("file/fileInfo/audioFileContent");
+				break;
+				case "vid":
+					newFile("answer","Video");
+					attachVideoToField("file/fileInfo/videoFileContent");
+				break;
+				case "pho":
+					newFile("answer","Photo");
+					attachPictureToField("file/fileInfo/photoFileContent");
+				break;
+
+				case "fil":
+					newFile("answer","Sketch");
+					attachFileToField("file/fileInfo/sketchFileContent");
+				break;
+			}
+			ansOrNot=false;
+		}
+	});
+}
+
+loadAnswerFromQuesInQuesnir(String ques_id){
+//	showWarning("loadAnswerFromQuesInQuesnirques_id",ques_id);
+	if(isNull(current_quesnir_name)){
+		showWarning("No questionnaire name available","Can't get the questionnaire name, please contact the admin");
+		return;
+	}
+	if(ques_id==null || ques_id.equals("null")){
+		current_question_id=getListItemValue();
+//		showWarning("current_question_idL",current_question_id);
+	}
+	else
+	{
+		current_question_id=ques_id;
+	}
+//	showWarning("loadAnswerFromQuesInQuesnircurrent_question_id",current_question_id);
+	Boolean quesLabelRead=false;
+	for(ques: ques_in_current_quesnir){
+		if(ques.get(0).equals(current_question_id))
+		{
+			current_question_content=ques.get(1);
+			break;
+		}
+	}
+	//showWarning("current_question_content",current_question_content);
+	if(isNull(current_question_content)){
+		showWarning("No question content available","Can't get the question content, please contact the admin");
+		return;
+	}
+
+	for(quesLabel: queslabel_current_quesnir){
+		if(quesLabel.get(0).equals(current_question_id))
+		{
+			current_question_label=quesLabel.get(1);
+			quesLabelRead=true;
+			break;
+		}
+	}
+	//showWarning("quesLabelRead",quesLabelRead.toString());
+
+	if(quesLabelRead){
+	//	showWarning("ansTypeChecking","ansTypeCheckingenter");
+		ansTypeChecking(current_question_id);
+	}
+	
+	else{
+		queslabel_quesnir_query="select uuid, measure from latestNonDeletedAentValue "+
+			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
+			"and uuid in (select measure from latestNonDeletedArchEntIdentifiers "+
+			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
+			"and measure in (select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+			"where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+			"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+			"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"'))";
+			fetchAll(queslabel_quesnir_query, new FetchCallback() {
+					onFetch(result) {
+						//showWarning("queslabel_quesnir_query","queslabel_quesnir_query");
+						if (!isNull(result)) {	
+							//showWarning("!nullqueslabel_quesnir_query","queslabel_quesnir_query");
+							queslabel_current_quesnir.clear();
+							queslabel_current_quesnir.addAll(result);
+							//showWarning("!queslabel_current_quesniraddall","queslabel_quesnir_query");
+							for(quesLabel: queslabel_current_quesnir){
+								if(quesLabel.get(0).equals(current_question_id))
+								{
+									current_question_label=quesLabel.get(1);
+									quesLabelRead=true;
+									break;
+								}
+							}
+							//showWarning("!queslabel_current_quesnirquesLabelRead",quesLabelRead.toString());
+							for(quesLabel: queslabel_current_quesnir){
+								if(quesLabelRead){
+									ansTypeChecking(current_question_id);
+								}
+								else{
+									showWarning("The data is outdated","Please exit the module and retry");
+								}
+							}
+						}
+						else{
+							showWarning("Something wrong with getting data","Please exit the module and retry");
+								return;
+						}
+			      }
+				onError(message) {
+					showToast(message);
+				}
+		});
+
+	}
+}
+
+ansTypeChecking(String ques_id){
+	//showWarning("ansTypeChecking",ques_id);
+	String answerType=null;
+	String recordingType=null;
+	for(ques: quesRecordingType){
+		//showWarning("quesType",ques.get(0));
+		if(ques.get(0).equals(ques_id)){
+			recordingType=ques.get(1);
+			//showWarning("quesTypename",ques.get(1));
+			switch(recordingType){
+				case "Audio_Required":
+					answerType="aud";
+				break;
+				case "Video_Required":
+					answerType="vid";
+				break;
+				case "Photo_Required":
+					answerType="pho";
+				break;
+				case "File_Required":
+					answerType="fil";
+				break;
+				case "None":
+					answerType="non";
+				break;
+				case "CheckList":
+					answerType="chk";
+				break;
+				case "LangIntro":
+					answerType="lan";
+				break;
+				default:
+					answerType="non";
+				break;
+			}
+			//showWarning("answerType",answerType);
+			startNewAnswer(answerType);
+			break;
+		}
+	}
+}
+
+saveNewAnswer(){
+	
+}
+/*** File ***/
+/*** File variables ***/
+categoryTypes=new ArrayList();
+categoryTypes.add(new NameValuePair("{Audio}", "Audio"));
+categoryTypes.add(new NameValuePair("{Video}", "Video"));
+categoryTypes.add(new NameValuePair("{Photo}", "Photo"));
+categoryTypes.add(new NameValuePair("{Other}", "Other"));
+
+Boolean emrOrNot=false;
+
+/*** File dynamic ui ***/
+createFilePage(String fileType, String attachFunc, String saveFunc){
+	String uiNamePrefix=null;
+	String uiLabelPrefix=null;
+	switch(fileType){
+		case "audio":
+		uiNamePrefix="audio";
+		uiLabelPrefix="Audio";
+		break;
+
+		case "video":
+		uiNamePrefix="video";
+		uiLabelPrefix="Video";
+		break;
+
+		case "photo":
+		uiNamePrefix="photo";
+		uiLabelPrefix="Photo";
+		break;
+
+		case "sketch":
+		uiNamePrefix="sketch";
+		uiLabelPrefix="Sketch";
+		break;
+	}
+	//Generate ui
+
+	removeAllViewsAndContainers("file");
+ 	executeViewTask(new ViewTask() {
+		doTask() { 
+
+			//file hidden	
+	 	
+			idFileDef = createViewDef().createTextField().setLabel(uiLabelPrefix+" file label").setAttributeName("FileID").setAttributeType("measure").
+			setAnnotationEnabled(true).setReadOnly(true);
+
+			typeViewDef=createViewDef().createTextField().setLabel("File type").setAttributeName("FileType").setAttributeType("measure").
+			setAnnotationEnabled(true).setReadOnly(true);
+
+			creatorViewDef=createViewDef().createTextField().setLabel("Creator").setAttributeName("FileCreator").setAttributeType("measure").
+			setAnnotationEnabled(true).setReadOnly(true);
+
+			startTimeViewDef=createViewDef().createTextField().setLabel("Start time").setAttributeName("FileStartTime").setAttributeType("measure").
+			setAnnotationEnabled(true).setReadOnly(true);
+
+			endTimeViewDef=createViewDef().createTextField().setLabel("End time").setAttributeName("FileEndTime").setAttributeType("measure").
+			setAnnotationEnabled(true).setReadOnly(true);
+
+			if (fileType.equals("audio") || fileType.equals("sketch")){
+				fileContentViewDef=createViewDef().createFileGroup(true).setLabel(uiLabelPrefix).setAttributeName("FileContent").setAttributeType("measure").setAnnotationEnabled(true);
+			}
+			else if(fileType.equals("video")){
+				fileContentViewDef=createViewDef().createVideoGallery(true).setLabel("Video").setAttributeName("FileContent").setAttributeType("measure").setAnnotationEnabled(true);
+			}
+			else{
+				fileContentViewDef=createViewDef().createCameraGallery(true).setLabel("Photo").setAttributeName("FileContent").setAttributeType("measure").setAnnotationEnabled(true);
+			}
+			nameViewDef=createViewDef().createTextField().setLabel(uiLabelPrefix+" file name").setAttributeName("FileName").setAttributeType("measure");
+
+			createView("file/fileHidden/"+uiNamePrefix+"FileID", idFileDef,"file/fileHidden");
+			createView("file/fileHidden/"+uiNamePrefix+"FileType", typeViewDef,"file/fileHidden");
+			createView("file/fileHidden/"+uiNamePrefix+"FileCreator", creatorViewDef,"file/fileHidden");
+			createView("file/fileHidden/"+uiNamePrefix+"FileStartTime", startTimeViewDef,"file/fileHidden");
+			createView("file/fileHidden/"+uiNamePrefix+"FileEndTime", endTimeViewDef,"file/fileHidden");
+			createView("file/fileHidden/"+uiNamePrefix+"FileName", nameViewDef,"file/fileHidden");
+
+			//non-hidden page
+			newBtnViewDef=createViewDef().createButton().setLabel("New "+ uiLabelPrefix);
+
+			pathTextViewDef=createViewDef().createTextField().setLabel(uiLabelPrefix+" file path").setAttributeName("FilePath").setAttributeType("measure").
+			setAnnotationEnabled(true).setReadOnly(true);
+
+			saveBtnViewDef=createViewDef().createButton().setLabel("Save "+ uiLabelPrefix);
+			//createView("file/fileInfo/"+uiNamePrefix+"FileName", nameViewDef,"file/fileInfo");
+
+			
+			createView("file/fileInfo/"+uiNamePrefix+"FileContent", fileContentViewDef,"file/fileInfo");
+			createView("file/fileInfo/Take_"+uiLabelPrefix+"_File", newBtnViewDef,"file/fileInfo");
+			createView("file/fileInfo/"+uiNamePrefix+"FilePath", pathTextViewDef,"file/fileInfo");
+			createView("file/fileInfo/Save_New_"+uiLabelPrefix, saveBtnViewDef,"file/fileInfo");
+
+		    onEvent("file/fileInfo/Take_"+uiLabelPrefix+"_File","click",attachFunc);
+			//onEvent("file/fileInfo/Save_New_"+uiLabelPrefix,"click","saveFileFromAnswer(\"file/fileInfo/"+uiNamePrefix+"FileName\",\"file/fileInfo/"+uiNamePrefix+"FileContent\",\"file\",uiLabelPrefix)");
+			onEvent("file/fileInfo/Save_New_"+uiLabelPrefix,"click",saveFunc);
+			}
+	});
+}
+newFile(String typeFlag, String fileType){
+	String fileCategory=null;
+	String tempAnsID=null;
+	emrOrNot=false;
+	switch (typeFlag){
+		case "answer":
+		if(fileType==null){
+			fileCategory=getFieldValue("survey/answerFile/file_Category");
+			tempAnsID=getFieldValue("survey/answerHidden/answerLabel");
+		}
+		else if(!fileType.equals("emr")){
+			fileCategory=fileType;
+	        tempAnsID=hiddenAnsInfo.get("label");
+		}
+		else{
+			fileCategory=fileType;
+	        tempAnsID=emrAnsInfo.get("label");
+		}
+			answerFile=true;
+			current_answer_file_id=null;	
+			
+			switch (fileCategory){
+				case "Audio":		
+					//Generate audio file creation ui pages
+				 	//createAudioFilePage("new");
+					createFilePage("audio","attachAudioToField(\"file/fileInfo/audioFileContent\")",
+						"saveFileFromAnswer(\"file/fileHidden/audioFileID\",\"file/fileInfo/audioFileContent\",\"file\",\"Audio\")");
+					newTabGroup("file");
+
+					String tempAudioID=tempAnsID+"_Audio";
+					labelDeduplicate(tempAudioID,"FileID","file/fileHidden/audioFileID","file", dupFileLblChange,dupFileLblInfo);
+
+					setFieldValue("file/fileHidden/audioFileCreator",username);
+					setFieldValue("file/fileHidden/audioFileType","Audio");
+					setFieldValue("file/fileHidden/audioFileStartTime", getCurrentTime());
+					//showWarning("audio","audio");
+				break;
+				case "Video":
+					//createVideoPage("new");
+					createFilePage("video","attachVideoToField(\"file/fileInfo/videoFileContent\")",
+						"saveFileFromAnswer(\"file/fileHidden/videoFileID\",\"file/fileInfo/videoFileContent\",\"file\",\"Video\")");
+					newTabGroup("file");
+					String tempVideoID=tempAnsID+"_Video";
+					labelDeduplicate(tempVideoID,"FileID","file/fileHidden/videoFileID","file",dupFileLblChange,dupFileLblInfo);
+	
+					setFieldValue("file/fileHidden/videoFileCreator",username);
+					setFieldValue("file/fileHidden/videoFileType","Video");
+					setFieldValue("file/fileHidden/videoFileStartTime", getCurrentTime());
+				break;
+
+				case "Photo":
+					//createPhotoPage("new");
+					createFilePage("photo","attachPictureToField(\"file/fileInfo/photoFileContent\")",
+						"saveFileFromAnswer(\"file/fileHidden/photoFileID\",\"file/fileInfo/photoFileContent\",\"file\",\"Photo\")");
+					newTabGroup("file");
+					String tempPhotoID=tempAnsID+"_Photo";
+					labelDeduplicate(tempPhotoID,"FileID","file/fileHidden/photoFileID","file",dupFileLblChange,dupFileLblInfo);
+
+					setFieldValue("file/fileHidden/photoFileCreator",username);
+					setFieldValue("file/fileHidden/photoFileType","Photo");
+					setFieldValue("file/fileHidden/photoFileStartTime", getCurrentTime());
+				
+				break;
+				case "Other":
+					//createSketchPage("new");
+					createFilePage("sketch","attachFileToField(\"file/fileInfo/sketchFileContent\")",
+						"saveFileFromAnswer(\"file/fileHidden/sketchFileID\",\"file/fileInfo/sketchFileContent\",\"file\",\"Recording\")");
+					newTabGroup("file");
+					String tempSketchID=tempAnsID+"_Recording";
+					labelDeduplicate(tempSketchID,"FileID","file/fileHidden/sketchFileID","file",dupFileLblChange,dupFileLblInfo);
+
+					setFieldValue("file/fileHidden/sketchFileCreator",username);
+					setFieldValue("file/fileHidden/sketchFileType","Recording");
+					setFieldValue("file/fileHidden/sketchFileStartTime", getCurrentTime());
+					
+					break;
+				case "emr":		
+					//Generate audio file creation ui pages
+				 	//createAudioFilePage("new");
+					emrOrNot=true;
+					createFilePage("audio","attachAudioToField(\"file/fileInfo/audioFileContent\")",
+						"saveEmrFile(\"file/fileHidden/audioFileID\",\"file/fileInfo/audioFileContent\",\"file\",\"Audio\")");
+					newTabGroup("file");
+
+					String tempAudioID=tempAnsID+"_Audio";
+					labelDeduplicate(tempAudioID,"FileID","file/fileHidden/audioFileID","file",dupFileLblChange,dupFileLblInfo);
+
+					setFieldValue("file/fileHidden/audioFileCreator",username);
+					setFieldValue("file/fileHidden/audioFileType","Audio");
+					setFieldValue("file/fileHidden/audioFileStartTime", getCurrentTime());
+				break;
+				default:
+					showWarning("Invalid category","Please select a valid file category");
+				break;
+			}
+		break;
+	}
+}
+
+saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, String fileType){
+
+}
+
+attachAudioToField(String ref) {
+	/*
+	if(!isNull(getFieldValue(ref))){
+		showWarning("File exists","File exists, please Create New File");
+		return;
+	}
+	*/
+	recordAudio("setAudioToField(\""+ref+"\")");
+	//recordAudio("checkAudioStop(\""+ref+"\")");
+}
+
+setAudioToField(String ref) {
+	String filePath = getLastAudioFilePath();
+	List selectedFiles = null;
+    //if (isNull(getFieldValue(ref))) {
+    	selectedFiles = new ArrayList();
+    	selectedFiles.add(filePath);
+    	addFile(ref, filePath);  	
+    //} else {
+    	//selectedFiles = _convertPairsToList(getFieldValue(ref));
+    //	showWarning("File exists","File exists, please Create New File");
+    //}
+    setFieldValue(ref, _convertListToPairs(selectedFiles));
+    setFieldValue("file/fileInfo/audioFilePath",filePath);
+    setFieldValue("file/fileHidden/audioFileEndTime",getCurrentTime());
+}
+
+
+attachVideoToField(String ref) {
+	if(!isNull(getFieldValue(ref))){
+		showWarning("File exists","File exists, please Create New File");
+		return;
+	}
+	openVideo("setVideoToField(\""+ref+"\")");
+}
+
+
+setVideoToField(String ref) {
+	String filePath = getLastVideoFilePath();
+	List selectedFiles = null;
+    if (isNull(getFieldValue(ref))) {
+    	selectedFiles = new ArrayList();
+    	selectedFiles.add(filePath);
+    	addVideo(ref, filePath);
+    } else {
+    	//selectedFiles = _convertPairsToList(getFieldValue(ref));
+    	showWarning("File exists","File exists, please Create New File");
+    }
+    setFieldValue(ref, _convertListToPairs(selectedFiles));
+    setFieldValue("file/fileInfo/videoFilePath",filePath);
+    setFieldValue("file/fileHidden/videoFileEndTime",getCurrentTime());
+}
+
+
+attachPictureToField(String ref) {
+	if(!isNull(getFieldValue(ref))){
+		showWarning("File exists","File exists, please Create New File");
+		return;
+	}
+	openCamera("setPictureToField(\""+ref+"\")");
+}
+
+/**
+  */
+setPictureToField(String ref) {
+	String filePath = getLastPictureFilePath();
+	List selectedFiles = null;
+    if (isNull(getFieldValue(ref))) {
+    	selectedFiles = new ArrayList();
+    	selectedFiles.add(filePath);
+    	addPicture(ref, filePath);
+    } else {
+    	//selectedFiles = _convertPairsToList(getFieldValue(ref));
+    	showWarning("File exists","File exists, please Create New File");
+    }
+    setFieldValue(ref, _convertListToPairs(selectedFiles));
+    setFieldValue("file/fileInfo/photoFilePath",filePath);
+    setFieldValue("file/fileHidden/photoFileEndTime",getCurrentTime());
+}
+
+
+attachFileToField(String ref) {
+	if(!isNull(getFieldValue(ref))){
+		showWarning("File exists","File exists, please Create New File");
+		return;
+	}
+	showFileBrowser("setFileToField(\""+ref+"\")");
+}
+
+
+setFileToField(String ref) {
+	String filePath = getLastSelectedFilepath();
+	List selectedFiles = null;
+    if (isNull(getFieldValue(ref))) {
+    	selectedFiles = new ArrayList();
+    	selectedFiles.add(filePath);
+    	addFile(ref, filePath);
+    } else {
+    	//selectedFiles = _convertPairsToList(getFieldValue(ref));
+    	showWarning("File exists","File exists, please Create New File");
+    }
+    setFieldValue(ref, _convertListToPairs(selectedFiles));
+    setFieldValue("file/fileInfo/sketchFilePath",filePath);
+    setFieldValue("file/fileHidden/sketchFileEndTime",getCurrentTime());
+}
+
+/*** File functions ***/
 /*** Sociolingustic quesnir UI ***/
 createLoopQuesList(){
 	if(!hasView("langIntroQues/langIntroQuesInfo/loopQues")){
@@ -1101,7 +2176,7 @@ createLangIntroPage(String tempQuesnirId,String tempQuesId, String typeflag, Arr
 		}  
 	});
 }
-
+loopQuesOrder=new ArrayList();
 showLangIntroAnsPage(ArrayList langDegList){
 	showTabGroup("langIntroAns");
 	//step 4: analyze the answerText and map it to the ui
@@ -1305,7 +2380,7 @@ saveLanguage(){
     fetchAll(langDuplicateQuery,new FetchCallback() {
 		onFetch(result) {
 			if(!isNull(result)){
-				tempLangLabel=nonDupLabelGen(result,tempLangLabel,"Language","LanguageID");
+				tempLangLabel=nonDupLabelGen(result,tempLangLabel,"Language","LanguageID", true);
 				setFieldValue("language/languageInfo/languageID",tempLangLabel);
 			}
 
@@ -1911,7 +2986,7 @@ savePersonData(String typeflag){
 	fetchAll(psDuplicateQuery,new FetchCallback() {
 		onFetch(result) {
 			if(!isNull(result)){
-				personLabel=nonDupLabelGen(result,personLabel,"Person","PersonID");
+				personLabel=nonDupLabelGen(result,personLabel,"Person","PersonID",true);
 			}
 			setFieldValue("person/personInfoHide/personID",personLabel);
 
@@ -2070,8 +3145,9 @@ getNumSuffix(String inputString){
 ** tempLbl: the label to be checking for duplicate
 ** tableName: the table name for the label's update
 ** attriName: the attribute name for the label's update
+** dataSaving: indicating if the old data should be updated to the database
 */
-nonDupLabelGen(ArrayList dupList, String tempLbl, String tableName, String attriName){
+nonDupLabelGen(ArrayList dupList, String tempLbl, String tableName, String attriName, Boolean dataSaving, Boolean ){
 	String rtnLbl=tempLbl;
 	int sizeOfDup=0;
 	Pattern numberPat = Pattern.compile("\\(\\d+\\)");
@@ -2103,13 +3179,21 @@ nonDupLabelGen(ArrayList dupList, String tempLbl, String tableName, String attri
 			newLabel=duplicateOldLabel+"(1)";
 
 		}
-		if(newLabel!=null){
-			attributes = createAttributeList();
-			attributes.add(createEntityAttribute(attriName, null, null, newLabel, null));
-			entityId=dupList.get(0).get(0);
-			saveArchEnt(entityId, tableName, null, attributes);
+		if(dataSaving){
+			if(newLabel!=null){
+				attributes = createAttributeList();
+				attributes.add(createEntityAttribute(attriName, null, null, newLabel, null));
+				entityId=dupList.get(0).get(0);
+				saveArchEnt(entityId, tableName, null, attributes);
+			}
 		}
 		rtnLbl=rtnLbl+"(2)";
+		if(!dataSaving){
+			if(newLabel!=null){
+				rtnLbl=rtnLbl+"|"+newLabel;
+			}
+
+		}
 	}
 
 	else{
@@ -2131,8 +3215,66 @@ nonDupLabelGen(ArrayList dupList, String tempLbl, String tableName, String attri
 		maxSuffix=maxSuffix+1;
 		rtnLbl=rtnLbl+"("+maxSuffix+")";
 	}
-	//showWarning("rtnLbl",rtnLbl);
 	return rtnLbl;
+}
+
+labelDeduplicate(String originLabel, String attriName, String fieldRef, String typeflag, Boolean dataUpdate, ArrayList tempUpdateList ){
+	duplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='"+attriName+"') "+
+	"and (measure = '"+originLabel+"' or measure like '"+originLabel+"(%)')";
+
+	fetchAll(duplicateQuery,new FetchCallback() {
+		onFetch(result) {			
+			if(!isNull(result)){
+				String tempLabel=nonDupLabelGen(result,originLabel, null, null, false);
+				if(result.size()==1){
+					String newLabel=null;
+					ArrayList tempLabels=extractLabelToList(tempLabel);
+					if(tempLabels !=null && !tempLabels.isEmpty()){
+						originLabel=tempLabels.get(0);
+						if(tempLabels.size()>1){
+							newLabel=tempLabels.get(1);
+							dataUpdate=true;
+							tempUpdateList.add(result.get(0).get(0));
+							tempUpdateList.add(newLabel);
+						}
+					}
+				}
+				else{
+					originLabel=tempLabel;
+				}
+				setFieldValue(fieldRef,originLabel);
+			}
+			else{
+				setFieldValue(fieldRef,originLabel);
+			}		
+		}
+		
+	});
+}
+extractLabelForNewEntity(String inputString){
+	String [] labelSplit=inputString.split("\\|"); 
+	return labelSplit[0];	
+}
+
+extractLabelForUpdateEntity(String inputString){
+	String [] labelSplit=inputString.split("\\|"); 
+	if(labelSplit.length>1){
+		return labelSplit[1];
+	}
+	return null;
+}
+extractLabelToList(String inputString){
+	ArrayList rtnList=new ArrayList();
+	rtnList.clear();
+
+	String [] labelSplit=inputString.split("\\|"); 
+	rtnList.add(labelSplit[0]);
+
+	if(labelSplit.length>1){
+		rtnList.add(labelSplit[1]);
+	}
+	return rtnList;
 }
 /*
 ** Basic arraylist difference checking 
@@ -2313,4 +3455,20 @@ extractLatestTime(ArrayList timeList){
 stayInCurrentPage()
 {
 	return;
+}
+deleteItemFromTargetList(){
+
+}
+buildQuerySetCondition(ArrayList itemList){
+	StringBuilder sb=new StringBuilder();
+	sb.append("(");
+	for (String s: itemList){
+		String str="'"+s+"'";
+		if(sb.length()>1){
+			sb.append(",");
+		}
+		sb.append(str);
+	}
+	sb.append(")");
+	return sb.toString();
 }
