@@ -588,6 +588,28 @@ checkDelOrView(){
 
 preLoadAnswerInfo(String tempAnswerId){
 
+	checkLangIntroAnsQuery="select 1 from (select measure as ansQuesID from latestNonDeletedAentValue "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionID') and uuid='"+tempAnswerId+"') t1 "+
+		"inner join (select langIntroQues.measure as langIntroQuesID from latestNonDeletedAentValue as langIntroQues, latestNonDeletedAentValue as QuesType "+
+		"where langIntroQues.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
+		"and QuesType.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefID') "+
+		"and langIntroQues.uuid=QuesType.uuid and QuesType.measure=(select QuesTypeID.uuid from latestNonDeletedAentValue as QuesTypeID "+
+		"where QuesTypeID.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefName') and QuesTypeID.measure='LangIntro' ) limit 1) t2 "+
+		"on t1.ansQuesID=t2.langIntroQuesID";
+
+	fetchOne(checkLangIntroAnsQuery,new FetchCallback() {
+		onFetch(result) {
+			if(isNull(result)){
+				loadAnswerInfo();
+			}
+			else{
+				loadLangIntroAnsInfo(tempAnswerId);
+			}
+		}	       
+		onError(message) {
+			showToast(message);
+		}
+	});
 }
 
 delAnsInSssAlert(String toDelId){
@@ -717,19 +739,20 @@ loadSessionListByQuesnirType(String typeflag,ArrayList typeIdList){
 
 	fetchAll(loadSessionByTypeQuery, new FetchCallback() {
         onFetch(result) {
-        	populateList("sessionGroup/sessionInfo/sessionList");
+        	populateList("control/survey_control/surveyList");
         }
         onError(message) {
             showToast(message);
         }
     });
 }
+
 loadSessionList(String typeflag){
 	fetchAll(loadAllSessionIDQuery, new FetchCallback() {
         onFetch(result) {
         	switch(typeflag){
         	case "session":
-        		populateList("sessionGroup/sessionInfo/sessionList", result);
+        		//populateList("sessionGroup/sessionInfo/sessionList", result);
         		break;
         	case "answer":
         		populateList("control/survey_control/surveyList", result);
@@ -745,29 +768,29 @@ loadSessionList(String typeflag){
 }
 
 checkSssQuesnirType(String typeflag){
-		String checkAnsId=null;
-		if((!isNull(original_sss_answer_list)) && (typeflag.equals("answer"))){		
-			checkAnsId=original_sss_answer_list.get(0).get(0);
+	String checkAnsId=null;
+	if((!isNull(original_sss_answer_list)) && (typeflag.equals("answer"))){		
+		checkAnsId=original_sss_answer_list.get(0).get(0);
 
-		checkAnsQuesnirTypeQuery="select uuid,measure from latestNonDeletedAentValue "+
-			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
-			"and uuid=(select measure from latestNonDeletedAentValue "+
-				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
-				"and uuid=(select measure from latestNonDeletedAentValue where uuid='"+checkAnsId+"' "+
-					"and AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID')))";
+	checkAnsQuesnirTypeQuery="select uuid,measure from latestNonDeletedAentValue "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+		"and uuid=(select measure from latestNonDeletedAentValue "+
+			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+			"and uuid=(select measure from latestNonDeletedAentValue where uuid='"+checkAnsId+"' "+
+				"and AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID')))";
 
-		fetchAll(checkAnsQuesnirTypeQuery, new FetchCallback() {
-	        	onFetch(quesnirTypeResult) {
-	              String quesnirType=quesnirTypeResult.get(0).get(1);
-	              if(quesnirType.equals("Introductory") || quesnirType.equals("Sociolinguistic")){
-	              	introAns=true;
-	              }
-	              else{
-	              	introAns=false;
-	              }
-	       		 }
-	   		 });
-		}
+	fetchAll(checkAnsQuesnirTypeQuery, new FetchCallback() {
+        	onFetch(quesnirTypeResult) {
+              String quesnirType=quesnirTypeResult.get(0).get(1);
+              if(quesnirType.equals("Introductory") || quesnirType.equals("Sociolinguistic")){
+              	introAns=true;
+              }
+              else{
+              	introAns=false;
+              }
+       		 }
+   		 });
+	}
 	else{
 		introAns=false;
 	}
@@ -1388,35 +1411,35 @@ loadPersonForSss(String sessionId){
 		"and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+sessionId+"' "+
 		"and psRole.uuid=psReln.uuid)t4 on t3.roleId=t4.tempPsRoleID) t6 on t5.relnId =t6.relnId";	
 
-		sssPsInfoRelnOrigin.clear();
-		sssPersonRoleandNameList.clear();
-		sssPersonRoleNameListOrigin.clear();
-		fetchAll(loadSssPersonRoleQuery, new FetchCallback() {
-	        onFetch(result) {
-	        	if(!isNull(result)){
-	        		for(ps: result){
-	        			psInfTriplePair=new ArrayList();
-						psInfTriplePair.add(ps.get(0));
-						psInfTriplePair.add(ps.get(1));	
-	        			sssPsInfoRelnOrigin.add(psInfTriplePair);
-	        			psRoleNamePair=new ArrayList();
-						psRoleNamePair.add(ps.get(1));
-						psRoleNamePair.add(ps.get(2));
-						sssPersonRoleNameListOrigin.add(psRoleNamePair);
-						sssPersonRoleandNameList.add(psRoleNamePair);
-	        		}
-	        		populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
+	sssPsInfoRelnOrigin.clear();
+	sssPersonRoleandNameList.clear();
+	sssPersonRoleNameListOrigin.clear();
+	fetchAll(loadSssPersonRoleQuery, new FetchCallback() {
+        onFetch(result) {
+        	if(!isNull(result)){
+        		for(ps: result){
+        			psInfTriplePair=new ArrayList();
+					psInfTriplePair.add(ps.get(0));
+					psInfTriplePair.add(ps.get(1));	
+        			sssPsInfoRelnOrigin.add(psInfTriplePair);
+        			psRoleNamePair=new ArrayList();
+					psRoleNamePair.add(ps.get(1));
+					psRoleNamePair.add(ps.get(2));
+					sssPersonRoleNameListOrigin.add(psRoleNamePair);
+					sssPersonRoleandNameList.add(psRoleNamePair);
+        		}
+        		populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
 
-	        	}
-	        	else{
-	        		populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
-	        		showWarning("Out-of-date Data","Some person in this session may not be used anymore\n"+"Please contact the admin for further information");
-	        	}
-	        }
-	        onError(message) {
-	            showToast(message);
-	        }
-	    });
+        	}
+        	else{
+        		populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
+        		showWarning("Out-of-date Data","Some person in this session may not be used anymore\n"+"Please contact the admin for further information");
+        	}
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
 	    
 }
 
