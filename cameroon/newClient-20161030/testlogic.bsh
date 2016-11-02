@@ -748,7 +748,6 @@ checkSssQuesnirType(String typeflag){
 		String checkAnsId=null;
 		if((!isNull(original_sss_answer_list)) && (typeflag.equals("answer"))){		
 			checkAnsId=original_sss_answer_list.get(0).get(0);
-		//}
 
 		checkAnsQuesnirTypeQuery="select uuid,measure from latestNonDeletedAentValue "+
 			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
@@ -760,58 +759,20 @@ checkSssQuesnirType(String typeflag){
 		fetchAll(checkAnsQuesnirTypeQuery, new FetchCallback() {
 	        	onFetch(quesnirTypeResult) {
 	              String quesnirType=quesnirTypeResult.get(0).get(1);
-	              if(quesnirType.equals("Introductory")){
+	              if(quesnirType.equals("Introductory") || quesnirType.equals("Sociolinguistic")){
 	              	introAns=true;
-	              	fetchAll(loadAllIntroAnsNotInSssQuery, new FetchCallback() {
-	    	                onFetch(result) {
-	    	                	candidate_files_session.clear();
-	    	                	candidate_files_session.addAll(result);
-	    	                	candidate_files_session.removeAll(original_sss_answer_list);
-	    	                	//populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
-	    	                }
-	    	                
-
-	    	                onError(message) {
-	    	                    showToast(message);
-	    	                	}
-	            			});
 	              }
 	              else{
 	              	introAns=false;
-	              	fetchAll(loadAllNonIntroAnsNotInSssQuery, new FetchCallback() {
-	    	                onFetch(result) {
-	    	                	candidate_files_session.clear();
-	    	                	candidate_files_session.addAll(result);
-	    	                	candidate_files_session.removeAll(original_sss_answer_list);
-	    	                	//populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
-	    	                }
-	    	                
-
-	    	                onError(message) {
-	    	                    showToast(message);
-	    	                	}
-	            			});
 	              }
 	       		 }
 	   		 });
-	}
+		}
 	else{
 		introAns=false;
-      	fetchAll(loadAllNonIntroAnsNotInSssQuery, new FetchCallback() {
-            onFetch(result) {
-            	candidate_files_session.clear();
-            	candidate_files_session.addAll(result);
-            	candidate_files_session.removeAll(original_sss_answer_list);
-            	//populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
-            }
-            
-
-            onError(message) {
-                showToast(message);
-            	}
-			});
 	}
 }
+
 takePoint() {
 	currentPosition.clear();
     Object position = getGPSPosition();
@@ -1235,6 +1196,228 @@ savePsInSession(String sessionId){
 			saveEntitiesToRel("Session and Person",sessionId,tempPsID);
 		}	
 	}
+}
+
+loadSessionInfo(String typeflag){
+	sss_id=getListItemValue();
+	if(isNull(sss_id)){
+		showWarning("Invalid session","No session is selected or session is not available");
+		return;
+	}
+	createMainSessionPage("s");
+
+	showTabGroup("sessionForAnswer", sss_id, new FetchCallback() {
+        onFetch(result) {
+			sssOriginInfo.clear();
+        	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssID"));
+        	loadAnswerForSss(sss_id);
+        	loadSssType(sss_id);
+			loadPersonForSss(sss_id);
+			showToast("Loaded session"+result.getId()); 
+		}   
+        onError(message) {
+            showToast(message);
+        }
+	});
+	loadSssReln(sss_id);
+}
+
+loadSssReln(String sessionId){
+		loadAnsSssRelnQuery="select RelationshipID, uuid from latestNonDeletedAentReln where uuid <> '"+sessionId+
+		"' and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='"+sessionId+
+			"' and RelationshipID in(select RelationshipID from latestNonDeletedRelationship "+
+				"where RelnTypeID= (select RelnTypeID from RelnType where RelnTypeName='Answer and Session')"+
+				"and latestNonDeletedRelationship.Deleted IS NULL))";
+
+		//Query out the reln id of person and person roles in a session
+		loadSssPersonRelnQuery="select uuid from latestNonDeletedArchEntIdentifiers "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
+		"and measure='"+sessionId+"' ";
+
+		loadSssConslRelnQuery="select RelationshipID, uuid from latestNonDeletedAentReln where uuid <>'"+sessionId+"' "+
+		"and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='"+sessionId+
+			"' and RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Consultant') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL))";
+
+		loadSssIntvRelnQuery="select RelationshipID, uuid from latestNonDeletedAentReln where uuid <>'"+sessionId+"' "+
+		"and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='"+sessionId+
+			"' and RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Interviewer') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL))";
+
+
+		loadSssPsRelnQuery="select RelationshipID, uuid from latestNonDeletedAentReln where uuid <>'"+sessionId+"' "+
+		"and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='"+sessionId+
+			"' and RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and Person') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL))";
+		
+		fetchAll(loadAnsSssRelnQuery, new FetchCallback() {
+	        onFetch(result) {
+	        	sssAnsRelnOrigin.clear();
+	        	sssAnsRelnOrigin.addAll(result);
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+
+		fetchAll(loadSssConslRelnQuery, new FetchCallback() {
+	        onFetch(result) {
+	        	sssOldCoslReln.clear();
+	        	sssOldCoslReln.addAll(result);
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+	    fetchAll(loadSssIntvRelnQuery, new FetchCallback() {
+	        onFetch(result) {
+	        	sssOldIntvReln.clear();
+	        	sssOldIntvReln.addAll(result);
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+	    fetchAll(loadSssPsRelnQuery, new FetchCallback() {
+	        onFetch(result) {
+	        	sssOldPsReln.clear();
+	        	sssOldPsReln.addAll(result);
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+}
+
+loadAnswerForSss(String sessionId){
+	loadAnswerForSessionQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+		"and uuid in "+
+			"(select uuid from AentReln where RelationshipID in "+
+		"(select RelationshipID from AEntReln where AEntReln.uuid='"+sessionId+"' "+
+			"AND RelationshipID in "+
+		"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+			"(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+		"and latestNonDeletedRelationship.Deleted IS NULL)))";
+
+	fetchAll(loadAnswerForSessionQuery, new FetchCallback() {
+        onFetch(answers) {
+        	if(!isNull(answers)){
+        		original_sss_answer_list.clear();
+	        	sss_answer_list.clear();
+	       		original_sss_answer_list.addAll(answers);
+	       		sss_answer_list.addAll(answers);
+	        	populateList("sessionForAnswer/sssAnsList/sssAnswerList",original_sss_answer_list);
+	        	checkSssQuesnirType("answer");
+        	}
+        	else{
+        		original_sss_answer_list.clear();
+        		populateList("sessionForAnswer/sssAnsList/sssAnswerList",original_sss_answer_list);
+        		showWarning("Out-of-date Data","Answers in this session may not be used anymore\n"+"Please contact the admin for further information");
+        	}
+
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+loadSssType(String sessionId){
+	loadSessionTypeNamesQuery="select measure from latestNonDeletedAentValue "+
+		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+		"and uuid in "+
+		"(select measure from latestNonDeletedAentValue "+
+		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+		"and uuid in (select measure from latestNonDeletedAentValue "+
+		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+		"and uuid in (select uuid from AentReln where RelationshipID in "+
+		"(select RelationshipID from AEntReln where AEntReln.uuid='"+sessionId+"' "+
+		"AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+		"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+		"and latestNonDeletedRelationship.Deleted IS NULL))) group by measure))";
+	fetchAll(loadSessionTypeNamesQuery, new FetchCallback() {
+        onFetch(result) {
+        	if(!isNull(result)){
+        		StringBuilder sb=new StringBuilder();
+        		for (re:result){
+        			if (sb.length()>0)
+        			{
+        				sb.append(",");
+        			}
+        			sb.append(re.toString());
+        		}
+        		setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssType",sb.toString());
+        	}
+        	else{
+        		setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssType","");
+        	}
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+loadPersonForSss(String sessionId){
+	//select t5.relnId, t5.personUuid, t5.persName, t6.personRoleUuid, t6.personRoleName from (select t1.personId as personUuid, t1.personName as persName, t2.psssId as relnId from (select pId.uuid as personId, pId.measure as personName from latestNonDeletedAentValue as pId where pId.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='PersonName') and pId.uuid in (select psName.measure from latestNonDeletedAentValue as psName, latestNonDeletedAentValue as psReln where psName.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='1000011478038316786' and psName.uuid=psReln.uuid)) t1 inner join (select psName.uuid as psssId, psName.measure as psId from latestNonDeletedAentValue as psName, latestNonDeletedAentValue as psReln where psName.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='1000011478038316786' and psName.uuid=psReln.uuid) t2 on t1.personId=t2.psId) t5 inner join (select t3.roleId as personRoleUuid, t3.roleName as personRoleName, t4.rsssId as relnId from (select rId.uuid as roleId, rId.measure as roleName from latestNonDeletedAentValue as rId where rId.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') and rId.uuid in (select psRole.measure from latestNonDeletedAentValue as psRole, latestNonDeletedAentValue as psReln where psRole.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='1000011478038316786' and psRole.uuid=psReln.uuid))t3 inner join (select psRole.uuid as rsssId, psRole.measure as tempPsRoleID from latestNonDeletedAentValue as psRole, latestNonDeletedAentValue as psReln where psRole.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='1000011478038316786' and psRole.uuid=psReln.uuid)t4 on t3.roleId=t4.tempPsRoleID) t6 on t5.relnId =t6.relnId
+
+	loadSssPersonRoleQuery="select t5.relnId, t6.personRoleUuid|| '_' || t5.personUuid as personRoleNameId, t6.personRoleName|| '_' || t5.persName as personRoleName from "+
+		"(select t1.personId as personUuid, t1.personName as persName, t2.psssId as relnId from "+
+		"(select pId.uuid as personId, pId.measure as personName from latestNonDeletedAentValue as pId "+
+		"where pId.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='PersonName') "+
+		"and pId.uuid in (select psName.measure from latestNonDeletedAentValue as psName, latestNonDeletedAentValue as psReln "+
+		"where psName.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
+		"and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
+		"and psReln.measure='"+sessionId+"' and psName.uuid=psReln.uuid)) t1 "+
+		"inner join (select psName.uuid as psssId, psName.measure as psId from latestNonDeletedAentValue as psName, latestNonDeletedAentValue as psReln "+
+		"where psName.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
+		"and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
+		"and psReln.measure='"+sessionId+"' and psName.uuid=psReln.uuid) t2 on t1.personId=t2.psId) t5 "+
+		"inner join (select t3.roleId as personRoleUuid, t3.roleName as personRoleName, t4.rsssId as relnId from (select rId.uuid as roleId, rId.measure as roleName "+
+		"from latestNonDeletedAentValue as rId where rId.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
+		"and rId.uuid in (select psRole.measure from latestNonDeletedAentValue as psRole, latestNonDeletedAentValue as psReln "+
+		"where psRole.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') "+
+		"and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
+		"and psReln.measure='"+sessionId+"' and psRole.uuid=psReln.uuid))t3 "+
+		"inner join (select psRole.uuid as rsssId, psRole.measure as tempPsRoleID from latestNonDeletedAentValue as psRole, latestNonDeletedAentValue as psReln "+
+		"where psRole.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') "+
+		"and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+sessionId+"' "+
+		"and psRole.uuid=psReln.uuid)t4 on t3.roleId=t4.tempPsRoleID) t6 on t5.relnId =t6.relnId";	
+
+		sssPsInfoRelnOrigin.clear();
+		sssPersonRoleandNameList.clear();
+		sssPersonRoleNameListOrigin.clear();
+		fetchAll(loadSssPersonRoleQuery, new FetchCallback() {
+	        onFetch(result) {
+	        	if(!isNull(result)){
+	        		for(ps: result){
+	        			psInfTriplePair=new ArrayList();
+						psInfTriplePair.add(ps.get(0));
+						psInfTriplePair.add(ps.get(1));	
+	        			sssPsInfoRelnOrigin.add(psInfTriplePair);
+	        			psRoleNamePair=new ArrayList();
+						psRoleNamePair.add(ps.get(1));
+						psRoleNamePair.add(ps.get(2));
+						sssPersonRoleNameListOrigin.add(psRoleNamePair);
+						sssPersonRoleandNameList.add(psRoleNamePair);
+	        		}
+	        		populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
+
+	        	}
+	        	else{
+	        		populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
+	        		showWarning("Out-of-date Data","Some person in this session may not be used anymore\n"+"Please contact the admin for further information");
+	        	}
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+	    
 }
 
 changeSession(){
