@@ -178,6 +178,8 @@ createSurveyControlPage(){
 
 	        refreshTabgroupCSS("control");
 	        onEvent("control/survey_control/New_Survey","click","preNewSss()");
+	        onEvent("control/survey_control","show","loadSessionList(\"answer\")");
+	        onEvent("control/survey_control/surveyList","click","loadSessionInfo(\"answer\")");
 			}
 	    
 		});
@@ -333,11 +335,39 @@ createQueryControlPage(){
 				createView("control/querytest/query", queryViewDef,"control/querytest");
 				createView("control/querytest/Submit", queryButtonDef,"control/querytest");
 				refreshTabgroupCSS("control");
+				onEvent("control/querytest/Submit","click","testQuery()");
 			}
 	    
 		});
 	}
 
+}
+testQuery(){
+	query=getFieldValue("control/querytest/query");
+	//fetchAll("SELECT sql FROM sqlite_master WHERE name='archentity';",
+	fetchAll(query.toString()+";",
+	new FetchCallback() {
+        onFetch(result) {
+			if (isNull(result)) {
+				//code
+				showWarning("no","no result");
+			}
+			else{
+			for (re : result) {
+				
+				showWarning("yes",re.toString());
+				//showWarning("me",re.toString());
+				
+			}		    
+            //populateList("control/question_control/questionList", result);
+        }
+		}
+        onError(message) {
+        	Log.e("query error",message);
+            showToast(message);
+        }
+    });
+	
 }
 /**********Temp function, to be remove for official version************/
 /*** Session questionnaire list***/
@@ -415,6 +445,10 @@ createQuesSel(){
 
 /*** session ui ***/
 createMainSessionPage(String typeflag){
+	if(hasView("sessionForAnswer/sssAnsBasicInfo/sssType") && typeflag.equals("n")){
+		removeView("sessionForAnswer/sssAnsBasicInfo/sssType");
+	}
+
 	if(!hasView("sessionForAnswer/sssHidden/sssID")){
 		removeAllViewsAndContainers("sessionForAnswer");
 		executeViewTask(new ViewTask() {
@@ -496,6 +530,10 @@ createMainSessionPage(String typeflag){
 			}
 	    
 		});
+	}
+	else if(!hasView("sessionForAnswer/sssAnsBasicInfo/sssType") && typeflag.equals("s")){
+		sssTypeViewDef=createViewDef().createTextField().setLabel("Type").setAnnotationEnabled(false).setReadOnly(true);
+    	createView("sessionForAnswer/sssAnsBasicInfo/sssType",sssTypeViewDef,"sessionForAnswer/sssAnsBasicInfo");
 	}
 }
 
@@ -615,6 +653,12 @@ sssOldCoslReln=new ArrayList();
 sssOldPsReln=new ArrayList();
 
 quesRecordingType=new ArrayList();
+/*** SEssion queries ***/
+/*** usage: session list, session search, fieldTrip creation, fieldTrip update (current 4 usages)***/
+loadAllSessionIDQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers " +
+		"WHERE AttributeID "+
+		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionID') "+
+		"GROUP BY uuid;";
 
 initSessionVar(){
 	introAns=false;
@@ -680,7 +724,94 @@ loadSessionListByQuesnirType(String typeflag,ArrayList typeIdList){
         }
     });
 }
+loadSessionList(String typeflag){
+	fetchAll(loadAllSessionIDQuery, new FetchCallback() {
+        onFetch(result) {
+        	switch(typeflag){
+        	case "session":
+        		populateList("sessionGroup/sessionInfo/sessionList", result);
+        		break;
+        	case "answer":
+        		populateList("control/survey_control/surveyList", result);
+        		break;
+        	}
+            
+        }
 
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+checkSssQuesnirType(String typeflag){
+		String checkAnsId=null;
+		if((!isNull(original_sss_answer_list)) && (typeflag.equals("answer"))){		
+			checkAnsId=original_sss_answer_list.get(0).get(0);
+		//}
+
+		checkAnsQuesnirTypeQuery="select uuid,measure from latestNonDeletedAentValue "+
+			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
+			"and uuid=(select measure from latestNonDeletedAentValue "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+				"and uuid=(select measure from latestNonDeletedAentValue where uuid='"+checkAnsId+"' "+
+					"and AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID')))";
+
+		fetchAll(checkAnsQuesnirTypeQuery, new FetchCallback() {
+	        	onFetch(quesnirTypeResult) {
+	              String quesnirType=quesnirTypeResult.get(0).get(1);
+	              if(quesnirType.equals("Introductory")){
+	              	introAns=true;
+	              	fetchAll(loadAllIntroAnsNotInSssQuery, new FetchCallback() {
+	    	                onFetch(result) {
+	    	                	candidate_files_session.clear();
+	    	                	candidate_files_session.addAll(result);
+	    	                	candidate_files_session.removeAll(original_sss_answer_list);
+	    	                	//populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
+	    	                }
+	    	                
+
+	    	                onError(message) {
+	    	                    showToast(message);
+	    	                	}
+	            			});
+	              }
+	              else{
+	              	introAns=false;
+	              	fetchAll(loadAllNonIntroAnsNotInSssQuery, new FetchCallback() {
+	    	                onFetch(result) {
+	    	                	candidate_files_session.clear();
+	    	                	candidate_files_session.addAll(result);
+	    	                	candidate_files_session.removeAll(original_sss_answer_list);
+	    	                	//populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
+	    	                }
+	    	                
+
+	    	                onError(message) {
+	    	                    showToast(message);
+	    	                	}
+	            			});
+	              }
+	       		 }
+	   		 });
+	}
+	else{
+		introAns=false;
+      	fetchAll(loadAllNonIntroAnsNotInSssQuery, new FetchCallback() {
+            onFetch(result) {
+            	candidate_files_session.clear();
+            	candidate_files_session.addAll(result);
+            	candidate_files_session.removeAll(original_sss_answer_list);
+            	//populateList("sessionForAnswer/sssAnsList/sssAnsSelList",candidate_files_session);
+            }
+            
+
+            onError(message) {
+                showToast(message);
+            	}
+			});
+	}
+}
 takePoint() {
 	currentPosition.clear();
     Object position = getGPSPosition();
@@ -1684,10 +1815,16 @@ loadAnswerInfo(){
 		return;
 	}
 	else{
-		loadFileAnsRelnQuery="select RelationshipID from AentReln where AentReln.uuid="+current_answer_id+" "+
-					"and RelationshipID in "+
-					"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
-					"and latestNonDeletedRelationship.Deleted IS NULL)";
+
+		loadFileAnsRelnQuery="select uuid,RelationshipID from AentReln "+
+			"where uuid <>'"+current_answer_id+"' "+
+			"and RelationshipID in "+
+				"(select RelationshipID from AEntReln "+
+				"where AEntReln.uuid='"+current_answer_id+"' "+
+				"AND RelationshipID in "+
+				"(select RelationshipID from latestNonDeletedRelationship "+
+				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL))";
 		
 		fetchAll(loadFileAnsRelnQuery, new FetchCallback() {
 	        onFetch(result) {
@@ -2090,8 +2227,6 @@ saveNewAnswer(){
 					sss_answer_list.add(newAnswer);
 					populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
 					//showWarning("populateList","populateList");
-					//if this is the second answer with a duplicate label
-					//the other answer label will be changed with a suffix (1)
 					//TODO: TO TEST
 					updateDupLabel(dupAnsLblInfo,"AnswerToQuestionnaire","AnswerLabel");
 					showToast("new answer created");
@@ -2136,32 +2271,22 @@ saveNewAnswer(){
 						populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
 						//if this is the second answer with a duplicate label
 						//the other answer label will be changed with a suffix (1)
-						if(dupAnsLblChange && !isNull(dupAnsLblInfo)){
-							newLabel=dupAnsLblInfo.get(1);
-							ansEntityId=dupAnsLblInfo.get(0);
-							attributes = createAttributeList();
-							attributes.add(createEntityAttribute("AnswerLabel", null, null, newLabel, null));
-							saveArchEnt(ansEntityId, "AnswerToQuestionnaire", null, attributes);
-							dupAnsLblChange=false;
-							dupAnsLblInfo.clear();
-						}
+						updateDupLabel(dupAnsLblInfo,"AnswerToQuestionnaire","AnswerLabel");
 						showToast("new answer created");
-						String curntQuesId=getFieldValue("survey/answerHidden/answerQuestionID");
+						//String curntQuesId=getFieldValue("survey/answerHidden/answerQuestionID");
 						cancelTabGroup("survey", true);
 						//cancelTabGroup("answerToQuestion", true);
 						autoSaveSession("head");
-						//showWarning("autoSaveSession 1","autoSaveSession 1");
-						nextQuestion(curntQuesId, ques_in_current_quesnir);
+						nextQuestion(getFieldValue("survey/answerHidden/answerQuestionID"), ques_in_current_quesnir);
 					}
 				}
 				onError(message) {
 					showWarning("error on saveNewAnswer2",message);
 				}  
-				});
+			});
 		}
 
 		else{//this is changing answerInfo		
-				//saveChangedAnswer();
 			answerInfoNew.clear();
 			answerInfoNew.add(getFieldValue("survey/answerHidden/answerLabel"));
 			answerInfoNew.add(getFieldValue("survey/answerBasic/answerText"));
@@ -2175,49 +2300,66 @@ saveNewAnswer(){
 				}
 			//case2: only fileList changed
 			else if((!fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
-					for(fileDelete:ansFileOriginReln){
-						deleteRel(fileDelete.get(0));
-					}
-					
-					for(file : files_in_current_ques){
-						saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
-					}
-
-					if(isNull(sss_id)){
-						populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-					}
-					
+					ansFileRelnUpdate(fileListChange);
 					showToast("file list changed");
 					cancelTabGroup("survey", true);
-				}
+			}
 			else{//case 3: both answer basic info and file list are changed
 					saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
-							onSave(uuid, newRecord) {
-								answer_id = uuid;	//not sure how it's working
+						onSave(uuid, newRecord) {
+							answer_id = uuid;	//not sure how it's working
 
-								for(fileDelete:ansFileOriginReln){
-									deleteRel(fileDelete.get(0));
-								}
-								for(file : files_in_current_ques){
-									saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
-								}
-								
-								showToast("Answer Info Changed");
-								cancelTabGroup("survey", true);
-								autoSaveSession("head");
-								//showWarning("autoSaveSession 2","autoSaveSession 2");
+							ansFileRelnUpdate(fileListChange);
+							
+							showToast("Answer Info Changed");
+							cancelTabGroup("survey", true);
 								
 						}
 						onError(message) {
 							showWarning("error on saveNewAnswer3 ",message);
 						}  
-						});
+					});
 			}
-
 		}
 	}
 }
-
+ansFileRelnUpdate(Hashtable fileListChange){
+	if(fileListChange.containsKey("PUREADD")){
+		fileToAdd=fileListChange.get("PUREADD");
+		for(file : fileToAdd){
+			showWarning(current_answer_id,file.get(0));
+			saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
+		}
+	}
+	else if(fileListChange.containsKey("PUREDELETE")){
+		fileToDelete=fileListChange.get("PUREDELETE");
+		for(file : fileToDelete){
+			for(fileReln: ansFileOriginReln){
+				if(file.get(0).equals(fileReln.get(0))){
+					showWarning(fileReln.get(0),fileReln.get(1));
+					deleteRel(fileReln.get(1));
+				}
+			}
+		}
+	}
+	else{
+		fileToAdd=fileListChange.get("ADD");
+		fileDelete=fileListChange.get("DELETE");
+		for(file : fileToDelete){
+			for(fileReln: ansFileOriginReln){
+				if(file.get(0).equals(fileReln.get(0))){
+					showWarning(fileReln.get(0),fileReln.get(1));
+					deleteRel(fileReln.get(1));
+				}
+			}
+		}
+		for(file : fileToAdd){
+			showWarning(current_answer_id,file.get(0));
+			saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
+		}
+	}
+	
+}
 viewOrDeleteFileReln(){
 	select_file_id=getListItemValue();
 	if(select_file_id==null || select_file_id.equals("")){
