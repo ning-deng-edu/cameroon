@@ -587,7 +587,6 @@ checkDelOrView(){
 }
 
 preLoadAnswerInfo(String tempAnswerId){
-
 	checkLangIntroAnsQuery="select 1 from (select measure as ansQuesID from latestNonDeletedAentValue "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionID') and uuid='"+tempAnswerId+"') t1 "+
 		"inner join (select langIntroQues.measure as langIntroQuesID from latestNonDeletedAentValue as langIntroQues, latestNonDeletedAentValue as QuesType "+
@@ -1150,7 +1149,7 @@ saveSession(String typeflag){
 			});
 	}
 	else{
-		changeSession();
+		updateSession();
 	}
 }
 
@@ -1443,9 +1442,35 @@ loadPersonForSss(String sessionId){
 	    
 }
 
-changeSession(){
+updateSession(){
+	/*
+	if(isNull(sss_answer_list))
+		{
+			showWarning("Incomplete Data","Please make sure that you have answer(s) in this session");
+			return;
+		}
+	sssNewInfo.clear();
+	sssNewInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssID"));
+
+	Hashtable sssInfoChange=listChange(sssNewInfo,sssOriginInfo);
+	Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
+	Hashtable sssPsChange=listChange(sssPersonRoleandNameList,sssPersonRoleNameListOrigin);
+
+	if((sssInfoChange.containsKey("EQUAL")) && (sssAnsChange.containsKey("EQUAL")) && (sssPsChange.containsKey("EQUAL"))){
+		showWarning("No change","No data changed");
+		return;				
+	}
+	else if(sssPsChange.containsKey("EQUAL")){
+		updateSssNoPsChange(,sssAnsChange,sssPsChange);
+	}
+	*/
+}
+updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPsChange){
+
 
 }
+/*** Common methods for session ***/
+
 extractPsSum(){
 	ansConsultant=null;
 	interviwerPrefix=null;
@@ -2464,7 +2489,6 @@ saveNewAnswer(){
 					//showWarning("current_answer_id",current_answer_id);
 
 					if (newRecord) {
-
 						for(file : files_in_current_ques){
 							saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
 						}
@@ -2508,17 +2532,14 @@ saveNewAnswer(){
 			else if((!fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
 					ansFileRelnUpdate(fileListChange);
 					showToast("file list changed");
-					cancelTabGroup("survey", true);
+					//cancelTabGroup("survey", true);
 			}
 			else{//case 3: both answer basic info and file list are changed
 					saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
 						onSave(uuid, newRecord) {
 							answer_id = uuid;	//not sure how it's working
-
 							ansFileRelnUpdate(fileListChange);
-							
 							showToast("Answer Info Changed");
-							cancelTabGroup("survey", true);
 								
 						}
 						onError(message) {
@@ -2529,43 +2550,46 @@ saveNewAnswer(){
 		}
 	}
 }
+
 ansFileRelnUpdate(Hashtable fileListChange){
 	if(fileListChange.containsKey("PUREADD")){
+		//case passed  
 		fileToAdd=fileListChange.get("PUREADD");
 		for(file : fileToAdd){
-			showWarning(current_answer_id,file.get(0));
+			//showWarning(current_answer_id,file.get(0));
 			saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
 		}
 	}
+	//case passed  
 	else if(fileListChange.containsKey("PUREDELETE")){
 		fileToDelete=fileListChange.get("PUREDELETE");
 		for(file : fileToDelete){
 			for(fileReln: ansFileOriginReln){
 				if(file.get(0).equals(fileReln.get(0))){
-					showWarning(fileReln.get(0),fileReln.get(1));
+					//showWarning(fileReln.get(0),fileReln.get(1));
 					deleteRel(fileReln.get(1));
 				}
 			}
 		}
 	}
+	//this case is not stable
 	else{
 		fileToAdd=fileListChange.get("ADD");
-		fileDelete=fileListChange.get("DELETE");
+		for(file : fileToAdd){
+			saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));
+		}
+		fileToDelete=fileListChange.get("DELETE");
 		for(file : fileToDelete){
 			for(fileReln: ansFileOriginReln){
 				if(file.get(0).equals(fileReln.get(0))){
-					showWarning(fileReln.get(0),fileReln.get(1));
 					deleteRel(fileReln.get(1));
 				}
 			}
 		}
-		for(file : fileToAdd){
-			showWarning(current_answer_id,file.get(0));
-			saveEntitiesToRel("Answer and File",current_answer_id,file.get(0));		
-		}
+		
 	}
-	
 }
+
 viewOrDeleteFileReln(){
 	select_file_id=getListItemValue();
 	if(select_file_id==null || select_file_id.equals("")){
@@ -2577,6 +2601,7 @@ viewOrDeleteFileReln(){
 deleteRelnAlert(){
 	showAlert("Delete File","Do you want to delete this file from this answer?","deleteFileRelation()","returnToCurrentPage()");
 }
+
 deleteFileRelation(){		
 	delete_file_id=getListItemValue();
 	if(isNull(delete_file_id)){
@@ -2859,14 +2884,9 @@ attachAudioToField(String ref) {
 setAudioToField(String ref) {
 	String filePath = getLastAudioFilePath();
 	List selectedFiles = null;
-    //if (isNull(getFieldValue(ref))) {
-    	selectedFiles = new ArrayList();
-    	selectedFiles.add(filePath);
-    	addFile(ref, filePath);  	
-    //} else {
-    	//selectedFiles = _convertPairsToList(getFieldValue(ref));
-    //	showWarning("File exists","File exists, please Create New File");
-    //}
+	selectedFiles = new ArrayList();
+	selectedFiles.add(filePath);
+	addFile(ref, filePath);  	
     setFieldValue(ref, _convertListToPairs(selectedFiles));
     setFieldValue("file/fileInfo/audioFilePath",filePath);
     setFieldValue("file/fileHidden/audioFileEndTime",getCurrentTime());
@@ -4342,11 +4362,12 @@ saveEntitiesToRel(String type, String entity1, String entity2) {
 	if (isNull(entity1) || isNull(entity2)) return;
     saveRel(null, type, null, null, new SaveCallback() {
         onSave(reln_id, newRecord) {
+        	showWarning(reln_id);
             addReln(entity1, reln_id, null);
             addReln(entity2, reln_id, null);
         }
         onError(message) {
-        	showWarning("error saveEntitiesToRel",message);
+        	showWarning("Saving failed","Plese try to save again if you can\n"+"and report the error to the admin");
         }
     });
 }
