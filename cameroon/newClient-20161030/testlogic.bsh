@@ -1103,18 +1103,12 @@ saveSession(String typeflag){
 
 	    //generate session label
 		Hashtable psInfo=extractPsSum();
-		if(psInfo.isEmpty()){
-			showWarning("No person info","No person in this session");
+		String needInfo=checkRoleComplete(psInfo);
+		if(!needInfo==null){
+			showWarning("No "+ needInfo +" info","No "+needInfo+" selected, please add "+needInfo+" info");
 			return;
 		}
-		else if(!psInfo.containsKey("consultant")){
-			showWarning("No consultant","No consultant selected, please add consultant");
-			return;
-		}
-		else if(!psInfo.containsKey("interviewer")){
-			showWarning("No interviewer","No interviewer selected, please add interviewer");
-			return;
-		}
+
 		ansConsultant=psInfo.get("consultant");
 		interviwerPrefix=psInfo.get("interviewer");
 		
@@ -1155,17 +1149,10 @@ saveSession(String typeflag){
 
 saveAnsInSession(String sessionId, String typeflag, Hashtable psInfo){
 	if(psInfo == null || psInfo.isEmpty()){
-		psInfo=extractPsSum();
-		if(psInfo.isEmpty()){
-			showWarning("No person info","No person in this session");
-			return;
-		}
-		else if(!psInfo.containsKey("consultant")){
-			showWarning("No consultant","No consultant selected, please add consultant");
-			return;
-		}
-		else if(!psInfo.containsKey("interviewer")){
-			showWarning("No interviewer","No interviewer selected, please add interviewer");
+		Hashtable psInfo=extractPsSum();
+		String needInfo=checkRoleComplete(psInfo);
+		if(!needInfo==null){
+			showWarning("No "+ needInfo +" info","No "+needInfo+" selected, please add "+needInfo+" info");
 			return;
 		}
 	}
@@ -1443,12 +1430,11 @@ loadPersonForSss(String sessionId){
 }
 
 updateSession(){
-	/*
-	if(isNull(sss_answer_list))
-		{
+	if(isNull(sss_answer_list)){
 			showWarning("Incomplete Data","Please make sure that you have answer(s) in this session");
 			return;
-		}
+	}
+
 	sssNewInfo.clear();
 	sssNewInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssID"));
 
@@ -1461,13 +1447,160 @@ updateSession(){
 		return;				
 	}
 	else if(sssPsChange.containsKey("EQUAL")){
-		updateSssNoPsChange(,sssAnsChange,sssPsChange);
+		updateSssNoPsChange(sssInfoChange,sssAnsChange,sssPsChange);
 	}
-	*/
+	else{
+		
+	}
+	
 }
 updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPsChange){
+	Boolean sssInfoUpdated=false;
+	if(!sssAnsChange.containsKey("EQUAL")){
+		ansListChange(sssAnsChange);
+		autoSaveSession("tail");
+	}
+	saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+	    onSave(uuid, newRecord) {
+	    	if(!sssInfoUpdated){
+				autoSaveSession("tail");
+	    	}
+	        showToast("Session basic info changed");
+	    }
+	    onError(message) {
+	        showWarning("error on updateSssNoPsChange1",message);
+	    }  
+	});
+}
 
+ansListChange(Hashtable sssAnsChange){
+	if(sssAnsChange.containsKey("PUREADD")){
+		sssNewAddedAns= sssAnsChange.get("PUREADD");
+		for(answer:sssNewAddedAns){
+			saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
+			//showWarning(sss_id,"new added:"+answer.get(0));
+		}//for(answer:sss_answer_list)
+	}
+	else if (sssAnsChange.containsKey("PUREDELETE")){
+		sssDelAns=sssAnsChange.get("PUREDELETE");
+		for(ansDelete:sssDelAns){
+			toDelAns=ansDelete.get(0);
+			for (oldReln:sssAnsRelnOrigin){
+				relnId=oldReln.get(0);
+				ansId=oldReln.get(1);
+				if (ansId.equals(toDelAns)){
+					deleteRel(relnId);
+				}
+			}
+		}
+	}
+	else{
+		sssAddChange=sssAnsChange.get("ADD");
+		sssDelChange=sssAnsChange.get("DELETE");
 
+		for(ansDelete:sssDelChange){
+			toDelAns=ansDelete.get(0);
+			for (oldReln:sssAnsRelnOrigin){
+				relnId=oldReln.get(0);
+				ansId=oldReln.get(1);
+				if (ansId.equals(toDelAns)){
+					deleteRel(relnId);
+				}
+			}
+		}
+		
+		for(answer:sssAddChange){
+		    saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
+		}//for(answer:sss_answer_list)
+	}
+}
+//todo: fix this function
+updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPsChange){
+	Hashtable psInfo=extractPsSum();
+	String needInfo=checkRoleComplete(psInfo);
+	if(!needInfo==null){
+		showWarning("No "+ needInfo +" info","No "+needInfo+" selected, please add "+needInfo+" info");
+		return;
+	}
+	ansConsultant=psInfo.get("consultant");
+	interviwerPrefix=psInfo.get("interviewer");
+
+	//generate new sssLabel
+	Boolean sssLabelChange=false;
+    String oldSssLabel=getFieldValue("sessionForAnswer/sssHidden/sssID");
+	String [] oldSssLabelSplit=oldSssLabel.split("_");
+	String sssOldInv=oldSssLabelSplit[0];
+	//showWarning("sssOldInv",sssOldInv);
+	String newSssLabel=oldSssLabel;
+	if(!sssOldInv.equals(interviwerPrefix)){
+		oldSssLabelSplit[0]=interviwerPrefix;
+		StringBuilder sb=new StringBuilder();
+		for (sssLabelComp : oldSssLabelSplit){
+			if (sb.length()>0)
+				{sb.append("_");}
+			sb.append(sssLabelComp);
+		}
+		newSssLabel=sb.toString();
+		newSssLabel=extractOriginLbl(newSssLabel);
+		sssLabelChange=true;
+	}
+	//change session label
+	if(sssLabelChange){
+		sssDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+		"and uuid<>"+sss_id+" "+
+		"and (measure = '"+newSssLabel+"' or measure like '"+newSssLabel+"(%)')";
+		//showWarning("sssDuplicateQuery","sssDuplicateQuery");
+		fetchAll(sssDuplicateQuery,new FetchCallback() {
+			onFetch(result) {
+				if(!isNull(result)){
+					newSssLabel=makeLabel(result,newSssLabel, "Session","SessionID");
+					//showWarning("newSssLabel",newSssLabel);
+					setFieldValue("sessionForAnswer/sssHidden/sssID",newSssLabel);
+				}
+				else{
+					setFieldValue("sessionForAnswer/sssHidden/sssID",newSssLabel);
+				}
+				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+		    		onSave(uuid, newRecord) {
+		    		if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
+		    				ansListChange(sssAnsChange);
+		    				autoSaveSession("tail");
+		    			}
+		    		
+		    		}//onSave(uuid, newRecord)
+		    		onError(message) {
+				        showWarning("error on updateSssPsChange1",message);
+				    }  
+				});
+			}
+		});
+		//showWarning("sssLabelChange",sssLabelChange.toString());
+	}//if sssLabelChange
+
+	else{
+		if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
+			ansListChange(sssAnsChange);
+			autoSaveSession("tail");
+		}
+		//sssInfoChange
+		else if(!sssInfoChange.containsKey("EQUAL")){	
+			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+			    onSave(uuid, newRecord) {
+			    	if(!sssAnsChange.containsKey("EQUAL")){
+			    		ansListChange(sssAnsChange);
+			    		autoSaveSession("tail");
+			    	}
+			    }
+			    onError(message) {
+			        showWarning("error on updateSssPsChange2",message);
+			    }  
+			  });
+		}
+			
+	}
+	sssPsUpdate(sssPsChange);
+	saveAnsInSession(sss_id,"dupLabel");
 }
 /*** Common methods for session ***/
 
@@ -1586,6 +1719,20 @@ saveNewSssToFieldTrip(String newSssId){
 		showToast("session is added to a fieldTrip");
 	}	
 }
+
+checkRoleComplete(Hashtable roleList){
+	if(roleList==null || roleList.isEmpty()){
+		return "person";
+	}
+	else if(!roleList.containsKey("consultant")){
+		return "consultant";
+	}
+	else if(!roleList.containsKey("interviewer")){
+		showWarning("return i","return isNull");
+		return "interviewer";
+	}
+	return null;
+}
 /*** Quesnir list variables ***/
 current_quesnir_id=null;
 current_question_id=null;
@@ -1619,12 +1766,11 @@ showQuestionnaireList(){
 		showWarning("No consultant","No consultant selected, please add consultant");
 		return;
 	}
-	else{
-		if(!sssRoleInfo.contains("interviewer")){
-			showWarning("No interviewer","No interviewer selected, please add interviewer");
-			return;
-		}
+	else if(!sssRoleInfo.contains("interviewer")){
+		showWarning("No interviewer","No interviewer selected, please add interviewer");
+		return;
 	}
+	
 	createQuesnirList();
 	initQuesNirListVar();
 	newTabGroup("questionnaireListAll");
