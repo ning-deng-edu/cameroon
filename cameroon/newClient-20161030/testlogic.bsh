@@ -850,7 +850,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
     	sssLabel="_"+"unknownLat"+"_"+"unknownLong"+"_"+currentDate;
     	setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssLocation","GPS not available");
     }
-    String tempSssLabelNew=username+sssLabel;
+    //String tempSssLabelNew=username+sssLabel;
 
     populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list); 
     populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
@@ -1104,11 +1104,12 @@ saveSession(String typeflag){
 	    //generate session label
 		Hashtable psInfo=extractPsSum();
 		String needInfo=checkRoleComplete(psInfo);
-		if(!needInfo==null){
+		//showWarning("needInfo1","needInfo1");
+		if(needInfo!=null){
 			showWarning("No "+ needInfo +" info","No "+needInfo+" selected, please add "+needInfo+" info");
 			return;
 		}
-
+		//showWarning("needInfo","needInfo");
 		ansConsultant=psInfo.get("consultant");
 		interviwerPrefix=psInfo.get("interviewer");
 		
@@ -1118,31 +1119,33 @@ saveSession(String typeflag){
 		"and (measure = '"+tempSssLabel+"' or measure like '"+tempSssLabel+"(%)')";
 
 		fetchAll(sssDuplicateQuery,new FetchCallback() {
-				onFetch(result) {
-					if(!isNull(result)){
-						tempSssLabel = nonDupLabelGen(result, tempSssLabel,"Session","SessionID",true);
-					}
-					setFieldValue("sessionForAnswer/sssHidden/sssID",tempSssLabel);
+			onFetch(result) {
+				if(!isNull(result)){
+					tempSssLabel = nonDupLabelGen(result, tempSssLabel,"Session","SessionID",true);
+				}
+				//showWarning("tempSssLabel",tempSssLabel);
+				setFieldValue("sessionForAnswer/sssHidden/sssID",tempSssLabel);
 
-					saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-					    onSave(uuid, newRecord) {
-					    	sss_id = uuid;
-					      	if (newRecord) {
-								saveAnsInSession(sss_id,"newSss",psInfo);
-								savePsInSession(sss_id);
-								autoSaveSession("tailNew");
-								showToast("New session contains answer(s) created");
-								saveNewSssToFieldTrip(sss_id);
-					      }
-					    }
-					    onError(message) {
-					        showWarning("error on saveSession 1",message);
-					    }  
-					  });
-				}  
-			});
+				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+				    onSave(uuid, newRecord) {
+				    	sss_id = uuid;
+				      	if (newRecord) {
+							saveAnsInSession(sss_id,"newSss",psInfo);
+							savePsInSession(sss_id);
+							autoSaveSession("tailNew");
+							showToast("New session contains answer(s) created");
+							saveNewSssToFieldTrip(sss_id);
+				      }
+				    }
+				    onError(message) {
+				        showWarning("error on saveSession 1",message);
+				    }  
+					});
+			}  
+		});
 	}
 	else{
+		showWarning("update session","update session");
 		updateSession();
 	}
 }
@@ -1151,7 +1154,7 @@ saveAnsInSession(String sessionId, String typeflag, Hashtable psInfo){
 	if(psInfo == null || psInfo.isEmpty()){
 		Hashtable psInfo=extractPsSum();
 		String needInfo=checkRoleComplete(psInfo);
-		if(!needInfo==null){
+		if(needInfo!=null){
 			showWarning("No "+ needInfo +" info","No "+needInfo+" selected, please add "+needInfo+" info");
 			return;
 		}
@@ -1431,8 +1434,8 @@ loadPersonForSss(String sessionId){
 
 updateSession(){
 	if(isNull(sss_answer_list)){
-			showWarning("Incomplete Data","Please make sure that you have answer(s) in this session");
-			return;
+		showWarning("Incomplete Data","Please make sure that you have answer(s) in this session");
+		return;
 	}
 
 	sssNewInfo.clear();
@@ -1442,23 +1445,28 @@ updateSession(){
 	Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
 	Hashtable sssPsChange=listChange(sssPersonRoleandNameList,sssPersonRoleNameListOrigin);
 
+	showWarning("compare done","compare done");
 	if((sssInfoChange.containsKey("EQUAL")) && (sssAnsChange.containsKey("EQUAL")) && (sssPsChange.containsKey("EQUAL"))){
 		showWarning("No change","No data changed");
 		return;				
 	}
 	else if(sssPsChange.containsKey("EQUAL")){
-		updateSssNoPsChange(sssInfoChange,sssAnsChange,sssPsChange);
+		updateSssNoPsChange(sssInfoChange,sssAnsChange);
 	}
-	else{
-		
-	}
-	
+	else if(!sssPsChange.containsKey("EQUAL")){
+		updateSssPsChange(sssInfoChange,sssAnsChange,sssPsChange);
+		showToast("Session info updated");
+		//autoSaveSession("tail");
+
+	}	
 }
-updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPsChange){
+
+updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange){
 	Boolean sssInfoUpdated=false;
 	if(!sssAnsChange.containsKey("EQUAL")){
 		ansListChange(sssAnsChange);
 		autoSaveSession("tail");
+		sssInfoUpdated=true;
 	}
 	saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 	    onSave(uuid, newRecord) {
@@ -1518,19 +1526,20 @@ ansListChange(Hashtable sssAnsChange){
 updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPsChange){
 	Hashtable psInfo=extractPsSum();
 	String needInfo=checkRoleComplete(psInfo);
-	if(!needInfo==null){
+	if(needInfo!=null){
 		showWarning("No "+ needInfo +" info","No "+needInfo+" selected, please add "+needInfo+" info");
 		return;
 	}
 	ansConsultant=psInfo.get("consultant");
 	interviwerPrefix=psInfo.get("interviewer");
-
+	showWarning("coin",ansConsultant+ansConsultant);
 	//generate new sssLabel
 	Boolean sssLabelChange=false;
     String oldSssLabel=getFieldValue("sessionForAnswer/sssHidden/sssID");
+    showWarning("oldSssLabel",oldSssLabel);
 	String [] oldSssLabelSplit=oldSssLabel.split("_");
 	String sssOldInv=oldSssLabelSplit[0];
-	//showWarning("sssOldInv",sssOldInv);
+	showWarning("sssOldInv",sssOldInv);
 	String newSssLabel=oldSssLabel;
 	if(!sssOldInv.equals(interviwerPrefix)){
 		oldSssLabelSplit[0]=interviwerPrefix;
@@ -1546,6 +1555,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 	}
 	//change session label
 	if(sssLabelChange){
+		showWarning("sessLabel","sessionLabelchanging");
 		sssDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
 		"and uuid<>"+sss_id+" "+
@@ -1554,13 +1564,10 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 		fetchAll(sssDuplicateQuery,new FetchCallback() {
 			onFetch(result) {
 				if(!isNull(result)){
-					newSssLabel=makeLabel(result,newSssLabel, "Session","SessionID");
-					//showWarning("newSssLabel",newSssLabel);
-					setFieldValue("sessionForAnswer/sssHidden/sssID",newSssLabel);
+					newSssLabel=nonDupLabelGen(result,newSssLabel, "Session","SessionID",true);
 				}
-				else{
-					setFieldValue("sessionForAnswer/sssHidden/sssID",newSssLabel);
-				}
+				setFieldValue("sessionForAnswer/sssHidden/sssID",newSssLabel);
+				showWarning("newSssLabel",newSssLabel);
 				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
 		    		onSave(uuid, newRecord) {
 		    		if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
@@ -1579,28 +1586,159 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 	}//if sssLabelChange
 
 	else{
-		if((sssInfoChange.containsKey("EQUAL")) && (!sssAnsChange.containsKey("EQUAL"))){
-			ansListChange(sssAnsChange);
-			autoSaveSession("tail");
-		}
-		//sssInfoChange
-		else if(!sssInfoChange.containsKey("EQUAL")){	
-			saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-			    onSave(uuid, newRecord) {
-			    	if(!sssAnsChange.containsKey("EQUAL")){
-			    		ansListChange(sssAnsChange);
-			    		autoSaveSession("tail");
-			    	}
-			    }
-			    onError(message) {
-			        showWarning("error on updateSssPsChange2",message);
-			    }  
-			  });
-		}
-			
+		updateSssNoPsChange(sssInfoChange,sssAnsChange);
 	}
 	sssPsUpdate(sssPsChange);
 	saveAnsInSession(sss_id,"dupLabel");
+}
+
+sssPsUpdate(Hashtable sssPsChange){
+	tempCostntID=null;
+	tempIntverID=null;
+	for (tempRoleID:personRoleList){
+	   	if (tempRoleID.get(1).equals("consultant")){
+    	  	tempCostntID=tempRoleID.get(0);
+    	}
+	    else if(tempRoleID.get(1).equals("interviewer")){
+    	  	tempIntverID=tempRoleID.get(0);
+    	}
+	}
+
+	if (sssPsChange.containsKey("PUREADD")){
+		sssNewAddedPs=sssPsChange.get("PUREADD");
+		for(personInSss: sssNewAddedPs){
+	  		String psInfoId=personInSss.get(0);
+	  		String [] psInfoIdSplit=psInfoId.split("_");
+	  		tempPsRoleID=psInfoIdSplit[0];
+	  		tempPsID=psInfoIdSplit[1];
+	  		sssPsRoleAttributes= createAttributeList();
+	  		sssPsRoleAttributes.add(createEntityAttribute("SessionIDforPerson", null, null, sss_id, null));
+	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, tempPsID, null));
+	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, tempPsRoleID, null));
+	  		saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
+	  		if(tempPsRoleID.equals(tempCostntID)){
+	    	  	saveEntitiesToRel("Session and Consultant",sss_id,tempPsID);
+	    	}
+	    	else if(tempPsRoleID.equals(tempIntverID)){
+	    	  	saveEntitiesToRel("Session and Interviewer",sss_id,tempPsID);
+	    	}
+	    	else{
+	    	  	saveEntitiesToRel("Session and Person",sss_id,tempPsID);
+	    	}	
+	  	}
+	}//if (sssPsChange.containsKey("PUREADD"))
+
+	else if (sssPsChange.containsKey("PUREDELETE")){
+		sssNewDelPs=sssPsChange.get("PUREDELETE");
+		for(personInSss: sssNewDelPs){
+	  		String toDelPsID=personInSss.get(0);
+	  		String [] psInfoIdSplit=toDelPsID.split("_");
+	  		tempPsRoleID=psInfoIdSplit[0];
+	  		tempPsID=psInfoIdSplit[1];
+	  		//delete person info and sessionPerson table
+	  		for(oldPs: sssPsInfoRelnOrigin){
+	  			if (toDelPsID.equals(oldPs.get(1))){
+	  				String toDelPsRelnID=oldPs.get(0);
+	  				//showWarning("toDelPsRelnID",toDelPsRelnID);
+	  				deleteArchEnt(toDelPsRelnID);
+	  				//deleteArchEnt(toDelPsRelnID);
+	  			}
+	  		}
+	  		if(tempPsRoleID.equals(tempCostntID)){
+	    	  	for(toDelConsul:sssOldCoslReln){
+	    	  		String oldConsulID=toDelConsul.get(1);
+	    	  		if(oldConsulID.equals(tempPsID)){
+	    	  			deleteRel(toDelConsul.get(0));
+	    	  		}
+	    	  	}
+	    	}
+	    	else if(tempPsRoleID.equals(tempIntverID)){
+	    	  	for(toDelConsul:sssOldIntvReln){
+	    	  		String oldConsulID=toDelConsul.get(1);
+	    	  		if(oldConsulID.equals(tempPsID)){
+	    	  			deleteRel(toDelConsul.get(0));
+	    	  		}
+	    	  	}
+	    	}
+	    	else{
+	    	  	for(toDelConsul:sssOldPsReln){
+	    	  		String oldConsulID=toDelConsul.get(1);
+	    	  		if(oldConsulID.equals(tempPsID)){
+	    	  			deleteRel(toDelConsul.get(0));
+	    	  		}
+	    	  	}
+	    	}	
+	  	}
+	}//else if (sssPsChange.containsKey("PUREDELETE"))
+
+	else{
+		//showWarning("DELETE","DELETE");
+	  	sssToDelPs=sssPsChange.get("DELETE");
+	  	for(personInSss: sssToDelPs){
+	  		String toDelPsID=personInSss.get(0);
+	  		String [] psInfoIdSplit=toDelPsID.split("_");
+	  		tempPsRoleID=psInfoIdSplit[0];
+	  		tempPsID=psInfoIdSplit[1];
+
+	  		for(oldPs: sssPsInfoRelnOrigin){
+	  			if (toDelPsID.equals(oldPs.get(1))){
+	  				String toDelPsRelnID=oldPs.get(0);
+	  				deleteArchEnt(toDelPsRelnID);
+	  			}
+	  		}
+
+	  		if(tempPsRoleID.equals(tempCostntID)){
+	    	  	for(toDelConsul:sssOldCoslReln){
+	    	  		String oldConsulID=toDelConsul.get(1);
+	    	  		if(oldConsulID.equals(tempPsID)){
+	    	  			deleteRel(toDelConsul.get(0));
+	    	  		}
+	    	  	}
+	    	}
+
+	    	else if(tempPsRoleID.equals(tempIntverID)){
+	    	  	for(toDelConsul:sssOldIntvReln){
+	    	  		String oldConsulID=toDelConsul.get(1);
+	    	  		if(oldConsulID.equals(tempPsID)){
+	    	  			deleteRel(toDelConsul.get(0));
+	    	  		}
+	    	  	}
+	    	}
+
+	    	else{
+	    	  	for(toDelConsul:sssOldPsReln){
+	    	  		String oldConsulID=toDelConsul.get(1);
+	    	  		if(oldConsulID.equals(tempPsID)){
+	    	  			deleteRel(toDelConsul.get(0));
+	    	  		}
+	    	  	}
+	    	}	
+	  	}
+		sssToAddPs=sssPsChange.get("ADD");
+		//showWarning("ADD","ADD");
+		for(personInSss: sssToAddPs){
+	  		String psInfoId=personInSss.get(0);
+	  		String [] psInfoIdSplit=psInfoId.split("_");
+	  		tempPsRoleID=psInfoIdSplit[0];
+	  		tempPsID=psInfoIdSplit[1];
+	  		sssPsRoleAttributes= createAttributeList();
+	  		sssPsRoleAttributes.add(createEntityAttribute("SessionIDforPerson", null, null, sss_id, null));
+	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, tempPsID, null));
+	  		sssPsRoleAttributes.add(createEntityAttribute("SessionPersonRole", null, null, tempPsRoleID, null));
+	  		saveArchEnt(null, "SessionPerson", null, sssPsRoleAttributes);
+	  		if(tempPsRoleID.equals(tempCostntID)){
+	    	  	saveEntitiesToRel("Session and Consultant",sss_id,tempPsID);
+	    	}
+	    	else if(tempPsRoleID.equals(tempIntverID)){
+	    	  	saveEntitiesToRel("Session and Interviewer",sss_id,tempPsID);
+	    	}
+	    	else{
+	    	  	saveEntitiesToRel("Session and Person",sss_id,tempPsID);
+	    	}	
+	  	}
+		
+	  	//showWarning("ADD+DELETE","ADD+DELETE");
+	}//sssPsChange containsKey("ADD") and "DELETE"
 }
 /*** Common methods for session ***/
 
@@ -1721,6 +1859,7 @@ saveNewSssToFieldTrip(String newSssId){
 }
 
 checkRoleComplete(Hashtable roleList){
+	showWarning("checkRoleComplete","checkRoleComplete");
 	if(roleList==null || roleList.isEmpty()){
 		return "person";
 	}
@@ -1728,9 +1867,10 @@ checkRoleComplete(Hashtable roleList){
 		return "consultant";
 	}
 	else if(!roleList.containsKey("interviewer")){
-		showWarning("return i","return isNull");
+		//showWarning("return i","return isNull");
 		return "interviewer";
 	}
+	showWarning("null","null");
 	return null;
 }
 /*** Quesnir list variables ***/
@@ -2373,7 +2513,7 @@ startNewAnswerLangIntro(){
 				tempAnsLabel=nonDupLabelGen(result,tempAnsLabel,null,null, false);
 				if(result.size()==1){
 					String newLabel=null;
-					ArrayList tempLabels=extractLabelToList(tempLabel);
+					ArrayList tempLabels=extractLabelToList(tempAnsLabel);
 					if(tempLabels !=null && !tempLabels.isEmpty()){
 						tempAnsLabel=tempLabels.get(0);
 						if(tempLabels.size()>1){
@@ -2403,10 +2543,10 @@ startNewAnswerFile(String typeflag, String current_start_time){
 		onFetch(result) {
 			if(!isNull(result)){
 				tempAnsLabel=nonDupLabelGen(result,tempAnsLabel,null,null, false);
-				showWarning("tempAnsLabelstartNewAnswerFile",tempAnsLabel);
+				//showWarning("tempAnsLabelstartNewAnswerFile",tempAnsLabel);
 				if(result.size()==1){
 					String newLabel=null;
-					ArrayList tempLabels=extractLabelToList(tempLabel);
+					ArrayList tempLabels=extractLabelToList(tempAnsLabel);
 					if(tempLabels !=null && !tempLabels.isEmpty()){
 						tempAnsLabel=tempLabels.get(0);
 						if(tempLabels.size()>1){
@@ -2419,7 +2559,7 @@ startNewAnswerFile(String typeflag, String current_start_time){
 				}
 			}
 			hiddenAnsInfo.put("label",tempAnsLabel);
-			//showWarning("hiddenAnsInfotempAnsLabelstartNewAnswerFile",startNewAnswerFile);
+			showWarning("hiddenAnsInfotempAnsLabelstartNewAnswerFile",tempAnsLabel);
 			switch(typeflag){
 				case "aud":
 					newFile("answer","Audio");
@@ -2609,7 +2749,7 @@ saveNewAnswer(){
 					showToast("new answer created");
 					//cancelTabGroup("file", true);
 					autoSaveSession("head");
-					//showWarning("autoSaveSession 3","autoSaveSession 3");
+					showWarning("autoSaveSession 3","autoSaveSession 3");
 					nextQuestion(hiddenAnsInfo.get("ques_id"),ques_in_current_quesnir);
 				}
 			}
@@ -4496,7 +4636,9 @@ buildQuerySetCondition(ArrayList itemList){
 }
 
 updateDupLabel(ArrayList dupInfoList, String tableName, String attrName){
+	showWarning("updateDupLabel",tableName+attrName);
 	if(dupInfoList!=null && !dupInfoList.isEmpty()){
+		showWarning("dupInfoList","dupInfoList");
 		dupAttributes = createAttributeList();
 		dupAttributes.add(createEntityAttribute(attrName, null, null, dupInfoList.get(1), null));
 		saveArchEnt(dupInfoList.get(0), tableName, null, dupAttributes);
@@ -4508,7 +4650,6 @@ saveEntitiesToRel(String type, String entity1, String entity2) {
 	if (isNull(entity1) || isNull(entity2)) return;
     saveRel(null, type, null, null, new SaveCallback() {
         onSave(reln_id, newRecord) {
-        	showWarning(reln_id);
             addReln(entity1, reln_id, null);
             addReln(entity2, reln_id, null);
         }
