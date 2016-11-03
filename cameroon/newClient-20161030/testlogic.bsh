@@ -1145,12 +1145,13 @@ saveSession(String typeflag){
 		});
 	}
 	else{
-		showWarning("update session","update session");
+		//showWarning("update session","update session");
 		updateSession();
 	}
 }
 
 saveAnsInSession(String sessionId, String typeflag, Hashtable psInfo){
+	//showWarning("saveAnsInSession","saveAnsInSession");
 	if(psInfo == null || psInfo.isEmpty()){
 		Hashtable psInfo=extractPsSum();
 		String needInfo=checkRoleComplete(psInfo);
@@ -1170,9 +1171,13 @@ saveAnsInSession(String sessionId, String typeflag, Hashtable psInfo){
 	//below is updating answer label and file labels
 	sssOrgnAnsLblList=extractOriginLbl(sss_answer_list);
 
-	for(ans : sssOrgnAnsLblList){
-		ansLblMng(ans,ansConsultant);
-	}// for(ans : sss_answer_list)
+	if(!isNull(sssOrgnAnsLblList)){
+		for(ans : sssOrgnAnsLblList){
+			//showWarning(ans.get(0),ans.get(1));
+			ansLblMng(ans,ansConsultant);
+		}// for(ans : sss_answer_list)
+	}
+	
 }
 
 savePsInSession(String sessionId){
@@ -1445,7 +1450,7 @@ updateSession(){
 	Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
 	Hashtable sssPsChange=listChange(sssPersonRoleandNameList,sssPersonRoleNameListOrigin);
 
-	showWarning("compare done","compare done");
+	//showWarning("compare done","compare done");
 	if((sssInfoChange.containsKey("EQUAL")) && (sssAnsChange.containsKey("EQUAL")) && (sssPsChange.containsKey("EQUAL"))){
 		showWarning("No change","No data changed");
 		return;				
@@ -1454,6 +1459,7 @@ updateSession(){
 		updateSssNoPsChange(sssInfoChange,sssAnsChange);
 	}
 	else if(!sssPsChange.containsKey("EQUAL")){
+		//showWarning("updateSssPsChange","updateSssPsChange");
 		updateSssPsChange(sssInfoChange,sssAnsChange,sssPsChange);
 		showToast("Session info updated");
 		//autoSaveSession("tail");
@@ -1483,11 +1489,13 @@ updateSssNoPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange){
 
 ansListChange(Hashtable sssAnsChange){
 	if(sssAnsChange.containsKey("PUREADD")){
+		//showWarning("PUREADD","PUREADD");
 		sssNewAddedAns= sssAnsChange.get("PUREADD");
 		for(answer:sssNewAddedAns){
 			saveEntitiesToRel("Answer and Session",sss_id,answer.get(0));
 			//showWarning(sss_id,"new added:"+answer.get(0));
 		}//for(answer:sss_answer_list)
+		//showWarning("saveEntitiesToRel","saveEntitiesToRel done");
 	}
 	else if (sssAnsChange.containsKey("PUREDELETE")){
 		sssDelAns=sssAnsChange.get("PUREDELETE");
@@ -1532,14 +1540,14 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 	}
 	ansConsultant=psInfo.get("consultant");
 	interviwerPrefix=psInfo.get("interviewer");
-	showWarning("coin",ansConsultant+ansConsultant);
+	//showWarning("coin",ansConsultant+ansConsultant);
 	//generate new sssLabel
 	Boolean sssLabelChange=false;
     String oldSssLabel=getFieldValue("sessionForAnswer/sssHidden/sssID");
-    showWarning("oldSssLabel",oldSssLabel);
+   // showWarning("oldSssLabel",oldSssLabel);
 	String [] oldSssLabelSplit=oldSssLabel.split("_");
 	String sssOldInv=oldSssLabelSplit[0];
-	showWarning("sssOldInv",sssOldInv);
+	//showWarning("sssOldInv",sssOldInv);
 	String newSssLabel=oldSssLabel;
 	if(!sssOldInv.equals(interviwerPrefix)){
 		oldSssLabelSplit[0]=interviwerPrefix;
@@ -1567,20 +1575,25 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 					newSssLabel=nonDupLabelGen(result,newSssLabel, "Session","SessionID",true);
 				}
 				setFieldValue("sessionForAnswer/sssHidden/sssID",newSssLabel);
-				showWarning("newSssLabel",newSssLabel);
+				showWarning("sss_id",sss_id+newSssLabel);
+
 				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-		    		onSave(uuid, newRecord) {
-		    		if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
-		    				ansListChange(sssAnsChange);
-		    				autoSaveSession("tail");
-		    			}
-		    		
-		    		}//onSave(uuid, newRecord)
-		    		onError(message) {
-				        showWarning("error on updateSssPsChange1",message);
+				    onSave(uuid, newRecord) {
+				    	//sss_id = uuid;
+				    }
+				    onError(message) {
+				        showWarning("error on updateSssPsChange1 1",message);
 				    }  
 				});
+				if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
+    				ansListChange(sssAnsChange);
+    				showWarning("ansListChange done","ansListChange done");
+    				autoSaveSession("tail");
+	    		}
 			}
+			onError(message) {
+		        showWarning("error on updateSssPsChange fetch query",message);
+		    } 
 		});
 		//showWarning("sssLabelChange",sssLabelChange.toString());
 	}//if sssLabelChange
@@ -1589,7 +1602,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 		updateSssNoPsChange(sssInfoChange,sssAnsChange);
 	}
 	sssPsUpdate(sssPsChange);
-	saveAnsInSession(sss_id,"dupLabel");
+	saveAnsInSession(sss_id,"dupLabel",psInfo);
 }
 
 sssPsUpdate(Hashtable sssPsChange){
@@ -1773,6 +1786,7 @@ extractPsSum(){
 }
 
 ansLblMng(ArrayList ans, String ansConsultant){
+	//showWarning("ansLblMng","ansLblMng");
 	String ansLabel=ans.get(1);
 	String [] ansLabelSplit=ansLabel.split("_");
 	String ansOldPs=ansLabelSplit[2];
@@ -1796,16 +1810,18 @@ ansLblMng(ArrayList ans, String ansConsultant){
 		fetchAll(ansDuplicateQuery,new FetchCallback() {
 			onFetch(result) {
 				entityId=ans.get(0);
+				showWarning("entityId",entityId);
 				if(!isNull(result)){
 					newAnsLabelSss=nonDupLabelGen(result,newAnsLabelSss,"AnswerToQuestionnaire","AnswerLabel", true);
 				}
-
+				showWarning("newAnsLabelSss",newAnsLabelSss);
 				attributes = createAttributeList();
 				attributes.add(createEntityAttribute("AnswerLabel", null, null, newAnsLabelSss, null));
-				//showWarning("newAnsLabelSss2",entityId+newAnsLabelSss);
+				showWarning("newAnsLabelSss2",entityId+newAnsLabelSss);
 				saveArchEnt(entityId, "AnswerToQuestionnaire", null, attributes, new SaveCallback() {
 					onSave(answerUuid,newRecord) {
 						//below is changing the filelabel
+						showWarning("saveArchEntansLblMng","saveArchEntansLblMng");
 						saveFileLabelChange(entityId, newAnsLabelSss);
 					}  
 				});	
@@ -1859,7 +1875,7 @@ saveNewSssToFieldTrip(String newSssId){
 }
 
 checkRoleComplete(Hashtable roleList){
-	showWarning("checkRoleComplete","checkRoleComplete");
+	//showWarning("checkRoleComplete","checkRoleComplete");
 	if(roleList==null || roleList.isEmpty()){
 		return "person";
 	}
@@ -1870,7 +1886,7 @@ checkRoleComplete(Hashtable roleList){
 		//showWarning("return i","return isNull");
 		return "interviewer";
 	}
-	showWarning("null","null");
+	//showWarning("null","null");
 	return null;
 }
 /*** Quesnir list variables ***/
@@ -2559,7 +2575,7 @@ startNewAnswerFile(String typeflag, String current_start_time){
 				}
 			}
 			hiddenAnsInfo.put("label",tempAnsLabel);
-			showWarning("hiddenAnsInfotempAnsLabelstartNewAnswerFile",tempAnsLabel);
+			//showWarning("hiddenAnsInfotempAnsLabelstartNewAnswerFile",tempAnsLabel);
 			switch(typeflag){
 				case "aud":
 					newFile("answer","Audio");
@@ -2737,10 +2753,12 @@ saveNewAnswer(){
 					for(file : files_in_current_ques){
 						saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
 					}
-					
+					//showWarning("answer_id newRecord","newRecord");
 					newAnswer=new ArrayList();
 					newAnswer.add(answer_id);
+					//showWarning(".add(answer_id)",".add(answer_id)");
 					newAnswer.add(hiddenAnsInfo.get("label"));
+					//showWarning(".hiddenAnsInfo",".hiddenAnsInfo)");
 					sss_answer_list.add(newAnswer);
 					populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
 					//showWarning("populateList","populateList");
@@ -2749,7 +2767,7 @@ saveNewAnswer(){
 					showToast("new answer created");
 					//cancelTabGroup("file", true);
 					autoSaveSession("head");
-					showWarning("autoSaveSession 3","autoSaveSession 3");
+					//showWarning("autoSaveSession 3","autoSaveSession 3");
 					nextQuestion(hiddenAnsInfo.get("ques_id"),ques_in_current_quesnir);
 				}
 			}
@@ -4344,9 +4362,11 @@ nonDupLabelGen(ArrayList dupList, String tempLbl, String tableName, String attri
 		}
 		if(dataSaving){
 			if(newLabel!=null){
+				showWarning("newLabel",newLabel);
 				attributes = createAttributeList();
 				attributes.add(createEntityAttribute(attriName, null, null, newLabel, null));
 				entityId=dupList.get(0).get(0);
+				showWarning("entityId",entityId);
 				saveArchEnt(entityId, tableName, null, attributes);
 			}
 		}
@@ -4636,9 +4656,9 @@ buildQuerySetCondition(ArrayList itemList){
 }
 
 updateDupLabel(ArrayList dupInfoList, String tableName, String attrName){
-	showWarning("updateDupLabel",tableName+attrName);
+	//showWarning("updateDupLabel",tableName+attrName);
 	if(dupInfoList!=null && !dupInfoList.isEmpty()){
-		showWarning("dupInfoList","dupInfoList");
+		//showWarning("dupInfoList","dupInfoList");
 		dupAttributes = createAttributeList();
 		dupAttributes.add(createEntityAttribute(attrName, null, null, dupInfoList.get(1), null));
 		saveArchEnt(dupInfoList.get(0), tableName, null, dupAttributes);
