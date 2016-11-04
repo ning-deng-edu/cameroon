@@ -519,7 +519,7 @@ createMainSessionPage(String typeflag){
 	        refreshTabgroupCSS("sessionForAnswer");
 
 	        onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","checkNewAnsTime()");
-			//onEvent("sessionForAnswer/sssAnsList/Save_Session","click","saveSession(\"answer\")");
+			onEvent("sessionForAnswer/sssAnsList/Save_Session","click","saveSession(\"answer\")");
 			onEvent("sessionForAnswer/sssPersonInfo/Add_Person","click","addPersonToSession()");
 			onEvent("sessionForAnswer/sssPersonInfo/sssPersonList","click","deletePersonInSession()");
 			onEvent("sessionForAnswer/sssPersonInfo/Add_New_Person","click","createPersonRolePage()");
@@ -1093,6 +1093,7 @@ autoSaveSession(String typeFlag){
 	}
 	
 }
+//todo: session description is not added for info checking
 saveSession(String typeflag){
 	if(isNull(sss_id)){//SAVING NEW SESSION
 		if(isNull(sss_answer_list))
@@ -1237,6 +1238,7 @@ loadSessionInfo(String typeflag){
         }
 	});
 	loadSssReln(sss_id);
+	//saveTabGroup("sessionForAnswer", sss_id, null, null, null, true);
 }
 
 loadSssReln(String sessionId){
@@ -1577,14 +1579,8 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 				setFieldValue("sessionForAnswer/sssHidden/sssID",newSssLabel);
 				showWarning("sss_id",sss_id+newSssLabel);
 
-				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
-				    onSave(uuid, newRecord) {
-				    	//sss_id = uuid;
-				    }
-				    onError(message) {
-				        showWarning("error on updateSssPsChange1 1",message);
-				    }  
-				});
+				saveTabGroup("sessionForAnswer", sss_id, null, null, null);
+				showWarning("saveTabGroup done","saveTabGroup done");
 				if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
     				ansListChange(sssAnsChange);
     				showWarning("ansListChange done","ansListChange done");
@@ -4674,10 +4670,30 @@ saveEntitiesToRel(String type, String entity1, String entity2) {
             addReln(entity2, reln_id, null);
         }
         onError(message) {
-        	showWarning("Saving failed","Plese try to save again if you can\n"+"and report the error to the admin");
+        	saveEntitiesToRelFailSafe(type,entity1,entity2,0);
         }
     });
 }
+
+saveEntitiesToRelFailSafe(String type, String entity1, String entity2, int loopCount) {
+	if (isNull(entity1) || isNull(entity2)) return;
+    saveRel(null, type, null, null, new SaveCallback() {
+        onSave(reln_id, newRecord) {
+            addReln(entity1, reln_id, null);
+            addReln(entity2, reln_id, null);
+        }
+        onError(message) {
+        	if(loopCount<3){
+        		loopCount++;
+				saveEntitiesToRelFailSafe(type, entity1, entity2,loopCount);  		
+        	}
+        	else{
+        		showWarning("Saving fail","Saving failed on" +type +"\n Plese try to save again if you can\n"+"and report the error to the admin");
+        	}	
+        }
+    });
+}
+
 
 nextQuestion(String curntQuesId, ArrayList questionList){
 	int idxCrntQues=-1;
