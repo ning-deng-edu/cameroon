@@ -1228,6 +1228,12 @@ loadSessionInfo(String typeflag){
         onFetch(result) {
 			sssOriginInfo.clear();
         	sssOriginInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssID"));
+        	if(!isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssDescription"))){
+        		sssOriginInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssDescription"));
+        	}
+        	else{
+        		sssOriginInfo.add("");
+        	}
         	loadAnswerForSss(sss_id);
         	loadSssType(sss_id);
 			loadPersonForSss(sss_id);
@@ -1447,6 +1453,12 @@ updateSession(){
 
 	sssNewInfo.clear();
 	sssNewInfo.add(getFieldValue("sessionForAnswer/sssHidden/sssID"));
+	if(!isNull(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssDescription"))){
+		sssNewInfo.add(getFieldValue("sessionForAnswer/sssAnsBasicInfo/sssDescription"));
+	}
+	else{
+		sssNewInfo.add("");
+	}
 
 	Hashtable sssInfoChange=listChange(sssNewInfo,sssOriginInfo);
 	Hashtable sssAnsChange=listChange(sss_answer_list,original_sss_answer_list);
@@ -1577,13 +1589,31 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 					newSssLabel=nonDupLabelGen(result,newSssLabel, "Session","SessionID",true);
 				}
 				setFieldValue("sessionForAnswer/sssHidden/sssID",newSssLabel);
-				showWarning("sss_id",sss_id+newSssLabel);
-
-				saveTabGroup("sessionForAnswer", sss_id, null, null, null);
-				showWarning("saveTabGroup done","saveTabGroup done");
+				//showWarning("sss_id",sss_id+newSssLabel);
+				//TODO: DOESN'T WORK
+				if(hasView("sessionForAnswer/sssHidden/sssID")){
+					//showWarning("hasView","sessionForAnswer/sssHidden/sssID");
+				}
+				saveTabGroup("sessionForAnswer", sss_id, null, null, new SaveCallback() {
+				    onSave(uuid, newRecord) {
+				       // showWarning("Session basic info changed",sss_id);
+				    }
+				    onError(message) {
+				        saveTabGroupFailSafe("sessionForAnswer", sss_id, 0);
+				    }  
+				});
+				//
+				//saveTabGroup("sessionForAnswer", sss_id, null, null, null);
+				/*
+				newSssAttributes = createAttributeList();
+				newSssAttributes.add(createEntityAttribute("SessionID", null, null, newSssLabel, null));
+				newSssAttributes.add(createEntityAttribute("SessionID", null, null, newSssLabel, null));
+				saveArchEnt(entityId, "File", null, newSssAttributes);
+				*/
+				//showWarning("saveTabGroup done","saveTabGroup done");
 				if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
     				ansListChange(sssAnsChange);
-    				showWarning("ansListChange done","ansListChange done");
+    				//showWarning("ansListChange done","ansListChange done");
     				autoSaveSession("tail");
 	    		}
 			}
@@ -1613,6 +1643,7 @@ sssPsUpdate(Hashtable sssPsChange){
     	}
 	}
 
+	//Case passed
 	if (sssPsChange.containsKey("PUREADD")){
 		sssNewAddedPs=sssPsChange.get("PUREADD");
 		for(personInSss: sssNewAddedPs){
@@ -2805,6 +2836,7 @@ saveNewAnswer(){
 						showToast("new answer created");
 						//String curntQuesId=getFieldValue("survey/answerHidden/answerQuestionID");
 						cancelTabGroup("survey", true);
+						showWarning("cancelTabGroupNewAnswer","survey");
 						//cancelTabGroup("answerToQuestion", true);
 						autoSaveSession("head");
 						nextQuestion(getFieldValue("survey/answerHidden/answerQuestionID"), ques_in_current_quesnir);
@@ -3149,6 +3181,7 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 
 					saveNewAnswer();
 					cancelTabGroup(tabGroupRef, true);
+					showWarning("cancelTabGroupFile1",tabGroupRef);
 				}
 				else{
 					for(changeFile:files_in_current_ques){
@@ -3164,7 +3197,8 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 					}
 					showToast("file record changed");
 					cancelTabGroup(tabGroupRef, true);
-					showTab("survey/answerFile");
+					showWarning("cancelTabGroupFile",tabGroupRef);
+					//showTab("survey/answerFile");
 				}
 			}
 			onError(message) {
@@ -4694,6 +4728,25 @@ saveEntitiesToRelFailSafe(String type, String entity1, String entity2, int loopC
     });
 }
 
+saveTabGroupFailSafe(String tableName, String entId, int loopCount){
+	if(isNull(tableName) || isNull(entId)){
+		return;
+	}
+	saveTabGroup("tableName", entId, null, null, new SaveCallback() {
+		    onSave(uuid, newRecord) {
+
+		    }
+	    onError(message) {
+	    	if(loopCount<3){
+	    		loopCount++;
+	    		saveTabGroupFailSafe(tableName,entId,loopCount);
+	    	}
+	    	else{
+	    		showWarning("Saving fail","Error on saving tabgroup " +tableName+"\n Please report to error to the admin");
+	    	}
+	    }  
+	  });
+}
 
 nextQuestion(String curntQuesId, ArrayList questionList){
 	int idxCrntQues=-1;
@@ -4713,6 +4766,7 @@ nextQuestion(String curntQuesId, ArrayList questionList){
 	else{
 		if(hasView("survey/answerBasic/radioGrp")){
 			cancelTabGroup("survey",true);
+			showWarning("cancelTabGroupnextquestion","survey");
 		}
 	}
 }
