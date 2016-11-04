@@ -1390,28 +1390,28 @@ loadSssType(String sessionId){
 loadPersonForSss(String sessionId){
 	//select t5.relnId, t5.personUuid, t5.persName, t6.personRoleUuid, t6.personRoleName from (select t1.personId as personUuid, t1.personName as persName, t2.psssId as relnId from (select pId.uuid as personId, pId.measure as personName from latestNonDeletedAentValue as pId where pId.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='PersonName') and pId.uuid in (select psName.measure from latestNonDeletedAentValue as psName, latestNonDeletedAentValue as psReln where psName.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='1000011478038316786' and psName.uuid=psReln.uuid)) t1 inner join (select psName.uuid as psssId, psName.measure as psId from latestNonDeletedAentValue as psName, latestNonDeletedAentValue as psReln where psName.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='1000011478038316786' and psName.uuid=psReln.uuid) t2 on t1.personId=t2.psId) t5 inner join (select t3.roleId as personRoleUuid, t3.roleName as personRoleName, t4.rsssId as relnId from (select rId.uuid as roleId, rId.measure as roleName from latestNonDeletedAentValue as rId where rId.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') and rId.uuid in (select psRole.measure from latestNonDeletedAentValue as psRole, latestNonDeletedAentValue as psReln where psRole.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='1000011478038316786' and psRole.uuid=psReln.uuid))t3 inner join (select psRole.uuid as rsssId, psRole.measure as tempPsRoleID from latestNonDeletedAentValue as psRole, latestNonDeletedAentValue as psReln where psRole.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='1000011478038316786' and psRole.uuid=psReln.uuid)t4 on t3.roleId=t4.tempPsRoleID) t6 on t5.relnId =t6.relnId
 
-	loadSssPersonRoleQuery="select t5.relnId, t6.personRoleUuid|| '_' || t5.personUuid as personRoleNameId, t6.personRoleName|| '_' || t5.persName as personRoleName from "+
-		"(select t1.personId as personUuid, t1.personName as persName, t2.psssId as relnId from "+
-		"(select pId.uuid as personId, pId.measure as personName from latestNonDeletedAentValue as pId "+
-		"where pId.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='PersonName') "+
-		"and pId.uuid in (select psName.measure from latestNonDeletedAentValue as psName, latestNonDeletedAentValue as psReln "+
-		"where psName.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
-		"and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
-		"and psReln.measure='"+sessionId+"' and psName.uuid=psReln.uuid)) t1 "+
-		"inner join (select psName.uuid as psssId, psName.measure as psId from latestNonDeletedAentValue as psName, latestNonDeletedAentValue as psReln "+
-		"where psName.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
-		"and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
-		"and psReln.measure='"+sessionId+"' and psName.uuid=psReln.uuid) t2 on t1.personId=t2.psId) t5 "+
-		"inner join (select t3.roleId as personRoleUuid, t3.roleName as personRoleName, t4.rsssId as relnId from (select rId.uuid as roleId, rId.measure as roleName "+
-		"from latestNonDeletedAentValue as rId where rId.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
-		"and rId.uuid in (select psRole.measure from latestNonDeletedAentValue as psRole, latestNonDeletedAentValue as psReln "+
-		"where psRole.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') "+
-		"and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
-		"and psReln.measure='"+sessionId+"' and psRole.uuid=psReln.uuid))t3 "+
-		"inner join (select psRole.uuid as rsssId, psRole.measure as tempPsRoleID from latestNonDeletedAentValue as psRole, latestNonDeletedAentValue as psReln "+
-		"where psRole.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') "+
-		"and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+sessionId+"' "+
-		"and psRole.uuid=psReln.uuid)t4 on t3.roleId=t4.tempPsRoleID) t6 on t5.relnId =t6.relnId";	
+	loadSssPersonRoleQuery="select t5.relnId, t6.personRoleUuid|| '_' || t5.personUuid as personRoleNameId, t6.personRoleName|| '_' || t5.persName as personRoleName "+
+	"from (select t1.personId as personUuid, t1.personName as persName, t2.psssId as relnId from (select pId.uuid as personId, pId.measure as personName "+
+	"from latestNonDeletedAentValue as pId where pId.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='PersonName') "+
+	"and pId.uuid in (select psName.measure from latestNonDeletedAentValue as psName, latestNonDeletedAentValue as psReln "+
+	"where psName.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
+	"and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+sessionId+"' "+
+	"and psName.uuid=psReln.uuid and psName.uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey "+
+	"where AttributeName='SessionIDforPerson')))) t1 inner join "+
+	"(select psName.uuid as psssId, psName.measure as psId from latestNonDeletedAentValue as psName, latestNonDeletedAentValue as psReln "+
+	"where psName.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
+	"and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+sessionId+"' "+
+	"and psName.uuid=psReln.uuid) t2 on t1.personId=t2.psId) t5 "+
+	"inner join "+
+	"(select t3.roleId as personRoleUuid, t3.roleName as personRoleName, t4.rsssId as relnId from (select rId.uuid as roleId, rId.measure as roleName "+
+	"from latestNonDeletedAentValue as rId where rId.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
+	"and rId.uuid in (select psRole.measure from latestNonDeletedAentValue as psRole, latestNonDeletedAentValue as psReln "+
+	"where psRole.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') and psReln.AttributeID=(select AttributeID "+
+	"from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+sessionId+"' and psRole.uuid=psReln.uuid))t3 "+
+	"inner join (select psRole.uuid as rsssId, psRole.measure as tempPsRoleID from latestNonDeletedAentValue as psRole, latestNonDeletedAentValue as psReln "+
+	"where psRole.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') and psReln.AttributeID=(select AttributeID "+
+	"from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+sessionId+"' "+
+	"and psRole.uuid=psReln.uuid)t4 on t3.roleId=t4.tempPsRoleID) t6 on t5.relnId =t6.relnId";	
 
 	sssPsInfoRelnOrigin.clear();
 	sssPersonRoleandNameList.clear();
@@ -1441,8 +1441,7 @@ loadPersonForSss(String sessionId){
         onError(message) {
             showToast(message);
         }
-    });
-	    
+    });	    
 }
 
 updateSession(){
@@ -1602,15 +1601,6 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 				        saveTabGroupFailSafe("sessionForAnswer", sss_id, 0);
 				    }  
 				});
-				//
-				//saveTabGroup("sessionForAnswer", sss_id, null, null, null);
-				/*
-				newSssAttributes = createAttributeList();
-				newSssAttributes.add(createEntityAttribute("SessionID", null, null, newSssLabel, null));
-				newSssAttributes.add(createEntityAttribute("SessionID", null, null, newSssLabel, null));
-				saveArchEnt(entityId, "File", null, newSssAttributes);
-				*/
-				//showWarning("saveTabGroup done","saveTabGroup done");
 				if(!(sssAnsChange.containsKey("EQUAL"))){//case0: answer list changed
     				ansListChange(sssAnsChange);
     				//showWarning("ansListChange done","ansListChange done");
@@ -1669,6 +1659,7 @@ sssPsUpdate(Hashtable sssPsChange){
 	}//if (sssPsChange.containsKey("PUREADD"))
 
 	else if (sssPsChange.containsKey("PUREDELETE")){
+		//showWarning("person PUREDELETE","person PUREDELETE");
 		sssNewDelPs=sssPsChange.get("PUREDELETE");
 		for(personInSss: sssNewDelPs){
 	  		String toDelPsID=personInSss.get(0);
@@ -1697,6 +1688,7 @@ sssPsUpdate(Hashtable sssPsChange){
 	    	  		String oldConsulID=toDelConsul.get(1);
 	    	  		if(oldConsulID.equals(tempPsID)){
 	    	  			deleteRel(toDelConsul.get(0));
+	    	  		//	showWarning("toDelPsRelnID",toDelPsRelnID);
 	    	  		}
 	    	  	}
 	    	}
@@ -1705,6 +1697,7 @@ sssPsUpdate(Hashtable sssPsChange){
 	    	  		String oldConsulID=toDelConsul.get(1);
 	    	  		if(oldConsulID.equals(tempPsID)){
 	    	  			deleteRel(toDelConsul.get(0));
+	    	  		//	showWarning("toDelPsRelnID",toDelPsRelnID);
 	    	  		}
 	    	  	}
 	    	}	
