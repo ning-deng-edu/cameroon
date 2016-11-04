@@ -1093,7 +1093,7 @@ autoSaveSession(String typeFlag){
 	}
 	
 }
-//todo: session description is not added for info checking
+
 saveSession(String typeflag){
 	if(isNull(sss_id)){//SAVING NEW SESSION
 		if(isNull(sss_answer_list))
@@ -1576,7 +1576,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 	}
 	//change session label
 	if(sssLabelChange){
-		showWarning("sessLabel","sessionLabelchanging");
+		//showWarning("sessLabel","sessionLabelchanging");
 		sssDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
 		"and uuid<>"+sss_id+" "+
@@ -1589,7 +1589,7 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 				}
 				setFieldValue("sessionForAnswer/sssHidden/sssID",newSssLabel);
 				//showWarning("sss_id",sss_id+newSssLabel);
-				//TODO: DOESN'T WORK
+
 				if(hasView("sessionForAnswer/sssHidden/sssID")){
 					//showWarning("hasView","sessionForAnswer/sssHidden/sssID");
 				}
@@ -1830,18 +1830,18 @@ ansLblMng(ArrayList ans, String ansConsultant){
 		fetchAll(ansDuplicateQuery,new FetchCallback() {
 			onFetch(result) {
 				entityId=ans.get(0);
-				showWarning("entityId",entityId);
+				//showWarning("entityId",entityId);
 				if(!isNull(result)){
 					newAnsLabelSss=nonDupLabelGen(result,newAnsLabelSss,"AnswerToQuestionnaire","AnswerLabel", true);
 				}
-				showWarning("newAnsLabelSss",newAnsLabelSss);
+			//	showWarning("newAnsLabelSss",newAnsLabelSss);
 				attributes = createAttributeList();
 				attributes.add(createEntityAttribute("AnswerLabel", null, null, newAnsLabelSss, null));
-				showWarning("newAnsLabelSss2",entityId+newAnsLabelSss);
+				//showWarning("newAnsLabelSss2",entityId+newAnsLabelSss);
 				saveArchEnt(entityId, "AnswerToQuestionnaire", null, attributes, new SaveCallback() {
 					onSave(answerUuid,newRecord) {
 						//below is changing the filelabel
-						showWarning("saveArchEntansLblMng","saveArchEntansLblMng");
+						//showWarning("saveArchEntansLblMng","saveArchEntansLblMng");
 						saveFileLabelChange(entityId, newAnsLabelSss);
 					}  
 				});	
@@ -2762,7 +2762,7 @@ saveNewAnswer(){
 		attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
 		attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
 		attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
-
+		//todo: add a failsave saveArchEnt
 		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
 			onSave(uuid, newRecord){
 				//showWarning("saveArchEnt 1","saveArchEnt 1");
@@ -2829,7 +2829,7 @@ saveNewAnswer(){
 						showToast("new answer created");
 						//String curntQuesId=getFieldValue("survey/answerHidden/answerQuestionID");
 						cancelTabGroup("survey", true);
-						showWarning("cancelTabGroupNewAnswer","survey");
+						//showWarning("cancelTabGroupNewAnswer","survey");
 						//cancelTabGroup("answerToQuestion", true);
 						autoSaveSession("head");
 						nextQuestion(getFieldValue("survey/answerHidden/answerQuestionID"), ques_in_current_quesnir);
@@ -3174,7 +3174,7 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 
 					saveNewAnswer();
 					cancelTabGroup(tabGroupRef, true);
-					showWarning("cancelTabGroupFile1",tabGroupRef);
+					//showWarning("cancelTabGroupFile1",tabGroupRef);
 				}
 				else{
 					for(changeFile:files_in_current_ques){
@@ -3190,7 +3190,7 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 					}
 					showToast("file record changed");
 					cancelTabGroup(tabGroupRef, true);
-					showWarning("cancelTabGroupFile",tabGroupRef);
+				//	showWarning("cancelTabGroupFile",tabGroupRef);
 					//showTab("survey/answerFile");
 				}
 			}
@@ -4759,7 +4759,7 @@ nextQuestion(String curntQuesId, ArrayList questionList){
 	else{
 		if(hasView("survey/answerBasic/radioGrp")){
 			cancelTabGroup("survey",true);
-			showWarning("cancelTabGroupnextquestion","survey");
+			//showWarning("cancelTabGroupnextquestion","survey");
 		}
 	}
 }
