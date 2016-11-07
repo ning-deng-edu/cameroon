@@ -5297,6 +5297,12 @@ updateFieldTrip(String startDate, String endDate){
 			fieldTripInfoNew.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripName"));
 			fieldTripInfoNew.add(startDate);
 			fieldTripInfoNew.add(endDate);
+			if(!isNull(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripDesc"))){
+        		fieldTripInfoNew.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripDesc")); 
+        	}
+        	else{
+				fieldTripInfoNew.add("");
+        	}
 
 			Hashtable fieldTripInfoChange=listChange(fieldTripInfoNew,fieldTripInfoOrigin);
 			Hashtable fieldTripSessionChange=listChange(selected_session_fieldTrip,original_session_fieldTrip);
@@ -5315,7 +5321,7 @@ updateFieldTrip(String startDate, String endDate){
 				updateFieldTripBasicInfo(startDate,endDate,false,null);
 				showToast("FieldTrip basic info updated");
 			}
-
+			//todo this case is not passed
 			else{
 				updateFieldTripBasicInfo(startDate,endDate,true,fieldTripSessionChange);
 				showToast("FieldTrip data updated");
@@ -5404,7 +5410,13 @@ loadFieldTripInfo(){
         	fieldTripInfoOrigin.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID"));
         	fieldTripInfoOrigin.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripName"));
         	fieldTripInfoOrigin.add(startTimeOrigin);
-        	fieldTripInfoOrigin.add(endTimeOrigin);  
+        	fieldTripInfoOrigin.add(endTimeOrigin); 
+        	if(!isNull(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripDesc"))){
+        		fieldTripInfoOrigin.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripDesc")); 
+        	}
+        	else{
+				fieldTripInfoOrigin.add("");
+        	}
         	String startTimeForPicker=dateParser(startTimeOrigin);
         	String endTimeForPicker=dateParser(endTimeOrigin);
         	setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker",startTimeForPicker);
