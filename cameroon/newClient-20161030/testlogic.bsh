@@ -1555,7 +1555,7 @@ ansListChange(Hashtable sssAnsChange){
 		}//for(answer:sss_answer_list)
 	}
 }
-//todo: fix this function
+
 updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPsChange){
 	Hashtable psInfo=extractPsSum();
 	String needInfo=checkRoleComplete(psInfo);
@@ -2331,7 +2331,22 @@ emrSssPrep(){
 	/***init sss vars***/
 	initSessionVar();
 	initEmrSssVars();
-	/***basic info for a session***/
+	emrSssPsLabelPrep();
+	
+	//showWarning("emrSssInfo.put(","emrSssInfo.put(");
+	/***init ans vars***/
+
+	initAnswerVar();
+	/***basic info for answer***/
+	emrAnsPrep();
+	
+
+	newFile("answer","emr");
+	attachAudioToField("file/fileInfo/audioFileContent");
+}
+
+emrSssPsLabelPrep(){
+		/***basic info for a session***/
 	takePoint();
 	currentDate=getCurrentDate();
 	emrSssStartTime=getCurrentTime();
@@ -2419,19 +2434,14 @@ emrSssPrep(){
 	
 	emrSssInfo.put("sssName", emrSssName);
 	emrSssInfo.put("sssSttTime", emrSssStartTime);
-	
-	//showWarning("emrSssInfo.put(","emrSssInfo.put(");
-	/***init ans vars***/
 
-	initAnswerVar();
-	/***basic info for answer***/
 	emrAnsLabel="emergencyQuestion"+"_Answer_"+emrSssCnsltntName+currentDate;
 	emrAnsStrtTime=emrSssStartTime;
-	/*
-	emrAnsLabelDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
-		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
-		"and (measure = '"+emrAnsLabel+"' or measure like '"+emrAnsLabel+"(%)')";
-	*/
+	emrAnsInfo.put("start_time",emrAnsStrtTime);
+	emrAnsInfo.put("label",emrAnsLabel);
+}
+
+emrAnsPrep(){
 	emrQuesNirIDQuery="select uuid from latestNonDeletedAentValue "+
 	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
 	"and measure =(select uuid from latestNonDeletedAentValue "+
@@ -2474,10 +2484,6 @@ emrSssPrep(){
 		}
 	});         					
 
-	emrAnsInfo.put("start_time",emrAnsStrtTime);
-	emrAnsInfo.put("label",emrAnsLabel);
-	newFile("answer","emr");
-	attachAudioToField("file/fileInfo/audioFileContent");
 }
 
 saveEmrFile(String ref, String fileListViewRef, String tabGroupRef, String fileType){
@@ -2553,10 +2559,12 @@ saveEmrSss(){
 	sssDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
 		"and (measure = '"+ emrSssInfo.get("sssId")+"' or measure like '"+ emrSssInfo.get("sssId")+"(%)')";
+
 	fetchAll(sssDuplicateQuery,new FetchCallback() {
 		onFetch(dupResult) {
 			if(!isNull(dupResult)){
-				tempEmrSssLabel = makeLabel(dupResult, emrSssInfo.get("sssId"),"Session","SessionID");
+				tempEmrSssLabel = nonDupLabelGen(dupResult,emrSssInfo.get("sssId"),"Session","SessionID", true);
+				//tempEmrSssLabel = makeLabel(dupResult, emrSssInfo.get("sssId"),"Session","SessionID");
 				emrSssInfo.remove("sssId");
 				emrSssInfo.put("sssId", tempEmrSssLabel);
 				//showWarning("emrSssInfo.put(sssId",tempEmrSssLabel);
@@ -3513,7 +3521,7 @@ saveNewAnswer(int loopCount){
 		attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
 		attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
 		attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
-		//todo: add a failsave saveArchEnt
+
 		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
 			onSave(uuid, newRecord){
 				//showWarning("saveArchEnt 1","saveArchEnt 1");
@@ -3533,7 +3541,7 @@ saveNewAnswer(int loopCount){
 					sss_answer_list.add(newAnswer);
 					populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
 					//showWarning("populateList","populateList");
-					//TODO: TO TEST
+
 					updateDupLabel(dupAnsLblInfo,"AnswerToQuestionnaire","AnswerLabel");
 					showToast("new answer created");
 					//cancelTabGroup("file", true);
@@ -5194,11 +5202,11 @@ nonDupLabelGen(ArrayList dupList, String tempLbl, String tableName, String attri
 		}
 		if(dataSaving){
 			if(newLabel!=null){
-				showWarning("newLabel",newLabel);
+				//showWarning("newLabel",newLabel);
 				attributes = createAttributeList();
 				attributes.add(createEntityAttribute(attriName, null, null, newLabel, null));
 				entityId=dupList.get(0).get(0);
-				showWarning("entityId",entityId);
+				//showWarning("entityId",entityId);
 				saveArchEnt(entityId, tableName, null, attributes);
 			}
 		}
