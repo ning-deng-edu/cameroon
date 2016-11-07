@@ -17,10 +17,7 @@ String userid;
 
 loadAllUserQuery="select userid, fname || ' ' || lname from user where userdeleted is null";
 
-loadAllSessionIDQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers " +
-		"WHERE AttributeID "+
-		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionID') "+
-		"GROUP BY uuid;";
+
 
 /***User***/
 onEvent("user/usertab/users", "click", "login()");
@@ -215,6 +212,8 @@ createFieldTripControlPage(){
 	        refreshTabgroupCSS("control");
 
 	        onEvent("control/other_control/fieldTrip_New_bn","click","createFieldTripInfoPage(\"new\")");
+	        onEvent("control/other_control","show","loadFieldTripList()");
+	        onEvent("control/other_control/fieldTripList","click","loadFieldTripInfo()");
 			}
 	    
 		});
@@ -370,9 +369,9 @@ testQuery(){
     });
 	
 }
-/**********Temp function, to be remove for official version************/
-/*** Session questionnaire list***/
+/**********Temp function end, to be remove for official version************/
 
+/*** Session questionnaire list***/
 createQuesnirList(){
 	if(!hasView("questionnaireListAll/questionnaireListInfo/questionnaireListInDB")){
 		removeAllViewsAndContainers("questionnaireListAll");
@@ -2884,7 +2883,20 @@ sclngstPrepQues(){
         	"on t1.quesId=t2.quesId "+
         "order by quesOrder asc";
 
-    quesRecordingTypeQuery="select t2.quId, t1.prName from "+
+   
+
+	fetchAll(loadQuesContentandOrderQuery, new FetchCallback() {
+	    onFetch(result) {
+	        ques_in_current_quesnir.clear();
+	        ques_in_current_quesnir.addAll(result);
+	        populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);   
+	        sclngstPrepQuesRecordingType(); 
+	    }
+	});
+}
+
+sclngstPrepQuesRecordingType(){
+	quesRecordingTypeQuery="select t2.quId, t1.prName from "+
 		"(select pName.uuid as prId, pName.measure as prName from latestNonDeletedAentValue as pName "+
 			"where pName.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefName'))t1 "+
 		"inner join "+
@@ -2898,45 +2910,37 @@ sclngstPrepQues(){
 			"and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
 		"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"')) t2 "+
 		"on t1.prId=t2.qPropId";
-
-	fetchAll(loadQuesContentandOrderQuery, new FetchCallback() {
+	String tempQuesStartId=null;
+    loopQuesOrder.clear();
+    fetchAll(quesRecordingTypeQuery, new FetchCallback() {
 	    onFetch(result) {
-	        ques_in_current_quesnir.clear();
-	        ques_in_current_quesnir.addAll(result);
-	        populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
-	        String tempQuesStartId=null;
-	        loopQuesOrder.clear();
-	        fetchAll(quesRecordingTypeQuery, new FetchCallback() {
-			    onFetch(result) {
-			        quesRecordingType.clear();
-			        quesRecordingType.addAll(result);
-			        //find the starting point of the loop
-			        for(quesRec: quesRecordingType){
-			        	if (quesRec.get(1).equals("LangIntro")){
-			        		tempQuesStartId=quesRec.get(0);
-			        		langIntroQuesUuid=tempQuesStartId;
-			        		break;
-			        	}
-			        }
-			        //showWarning("quesRec",tempQuesStartId);
-			        int tempStartingOrder=0;
-			        for(ques:ques_in_current_quesnir){
-			        	if(ques.get(0).equals(tempQuesStartId)){
-			        		//showWarning("ques.get(0)",ques.get(0));
-			        		String [] quesSplit=ques.get(1).split("-");
-			        		tempStartingOrder=Integer.parseInt(quesSplit[0]);
-			        		break;
-			        	}
-			        }
-			        //showWarning("ques",tempStartingOrder.toString());
-			        for(ques:ques_in_current_quesnir){
-			        	String [] quesSplit=ques.get(1).split("-");
-			        	if(Integer.parseInt(quesSplit[0])>tempStartingOrder){
-			        		loopQuesOrder.add(ques);
-			        	}
-			        }
-			    }
-			});
+	        quesRecordingType.clear();
+	        quesRecordingType.addAll(result);
+	        //find the starting point of the loop
+	        for(quesRec: quesRecordingType){
+	        	if (quesRec.get(1).equals("LangIntro")){
+	        		tempQuesStartId=quesRec.get(0);
+	        		langIntroQuesUuid=tempQuesStartId;
+	        		break;
+	        	}
+	        }
+	        //showWarning("quesRec",tempQuesStartId);
+	        int tempStartingOrder=0;
+	        for(ques:ques_in_current_quesnir){
+	        	if(ques.get(0).equals(tempQuesStartId)){
+	        		//showWarning("ques.get(0)",ques.get(0));
+	        		String [] quesSplit=ques.get(1).split("-");
+	        		tempStartingOrder=Integer.parseInt(quesSplit[0]);
+	        		break;
+	        	}
+	        }
+	        //showWarning("ques",tempStartingOrder.toString());
+	        for(ques:ques_in_current_quesnir){
+	        	String [] quesSplit=ques.get(1).split("-");
+	        	if(Integer.parseInt(quesSplit[0])>tempStartingOrder){
+	        		loopQuesOrder.add(ques);
+	        	}
+	        }
 	    }
 	});
 }
@@ -3596,6 +3600,7 @@ loadLangIntroAnsInfo(String tempAnsId){
 	});
 
 }
+
 showLangIntroAnsPage(ArrayList langDegList){
 	showTabGroup("langIntroAns");
 	//step 4: analyze the answerText and map it to the ui
@@ -3678,7 +3683,18 @@ quesPrep(String crntQuesnirId){
         	"on t1.quesId=t2.quesId "+
         "order by quesOrder asc";
 
-    quesRecordingTypeQuery="select t2.quId, t1.prName from "+
+	fetchAll(loadQuesContentandOrderQuery, new FetchCallback() {
+	    onFetch(result) {
+	        ques_in_current_quesnir.clear();
+	        ques_in_current_quesnir.addAll(result);
+	        quesRecordingPrep(crntQuesnirId);
+
+	    }
+	});
+}
+
+quesRecordingPrep(String crntQuesnirId){
+	quesRecordingTypeQuery="select t2.quId, t1.prName from "+
 		"(select pName.uuid as prId, pName.measure as prName from latestNonDeletedAentValue as pName "+
 			"where pName.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefName'))t1 "+
 		"inner join "+
@@ -3693,50 +3709,40 @@ quesPrep(String crntQuesnirId){
 		"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+crntQuesnirId+"')) t2 "+
 		"on t1.prId=t2.qPropId";
 
-	fetchAll(loadQuesContentandOrderQuery, new FetchCallback() {
+    String tempQuesStartId=null;
+    loopQuesOrder.clear();
+    fetchAll(quesRecordingTypeQuery, new FetchCallback() {
 	    onFetch(result) {
-	        ques_in_current_quesnir.clear();
-	        ques_in_current_quesnir.addAll(result);
-
-	        String tempQuesStartId=null;
-	        loopQuesOrder.clear();
-	        fetchAll(quesRecordingTypeQuery, new FetchCallback() {
-			    onFetch(result) {
-			        quesRecordingType.clear();
-			        quesRecordingType.addAll(result);
-			        //find the starting point of the loop
-			        for(quesRec: quesRecordingType){
-			        	if (quesRec.get(1).equals("LangIntro")){
-			        		tempQuesStartId=quesRec.get(0);
-			        		langIntroQuesUuid=tempQuesStartId;
-			        		break;
-			        	}
-			        }
-			        //showWarning("quesRec",tempQuesStartId);
-			        int tempStartingOrder=0;
-			        for(ques:ques_in_current_quesnir){
-			        	if(ques.get(0).equals(tempQuesStartId)){
-			        		//showWarning("ques.get(0)",ques.get(0));
-			        		String [] quesSplit=ques.get(1).split("-");
-			        		tempStartingOrder=Integer.parseInt(quesSplit[0]);
-			        		break;
-			        	}
-			        }
-			        //showWarning("ques",tempStartingOrder.toString());
-			        for(ques:ques_in_current_quesnir){
-			        	String [] quesSplit=ques.get(1).split("-");
-			        	if(Integer.parseInt(quesSplit[0])>tempStartingOrder){
-			        		loopQuesOrder.add(ques);
-			        	}
-			        }
-			        answeredLangQuesPrep(loopQuesOrder);
-			        //showWarning("sclngstPrep",loopQuesOrder.size().toString());
-			    }
-			});
+	        quesRecordingType.clear();
+	        quesRecordingType.addAll(result);
+	        //find the starting point of the loop
+	        for(quesRec: quesRecordingType){
+	        	if (quesRec.get(1).equals("LangIntro")){
+	        		tempQuesStartId=quesRec.get(0);
+	        		langIntroQuesUuid=tempQuesStartId;
+	        		break;
+	        	}
+	        }
+	        //showWarning("quesRec",tempQuesStartId);
+	        int tempStartingOrder=0;
+	        for(ques:ques_in_current_quesnir){
+	        	if(ques.get(0).equals(tempQuesStartId)){
+	        		//showWarning("ques.get(0)",ques.get(0));
+	        		String [] quesSplit=ques.get(1).split("-");
+	        		tempStartingOrder=Integer.parseInt(quesSplit[0]);
+	        		break;
+	        	}
+	        }
+	        //showWarning("ques",tempStartingOrder.toString());
+	        for(ques:ques_in_current_quesnir){
+	        	String [] quesSplit=ques.get(1).split("-");
+	        	if(Integer.parseInt(quesSplit[0])>tempStartingOrder){
+	        		loopQuesOrder.add(ques);
+	        	}
+	        }
+	        answeredLangQuesPrep(loopQuesOrder);
 	    }
 	});
-
-
 }
 
 quesRelnPrep(String crntQuesnirId){
@@ -4444,7 +4450,6 @@ ansFileRelnUpdate(Hashtable fileListChange){
 		for(file : fileToDelete){
 			for(fileReln: ansFileOriginReln){
 				if(file.get(0).equals(fileReln.get(0))){
-					//showWarning(fileReln.get(0),fileReln.get(1));
 					deleteRel(fileReln.get(1));
 				}
 			}
@@ -5152,22 +5157,44 @@ createFieldTripInfoPage(String typeflag){
 	}
 }
 
+/*** FieldTrip variables ***/
 fieldTrip_id=null;
 selected_session_fieldTrip=new ArrayList();
 candidate_session_fieldTrip=new ArrayList();
 original_session_fieldTrip=new ArrayList();
+originFTSssReln=new ArrayList();
 fieldTripInfoOrigin=new ArrayList();
 fieldTripInfoNew=new ArrayList();
 
-startNewFieldTrip(){
+initFieldTripVar(){
 	fieldTrip_id=null;
 	selected_session_fieldTrip.clear();
 	candidate_session_fieldTrip.clear();
 	original_session_fieldTrip.clear();
+	originFTSssReln.clear();
 	fieldTripInfoOrigin.clear();
 	fieldTripInfoNew.clear();
-	currentDateTimeArray=new ArrayList();
-	
+}
+/***2 usage: fieldTrip list, fieldTrip search ***/
+loadAllFieldTripQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+		"WHERE latestNonDeletedAentValue.AttributeID "+
+		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='FieldTripName') "+
+		"GROUP BY uuid;";
+
+loadFieldTripList(){
+	fetchAll(loadAllFieldTripQuery, new FetchCallback() {
+        onFetch(result) {
+            populateList("control/other_control/fieldTripList", result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+startNewFieldTrip(){
+	initFieldTripVar();
 	newTabGroup("fieldTrip");
 	
 	fetchAll(loadAllSessionIDQuery, new FetchCallback() {
@@ -5183,6 +5210,269 @@ startNewFieldTrip(){
     });
 }
 
+saveFieldTrip(){
+	//showWarning("saveFieldTrip","saveFieldTrip");
+	String startDateToConvert=getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker");
+	//showWarning("startDateToConvert",startDateToConvert);
+	String startDate=dateParser(startDateToConvert);
+	//showWarning("startdate",startDate);
+	String endDateToConvert=getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripEndDatePicker");
+	String endDate=dateParser(endDateToConvert);
+	//showWarning("endDate",endDate);
+	if(isNull(fieldTrip_id)){//create new session
+		//showWarning("new","new");
+		saveNewFieldTrip(startDate,endDate);
+	}
+	else{//change session info
+		updateFieldTrip(startDate,endDate);	
+	}
+}
+
+saveNewFieldTrip(String startDate, String endDate){
+	if(isNull(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripName"))){
+		showWarning("Incomplete Data","Please make sure that data is complete");
+		return;
+	}
+	tempFtLabel=username+"_FieldTrip_"+startDate;
+	ftDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripID') "+
+	"and measure = '"+tempFtLabel+"' or measure like '"+tempFtLabel+"(%)'";
+
+	fetchAll(ftDuplicateQuery,new FetchCallback() {
+		onFetch(result) {
+			if(!isNull(result)){
+				tempFtLabel = nonDupLabelGen(result, tempFtLabel,"FieldTrip","FieldTripID",true);
+			}
+			setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID",tempFtLabel);
+			setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp",startDate);
+			setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp",endDate);
+			if(timeValidation(startDate,endDate,"fieldTripTime")){
+				saveTabGroup("fieldTrip", fieldTrip_id, null, null, new SaveCallback() {
+				    onSave(uuid, newRecord) {
+				    	fieldTrip_id = uuid;
+				      	if (newRecord) {
+				    	  for(session:selected_session_fieldTrip){
+				    		  saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
+				    	  }
+				        showToast("New fieldtrip record created");
+				        cancelTabGroup("fieldTrip",true);
+				        showTab("control/other_control");
+				        activeFieldTripCheck();
+				      }
+				    }
+				    onError(message) {
+				        showWarning("saving error",message);
+				    }  
+				  });
+			}
+			else{
+				showWarning("Invalid date","Start date should before end date");
+				return;
+			}
+			
+		}
+
+		onError(message){
+			showWarning("data fetch error",message);
+		}
+	});
+}
+
+updateFieldTrip(String startDate, String endDate){
+	tempFtLabel=username+"_FieldTrip_"+startDate;
+			//showWarning("tempFtLabel",tempFtLabel);
+	ftDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripID') "+
+		"and uuid<>"+fieldTrip_id+" "+
+		"and measure = '"+tempFtLabel+"' or measure like '"+tempFtLabel+"(%)'";
+
+	fetchAll(ftDuplicateQuery,new FetchCallback() {
+		onFetch(result) {
+			if(!isNull(result)){
+				tempFtLabel = nonDupLabelGen(result, tempFtLabel,"FieldTrip","FieldTripID",true);
+			}
+			setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID",tempFtLabel);
+
+			fieldTripInfoNew.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID"));
+			fieldTripInfoNew.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripName"));
+			fieldTripInfoNew.add(startDate);
+			fieldTripInfoNew.add(endDate);
+
+			Hashtable fieldTripInfoChange=listChange(fieldTripInfoNew,fieldTripInfoOrigin);
+			Hashtable fieldTripSessionChange=listChange(selected_session_fieldTrip,original_session_fieldTrip);
+
+			if(fieldTripInfoChange.containsKey("EQUAL") && fieldTripSessionChange.containsKey("EQUAL")){
+				showWarning("No change","No data changed");
+				return;
+			}
+
+			else if(fieldTripInfoChange.containsKey("EQUAL") && !fieldTripSessionChange.containsKey("EQUAL")){
+				updateFieldTripSssList(fieldTripSessionChange);
+				showToast("session in fieldTrip updated");
+			}
+
+			else if(!fieldTripInfoChange.containsKey("EQUAL") && fieldTripSessionChange.containsKey("EQUAL")){
+				updateFieldTripBasicInfo(startDate,endDate,false,null);
+				showToast("FieldTrip basic info updated");
+			}
+
+			else{
+				updateFieldTripBasicInfo(startDate,endDate,true,fieldTripSessionChange);
+				showToast("FieldTrip data updated");
+			}
+		}
+	});
+}
+
+updateFieldTripBasicInfo(String startDate, String endDate, Boolean sssListChange, Hashtable fieldTripSessionChange){
+	setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp",startDate);
+	setFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp",endDate);
+	if(timeValidation(startDate,endDate,"fieldTripTime")){
+	saveTabGroup("fieldTrip", fieldTrip_id, null, null, new SaveCallback() {
+	    onSave(uuid, newRecord) {
+	    	if(sssListChange){
+	    		if(fieldTripSessionChange!=null && !fieldTripSessionChange.isEmpty()){
+	    			updateFieldTripSssList(fieldTripSessionChange);
+	    		}	
+	    	}
+	        showToast("fieldTrip data changed");
+	        activeFieldTripCheck();
+	        cancelTabGroup("fieldTrip",true);
+	        showTab("control/other_control");
+
+	    }
+	    onError(message) {
+	        showWarning("error",message);
+	    }  
+	  });
+	}
+	else{
+		showWarning("Invalid date","Start date should before end date");
+		return;
+	}
+}
+
+updateFieldTripSssList(Hashtable fieldTripSessionChange){
+	if(fieldTripSessionChange.containsKey("PUREADD")){
+		ArrayList toAddSession=fieldTripSessionChange.get("PUREADD");
+		for(session:toAddSession){
+			saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
+		}
+	}
+	else if(fieldTripSessionChange.containsKey("PUREDELETE")){
+		ArrayList toDeleteSession=fieldTripSessionChange.get("PUREDELETE");
+		for(sssDelete:toDeleteSession){
+			toDelSss=sssDelete.get(0);
+			for (originReln:originFTSssReln){
+				if(originReln.get(1).equals(toDelSss)){
+					deleteRel(originReln.get(0));
+				}
+			}
+		}
+	}
+	else{
+		ArrayList toAddSession=fieldTripSessionChange.get("ADD");
+		ArrayList toDeleteSession=fieldTripSessionChange.get("DELETE");
+		for(sssDelete:toDeleteSession){
+			toDelSss=sssDelete.get(0);
+			for (originReln:originFTSssReln){
+				if(originReln.get(1).equals(toDelSss)){
+					deleteRel(originReln.get(0));
+				}
+			}
+		}
+		for(session:toAddSession){
+			saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
+		}
+	}
+}
+
+loadFieldTripInfo(){
+	if(!hasView("fieldTrip/fieldTripBasicInfo/fieldTripID")){
+		createFieldTripInfoPage("change");
+	}
+	fieldTrip_id=getListItemValue();
+	if(isNull(fieldTrip_id)){
+		showWarning("Invalid fieldTrip","No fieldTrip is selected or fieldTrip is not available");
+		return;
+	}
+		
+	showTabGroup("fieldTrip", fieldTrip_id, new FetchCallback() {
+        onFetch(result) {
+        	String startTimeOrigin=getFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp");
+        	String endTimeOrigin=getFieldValue("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp");
+        	fieldTripInfoOrigin.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripID"));
+        	fieldTripInfoOrigin.add(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripName"));
+        	fieldTripInfoOrigin.add(startTimeOrigin);
+        	fieldTripInfoOrigin.add(endTimeOrigin);  
+        	String startTimeForPicker=dateParser(startTimeOrigin);
+        	String endTimeForPicker=dateParser(endTimeOrigin);
+        	setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker",startTimeForPicker);
+        	setFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripEndDatePicker",endTimeForPicker);
+        	
+        	loadFTSssData();
+        	
+            showToast("Loaded fieldTrip"+result.getId());            
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+loadFTSssData(){
+	loadSessionForFieldTripQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+			"and uuid in "+
+			"(select uuid from latestNonDeletedAentReln where uuid <>'"+fieldTrip_id+"' "+
+			"and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='"+fieldTrip_id+
+			"' and RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and FieldTrip') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL)))";
+
+	loadFTSssRelnQuery="select RelationshipID,uuid from latestNonDeletedAentReln where uuid <>'"+fieldTrip_id+"' "+
+		"and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='"+fieldTrip_id+
+			"' and RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and FieldTrip') "+
+				"and latestNonDeletedRelationship.Deleted IS NULL))";
+	
+	fetchAll(loadSessionForFieldTripQuery, new FetchCallback() {
+        onFetch(result) {
+        	selected_session_fieldTrip.clear();
+        	selected_session_fieldTrip.addAll(result);
+        	original_session_fieldTrip.clear();
+        	original_session_fieldTrip.addAll(result);
+
+        	fetchAll(loadAllSessionIDQuery, new FetchCallback() {
+                onFetch(result) {
+                	candidate_session_fieldTrip.clear();
+                	candidate_session_fieldTrip.addAll(result);
+                	candidate_session_fieldTrip.removeAll(selected_session_fieldTrip);
+                	populateList("fieldTrip/fieldTripSession/fieldTripFileSelectionList", candidate_session_fieldTrip);
+                    populateList("fieldTrip/fieldTripSession/fieldTripFileList", selected_session_fieldTrip);
+                }
+                onError(message) {
+                    showToast(message);
+                }
+            });
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });	
+
+    fetchAll(loadFTSssRelnQuery, new FetchCallback() {
+        onFetch(result) {
+        	originFTSssReln.clear();
+        	originFTSssReln.addAll(result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });	
+}
 /*** Person ***/ 
 /*** Person variables ***/
 person_id=null;
@@ -6128,6 +6418,88 @@ extractLatestTime(ArrayList timeList){
 stayInCurrentPage()
 {
 	return;
+}
+
+
+extractLabelDate(String label, String typeflag){
+	switch(typeflag){
+		case "sss":
+			String [] labelArray=label.split("_");
+			String tempDate=labelArray[labelArray.length-1];
+			if(tempDate.contains("(")){
+				tempDate=tempDate.substring(0,tempDate.indexOf("("));
+			}
+			return tempDate;
+		break;
+	}
+	return null;
+}
+
+addItemToTargetList(ArrayList sourceList, String type_flag, String intervieweeID){	
+	if(isNull(intervieweeID))
+	{
+		itemId=getListItemValue();	
+	}
+	else
+	{
+		itemId=intervieweeID;
+	}
+	int idx_item=-1;
+		
+	if(isNull(itemId)){
+		showToast("No Item selected");
+		return;
+	}
+	if(itemId.equals("placeholder")){
+		showToast("Invalid item");
+		return;
+	}
+	else{	
+		
+		
+		for (int i=0; i<sourceList.size();i++){
+			if (sourceList.get(i).get(0).equals(itemId)) {
+				idx_item=i;
+				break;
+			}
+		}
+		
+		if (idx_item>=0) {
+			switch (type_flag){
+			case "sessionFile":
+				sss_answer_list.add(sourceList.get(idx_item));
+				candidate_files_session.remove(idx_item);
+				//loadSessionInterviewer("session");
+				populateList("sessionForAnswer/sssAnsList/sssAnswerList", sss_answer_list);
+				//populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
+				
+				break;
+			
+			case "fieldTripSession":
+			
+				String tempSssDate=extractLabelDate(sourceList.get(idx_item).get(1),"sss");
+				String tempTripStartDate=dateParser(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripStartDatePicker"));
+				String tempTripEndDate=dateParser(getFieldValue("fieldTrip/fieldTripBasicInfo/fieldTripEndDatePicker"));
+				Boolean addOrNot=dateCompare(tempTripStartDate,tempSssDate,tempTripEndDate);
+				if(addOrNot){
+					selected_session_fieldTrip.add(sourceList.get(idx_item));
+					candidate_session_fieldTrip.remove(idx_item);
+					populateList("fieldTrip/fieldTripSession/fieldTripFileList", selected_session_fieldTrip);
+					populateList("fieldTrip/fieldTripSession/fieldTripFileSelectionList", candidate_session_fieldTrip);
+				}
+				else{
+					showWarning("invalid date","This session is not taken in this fieldTrip date period");
+				}
+			
+				break;
+			
+			}
+		}
+		else{
+			showWarning("Item Not Found","Oops! Can't find this item, it could be not valid anymore, please contact the Admin");
+		}
+		
+	}
 }
 
 deleteItemFromTargetList(ArrayList targetList, String type_flag, String toDelId){
