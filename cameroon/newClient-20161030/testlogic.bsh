@@ -5315,6 +5315,8 @@ updateFieldTrip(String startDate, String endDate){
 			else if(fieldTripInfoChange.containsKey("EQUAL") && !fieldTripSessionChange.containsKey("EQUAL")){
 				updateFieldTripSssList(fieldTripSessionChange);
 				showToast("session in fieldTrip updated");
+				cancelTabGroup("fieldTrip",true);
+	        	showTab("control/other_control");
 			}
 
 			else if(!fieldTripInfoChange.containsKey("EQUAL") && fieldTripSessionChange.containsKey("EQUAL")){
@@ -5433,6 +5435,7 @@ loadFieldTripInfo(){
 }
 
 loadFTSssData(){
+	/*
 	loadSessionForFieldTripQuery="select uuid,measure from latestNonDeletedAentValue "+ 
 			"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
 			"and uuid in "+
@@ -5441,6 +5444,16 @@ loadFTSssData(){
 			"' and RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
 				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Session and FieldTrip') "+
 				"and latestNonDeletedRelationship.Deleted IS NULL)))";
+	*/
+	loadSessionForFieldTripQuery="select uuid,measure from latestNonDeletedAentValue "+ 
+		"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+		"and uuid in "+
+			"(select uuid from AentReln where RelationshipID in "+
+		"(select RelationshipID from AEntReln where AEntReln.uuid='"+fieldTrip_id+"' "+
+			"AND RelationshipID in "+
+		"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+			"(select RelnTypeID from RelnType where RelnTypeName='Session and FieldTrip') "+
+		"and latestNonDeletedRelationship.Deleted IS NULL)))";
 
 	loadFTSssRelnQuery="select RelationshipID,uuid from latestNonDeletedAentReln where uuid <>'"+fieldTrip_id+"' "+
 		"and RelationshipID in (select RelationshipID from latestNonDeletedAentReln where uuid='"+fieldTrip_id+
