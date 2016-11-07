@@ -781,16 +781,23 @@ checkSssQuesnirType(String typeflag){
 
 	fetchAll(checkAnsQuesnirTypeQuery, new FetchCallback() {
         	onFetch(quesnirTypeResult) {
-              String quesnirType=quesnirTypeResult.get(0).get(1);
-              if(quesnirType.equals("Introductory") || quesnirType.equals("Sociolinguistic")){
-              	introAns=true;
-              }
-              else{
-              	introAns=false;
-              }
+        		if(!isNull(quesnirTypeResult)){
+        			String quesnirType=quesnirTypeResult.get(0).get(1);
+					if(quesnirType.equals("Introductory") || quesnirType.equals("Sociolinguistic")){
+						introAns=true;
+					}
+					else{
+						introAns=false;
+					}
+        		}
+        		else{
+        			introAns=false;
+        		}
+				
        		 }
    		 });
 	}
+	
 	else{
 		introAns=false;
 	}
@@ -1368,7 +1375,13 @@ loadSssType(String sessionId){
 
 	fetchAll(loadSessionTypeNamesQuery, new FetchCallback() {
         onFetch(result) {
-        	if(!isNull(result) && !result.isEmpty()){
+        	//showWarning("result",result.size().toString());
+        	if(isNull(result) || result.isEmpty() || result.size()<1){	
+        		setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssType","Type not available");
+        	}
+
+        	else{
+        		//showWarning("not null","notnull");
         		StringBuilder sb=new StringBuilder();
         		for (re:result){
         			if (sb.length()>0)
@@ -1378,9 +1391,6 @@ loadSssType(String sessionId){
         			sb.append(re.toString());
         		}
         		setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssType",sb.toString());
-        	}
-        	else{
-        		setFieldValue("sessionForAnswer/sssAnsBasicInfo/sssType","Type not available");
         	}
         }
         onError(message) {
