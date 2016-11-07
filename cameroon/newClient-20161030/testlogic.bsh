@@ -797,7 +797,7 @@ checkSssQuesnirType(String typeflag){
        		 }
    		 });
 	}
-	
+
 	else{
 		introAns=false;
 	}
@@ -2344,9 +2344,13 @@ emrSssPrep(){
 	emrSssLabel=null;
 	checkPsInDbQuery="select uuid from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
 			"and measure='"+username+"'";
+
 	fetchOne(checkPsInDbQuery,new FetchCallback() {
 		onFetch(result) {
 			if (isNull(result) || result.isEmpty()) {	
+				emrIveExist=false;
+			}
+			else{
 				emrIveExist=true;
 			}
 
@@ -2617,13 +2621,7 @@ saveEmrPsInSss(String sessionId){
 			saveEntitiesToRel("Session and Consultant",sessionId,emrPsInfo.get(0).get(1));
 			//showWarning("saveEntitiesToRel","saveEntitiesToRel");
 			sssPersonRoleNameListOrigin.add(emrPsInfo.get(0).get(0)+"_"+emrPsInfo.get(0).get(1));
-			//showWarning("sssPersonRoleNameListOrigin","sssPersonRoleNameListOrigin");
 
-			//checkPsInDbQuery="select uuid from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
-			//"and measure='"+username+"'";
-			
-			//fetchOne(checkPsInDbQuery,new FetchCallback() {
-				//onFetch(result) {
 			if(!emrIveExist){
 				iPsAttributes=createAttributeList(); 
 				iPsAttributes.add(createEntityAttribute("PersonID", null, null, username+"_0000-00-00", null));
