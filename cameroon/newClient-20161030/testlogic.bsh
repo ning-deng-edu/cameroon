@@ -1089,6 +1089,7 @@ addPsToSssConfirm(String toAddPersonID, String toAddPersonName){
 	sssPersonRoleandNameList.add(toAddPersonTemp);
 	populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList);
 }
+
 addPersonIntro(String toAddIntroPersonId){
 	showAlert("alert", "Do you want to add introductory answer for this person?", "addPersonIntroAnswer(\""+toAddIntroPersonId+"\")", "stayInCurrentPage()");
 }
@@ -1096,6 +1097,7 @@ addPersonIntro(String toAddIntroPersonId){
 addPersonIntroAnswer(String toAddIntroPersonId){
 	loadPersonInfo("sss",toAddIntroPersonId);
 }
+
 autoSaveSession(String typeFlag){
 	switch(typeFlag){
 		case "head":
@@ -2206,6 +2208,7 @@ checkClickValidity(String tempQuesId){
 	if(loopQuesOrder!=null && !loopQuesOrder.isEmpty()){
 		for(ques:loopQuesOrder){
 			if(ques.get(0).equals(tempQuesUuid)){
+				//TODO: ADD ALERT, GO TO THE KNOWN LANGU QUESTION
 				showWarning("Unselectable question","Please start with the 'known languages' question for answering this question");
 				return;
 			}
@@ -2315,6 +2318,7 @@ createAnswerPage(){
 			});
 	}
 }
+
 createChkListPage(String tempQuesId){
 	if(!hasView("survey/answerBasic/radioGrp")){
 		removeAllViewsAndContainers("survey");
@@ -2550,6 +2554,7 @@ saveEmrFile(String ref, String fileListViewRef, String tabGroupRef, String fileT
 		});
 	}
 }
+
 saveNewEmrAnswer(){
 	attributes = createAttributeList();	
 	attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, emrAnsInfo.get("quesnir_id"), null));
@@ -4507,6 +4512,7 @@ viewOrDeleteFileReln(){
 	}
 	showAlert("View File Info","Do you want to view file info?","loadAnswerFileInfo(\"answer\")","deleteRelnAlert()");
 }
+
 deleteRelnAlert(){
 	showAlert("Delete File","Do you want to delete this file from this answer?","deleteFileRelation()","returnToCurrentPage()");
 }
@@ -5027,11 +5033,7 @@ setFileToField(String ref) {
     setFieldValue("file/fileHidden/sketchFileEndTime",getCurrentTime());
 }
 
-/*** File functions ***/
-
-
-
-
+/*** File functions end***/
 
 /*** Language ***/
 /*** Language UI ***/
@@ -5482,7 +5484,6 @@ updateFieldTrip(String startDate, String endDate){
 				updateFieldTripBasicInfo(startDate,endDate,false,null);
 				showToast("FieldTrip basic info updated");
 			}
-			//todo this case is not passed
 			else{
 				updateFieldTripBasicInfo(startDate,endDate,true,fieldTripSessionChange);
 				showToast("FieldTrip data updated");
@@ -6105,6 +6106,7 @@ savePersonData(String typeflag){
 			newPersonIntro=new ArrayList();
       		newPersonIntro.add(person_id);
 			newPersonIntro.add(personNameOrigin);
+			saveAnnotation("person", person_id);
 			newSessionForAnswer("intro",newPersonIntro);
 			//TODO:  test for the new added return statement
 			return;
@@ -6112,6 +6114,7 @@ savePersonData(String typeflag){
 		
 		else if((personInfoChange.containsKey("EQUAL"))&& (!typeflag.equals("intro"))){
 			showWarning("No changes","All data are saved");
+			saveAnnotation("person", person_id);
 			return;
 		}
 	}
@@ -6597,11 +6600,6 @@ dateCompare(String beginDate, String middleDate, String endDate){
 	return false;
 }
 
-extractLatestTime(ArrayList timeList){
-	Collections.sort(timeList);
-	return timeList.get(timeList.size()-1);
-}
-
 stayInCurrentPage()
 {
 	return;
@@ -6656,7 +6654,6 @@ addItemToTargetList(ArrayList sourceList, String type_flag, String intervieweeID
 			case "sessionFile":
 				sss_answer_list.add(sourceList.get(idx_item));
 				candidate_files_session.remove(idx_item);
-				//loadSessionInterviewer("session");
 				populateList("sessionForAnswer/sssAnsList/sssAnswerList", sss_answer_list);
 				//populateList("sessionForAnswer/sssAnsList/sssAnsSelList", candidate_files_session);
 				
