@@ -2100,20 +2100,21 @@ refreshQuesnirInfo(){
 			"and uuid='"+current_quesnir_id+"')";
 
 	fetchOne(loadQuesnirTypeQuery,new FetchCallback() {
-			onFetch(typeResult) {
-				if (!isNull(typeResult)) {	
-					setFieldValue("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireType",typeResult.get(0));
-					if(typeResult.get(0).equals("Sociolinguistic")){
-						sclngstPrep();
-					}
-					else{
-						regularQuesnirPrep();
-					}
+		onFetch(typeResult) {
+			if (!isNull(typeResult)) {	
+				setFieldValue("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireType",typeResult.get(0));
+				if(typeResult.get(0).equals("Sociolinguistic")){
+					//showWarning("Sociolinguistic","Sociolinguistic");
+					sclngstPrep();
 				}
-			}	       
-			onError(message) {
-				showToast(message);
+				else{
+					regularQuesnirPrep();
+				}
 			}
+		}	       
+		onError(message) {
+			showToast(message);
+		}
 	});
 }
 
@@ -2196,6 +2197,7 @@ regularQuesnirPrep(){
 }
 
 checkClickValidity(String tempQuesId){
+	//showWarning("checkClickValidity","checkClickValidity");
 	String tempQuesUuid=null;
 	if(tempQuesId==null){
 		tempQuesUuid=getListItemValue();
@@ -2204,12 +2206,12 @@ checkClickValidity(String tempQuesId){
 	{
 		tempQuesUuid=tempQuesId;
 	}
-	
 	if(loopQuesOrder!=null && !loopQuesOrder.isEmpty()){
 		for(ques:loopQuesOrder){
 			if(ques.get(0).equals(tempQuesUuid)){
 				//TODO: ADD ALERT, GO TO THE KNOWN LANGU QUESTION
-				showWarning("Unselectable question","Please start with the 'known languages' question for answering this question");
+				showAlert("Unselectable question", "You need to answer this question after answering the known language question \n"+"Do you still want to go to the entry question?", "checkLangIntroAnsInSss()", "stayInCurrentPage()");
+				//showWarning("Unselectable question","Please start with the 'known languages' question for answering this question");
 				return;
 			}
 		}
@@ -3587,6 +3589,42 @@ checkAllLangIntroQues(String tempCurntLangId){
 
 }
 
+checkLangIntroAnsInSss(){
+	if(isNull(sss_answer_list)){
+		loadAnswerFromQuesInQuesnir(langIntroQuesUuid);
+	}
+	else{
+		ArrayList ansIdList=new ArrayList();
+		for(ans: sss_answer_list){
+			ansIdList.add(ans.get(0));
+		}
+		String ansIdCondition=buildQuerySetCondition(ansIdList);
+		checkAllQuesForAnsQuery="select uuid, measure from latestNonDeletedAentValue "+
+				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionID') "+
+				"and uuid IN "+ansIdCondition;
+
+		fetchAll(checkAllQuesForAnsQuery,new FetchCallback() {
+        	onFetch(result) {					        	
+				if(!isNull(result)){
+					for(int i=0;i<result.size();i++){
+						if(result.get(i).get(1).equals(langIntroQuesUuid)){
+							loadLangIntroAnsInfo(result.get(i).get(0));
+							break;
+						}
+						else if(i==result.size()-1){
+							loadAnswerFromQuesInQuesnir(langIntroQuesUuid);
+						}
+					}	
+				}
+	        }
+	        onError(message) {
+	        	showWarning("Data fetch error","Please manually select the 'unkonwn language' question for answering");
+	        }
+	    });
+	}
+}
+
+
 loadLangIntroAnsInfo(String tempAnsId){
 	//step1: query the quesnir, ques id and the answer text
 	loadAnsInfoQuery="select ansQuesnir.measure, ansQues.measure, answer.measure, answer.uuid "+
@@ -3602,6 +3640,7 @@ loadLangIntroAnsInfo(String tempAnsId){
 		onFetch(ansInfoResult) {
 			if (!isNull(ansInfoResult)) {
 				//step 2: create the ui	
+				//showWarning("not null result","notnull result");
 				ArrayList langDegList=ansTextSplit("L", ansInfoResult.get(2), "_");
 				createLangIntroPage(ansInfoResult.get(0),ansInfoResult.get(1), "L", langDegList);
 				//step 3: prepare for possible changes
@@ -3718,7 +3757,6 @@ quesPrep(String crntQuesnirId){
 	        ques_in_current_quesnir.clear();
 	        ques_in_current_quesnir.addAll(result);
 	        quesRecordingPrep(crntQuesnirId);
-
 	    }
 	});
 }
