@@ -21,6 +21,7 @@ loadAllUserQuery="select userid, fname || ' ' || lname from user where userdelet
 
 /***User***/
 onEvent("user/usertab/users", "click", "login()");
+onEvent("user/usertab/user_Search", "click", "userSearch()");
 loadUsers() {
     fetchAll(loadAllUserQuery, new FetchCallback() {
         onFetch(result) {
@@ -28,7 +29,25 @@ loadUsers() {
         }
     });
 }
-
+userSearch(){
+	String userKeyword=getFieldValue("user/usertab/user_keyword");
+	if((isNull(userKeyword)) || userKeyword.equals("*")){
+		 fetchAll(loadAllUserQuery, new FetchCallback() {
+		        onFetch(result) {
+		            populateList("user/usertab/users", result);
+		        }
+		    });
+	}
+	else{
+		searchUserQuery="select userid, fname || ' ' || lname from user where userdeleted is null and fname like '%"
+						+userKeyword+"%'or lname like '%"+userKeyword+"%'";
+		fetchAll(searchUserQuery, new FetchCallback() {
+	        onFetch(result) {
+	            populateList("user/usertab/users", result);
+	        }
+	    });
+	}
+}
 loadUsers();
 
 String username = "";
@@ -42,6 +61,7 @@ login() {
             username = result.get(1) + " " + result.get(2);
             userid=result.get(0);
             showTabGroup("control");
+            activeFieldTripCheck();
             createControlGroupView();
         }
     });
@@ -178,6 +198,7 @@ createSurveyControlPage(){
 	        onEvent("control/survey_control","show","loadSessionList(\"answer\")");
 	        onEvent("control/survey_control/surveyList","click","loadSessionInfo(\"answer\")");
 	        onEvent("control/survey_control/EMR_Survey","click","emrSssPrep()");
+	        onEvent("control/survey_control/Survey_Search","click","entitySearch(\"session\",\"control/survey_control/survey_keyword\",\"control/survey_control/surveyList\",null, \"control/survey_control/survey_type\")");
 			}
 	    
 		});
@@ -214,6 +235,7 @@ createFieldTripControlPage(){
 	        onEvent("control/other_control/fieldTrip_New_bn","click","createFieldTripInfoPage(\"new\")");
 	        onEvent("control/other_control","show","loadFieldTripList()");
 	        onEvent("control/other_control/fieldTripList","click","loadFieldTripInfo()");
+	        onEvent("control/other_control/fieldTrip_Search_bn","click","entitySearch(\"fieldTrip\",\"control/other_control/fieldTrip_Search_kw\",\"control/other_control/fieldTripList\",null.null)");
 			}
 	    
 		});
@@ -250,6 +272,7 @@ createPersonControlPage(){
 	        onEvent("control/user_control/New_User","click","createPersonRolePage()");
 	        onEvent("control/user_control","show","loadPerson()");
 	        onEvent("control/user_control/userList","click","loadPersonInfo(\"person\",null)");
+	        onEvent("control/user_control/Person_Search","click","entitySearch(\"person\",\"control/user_control/person_keyword\",\"control/user_control/userList\",null,null)");
 
 			}
 	    
@@ -277,8 +300,8 @@ createLanguageControlPage(){
 
 	        langListDef=createViewDef().createList().setLabel("Language").setAnnotationEnabled(false).setStyleCss("file-list");
 
-	        createView("control/language_control/person_keyword", searchKeywordViewDef,"control/language_control/langSearchChild1");
-	        createView("control/language_control/Person_Search", searchButtonDef,"control/language_control/langSearchChild2");
+	        createView("control/language_control/language_keyword", searchKeywordViewDef,"control/language_control/langSearchChild1");
+	        createView("control/language_control/Language_Search", searchButtonDef,"control/language_control/langSearchChild2");
 
 			createView("control/language_control/languageList", langListDef,"control/language_control");
 
@@ -287,6 +310,7 @@ createLanguageControlPage(){
 	        onEvent("control/language_control/New_Language","click","newLanguage()");
 	        onEvent("control/language_control","show","loadLanguage()");
 			onEvent("control/language_control/languageList","click","loadLanguageInfo()");
+			onEvent("control/language_control/Language_Search","click","entitySearch(\"language\",\"control/language_control/language_keyword\",\"control/language_control/languageList\",null,null)");
 			}
 	    
 		});
@@ -320,6 +344,7 @@ createFileControlPage(){
 	        refreshTabgroupCSS("control");
 	        onEvent("control/file_control","show","loadFile()");
 	        onEvent("control/file_control/fileList","click","loadAnswerFileInfo(\"fileView\")");
+	        onEvent("control/file_control/File_Search","click","entitySearch(\"file\",\"control/file_control/file_keyword\",\"control/file_control/fileList\",\"control/file_control/fileCategorySelect\",null)");
 
 			}
 	    
@@ -724,30 +749,8 @@ initSessionVar(){
 	langIntro=false;
 	*/
 }
-loadSessionListByQuesnirType(String typeflag,ArrayList typeIdList){
-	String typeIds=buildQuerySetCondition(typeIdList);
-	loadSessionByTypeQuery="select uuid,measure from latestNonDeletedAentValue where "+
-	"latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
-	"and uuid in "+
-	"(select uuid from AentReln where RelationshipID "+
-	"in (select RelationshipID from AEntReln where AEntReln.uuid in "+
-	"(select uuid from latestNonDeletedAentValue "+
-	"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
-	"and measure IN (select uuid from latestNonDeletedAentValue "+
-	"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') and "+
-	"measure IN'"+typeIds+"')) "+
-	"AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
-	"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') and latestNonDeletedRelationship.Deleted IS NULL)))";
 
-	fetchAll(loadSessionByTypeQuery, new FetchCallback() {
-        onFetch(result) {
-        	populateList("control/survey_control/surveyList");
-        }
-        onError(message) {
-            showToast(message);
-        }
-    });
-}
+
 
 loadSessionList(String typeflag){
 	fetchAll(loadAllSessionIDQuery, new FetchCallback() {
@@ -758,13 +761,30 @@ loadSessionList(String typeflag){
         		break;
         	case "answer":
         		populateList("control/survey_control/surveyList", result);
+        		loadSessionTypes();
         		break;
         	}
-            
         }
-
         onError(message) {
             showToast(message);
+        }
+    });
+}
+
+loadSessionTypes(){
+	loadAllQuesnirTypeQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+		"WHERE latestNonDeletedAentValue.AttributeID "+
+		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesnirTypeName') "+
+		"GROUP BY uuid;";
+	fetchAll(loadAllQuesnirTypeQuery, new FetchCallback() {
+        onFetch(result) {
+        	ArrayList sessionTypeList=new ArrayList();
+        	tempType=new ArrayList();
+        	tempType.add("All");
+        	tempType.add("All");
+        	sessionTypeList.add(tempType);
+        	sessionTypeList.addAll(result);
+        	populateDropDown("control/survey_control/survey_type",sessionTypeList);
         }
     });
 }
@@ -6882,4 +6902,477 @@ saveAnnotation(String tabgroupRef, String entityUuid){
 			showToast("annotations updated");
 		}
 	});
+}
+/*
+loadSessionListByQuesnirType(String typeflag, ArrayList typeIdList){
+	String typeIds=buildQuerySetCondition(typeIdList);
+	loadSessionByTypeQuery="select uuid,measure from latestNonDeletedAentValue where "+
+	"latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+	"and uuid in "+
+	"(select uuid from AentReln where RelationshipID "+
+	"in (select RelationshipID from AEntReln where AEntReln.uuid in "+
+	"(select uuid from latestNonDeletedAentValue "+
+	"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+	"and measure IN (select uuid from latestNonDeletedAentValue "+
+	"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') and "+
+	"measure IN'"+typeIds+"')) "+
+	"AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+	"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') and latestNonDeletedRelationship.Deleted IS NULL)))";
+
+	fetchAll(loadSessionByTypeQuery, new FetchCallback() {
+        onFetch(result) {
+        	populateList("control/survey_control/surveyList");
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+*/
+entitySearch(String entityNameRef, String keywordRef, String listRef, String fileTypeRef, String sessionTypeRef){
+	showWarning(listRef,sessionTypeRef);
+	String keywordOfEntity= getFieldValue(keywordRef).trim();
+	if((isNull(keywordOfEntity)) || (keywordOfEntity.equals("*"))){
+		switch (entityNameRef){
+			case "survey":	
+				answerSearch("*",listRef);
+			break;
+			
+			case "person":
+				personSearch("*",listRef);
+			break;
+				
+			case "language":	
+				languageSearch("*",listRef);
+			break;
+				
+			case "session":	
+				sessionSearch("*",listRef,sessionTypeRef);
+			break;
+				
+			case "questionnaire":
+				quesnirSearch("*",listRef);
+			break;
+
+			case "fieldTrip":
+				fieldTripSearch("*",listRef);
+			break;
+
+			case "file":
+				String fileType=getFieldValue(fileTypeRef);
+				switch (fileType){
+					case "Audio":
+						typedFileSearch("Audio", "*", listRef);
+						break;
+					case "Video":
+						typedFileSearch("Video", "*", listRef);
+						break;
+					case "Photo":
+						typedFileSearch("Photo", "*", listRef);
+						break;
+					case "Other":
+						typedFileSearch("Other", "*", listRef);
+						break;
+					case "All":
+						nonTypedFileSearch("*", listRef);
+						break;
+				}	
+			break;
+		}				
+	}
+	else{
+		switch (entityNameRef){
+			case "survey":	
+				answerSearch(keywordOfEntity,listRef);
+			break;
+			
+			case "person":
+				personSearch(keywordOfEntity,listRef);
+			break;
+				
+			case "language":	
+				languageSearch(keywordOfEntity,listRef);
+			break;
+				
+			case "session":	
+				sessionSearch(keywordOfEntity,listRef,sessionTypeRef);
+			break;
+				
+			case "questionnaire":
+				quesnirSearch(keywordOfEntity,listRef);
+			break;
+
+			case "fieldTrip":
+				fieldTripSearch(keywordOfEntity,listRef);
+			break;
+
+			case "file":
+				String fileType=getFieldValue(fileTypeRef);
+				switch (fileType){
+					case "Audio":
+						typedFileSearch("Audio", keywordOfEntity, listRef);
+						break;
+					case "Video":
+						typedFileSearch("Video", keywordOfEntity, listRef);
+						break;
+					case "Photo":
+						typedFileSearch("Photo", keywordOfEntity, listRef);
+						break;
+					case "Other":
+						typedFileSearch("Other", keywordOfEntity, listRef);
+						break;
+					case "All":
+						nonTypedFileSearch(keywordOfEntity, listRef);
+						break;
+				}	
+			break;
+		}				
+	}
+}
+
+answerSearch(String keyword, String listRef){
+	if(keyword.equals("*")){
+		loadAllSurveyQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers where AttributeID"+
+		"=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') GROUP BY uuid;";
+		fetchAll(loadAllSurveyQuery, new FetchCallback() {
+			onFetch(result) {
+				if(!isNull(result)){
+					populateList(listRef, result);}
+				else{
+					showWarning("No result","No record");
+				}
+			}  
+		});
+	}
+	else{
+		searchSureyQuery="select uuid, measure from latestNonDeletedAentValue where " +
+					"latestNonDeletedAentValue.Measure like '%"+ keyword +
+					"%' and latestNonDeletedAentValue.AttributeID = "+
+					"(select AttributeID from AttributeKey where AttributeName='AnswerLabel')";
+		fetchAll(searchSureyQuery,new FetchCallback() {
+			onFetch(result) {
+				if(!isNull(result)){
+					populateList(listRef, result);
+				}
+				else{
+					showWarning("No result","No record matches the keyword");
+				}
+			}  
+		});
+	}
+}
+
+personSearch(String keyword, String listRef){
+	if(keyword.equals("*")){
+		fetchAll(loadAllPersonIDQuery,new FetchCallback() {
+			onFetch(result) {
+				if(!isNull(result)){
+					populateList(listRef, result);
+				}
+				else{
+					showWarning("No result","No record matches the keyword");
+				}
+			}  
+		});
+	}
+	else{
+		searchPersonQuery="select uuid, measure from latestNonDeletedAentValue where " +
+					"latestNonDeletedAentValue.Measure like '%"+ keyword +
+					"%' and latestNonDeletedAentValue.AttributeID = "+
+					"(select AttributeID from AttributeKey where AttributeName='PersonID')";
+		fetchAll(searchPersonQuery,new FetchCallback() {
+			onFetch(result) {
+				if(!isNull(result)){
+					populateList(listRef, result);
+				}
+				else{
+					showWarning("No result","No record matches the keyword");
+				}
+			}  
+		});
+
+	}
+}
+
+languageSearch(String keyword, String listRef){
+	if(keyword.equals("*")){
+		fetchAll(loadAllLanguageQuery,new FetchCallback() {
+			onFetch(result) {
+				if(!isNull(result)){
+					populateList(listRef, result);
+				}
+				else{
+					showWarning("No result","No record matches the keyword");
+				}
+			}  
+		});
+	}
+	else{
+		searchLangQuery="select uuid, measure from latestNonDeletedAentValue where " +
+			"latestNonDeletedAentValue.Measure like '%"+ keyword +
+			"%' and latestNonDeletedAentValue.AttributeID = "+
+			"(select AttributeID from AttributeKey where AttributeName='LanguageName')";
+		fetchAll(searchLangQuery,new FetchCallback() {
+			onFetch(result) {
+				if(!isNull(result)){
+					populateList(listRef, result);
+				}
+				else{
+					showWarning("No result","No record matches the keyword");
+				}
+			}  
+		});
+	}
+}
+
+sessionSearch(String keyword, String listRef, String sessionTypeRef){
+	showWarning(sessionTypeRef,sessionTypeRef);
+	if(keyword.equals("*")){
+		if(getFieldValue("sessionTypeRef").equals("All")){
+			fetchAll(loadAllSessionIDQuery,new FetchCallback() {
+				onFetch(result) {
+					if(!isNull(result)){
+						populateList(listRef, result);
+					}
+					else{
+						showWarning("No result","No record matches the keyword");
+					}
+				}  
+			});
+		}
+		else{
+			String typeId= getFieldValue(sessionTypeRef);
+			loadSessionByTypeQuery="select uuid,measure from latestNonDeletedAentValue where "+
+				"latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+				"and uuid in "+
+				"(select uuid from AentReln where RelationshipID "+
+				"in (select RelationshipID from AEntReln where AEntReln.uuid in "+
+				"(select uuid from latestNonDeletedAentValue "+
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+				"and measure IN (select uuid from latestNonDeletedAentValue "+
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') and "+
+				"measure ='"+typeId+"')) "+
+				"AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') and latestNonDeletedRelationship.Deleted IS NULL)))";
+
+			fetchAll(loadSessionByTypeQuery,new FetchCallback() {
+				onFetch(result) {
+					if(!isNull(result)){
+						populateList(listRef, result);
+					}
+					else{
+						showWarning("No result","No record matches the keyword");
+					}
+				}  
+			});
+		}
+		
+	}
+	else{
+		if(getFieldValue("sessionTypeRef").equals("All")){
+			searchSessionQuery="select uuid, measure from latestNonDeletedAentValue where " +
+				"latestNonDeletedAentValue.Measure like '%"+ keyword +
+				"%' and latestNonDeletedAentValue.AttributeID = "+
+				"(select AttributeID from AttributeKey where AttributeName='SessionID')";
+			fetchAll(searchSessionQuery, new FetchCallback() {
+				onFetch(result) {
+					if(!isNull(result)){
+						populateList(listRef, result);}
+					else{
+						showWarning("No result","No record matches the keyword");
+					}
+				}  
+			});
+		}
+		else{
+			loadSessionByTypeKeywordQuery="select uuid,measure from latestNonDeletedAentValue where "+
+				"latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+				"and latestNonDeletedAentValue.measure like '%"+keyword+"%' "+
+				"and uuid in "+
+				"(select uuid from AentReln where RelationshipID "+
+				"in (select RelationshipID from AEntReln where AEntReln.uuid in "+
+				"(select uuid from latestNonDeletedAentValue "+
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+				"and measure IN (select uuid from latestNonDeletedAentValue "+
+				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') and "+
+				"measure ='"+typeId+"')) "+
+				"AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') and latestNonDeletedRelationship.Deleted IS NULL)))";
+			fetchAll(loadSessionByTypeKeywordQuery, new FetchCallback() {
+				onFetch(result) {
+					if(!isNull(result)){
+						populateList(listRef, result);}
+					else{
+						showWarning("No result","No record matches the keyword");
+					}
+				}  
+			});
+		}
+		
+		
+	}
+}
+
+quesnirSearch(String keyword, String listRef){
+	if(keyword.equals("*")){
+		loadAllQuestionnaireQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+			"WHERE latestNonDeletedAentValue.AttributeID "+
+			"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
+			"GROUP BY uuid;";
+		fetchAll(loadAllQuestionnaireQuery,new FetchCallback() {
+			onFetch(result) {
+				if(!isNull(result)){
+					populateList(listRef, result);
+				}
+				else{
+					showWarning("No result","No record matches the keyword");
+				}
+			}  
+		});
+	}
+	else{
+		searchQuesnirQuery="select uuid, measure from latestNonDeletedAentValue where " +
+			"latestNonDeletedAentValue.Measure like '%"+ keyword +
+			"%' and latestNonDeletedAentValue.AttributeID = "+
+			"(select AttributeID from AttributeKey where AttributeName='QuestionnaireName')";
+		fetchAll(searchQuesnirQuery,new FetchCallback() {
+			onFetch(result) {
+				if(!isNull(result)){
+					populateList(listRef, result);
+				}
+				else{
+					showWarning("No result","No record matches the keyword");
+				}
+			}  
+		});
+	}
+}
+
+fieldTripSearch(String keyword, String listRef){
+	if(keyword.equals("*")){
+		fetchAll(loadAllFieldTripQuery,new FetchCallback() {
+			onFetch(result) {
+				if(!isNull(result)){
+					populateList(listRef, result);
+				}
+				else{
+					showWarning("No result","No record matches the keyword");
+				}
+			}  
+		});
+	}
+	else{
+		searchFTQuery="select uuid, measure from latestNonDeletedAentValue where " +
+			"latestNonDeletedAentValue.Measure like '%"+ keyword +
+			"%' and latestNonDeletedAentValue.AttributeID = "+
+			"(select AttributeID from AttributeKey where AttributeName='FieldTripName')";
+		fetchAll(searchFTQuery,new FetchCallback() {
+			onFetch(result) {
+				if(!isNull(result)){
+					populateList(listRef, result);
+				}
+				else{
+					showWarning("No result","No record matches the keyword");
+				}
+			}  
+		});
+	}
+}
+
+searchQuesInCrtQuesnir(){
+	String quesKeyword=null;
+
+	quesKeyword=getFieldValue("questionnaireInfo/surveyQuestionnaire/ques_keyword");
+	//for this search, we first check if the database updated, then search the result in the local arraylist
+	//step 1: get the latest db record
+	quesKeyword.trim();
+
+	if(!(isNull(quesKeyword) || quesKeyword.equals("*"))){
+		//showWarning("quesSearch","\\b*"+quesKeyword+"\\b*");
+		Pattern quesSearch = Pattern.compile(quesKeyword);
+		//showWarning("quesSearch","quesSearch");
+		tempMatchQues=new ArrayList();
+		tempMatchQues.clear();
+		//showWarning("tempMatchQues","tempMatchQues");
+		for(tempQues: ques_in_current_quesnir){
+			String tempQuesCntnt= tempQues.get(1);
+			Matcher quesSearchMatcher=quesSearch.matcher(tempQuesCntnt);
+			if(quesSearchMatcher.find()){
+				tempMatchQues.add(tempQues);
+			}
+		}
+		populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", tempMatchQues);
+	}
+	else{
+		populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
+	}	
+}
+
+typedFileSearch(String searchFileType,String keyword, String listRef){
+	if(keyword.equals("*")){
+		loadAllTypedFileQuery="SELECT file.uuid, file.measure FROM latestNonDeletedAentValue as file, latestNonDeletedAentValue as fileType "+
+		"where file.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileID') "+
+		"and fileType.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileType') "+
+		"and file.uuid=fileType.uuid "+
+		"and fileType.measure='"+searchFileType+"'";
+		fetchAll(loadAllTypedFileQuery,new FetchCallback() {
+			onFetch(result) {
+				if(!isNull(result)){
+					populateList(listRef, result);
+				}
+				else{
+					showWarning("No result","No record matches the keyword");
+				}
+			}  
+		});
+	}
+	else{
+		searchTypedFileQuery="SELECT file.uuid, file.measure FROM latestNonDeletedAentValue as file, latestNonDeletedAentValue as fileType "+
+		"where file.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileID') "+
+		"and fileType.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileType') "+
+		"and file.uuid=fileType.uuid "+
+		"and file.measure like '%"+keyword+"%' "+
+		"and fileType.measure='"+searchFileType+"'";
+		fetchAll(searchTypedFileQuery,new FetchCallback() {
+			onFetch(result) {
+				if(!isNull(result)){
+					populateList(listRef, result);
+				}
+				else{
+					showWarning("No result","No record matches the keyword");
+				}
+			}  
+		});
+	}
+}
+
+nonTypedFileSearch(String keyword, String listRef){
+	if(keyword.equals("*")){
+		fetchAll(loadAllFileIDQuery,new FetchCallback() {
+			onFetch(result) {
+				if(!isNull(result)){
+					populateList(listRef, result);
+				}
+				else{
+					showWarning("No result","No record matches the keyword");
+				}
+			}  
+		});
+	}
+	else{
+		searchAllFileQuery="select uuid, measure from latestNonDeletedAentValue where " +
+			"latestNonDeletedAentValue.Measure like '%"+ keyword +
+			"%' and latestNonDeletedAentValue.AttributeID = "+
+			"(select AttributeID from AttributeKey where AttributeName='FileID')";
+		fetchAll(searchAllFileQuery,new FetchCallback() {
+			onFetch(result) {
+				if(!isNull(result)){
+					populateList(listRef, result);
+				}
+				else{
+					showWarning("No result","No record matches the keyword");
+				}
+			}  
+		});
+	}
 }
