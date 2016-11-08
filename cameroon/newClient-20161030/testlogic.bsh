@@ -318,6 +318,9 @@ createFileControlPage(){
 			createView("control/file_control/fileList", fileListDef,"control/file_control");
 
 	        refreshTabgroupCSS("control");
+	        onEvent("control/file_control","show","loadFile()");
+	        onEvent("control/file_control/fileList","click","loadAnswerFileInfo(\"fileView\")");
+
 			}
 	    
 		});
@@ -1158,6 +1161,7 @@ saveSession(String typeflag){
 	else{
 		//showWarning("update session","update session");
 		updateSession();
+		saveAnnotation("sessionForAnswer", sss_id);
 	}
 }
 
@@ -4410,26 +4414,27 @@ saveNewAnswer(int loopCount){
 			//case1: Nothing changed
 			if((fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
 					showWarning("Answer Modification","No data is changed");
+					saveAnnotation("survey", current_answer_id);
 					return;
 				}
 			//case2: only fileList changed
 			else if((!fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
-					ansFileRelnUpdate(fileListChange);
-					showToast("file list changed");
+				ansFileRelnUpdate(fileListChange);
+				saveAnnotation("survey", current_answer_id);
+				showToast("file list changed");
 					//cancelTabGroup("survey", true);
 			}
 			else{//case 3: both answer basic info and file list are changed
-					saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
-						onSave(uuid, newRecord) {
-							answer_id = uuid;	//not sure how it's working
-							ansFileRelnUpdate(fileListChange);
-							showToast("Answer Info Changed");
-								
-						}
-						onError(message) {
-							showWarning("error on saveNewAnswer3 ",message);
-						}  
-					});
+				saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
+					onSave(uuid, newRecord) {
+						answer_id = uuid;	//not sure how it's working
+						ansFileRelnUpdate(fileListChange);
+						showToast("Answer Info Changed");		
+					}
+					onError(message) {
+						showWarning("error on saveNewAnswer3 ",message);
+					}  
+				});
 			}
 		}
 	}
@@ -4515,8 +4520,135 @@ categoryTypes.add(new NameValuePair("{Video}", "Video"));
 categoryTypes.add(new NameValuePair("{Photo}", "Photo"));
 categoryTypes.add(new NameValuePair("{Other}", "Other"));
 
-Boolean emrOrNot=false;
 
+
+String file_id=null;
+//for checking if we need to rebuild the file ui
+Boolean emrOrNot=false;
+/*** File query ***/
+/***2 usages, loadFile(), search file ***/
+
+loadAllFileIDQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers " +
+	"WHERE AttributeID "+
+	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='FileID') "+
+	"GROUP BY uuid;";
+
+loadFile(){
+	file_id=null;
+	fileCategory=new ArrayList();
+	fileCategory.add(new NameValuePair("{All}", "All"));
+	fileCategory.add(new NameValuePair("{Audio}", "Audio"));
+	fileCategory.add(new NameValuePair("{Video}", "Video"));
+	fileCategory.add(new NameValuePair("{Photo}", "Photo"));
+	fileCategory.add(new NameValuePair("{Other}", "Other"));
+	populateDropDown("control/file_control/fileCategorySelect",fileCategory);
+	setFieldValue("control/file_control/file_keyword","*");
+	fetchAll(loadAllFileIDQuery, new FetchCallback() {
+        onFetch(result) {
+            populateList("control/file_control/fileList", result);
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+loadAnswerFileInfo(String typeFlag){
+	String view_file_id=null;
+	if(typeFlag.equals("answer")){
+		current_answer_file_id=getListItemValue();
+		if(isNull(current_answer_file_id)){
+			showWarning("No file chosen","No file is selected, or the file is not available");
+			return;
+		}
+		answerFile=true;
+		view_file_id=current_answer_file_id;
+	}
+	else{
+		file_id=getListItemValue();
+		if(isNull(file_id)){
+			showWarning("No file chosen","No file is selected, or the file is not available");
+			return;
+		}
+		answerFile=false;
+		view_file_id=file_id;
+	}
+	//showWarning("answerfile",answerFile.toString());
+	checkFileTypeQuery="select measure from latestNonDeletedAentValue where latestNonDeletedAentValue.uuid="+view_file_id+" "+
+	"and latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeKey.AttributeName='FileType');";
+	//showWarning("checkFileTypeQuery",checkFileTypeQuery);
+	fetchAll(checkFileTypeQuery,new FetchCallback() {
+        onFetch(result) {
+			if (!isNull(result)) {
+				//showWarning("fetchAll",result.getClass.getName());				
+				String currentType=result.get(0).get(0);
+				//showWarning("currentType",currentType);
+				loadFileInfo(currentType,view_file_id);
+			}
+			else{
+				showWarning("Data reading error","This file may not be used anymore");
+			}	
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });	
+}
+
+loadFileInfo(String currentType, String view_file_id){
+	answerFile=false;
+	switch (currentType){
+	case "Audio":		
+		createFilePage("audio","attachAudioToField(\"file/fileInfo/audioFileContent\")",
+			"saveFileFromAnswer(\"file/fileHidden/audioFileID\",\"file/fileInfo/audioFileContent\",\"file\",\"Audio\")");
+		showTabGroup("file", view_file_id, new FetchCallback() {
+	        onFetch(result) {						  
+	            showToast("Loaded audio file"+result.getId());            
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+		break;
+	case "Video":
+		createFilePage("video","attachVideoToField(\"file/fileInfo/videoFileContent\")",
+			"saveFileFromAnswer(\"file/fileHidden/videoFileID\",\"file/fileInfo/videoFileContent\",\"file\",\"Video\")");
+		showTabGroup("file", view_file_id, new FetchCallback() {
+	        onFetch(result) {						  
+	            showToast("Loaded video file"+result.getId());            
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+		break;
+	case "Photo":
+		createFilePage("photo","attachPictureToField(\"file/fileInfo/photoFileContent\")",
+			"saveFileFromAnswer(\"file/fileHidden/photoFileID\",\"file/fileInfo/photoFileContent\",\"file\",\"Photo\")");
+		showTabGroup("file", view_file_id, new FetchCallback() {
+	        onFetch(result) {						  
+	            showToast("Loaded photo file"+result.getId());            
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+		break;
+	case "Sketch":
+		createFilePage("sketch","attachFileToField(\"file/fileInfo/sketchFileContent\")",
+			"saveFileFromAnswer(\"file/fileHidden/sketchFileID\",\"file/fileInfo/sketchFileContent\",\"file\",\"Recording\")");
+		showTabGroup("file", view_file_id, new FetchCallback() {
+	        onFetch(result) {						  
+	            showToast("Loaded sketch file"+result.getId());            
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+		break;
+	}
+}
 /*** File dynamic ui ***/
 createFilePage(String fileType, String attachFunc, String saveFunc){
 	String uiNamePrefix=null;
@@ -4760,10 +4892,9 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 							break;
 						}
 					}
+					saveAnnotation("File", current_answer_file_id);
 					showToast("file record changed");
 					cancelTabGroup(tabGroupRef, true);
-				//	showWarning("cancelTabGroupFile",tabGroupRef);
-					//showTab("survey/answerFile");
 				}
 			}
 			onError(message) {
@@ -4773,6 +4904,11 @@ saveFileFromAnswer(String ref, String fileListViewRef, String tabGroupRef, Strin
 	}
 	else if(langIntro){
 		saveLangIntro(ref, fileListViewRef, tabGroupRef, fileType);
+	}
+	else if(!answerFile){
+		if(!isNull(file_id)){
+			saveAnnotation(tabGroupRef, file_id);
+		}
 	}
 }
 
@@ -5498,6 +5634,7 @@ loadFTSssData(){
         }
     });	
 }
+
 /*** Person ***/ 
 /*** Person variables ***/
 person_id=null;
@@ -5613,19 +5750,19 @@ loadPersonInfo(String typeflag, String toShowPsId){
       
         	String roleUuid=getFieldValue("person/personInfoHide/personRoleId");
             checkPersonRoleQuery="SELECT measure from latestNonDeletedAentValue "+
-								"WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
-								"AND latestNonDeletedAentValue.AttributeID="+
-								"(select AttributeID from AttributeKey where AttributeName='PersonRoleName');";
+				"WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
+				"AND latestNonDeletedAentValue.AttributeID="+
+				"(select AttributeID from AttributeKey where AttributeName='PersonRoleName');";
 
 			checkRoleIntroQuery="SELECT measure from latestNonDeletedAentValue "+
-								"WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
-								"AND latestNonDeletedAentValue.AttributeID="+
-								"(select AttributeID from AttributeKey where AttributeName='RoleIntroAnsRequired');";
+				"WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
+				"AND latestNonDeletedAentValue.AttributeID="+
+				"(select AttributeID from AttributeKey where AttributeName='RoleIntroAnsRequired');";
 
 			checkRolePhotoQuery="SELECT measure from latestNonDeletedAentValue "+
-								"WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
-								"AND latestNonDeletedAentValue.AttributeID="+
-								"(select AttributeID from AttributeKey where AttributeName='RolePhotoRequired');";
+				"WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
+				"AND latestNonDeletedAentValue.AttributeID="+
+				"(select AttributeID from AttributeKey where AttributeName='RolePhotoRequired');";
 
         	fetchOne(checkPersonRoleQuery,new FetchCallback() {
 				onFetch(result) {
@@ -6737,4 +6874,12 @@ extractOriginLbl(String inputLabel){
 		rtnLabel=rtnLabel.substring(0,rtnLabel.indexOf("("));
 	}
 	return rtnLabel;
+}
+
+saveAnnotation(String tabgroupRef, String entityUuid){
+	saveTabGroup(tabgroupRef, entityUuid, null, null, new SaveCallback(){
+		onSave(uuid, result){
+			showToast("annotations updated");
+		}
+	});
 }
