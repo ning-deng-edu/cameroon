@@ -425,6 +425,7 @@ createQuesnirList(){
 
 	        onEvent("questionnaireListAll","show","loadAllQuesnir()");
 	        onEvent("questionnaireListAll/questionnaireListInfo/questionnaireListInDB","click","loadQuesnirInfo()");
+	        onEvent("questionnaireListAll/questionnaireListInfo/quesnir_Search","click","entitySearch(\"questionnaire\",\"questionnaireListAll/questionnaireListInfo/quesnir_keyword\",\"questionnaireListAll/questionnaireListInfo/questionnaireListInDB\",null,null)");
 	    }
 		});
 	}
@@ -762,6 +763,7 @@ loadSessionList(String typeflag){
         	case "answer":
         		populateList("control/survey_control/surveyList", result);
         		loadSessionTypes();
+        		setFieldValue("control/survey_control/survey_keyword","*");
         		break;
         	}
         }
@@ -922,7 +924,6 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 					    	showWarning("No person data","No person data is available, please contact the admin");
 							return;
 						}
-						//showWarning("loadAllPersonQuery","loadAllPersonQuery");
 		       	 	}
 
 		        	onError(message) {
@@ -5285,17 +5286,19 @@ createFieldTripInfoPage(String typeflag){
 	        createView("fieldTrip/fieldTripSession/fieldTripFileList", ftFileListDef,"fieldTrip/fieldTripSession/child1");
 	        createView("fieldTrip/fieldTripSession/fieldTripFileSelectionList", ftSelFileListDef,"fieldTrip/fieldTripSession/child2");
 	        createView("fieldTrip/fieldTripSession/Finish_New_FieldTrip", ftSaveBtnDef,"fieldTrip/fieldTripSession");
+	
+	        //fieldTripBasicInfoHidden page
+	        startdateViewDef = createViewDef().createTextField().setLabel("startdate").setAttributeName("FieldTripStartTime").setAttributeType("measure");
+	        enddateViewDef = createViewDef().createTextField().setLabel("enddate").setAttributeName("FieldTripEndTime").setAttributeType("measure");
+	        createView("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp", startdateViewDef,"fieldTrip/fieldTripBasicInfoHidden");
+	        createView("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp", enddateViewDef,"fieldTrip/fieldTripBasicInfoHidden");
+
 	        refreshTabgroupCSS("fieldTrip");
 
 	        onEvent("fieldTrip/fieldTripSession/fieldTripFileSelectionList","click","addItemToTargetList(candidate_session_fieldTrip,\"fieldTripSession\",null)");
 	        //No delete function for client
 	        onEvent("fieldTrip/fieldTripSession/fieldTripFileList","click","deleteItemFromTargetList(selected_session_fieldTrip,\"fieldTripSession\",null)");
 	        onEvent("fieldTrip/fieldTripSession/Finish_New_FieldTrip","click","saveFieldTrip()");
-	        //fieldTripBasicInfoHidden page
-	        startdateViewDef = createViewDef().createTextField().setLabel("startdate").setAttributeName("FieldTripStartTime").setAttributeType("measure");
-	        enddateViewDef = createViewDef().createTextField().setLabel("enddate").setAttributeName("FieldTripEndTime").setAttributeType("measure");
-	        createView("fieldTrip/fieldTripBasicInfoHidden/fieldTripStartTimetamp", startdateViewDef,"fieldTrip/fieldTripBasicInfoHidden");
-	        createView("fieldTrip/fieldTripBasicInfoHidden/fieldTripEndTimestamp", enddateViewDef,"fieldTrip/fieldTripBasicInfoHidden");
 	        
 	   		}
 			});
@@ -5667,7 +5670,7 @@ savePersonWfProperty=new ArrayList();
 role_id=null;
 
 /*** Person queries ***/
-/*** usage: create person, create session, session update (4 usages) ***/
+/*** usage: create person, create session, session update (3 usages) ***/
 loadAllRoleQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 		"WHERE latestNonDeletedAentValue.AttributeID =( SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonRoleName') "+
 		"AND uuid in (SELECT uuid FROM latestNonDeletedAentValue "+
@@ -5963,7 +5966,7 @@ createPersonPage(){
 			createView("person/personInfo/Finish_New_Person", finishNewPsViewDef,"person/personInfo");
 
 	        refreshTabgroupCSS("person");
-
+	        //TODO: ASK THE REQUIREMENTS FOR FINISHING INTRO QUESTIONNAIRE
 	        onEvent("person/personInfo/Finish_New_Person","click","savePersonCheck(\"save\")");
 			onEvent("person/personInfo/Take_Intro_Quesnir","click","checkPersonIntroSession()");
 			onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
@@ -6254,6 +6257,8 @@ createPsInTroSssPage(){
 			createView("introSssList/introSssInfo/intrSessionList", psIntroSssListDef,"introSssList/introSssInfo");
 
 	        refreshTabgroupCSS("introSssList");
+	        onEvent("introSssList/introSssInfo/intrSessionList","click","loadSessionInfo(\"answer\")");
+			onEvent("introSssList/introSssInfo/new_intro_sss","click","newSessionForAnswer(\"intro\",currentPersonInfo)");
 	        }
 		});
 
@@ -6930,7 +6935,7 @@ loadSessionListByQuesnirType(String typeflag, ArrayList typeIdList){
 }
 */
 entitySearch(String entityNameRef, String keywordRef, String listRef, String fileTypeRef, String sessionTypeRef){
-	showWarning(listRef,sessionTypeRef);
+	//showWarning(listRef,sessionTypeRef);
 	String keywordOfEntity= getFieldValue(keywordRef).trim();
 	if((isNull(keywordOfEntity)) || (keywordOfEntity.equals("*"))){
 		switch (entityNameRef){
@@ -6947,6 +6952,7 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 			break;
 				
 			case "session":	
+				//String sessionType=getFieldValue(sessionTypeRef);
 				sessionSearch("*",listRef,sessionTypeRef);
 			break;
 				
@@ -6995,6 +7001,7 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 			break;
 				
 			case "session":	
+				//String sessionType=getFieldValue(sessionTypeRef);
 				sessionSearch(keywordOfEntity,listRef,sessionTypeRef);
 			break;
 				
@@ -7033,7 +7040,7 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 answerSearch(String keyword, String listRef){
 	if(keyword.equals("*")){
 		loadAllSurveyQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers where AttributeID"+
-		"=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') GROUP BY uuid;";
+			"=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') GROUP BY uuid;";
 		fetchAll(loadAllSurveyQuery, new FetchCallback() {
 			onFetch(result) {
 				if(!isNull(result)){
@@ -7126,9 +7133,9 @@ languageSearch(String keyword, String listRef){
 }
 
 sessionSearch(String keyword, String listRef, String sessionTypeRef){
-	showWarning(sessionTypeRef,sessionTypeRef);
+	//showWarning(sessionTypeRef,sessionTypeRef);
 	if(keyword.equals("*")){
-		if(getFieldValue("sessionTypeRef").equals("All")){
+		if(getFieldValue(sessionTypeRef).equals("All")){
 			fetchAll(loadAllSessionIDQuery,new FetchCallback() {
 				onFetch(result) {
 					if(!isNull(result)){
@@ -7169,7 +7176,7 @@ sessionSearch(String keyword, String listRef, String sessionTypeRef){
 		
 	}
 	else{
-		if(getFieldValue("sessionTypeRef").equals("All")){
+		if(getFieldValue(sessionTypeRef).equals("All")){
 			searchSessionQuery="select uuid, measure from latestNonDeletedAentValue where " +
 				"latestNonDeletedAentValue.Measure like '%"+ keyword +
 				"%' and latestNonDeletedAentValue.AttributeID = "+
@@ -7185,6 +7192,7 @@ sessionSearch(String keyword, String listRef, String sessionTypeRef){
 			});
 		}
 		else{
+			String typeId= getFieldValue(sessionTypeRef);
 			loadSessionByTypeKeywordQuery="select uuid,measure from latestNonDeletedAentValue where "+
 				"latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
 				"and latestNonDeletedAentValue.measure like '%"+keyword+"%' "+
