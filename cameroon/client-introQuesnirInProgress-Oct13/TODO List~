@@ -1,7 +1,0 @@
-1.Non-elegant checkPersonIntro and checkPersonAns, can't send arguments in the showAlert API
-2.Can we use a special way to deal with introductory questionnaire?
-3.Should the user create introductory answer in a session?
-4.(yes)Ask if all the Label fields should be readOnly
-5.Adding annotation function based on the list
-6.Adding busy dialogue
-7.Converting time to cameroonian time 
