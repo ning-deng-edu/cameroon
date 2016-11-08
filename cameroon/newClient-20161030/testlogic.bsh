@@ -6331,11 +6331,9 @@ nonDupLabelGen(ArrayList dupList, String tempLbl, String tableName, String attri
 		}
 		if(dataSaving){
 			if(newLabel!=null){
-				//showWarning("newLabel",newLabel);
 				attributes = createAttributeList();
 				attributes.add(createEntityAttribute(attriName, null, null, newLabel, null));
 				entityId=dupList.get(0).get(0);
-				//showWarning("entityId",entityId);
 				saveArchEnt(entityId, tableName, null, attributes);
 			}
 		}
@@ -6368,7 +6366,15 @@ nonDupLabelGen(ArrayList dupList, String tempLbl, String tableName, String attri
 	}
 	return rtnLbl;
 }
-
+/* 
+** Generating a non-dup label before showTabGroup(ref)
+** originLabel: the to-be-de-duplicate label
+** fieldRef: the ref of field that the new label should be set
+** tableName: the table name for the label's update
+** attriName: the attribute name for the label's update
+** tempUpdateList: temporarily store the old data in this list
+** other args: not used 
+*/
 labelDeduplicate(String originLabel, String attriName, String fieldRef, String typeflag, Boolean dataUpdate, ArrayList tempUpdateList ){
 	duplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='"+attriName+"') "+
@@ -6404,6 +6410,10 @@ labelDeduplicate(String originLabel, String attriName, String fieldRef, String t
 	});
 }
 
+/* 
+** extract labels for new, old, or both entities when called nonDupLabelGen
+** the split is based on the char '|'
+*/
 extractLabelForNewEntity(String inputString){
 	String [] labelSplit=inputString.split("\\|"); 
 	return labelSplit[0];	
@@ -6429,6 +6439,7 @@ extractLabelToList(String inputString){
 	}
 	return rtnList;
 }
+
 /*
 ** Basic arraylist difference checking 
 ** targetList: the updated list
@@ -6470,6 +6481,7 @@ listChange(ArrayList targetList,ArrayList sourceList){
 	}
 	return listChanges;
 }
+
 /*
 ** check if time is valid
 ** startDateTime: the start date time
@@ -6525,6 +6537,7 @@ timeValidation(String startDateTime, String endDateTime, String flag){
 			break;
 		}
 }
+
 /*
 ** check if time is in valid format
 ** startDateTime: input date time
@@ -6547,6 +6560,7 @@ timeValidation(String startDateTime){
 	}
 return false;
 }
+
 /*
 ** get the current data through the system function of getCurrentTime()
 */
@@ -6557,6 +6571,11 @@ getCurrentDate(){
     return currentDate;
 }
 
+/*
+** parsing date to different formats
+** dd/mm/yyyy to yyyy-mm-dd
+** yyyy-mm-dd to dd/mm/yy
+*/
 dateParser(String sourceDate){
 	//convert dd/mm/yyyy to yyyy-mm-dd
 	String slashDateRegex="^\\d{2}[/]\\d{2}[/]\\d{4}$";
@@ -6579,6 +6598,12 @@ dateParser(String sourceDate){
 	//convert yyyy-mm-dd to dd/mm/yy
 }
 
+/*
+** checking if a date is within a valid range
+** beginDate: starting date
+** endDate: ending date
+** middleDate: the date to be checked
+*/
 dateCompare(String beginDate, String middleDate, String endDate){
 	DateFormat df=new SimpleDateFormat("yyyy-MM-dd");
 	try{
@@ -6594,18 +6619,22 @@ dateCompare(String beginDate, String middleDate, String endDate){
 		}
 	}
 	catch(Exception excption){
-		//exception.printStackTrace();
 		return false;
 	}
 	return false;
 }
 
+/*
+**stay in the current page
+*/
 stayInCurrentPage()
 {
 	return;
 }
 
-
+/* 
+** extract the date in the label
+*/
 extractLabelDate(String label, String typeflag){
 	switch(typeflag){
 		case "sss":
@@ -6620,6 +6649,11 @@ extractLabelDate(String label, String typeflag){
 	return null;
 }
 
+/*
+** adding the element in one list to another
+** sourceList: the source list of the element
+** type_flage: deprecated
+*/
 addItemToTargetList(ArrayList sourceList, String type_flag, String intervieweeID){	
 	if(isNull(intervieweeID))
 	{
@@ -6639,9 +6673,7 @@ addItemToTargetList(ArrayList sourceList, String type_flag, String intervieweeID
 		showToast("Invalid item");
 		return;
 	}
-	else{	
-		
-		
+	else{		
 		for (int i=0; i<sourceList.size();i++){
 			if (sourceList.get(i).get(0).equals(itemId)) {
 				idx_item=i;
@@ -6686,6 +6718,11 @@ addItemToTargetList(ArrayList sourceList, String type_flag, String intervieweeID
 	}
 }
 
+/*
+** deleting the element in one list to another
+** targetList: the source list of the element
+** type_flage: deprecated
+*/
 deleteItemFromTargetList(ArrayList targetList, String type_flag, String toDelId){
 	if(type_flag.equals("sessionFile")){
 		deleteItemId=toDelId;
@@ -6734,6 +6771,9 @@ deleteItemFromTargetList(ArrayList targetList, String type_flag, String toDelId)
 	}
 }
 
+/*
+** generate an (x,y,z,) format IN condition for queries
+*/
 buildQuerySetCondition(ArrayList itemList){
 	StringBuilder sb=new StringBuilder();
 	sb.append("(");
@@ -6748,10 +6788,11 @@ buildQuerySetCondition(ArrayList itemList){
 	return sb.toString();
 }
 
+/*
+** update the old data in dupInfoList to the table of tableName of attribute attrName
+*/
 updateDupLabel(ArrayList dupInfoList, String tableName, String attrName){
-	//showWarning("updateDupLabel",tableName+attrName);
 	if(dupInfoList!=null && !dupInfoList.isEmpty()){
-		//showWarning("dupInfoList","dupInfoList");
 		dupAttributes = createAttributeList();
 		dupAttributes.add(createEntityAttribute(attrName, null, null, dupInfoList.get(1), null));
 		saveArchEnt(dupInfoList.get(0), tableName, null, dupAttributes);
@@ -6759,6 +6800,9 @@ updateDupLabel(ArrayList dupInfoList, String tableName, String attrName){
 	}
 }
 
+/*
+** save entities to reln
+*/
 saveEntitiesToRel(String type, String entity1, String entity2) {
 	if (isNull(entity1) || isNull(entity2)) return;
     saveRel(null, type, null, null, new SaveCallback() {
@@ -6772,6 +6816,10 @@ saveEntitiesToRel(String type, String entity1, String entity2) {
     });
 }
 
+/*
+** save entities to reln
+** resaving up to 3 times
+*/
 saveEntitiesToRelFailSafe(String type, String entity1, String entity2, int loopCount) {
 	if (isNull(entity1) || isNull(entity2)) return;
     saveRel(null, type, null, null, new SaveCallback() {
@@ -6791,14 +6839,18 @@ saveEntitiesToRelFailSafe(String type, String entity1, String entity2, int loopC
     });
 }
 
+/*
+** save tabGroup to reln
+** resaving up to 3 times
+*/
 saveTabGroupFailSafe(String tableName, String entId, int loopCount){
 	if(isNull(tableName) || isNull(entId)){
 		return;
 	}
 	saveTabGroup("tableName", entId, null, null, new SaveCallback() {
-		    onSave(uuid, newRecord) {
+	    onSave(uuid, newRecord) {
 
-		    }
+	    }
 	    onError(message) {
 	    	if(loopCount<3){
 	    		loopCount++;
@@ -6808,9 +6860,13 @@ saveTabGroupFailSafe(String tableName, String entId, int loopCount){
 	    		showWarning("Saving fail","Error on saving tabgroup " +tableName+"\n Please report to error to the admin");
 	    	}
 	    }  
-	  });
+	});
 }
 
+/*
+** next question for questionnaire answering
+** not checking if a question is answered or not
+*/
 nextQuestion(String curntQuesId, ArrayList questionList){
 	int idxCrntQues=-1;
 	String nextQuesContent=null;
@@ -6829,39 +6885,31 @@ nextQuestion(String curntQuesId, ArrayList questionList){
 	else{
 		if(hasView("survey/answerBasic/radioGrp")){
 			cancelTabGroup("survey",true);
-			//showWarning("cancelTabGroupnextquestion","survey");
 		}
 	}
 }
 
+/*
+** extract the label without the (d+) suffix
+** this function takes an arraylist as input
+*/
 extractOriginLbl(ArrayList inputList){
 	extrList=new ArrayList();
 	extrList.clear();
-	//showWarning("extrAnsList","extrAnsList");
 	Pattern numberPat = Pattern.compile("\\(\\d+\\)");
-	//showWarning("numberPat","numberPat");
 	for (input: inputList){
 		tempLblId=input.get(0);
-		//showWarning("tempAnsLblId",tempLblId);
 		tempLbl=input.get(1);
-		//showWarning("tempAnsLbl",tempLbl);
 		Matcher numMatcher = numberPat.matcher(tempLbl);
-		//showWarning("numMatcher","numMatcher");
 		Boolean suffixFind=numMatcher.find();
-		//showWarning("suffixFind",suffixFind.toString());
 		//if there's no number suffix of the current label, then it can be directly added to exrAnsList
 		if(!suffixFind){
 			extrList.add(input);
-			//showWarning("extrList3","add3");
 		}
 		else{
-			//showWarning("else","else");
 			String [] patternSplit=tempLbl.split("\\(");
-			//showWarning("patternSplit",patternSplit.length.toString());
 			Pattern numberPat2 = Pattern.compile("\\d+\\)");
-			//showWarning("numberPat2","numberPat2");
 			Matcher numMatcher2 = numberPat2.matcher(patternSplit[patternSplit.length-1]);
-			//showWarning("numMatcher2",patternSplit[patternSplit.length-1]);
 			if(numMatcher2.find()){
 				StringBuilder sb=new StringBuilder();
 				for (lbl : patternSplit){
@@ -6870,16 +6918,13 @@ extractOriginLbl(ArrayList inputList){
 					sb.append(lbl);
 				}
 				String orgnSub=sb.toString();
-				//showWarning("orgnSub",orgnSub);
 				orgn=new ArrayList();
 				orgn.add(tempLblId);
 				orgn.add(orgnSub);
 				extrList.add(orgn);
-				//showWarning("extrList1","add1");
 			}
 			else{
 				extrList.add(input);
-				//showWarning("extrList2","add2");
 			}
 
 		}
@@ -6887,6 +6932,10 @@ extractOriginLbl(ArrayList inputList){
 	return extrList;
 }
 
+/*
+** extract the label without the (d+) suffix
+** this function takes a string as input
+*/
 extractOriginLbl(String inputLabel){
 	String rtnLabel=inputLabel;
 	Pattern numberPat = Pattern.compile("\\(\\d+\\)");
@@ -6898,6 +6947,10 @@ extractOriginLbl(String inputLabel){
 	return rtnLabel;
 }
 
+/*
+** saving annotation for a tabgroup
+** use when no data is changed for a tabgroup
+*/
 saveAnnotation(String tabgroupRef, String entityUuid){
 	saveTabGroup(tabgroupRef, entityUuid, null, null, new SaveCallback(){
 		onSave(uuid, result){
@@ -6930,6 +6983,10 @@ loadSessionListByQuesnirType(String typeflag, ArrayList typeIdList){
         }
     });
 }
+*/
+
+/*
+** entity search for the control tabgroups
 */
 entitySearch(String entityNameRef, String keywordRef, String listRef, String fileTypeRef, String sessionTypeRef){
 	//showWarning(listRef,sessionTypeRef);
@@ -7288,17 +7345,12 @@ searchQuesInCrtQuesnir(){
 	String quesKeyword=null;
 
 	quesKeyword=getFieldValue("questionnaireInfo/surveyQuestionnaire/ques_keyword");
-	//for this search, we first check if the database updated, then search the result in the local arraylist
-	//step 1: get the latest db record
 	quesKeyword.trim();
 
 	if(!(isNull(quesKeyword) || quesKeyword.equals("*"))){
-		//showWarning("quesSearch","\\b*"+quesKeyword+"\\b*");
 		Pattern quesSearch = Pattern.compile(quesKeyword);
-		//showWarning("quesSearch","quesSearch");
 		tempMatchQues=new ArrayList();
 		tempMatchQues.clear();
-		//showWarning("tempMatchQues","tempMatchQues");
 		for(tempQues: ques_in_current_quesnir){
 			String tempQuesCntnt= tempQues.get(1);
 			Matcher quesSearchMatcher=quesSearch.matcher(tempQuesCntnt);
