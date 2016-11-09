@@ -2840,7 +2840,7 @@ reConstructLangIntro(){
 				createView("langIntroAns/langIntroAnsInfo/degc" + newLangInLangIntro, createViewDef().createDropDown(), "langIntroAns/langIntroAnsInfo/newlangDeg_c" + newLangInLangIntro);
 				createView("langIntroAns/langIntroAnsInfo/newLangNexc" + newLangInLangIntro, createViewDef().createButton().setLabel("Next").setStyleCss("faims-blue"), "langIntroAns/langIntroAnsInfo/newLangNex_c" + newLangInLangIntro);
 				String langPosition=newLangInLangIntro.toString();
-				onEvent("langIntroAns/langIntroAnsInfo/newLangNexc" + newLangInLangIntro,"click", "saveNewLangInScln(\""+langPosition+"\")");		
+				onEvent("langIntroAns/langIntroAnsInfo/newLangNexc" + newLangInLangIntro,"click", "saveNewLangInSclnCheck(\""+langPosition+"\")");		
 				populateDropDown("langIntroAns/langIntroAnsInfo/degc" + newLangInLangIntro, tempChoice);
 				
 				createView("langIntroAns/langIntroAnsInfo/Finish_LangIntro", createViewDef().createButton().setLabel("Finish").setStyleCss("faims-blue"), "langIntroAns/langIntroAnsInfo");
@@ -3882,6 +3882,31 @@ answeredLangQuesPrep(ArrayList quesIdList){
 	}
 }
 
+saveNewLangInSclnCheck(String langPos){
+	Boolean langExist=false;
+	String tempNewLangUuid=null;
+	for(int i=0;i<newTempLangList.size();i++){
+		//showWarning("tempLang",newTempLangList.get(i).get(0));
+		if(newTempLangList.get(i).get(0).equals(langPos)){
+			//showWarning("tempLang1",newTempLangList.get(i).get(0));
+			tempNewLangUuid=newTempLangList.get(i).get(1);
+			//showWarning("tempNewLangUuid","tempNewLangUuid");
+			langExist=true;
+			break;
+		}
+	}
+	if(langExist && tempNewLangUuid!=null){
+		//showWarning("startLoopQues","startLoopQues");
+		startLoopQues(tempNewLangUuid);
+	}
+	else if(!langExist){
+		saveNewLangInScln(langPos);
+	}
+	else{
+		showWarning("error happened","please report this error to the admin");
+	}
+}
+
 saveNewLangInScln(String langPos){
 	//get the language code and language name
 	String langCode=getFieldValue("langIntroAns/langIntroAnsInfo/newLangCodec" + langPos);
@@ -3893,7 +3918,7 @@ saveNewLangInScln(String langPos){
 
 	loadTempLangTypeIDQuery="select uuid from latestNonDeletedAentValue "+
 	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='LangTypeName') "+
-	"and measure='temp'";
+	"and measure='New'";
 
 	fetchOne(loadTempLangTypeIDQuery,new FetchCallback() {
 		onFetch(result) {
@@ -3909,7 +3934,7 @@ saveNewLangInScln(String langPos){
 					tempNewLang.add(langName);
 					tempNewLang.add(langCode);
 					newTempLangList.add(tempNewLang);
-					showToast("The new language is saved as 'temp' type");
+					showToast("The new language is saved as 'new' type");
 					startLoopQues(uuid);
 					
 				}
