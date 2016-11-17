@@ -15,7 +15,7 @@ import java.lang.StringBuffer;
 User user; // don't touch
 String userid;
 
-loadAllUserQuery="select userid, fname || ' ' || lname from user where userdeleted is null";
+loadAllUserQuery="select userid, fname || ' ' || lname from user where userdeleted is null order by lname";
 
 
 
@@ -780,7 +780,7 @@ loadSessionTypes(){
 	loadAllQuesnirTypeQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesnirTypeName') "+
-		"GROUP BY uuid;";
+		"GROUP BY uuid ORDER BY measure;";
 	fetchAll(loadAllQuesnirTypeQuery, new FetchCallback() {
         onFetch(result) {
         	ArrayList sessionTypeList=new ArrayList();
@@ -2009,7 +2009,7 @@ loadAllRegQuesnirQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 			"and latestNonDeletedAentValue.measure = 'Introductory' "+ 
 			"or latestNonDeletedAentValue.measure = 'Emergency' "+
 			"or latestNonDeletedAentValue.measure = 'Sociolinguistic' "+
-			")) GROUP BY uuid ORDER BY measure;";
+			")) GROUP BY uuid ORDER BY measure asc;";
 
 /***usage: quesnir listing (1 usage)***/
 loadAllIntrQuesnirQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
@@ -2023,7 +2023,7 @@ loadAllIntrQuesnirQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 			"(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
 			"and latestNonDeletedAentValue.measure = 'Introductory' "+
 			"or latestNonDeletedAentValue.measure = 'Sociolinguistic' "+
-			")) GROUP BY uuid ORDER BY measure;";
+			")) GROUP BY uuid ORDER BY measure asc;";
 
 loadAllQuesnir(){
 	if(!introAns){
@@ -4624,7 +4624,7 @@ Boolean emrOrNot=false;
 loadAllFileIDQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers " +
 	"WHERE AttributeID "+
 	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='FileID') "+
-	"GROUP BY uuid;";
+	"GROUP BY uuid ORDER BY measure asc;";
 
 loadFile(){
 	file_id=null;
@@ -5144,12 +5144,12 @@ loadAllLanguageQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 	"and uuid in "+
 	"(select uuid from latestNonDeletedArchEntIdentifiers "+
 	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID')) "+
-	"GROUP BY uuid;";
+	"GROUP BY uuid ORDER BY measure asc";
 /*** usage: language creation and update ***/
 loadAllLangTypeQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='LangTypeName') "+
-		"GROUP BY uuid;";
+		"GROUP BY uuid ORDER BY measure asc;";
 
 /*** Language events ***/
 
@@ -5406,7 +5406,7 @@ initFieldTripVar(){
 loadAllFieldTripQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='FieldTripName') "+
-		"GROUP BY uuid;";
+		"GROUP BY uuid ORDER by uuid desc;";
 
 loadFieldTripList(){
 	fetchAll(loadAllFieldTripQuery, new FetchCallback() {
@@ -5741,19 +5741,19 @@ role_id=null;
 loadAllRoleQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 		"WHERE latestNonDeletedAentValue.AttributeID =( SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonRoleName') "+
 		"AND uuid in (SELECT uuid FROM latestNonDeletedAentValue "+
-			"WHERE AttributeID= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='RoleDataOnClient') AND measure ='Yes');";
+			"WHERE AttributeID= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='RoleDataOnClient') AND measure ='Yes') ORDER BY measure asc;";
 /*** usage: list person, create session, session update (3 usages)***/
 loadAllPersonQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 	"WHERE latestNonDeletedAentValue.AttributeID "+
 	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonName') "+
 	"GROUP BY uuid "+
-	"ORDER BY measure;";
+	"ORDER BY measure asc;";
 /*** usage: list person, search person (2 usages)***/
 loadAllPersonIDQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
 		"IN (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonID') "+
 		"GROUP BY uuid "+
-		"ORDER BY measure;";
+		"ORDER BY measure asc;";
 /*** Person UI ***/
 createPersonRolePage(){
 	if(!hasView("personRoleSelect/personRoleSelectInfo/SearchRole")){
@@ -7162,7 +7162,7 @@ entitySearch(String entityNameRef, String keywordRef, String listRef, String fil
 answerSearch(String keyword, String listRef){
 	if(keyword.equals("*")){
 		loadAllSurveyQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers where AttributeID"+
-			"=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') GROUP BY uuid;";
+			"=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') GROUP BY uuid ORDER BY measure asc";
 		fetchAll(loadAllSurveyQuery, new FetchCallback() {
 			onFetch(result) {
 				if(!isNull(result)){
@@ -7177,7 +7177,7 @@ answerSearch(String keyword, String listRef){
 		searchSureyQuery="select uuid, measure from latestNonDeletedAentValue where " +
 					"latestNonDeletedAentValue.Measure like '%"+ keyword +
 					"%' and latestNonDeletedAentValue.AttributeID = "+
-					"(select AttributeID from AttributeKey where AttributeName='AnswerLabel')";
+					"(select AttributeID from AttributeKey where AttributeName='AnswerLabel') ORDER BY measure asc";
 		fetchAll(searchSureyQuery,new FetchCallback() {
 			onFetch(result) {
 				if(!isNull(result)){
@@ -7208,7 +7208,7 @@ personSearch(String keyword, String listRef){
 		searchPersonQuery="select uuid, measure from latestNonDeletedAentValue where " +
 					"latestNonDeletedAentValue.Measure like '%"+ keyword +
 					"%' and latestNonDeletedAentValue.AttributeID = "+
-					"(select AttributeID from AttributeKey where AttributeName='PersonID')";
+					"(select AttributeID from AttributeKey where AttributeName='PersonID') ORDER BY measure asc";
 		fetchAll(searchPersonQuery,new FetchCallback() {
 			onFetch(result) {
 				if(!isNull(result)){
@@ -7240,7 +7240,7 @@ languageSearch(String keyword, String listRef){
 		searchLangQuery="select uuid, measure from latestNonDeletedAentValue where " +
 			"latestNonDeletedAentValue.Measure like '%"+ keyword +
 			"%' and latestNonDeletedAentValue.AttributeID = "+
-			"(select AttributeID from AttributeKey where AttributeName='LanguageName')";
+			"(select AttributeID from AttributeKey where AttributeName='LanguageName') ORDER BY measure asc";
 		fetchAll(searchLangQuery,new FetchCallback() {
 			onFetch(result) {
 				if(!isNull(result)){
@@ -7282,7 +7282,8 @@ sessionSearch(String keyword, String listRef, String sessionTypeRef){
 				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') and "+
 				"measure ='"+typeId+"')) "+
 				"AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
-				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') and latestNonDeletedRelationship.Deleted IS NULL)))";
+				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') and latestNonDeletedRelationship.Deleted IS NULL))) "+
+				"ORDER BY measure asc";
 
 			fetchAll(loadSessionByTypeQuery,new FetchCallback() {
 				onFetch(result) {
@@ -7302,7 +7303,7 @@ sessionSearch(String keyword, String listRef, String sessionTypeRef){
 			searchSessionQuery="select uuid, measure from latestNonDeletedAentValue where " +
 				"latestNonDeletedAentValue.Measure like '%"+ keyword +
 				"%' and latestNonDeletedAentValue.AttributeID = "+
-				"(select AttributeID from AttributeKey where AttributeName='SessionID')";
+				"(select AttributeID from AttributeKey where AttributeName='SessionID') ORDER BY measure asc";
 			fetchAll(searchSessionQuery, new FetchCallback() {
 				onFetch(result) {
 					if(!isNull(result)){
@@ -7327,7 +7328,8 @@ sessionSearch(String keyword, String listRef, String sessionTypeRef){
 				"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') and "+
 				"measure ='"+typeId+"')) "+
 				"AND RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
-				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') and latestNonDeletedRelationship.Deleted IS NULL)))";
+				"where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') and latestNonDeletedRelationship.Deleted IS NULL))) "+
+				"ORDER BY measure asc";
 			fetchAll(loadSessionByTypeKeywordQuery, new FetchCallback() {
 				onFetch(result) {
 					if(!isNull(result)){
@@ -7401,7 +7403,7 @@ quesnirSearch(String keyword, String listRef){
 						"and latestNonDeletedAentValue.measure = 'Introductory' "+ 
 						"or latestNonDeletedAentValue.measure = 'Emergency' "+
 						"or latestNonDeletedAentValue.measure = 'Sociolinguistic' "+
-						")) GROUP BY uuid "+"ORDER BY measure";
+						")) GROUP BY uuid "+"ORDER BY measure asc";
 		}
 		else{
 			searchQuesnirQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
@@ -7416,7 +7418,7 @@ quesnirSearch(String keyword, String listRef){
 						"(select AttributeID from AttributeKey where AttributeName='QuesnirTypeName') "+
 						"and latestNonDeletedAentValue.measure = 'Introductory' "+
 						"or latestNonDeletedAentValue.measure = 'Sociolinguistic' "+
-						")) GROUP BY uuid "+"ORDER BY measure";
+						")) GROUP BY uuid "+"ORDER BY measure asc";
 		}
 				/*
 		searchQuesnirQuery="select uuid, measure from latestNonDeletedAentValue where " +
@@ -7454,7 +7456,7 @@ fieldTripSearch(String keyword, String listRef){
 		searchFTQuery="select uuid, measure from latestNonDeletedAentValue where " +
 			"latestNonDeletedAentValue.Measure like '%"+ keyword +
 			"%' and latestNonDeletedAentValue.AttributeID = "+
-			"(select AttributeID from AttributeKey where AttributeName='FieldTripName')";
+			"(select AttributeID from AttributeKey where AttributeName='FieldTripName') ORDER BY measure asc";
 		fetchAll(searchFTQuery,new FetchCallback() {
 			onFetch(result) {
 				if(!isNull(result)){
@@ -7498,7 +7500,7 @@ typedFileSearch(String searchFileType,String keyword, String listRef){
 		"where file.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileID') "+
 		"and fileType.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileType') "+
 		"and file.uuid=fileType.uuid "+
-		"and fileType.measure='"+searchFileType+"'";
+		"and fileType.measure='"+searchFileType+"' "+"ORDER BY file.measure asc";
 		fetchAll(loadAllTypedFileQuery,new FetchCallback() {
 			onFetch(result) {
 				if(!isNull(result)){
@@ -7516,7 +7518,7 @@ typedFileSearch(String searchFileType,String keyword, String listRef){
 		"and fileType.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileType') "+
 		"and file.uuid=fileType.uuid "+
 		"and file.measure like '%"+keyword+"%' "+
-		"and fileType.measure='"+searchFileType+"'";
+		"and fileType.measure='"+searchFileType+"' "+"ORDER BY file.measure asc";
 		fetchAll(searchTypedFileQuery,new FetchCallback() {
 			onFetch(result) {
 				if(!isNull(result)){
@@ -7547,7 +7549,7 @@ nonTypedFileSearch(String keyword, String listRef){
 		searchAllFileQuery="select uuid, measure from latestNonDeletedAentValue where " +
 			"latestNonDeletedAentValue.Measure like '%"+ keyword +
 			"%' and latestNonDeletedAentValue.AttributeID = "+
-			"(select AttributeID from AttributeKey where AttributeName='FileID')";
+			"(select AttributeID from AttributeKey where AttributeName='FileID') ORDER BY measure asc";
 		fetchAll(searchAllFileQuery,new FetchCallback() {
 			onFetch(result) {
 				if(!isNull(result)){
