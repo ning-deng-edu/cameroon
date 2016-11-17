@@ -15,7 +15,7 @@ import java.lang.StringBuffer;
 User user; // don't touch
 String userid;
 
-loadAllUserQuery="select userid, fname || ' ' || lname from user where userdeleted is null order by lname";
+loadAllUserQuery="select userid, fname || ' ' || lname from user where userdeleted is null order by lname asc";
 
 
 
@@ -780,7 +780,7 @@ loadSessionTypes(){
 	loadAllQuesnirTypeQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 		"WHERE latestNonDeletedAentValue.AttributeID "+
 		"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesnirTypeName') "+
-		"GROUP BY uuid ORDER BY measure;";
+		"GROUP BY uuid ORDER BY measure asc;";
 	fetchAll(loadAllQuesnirTypeQuery, new FetchCallback() {
         onFetch(result) {
         	ArrayList sessionTypeList=new ArrayList();
