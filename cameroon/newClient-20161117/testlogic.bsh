@@ -158,7 +158,7 @@ createControlGroupView(){
 	createPersonControlPage();
 	createLanguageControlPage();
 	createFileControlPage();
-	createQueryControlPage();
+	//createQueryControlPage();
 }
 
 createSurveyControlPage(){
@@ -353,7 +353,7 @@ createFileControlPage(){
 }
 
 /**********Temp function, to be remove for official version************/
-
+/*
 createQueryControlPage(){
 	if(!hasView("control/querytest/Submit")){
 			executeViewTask(new ViewTask() {
@@ -398,7 +398,7 @@ testQuery(){
     });
 	
 }
-
+*/
 /**********Temp function end, to be remove for official version************/
 
 /*** Session questionnaire list***/
@@ -2343,7 +2343,9 @@ createChkListPage(String tempQuesId){
 			tempChoice.add(new NameValuePair("Yes", "Y"));
 			tempChoice.add(new NameValuePair("No", "N"));
 			populateRadioGroup("survey/answerBasic/radioGrp",tempChoice);
-			onEvent("survey/answerBasic/nextBtn","click","nextQuestion(\""+tempQuesId+"\", \""+ques_in_current_quesnir+"\")");
+			//showWarning("test-please ignore",tempQuesId);
+			//onEvent("survey/answerBasic/nextBtn","click","nextQuestion(\""+tempQuesId+"\",ques_in_current_quesnir)");
+	   		onEvent("survey/answerBasic/nextBtn","click","nextQuestion(\""+tempQuesId+"\", ques_in_current_quesnir, true)");
 	   		}
 		});
 	}
@@ -4437,7 +4439,7 @@ saveNewAnswer(int loopCount){
 					//cancelTabGroup("file", true);
 					autoSaveSession("head");
 					//showWarning("autoSaveSession 3","autoSaveSession 3");
-					nextQuestion(hiddenAnsInfo.get("ques_id"),ques_in_current_quesnir);
+					nextQuestion(hiddenAnsInfo.get("ques_id"),ques_in_current_quesnir,false);
 				}
 			}
 			onError(message) {
@@ -4487,7 +4489,7 @@ saveNewAnswer(int loopCount){
 						//showWarning("cancelTabGroupNewAnswer","survey");
 						//cancelTabGroup("answerToQuestion", true);
 						autoSaveSession("head");
-						nextQuestion(getFieldValue("survey/answerHidden/answerQuestionID"), ques_in_current_quesnir);
+						nextQuestion(getFieldValue("survey/answerHidden/answerQuestionID"), ques_in_current_quesnir,false);
 					}
 				}
 				onError(message) {
@@ -6935,7 +6937,7 @@ saveTabGroupFailSafe(String tableName, String entId, int loopCount){
 ** next question for questionnaire answering
 ** not checking if a question is answered or not
 */
-nextQuestion(String curntQuesId, ArrayList questionList){
+nextQuestion(String curntQuesId, ArrayList questionList, Boolean chkQues){
 	int idxCrntQues=-1;
 	String nextQuesContent=null;
 	String nextQuesId=null;
@@ -6950,11 +6952,16 @@ nextQuestion(String curntQuesId, ArrayList questionList){
 		nextQuesContent=questionList.get(idxCrntQues+1).get(1);
 		showAlert("Next question","Do you want to go to the next question:\n"+nextQuesContent,"checkPersonAns(\""+nextQuesId+"\")","stayInCurrentPage()");
 	}
+	if(chkQues){
+		cancelTabGroup("survey",true);
+	}
+	/*
 	else{
 		if(hasView("survey/answerBasic/radioGrp")){
 			cancelTabGroup("survey",true);
 		}
 	}
+	*/
 }
 
 /*
