@@ -37,7 +37,7 @@
           <control>
               <questionnaire_control>
               </questionnaire_control>
-              
+
               <question_control>
               </question_control>
 
@@ -62,6 +62,8 @@
           <questionnaire>
               <questionnaire_info_hide>
               </questionnaire_info_hide>
+              <questionnaire_info>
+              </questionnaire_info>
           </questionnaire>
 
           <quesnirType>
