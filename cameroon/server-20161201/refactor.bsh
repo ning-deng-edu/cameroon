@@ -99,28 +99,40 @@ initializeQuesnirType(){
 
 initializeQuesProp(){
 	audQuesAttributes=createAttributeList();
-	audQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "Audio_Required", null));
+	audQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "Audio", null));
 	saveArchEnt(null, "QuesPropDef", null, audQuesAttributes);
 
 	vedQuesAttributes=createAttributeList();
-	vedQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "Video_Required", null));
+	vedQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "Video", null));
 	saveArchEnt(null, "QuesPropDef", null, vedQuesAttributes);
 
 	phtQuesAttributes=createAttributeList();
-	phtQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "Photo_Required", null));
+	phtQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "Photo", null));
 	saveArchEnt(null, "QuesPropDef", null, phtQuesAttributes);
 
-	filQuesAttributes=createAttributeList();
-	filQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "File_Required", null));
-	saveArchEnt(null, "QuesPropDef", null, filQuesAttributes);
-
 	nonQuesAttributes=createAttributeList();
-	nonQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "None", null));
+	nonQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "Freetext", null));
 	saveArchEnt(null, "QuesPropDef", null, nonQuesAttributes);
 
+	filQuesAttributes=createAttributeList();
+	filQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "File", null));
+	saveArchEnt(null, "QuesPropDef", null, filQuesAttributes);
+
 	lanQuesAttributes=createAttributeList();
-	lanQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "LangIntro", null));
+	lanQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "LangList", null));
 	saveArchEnt(null, "QuesPropDef", null, lanQuesAttributes);
+
+	nonQuesAttributes=createAttributeList();
+	nonQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "MultipleChoices", null));
+	saveArchEnt(null, "QuesPropDef", null, nonQuesAttributes);
+
+	nonQuesAttributes=createAttributeList();
+	nonQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "MultipleChoice", null));
+	saveArchEnt(null, "QuesPropDef", null, nonQuesAttributes);
+
+	nonQuesAttributes=createAttributeList();
+	nonQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "LangListEnd", null));
+	saveArchEnt(null, "QuesPropDef", null, nonQuesAttributes);
 
 	emrQuesAttributes=createAttributeList();
 	emrQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "EmergencyQuestion", null));
