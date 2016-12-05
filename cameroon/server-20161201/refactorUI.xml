@@ -331,7 +331,7 @@
      <group ref="type_control">
       <label>Type</label>
       <group ref="type_control_info">
-        <label>Type</label>
+        <label>Questionnaire type</label>
       </group>
     </group>
 

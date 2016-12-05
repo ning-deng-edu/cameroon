@@ -188,10 +188,10 @@ createOtherControlPage(){
             createView("control/other_control/langType_Control", langTypeButtonDef,"control/other_control");
 
             refreshTabgroupCSS("control");
-            onEvent("control/other_control/Role_Control","click","showTabGroup(\"role_control\")");
-            onEvent("control/other_control/Type_Control","click","showTabGroup(\"type_control\")");
-            onEvent("control/other_control/Prop_Control","click","showTabGroup(\"prop_control\")");
-            onEvent("control/other_control/langType_Control","click","showTabGroup(\"langType_control\")");
+            onEvent("control/other_control/Role_Control","click","showPropTypeControlPage(\"r\")");
+            onEvent("control/other_control/Type_Control","click","showPropTypeControlPage(\"t\")");
+            onEvent("control/other_control/Prop_Control","click","showPropTypeControlPage(\"p\")");
+            onEvent("control/other_control/langType_Control","click","showPropTypeControlPage(\"l\")");
 
             }
         
@@ -234,6 +234,387 @@ createSearchControlPage(){
     }
 }
 
+
+showPropTypeControlPage(String c){
+    switch(c){
+        case "r":
+        createPsRoleControlPage();
+        showTabGroup("role_control");
+        break;
+
+        case "t":
+        createQuesnirTypeControlPage();
+        showTabGroup("type_control");
+        break;
+
+        case "p":
+        createQuesPropertyControlPage();
+        showTabGroup("prop_control");
+        break;
+
+        case "l":
+        createLangTypeControlPage();
+        showTabGroup("langType_control");
+        break; 
+    }
+}
+
+/*** Questionnaire type ***/
+/*** Questionnaire type var(s) ***/
+quesnirTypeId=null;
+questionirType = new ArrayList();
+/*** Questionnaire type queries ***/
+/*** 1 usage: loadQuesnirType()***/
+
+loadAllQuesnirTypeQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+        "WHERE latestNonDeletedAentValue.AttributeID "+
+        "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesnirTypeName') "+
+        "GROUP BY uuid "+
+        "ORDER BY measure asc;";
+
+createQuesnirTypeControlPage(){
+    if(!hasView("type_control/type_control_info/New_Type")){
+        removeAllViewsAndContainers("type_control");
+        executeViewTask(new ViewTask() {
+            doTask(){
+                
+                newQuesnirTypeViewDef=createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+                quesTypeViewDef=createViewDef().createList().setLabel("Tap to view").setAnnotationEnabled(false).setStyleCss("user-list");
+
+                createView("type_control/type_control_info/New_Type",newQuesnirTypeViewDef,"type_control/type_control_info");
+                createView("type_control/type_control_info/typeList",quesTypeViewDef,"type_control/type_control_info");
+
+                refreshTabgroupCSS("type_control");
+                
+                onEvent("type_control/type_control_info","show","loadQuesnirType(\"typeLoad\")");
+                onEvent("type_control/type_control_info/New_Type","click","newQuesnirType()");
+                onEvent("type_control/type_control_info/typeList","click","loadTypeInfo()");
+            }
+        }); 
+    }
+}
+
+createQuesnirTypePage(){
+    if(!hasView("quesnirType/quesnirType_info/quesnirTypeName")){
+        removeAllViewsAndContainers("quesnirType");
+        executeViewTask(new ViewTask() {
+        doTask() {
+            typeNameViewDef=createViewDef().createTextField().setLabel("Type name").setAttributeName("QuesnirTypeName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+            saveTypeBtnDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+            dupListDef=createViewDef().createList().setLabel("Duplicate records");
+
+            createView("quesnirType/quesnirType_info/quesnirTypeName",typeNameViewDef,"quesnirType/quesnirType_info");
+            createView("quesnirType/quesnirType_info/SaveQuesnirType",saveTypeBtnDef,"quesnirType/quesnirType_info");
+            createView("quesnirType/quesnirType_info/duplicateTypeList",dupListDef,"quesnirType/quesnirType_info");
+            refreshTabgroupCSS("quesnirType");
+
+            onEvent("quesnirType/quesnirType_info/SaveQuesnirType","click","quesnirTypePreCheck()");
+            }
+        });
+    }
+
+}
+
+newQuesnirType(){
+    createQuesnirTypePage();
+    quesnirTypeId=null;
+    newTabGroup("quesnirType");
+}
+
+loadQuesnirType(String typeFlag){
+    fetchAll(loadAllQuesnirTypeQuery, new FetchCallback() {
+        onFetch(result) {
+            if (!isNull(result)) {
+                questionirType.clear();
+                questionirType.addAll(result);
+                if(typeFlag.equals("typeLoad")){
+                    populateList("type_control/type_control_info/typeList",questionirType);
+                }
+                else{
+                    String firstType=result.get(0).get(1);
+                    String firstTypeUuid=result.get(0).get(0);
+                    populateDropDown("questionnaire/questionnaire_info/questionnaireTypeSelection",questionirType);
+                    if((isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireType"))) && (isNull(getFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid")))){
+                        setFieldValue("questionnaire/questionnaire_info/questionnaireType",firstType);
+                        setFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid",firstTypeUuid);
+                    }
+                }
+            }
+            else{
+                if(!typeFlag.equals("typeLoad")){
+                    showAlert("Questionnaire Type data", "There is no available questionnaire type yet\n"+"Do you want to create new type now?", "newQuesnirType()", "stayInCurrentPage()");
+                } 
+            }
+            
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+loadTypeInfo(){
+    quesnirTypeId=getListItemValue();
+    if(isNull(quesnirTypeId)){
+        showWarning("Invalid data","No type selected");
+        return;
+    }
+    createQuesnirTypePage();
+    showTabGroup("quesnirType", quesnirTypeId, new FetchCallback() {
+        onFetch(result) {
+            tempPop=new ArrayList();
+            tempPop.clear();
+            populateList("quesnirType/quesnirType_info/duplicateTypeList",tempPop);
+            showToast("Loaded type"+result.getId());       
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+quesnirTypePreCheck(){
+    String newTypeName=getFieldValue("quesnirType/quesnirType_info/quesnirTypeName").trim();
+    if(isNull(newTypeName)){
+        showWarning("Incomplete data", "You must input questionnaire name");
+        return;
+    }
+    else{
+        quesnirTypeCheckQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+                "WHERE latestNonDeletedAentValue.AttributeID "+
+                "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesnirTypeName') "+
+                "AND latestNonDeletedAentValue.measure like '%"+newTypeName+"%'; ";
+
+        if(quesnirTypeId!=null){
+            quesnirTypeCheckQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+                "WHERE latestNonDeletedAentValue.AttributeID "+
+                "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesnirTypeName') "+
+                "AND uuid<>'"+quesnirTypeId+"' "+
+                "AND latestNonDeletedAentValue.measure like '%"+newTypeName+"%'; ";
+        }
+        //showWarning("quesnirTypeCheckQuery","quesnirTypeCheckQuery");                 
+        fetchAll(quesnirTypeCheckQuery, new FetchCallback() {
+                onFetch(result) {
+                    if (!isNull(result)) {
+                        populateList("quesnirType/quesnirType_info/duplicateTypeList",result);
+                        showAlert("Questionnaire Type data", "This could be a duplicate type\n"+"The possible existing type is listed in the list\n"+"Do you still want to save this type?", "saveQuesnirType()", "stayInCurrentPage()");
+                    }
+                    else{
+                        saveQuesnirType();
+                    }
+                }
+               
+            onError(message) {
+                showToast(message);
+            }
+            });
+    }   
+}
+saveQuesnirType(){
+    saveTabGroup("quesnirType", quesnirTypeId, null, null, new SaveCallback() {
+        onSave(uuid, newRecord) {
+            quesnirTypeId = uuid;
+            if (newRecord) {
+                showToast("New record created");
+                cancelTabGroup("quesnirType",true);
+            }
+            else{
+                showToast("Record changed");
+            }
+        }
+        onError(message) {
+            showWarning("error",message);
+        }  
+    });
+}
+
+/*** Question property ***/
+createQuesPropertyControlPage(){
+    if(!hasView("prop_control/prop_control_info/New_Prop")){
+        removeAllViewsAndContainers("prop_control");
+        executeViewTask(new ViewTask() {
+            doTask(){
+                
+                newQuesPropViewDef=createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+                quesPropViewDef=createViewDef().createList().setLabel("Tap to view").setAnnotationEnabled(false).setStyleCss("user-list");
+
+                createView("prop_control/prop_control_info/New_Prop",newQuesPropViewDef,"prop_control/prop_control_info");
+                createView("prop_control/prop_control_info/propList",quesPropViewDef,"prop_control/prop_control_info");
+                refreshTabgroupCSS("prop_control");
+                onEvent("prop_control/prop_control_info","show","loadQuesProp(\"propLoad\")");
+                onEvent("prop_control/prop_control_info/New_Prop","click","newQuesProp()");
+                onEvent("prop_control/prop_control_info/propList","click","loadQuesPropInfo()");
+            }
+        }); 
+    }
+}
+
+createQuesPropPage(){
+    if(!hasView("quesProperty/quesPropertyInfo/propName")){
+        removeAllViewsAndContainers("quesProperty");
+        executeViewTask(new ViewTask() {
+        doTask() {
+            propNameViewDef=createViewDef().createTextField().setLabel("Property name").setAttributeName("QuesPropDefName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+            propDescViewDef=createViewDef().createTextField().setLabel("Description").setAttributeName("QuesPropDefDesc").setAttributeType("measure").setAnnotationEnabled(true);
+            savePropBtnDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+            dupListDef=createViewDef().createList().setLabel("Duplicate records");
+
+            createView("quesProperty/quesPropertyInfo/propName",propNameViewDef,"quesProperty/quesPropertyInfo");
+            createView("quesProperty/quesPropertyInfo/propDesc",propDescViewDef,"quesProperty/quesPropertyInfo");
+            createView("quesProperty/quesPropertyInfo/saveProp",savePropBtnDef,"quesProperty/quesPropertyInfo");
+            createView("quesProperty/quesPropertyInfo/propDupList",dupListDef,"quesProperty/quesPropertyInfo");
+            refreshTabgroupCSS("quesProperty");
+            onEvent("quesProperty/quesPropertyInfo/saveProp","click","quesPropCheck()");
+            }
+        });
+    }
+}
+loadQuesProp(String typeflag){
+
+}
+
+newQuesProp(){
+
+}
+
+loadQuesPropInfo(){
+
+}
+
+quesPropCheck(){
+
+}
+
+/*** Language Type ***/
+createLangTypeControlPage(){
+    if(!hasView("langType_control/langType_control_info/New_LangType")){
+        removeAllViewsAndContainers("langType_control");
+        executeViewTask(new ViewTask() {
+            doTask(){
+                langTypeListViewDef=createViewDef().createList().setLabel("Tap to view").setAnnotationEnabled(false).setStyleCss("user-list");
+                newLangTypeViewDef=createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+
+                createView("langType_control/langType_control_info/New_LangType",newLangTypeViewDef,"langType_control/langType_control_info");
+                createView("langType_control/langType_control_info/langTypeList",langTypeListViewDef,"langType_control/langType_control_info");
+                refreshTabgroupCSS("langType_control");
+
+                onEvent("langType_control/langType_control_info","show","loadLangType(\"def\")");
+                onEvent("langType_control/langType_control_info/New_LangType","click","newLangType()");
+                onEvent("langType_control/langType_control_info/langTypeList","click","loadLangTypeInfo()");
+            }
+        }); 
+    }
+}
+
+createLangTypePage(){
+    if(!hasView("langType/langType_info/langTypeName")){
+        removeAllViewsAndContainers("langType");
+        executeViewTask(new ViewTask() {
+            doTask(){
+                langTypeViewDef=createViewDef().createTextField().setLabel("Language type name").setAttributeName("LangTypeName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+                langDupViewDef=createViewDef().createList().setLabel("Duplicate records").setAnnotationEnabled(false).setStyleCss("menu-list");
+                finLangTypeViewDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+
+                createView("langType/langType_info/langTypeName",langTypeViewDef,"langType/langType_info");
+                createView("langType/langType_info/SaveLangType",finLangTypeViewDef,"langType/langType_info");
+                createView("langType/langType_info/duplicateLangTypeList",langDupViewDef,"langType/langType_info");
+                refreshTabgroupCSS("langType");
+                onEvent("langType/langType_info/SaveLangType","click","langTypePreCheck()");
+
+            }
+        }); 
+    }
+}
+
+loadLangType(String typeFlag){
+
+}
+
+newLangType(){
+
+}
+
+loadLangTypeInfo(){
+
+}
+
+langTypePreCheck(){
+
+}
+
+/*** Person role ***/
+createPsRoleControlPage(){
+    if(!hasView("role_control/role_control_info/New_Role")){
+        removeAllViewsAndContainers("role_control");
+        executeViewTask(new ViewTask() {
+            doTask(){
+                roleListViewDef=createViewDef().createList().setLabel("Tap to view").setAnnotationEnabled(false).setStyleCss("user-list");
+                newRoleTypeViewDef=createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+
+                createView("role_control/role_control_info/New_Role",newRoleTypeViewDef,"role_control/role_control_info");
+                createView("role_control/role_control_info/roleList",roleListViewDef,"role_control/role_control_info");
+                refreshTabgroupCSS("role_control");
+                onEvent("role_control/role_control_info/New_Role","click","newRole()");
+                onEvent("role_control/role_control_info","show","loadRoles(\"newRole\",\"role_control/role_control_info/roleList\")");
+                onEvent("role_control/role_control_info/roleList","click","loadRoleInfo()");
+            }
+        }); 
+    }
+}
+
+createPsRolePage(){
+    if(!hasView("personRole/personRoleInfo/personRoleName")){
+        removeAllViewsAndContainers("personRole");
+        executeViewTask(new ViewTask() {
+            doTask(){
+                roleNameViewDef=createViewDef.createTextField().setLabel("Role name").setAttributeName("PersonRoleName").setAttributeType("measure").setAnnotationEnabled(true);
+                introQuesnirReqViewDef=createViewDef().createRadioGroup().setLabel("Answering introductory questionnaire required?");
+                photoReqViewDef=createViewDef().createRadioGroup().setLabel("Taking photo required?");
+                dataShownReqViewDef=createViewDef().createRadioGroup().setLabel("Shown on client module's list?");
+                roleDupViewDef=createViewDef().createList().setLabel("Duplicate records").setAnnotationEnabled(false).setStyleCss("menu-list");
+                finRoleViewDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+                tempChoice=new ArrayList();
+                tempChoice.add(new NameValuePair("Yes", "Yes"));
+                tempChoice.add(new NameValuePair("No", "No"));
+
+                createView("personRole/personRoleInfo/personRoleName",roleNameViewDef,"personRole/personRoleInfo");
+                createView("personRole/personRoleInfo/RoleIntroRequired",introQuesnirReqViewDef,"personRole/personRoleInfo");
+                createView("personRole/personRoleInfo/RolePhotoRequired",photoReqViewDef,"personRole/personRoleInfo");
+                createView("personRole/personRoleInfo/RoleDataOnClient",dataShownReqViewDef,"personRole/personRoleInfo");
+                createView("personRole/personRoleInfo/SavePersonRole",finRoleViewDef,"personRole/personRoleInfo");
+                createView("personRole/personRoleInfo/duplicateRoleList",roleDupViewDef,"personRole/personRoleInfo");
+
+                refreshTabgroupCSS("personRole");
+
+                populateRadioGroup("personRole/personRoleInfo/RoleIntroRequired",tempChoice);
+                populateRadioGroup("personRole/personRoleInfo/RolePhotoRequired",tempChoice);
+                populateRadioGroup("personRole/personRoleInfo/RoleDataOnClient",tempChoice);
+
+                onEvent("personRole/personRoleInfo/SavePersonRole","click","checkRole()");
+
+            }
+        }); 
+    }
+}
+
+newRole(){
+
+}
+
+loadRoles(String typeFlag, String populateRef){
+
+}
+
+loadRoleInfo(){
+
+}
+checkRole(){
+
+}
+
+
+
 loadQuestionnaire(){
 
 }
@@ -250,15 +631,7 @@ startQuestionSelection(){
 
 }
 
-loadQuesnirType(String typeFlag){
-
-}
-
 setQuesnirType(){
-
-}
-
-newQuesnirType(){
 
 }
 
