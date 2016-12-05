@@ -179,7 +179,7 @@ createOtherControlPage(){
         doTask() { 
             roleButtonDef = createViewDef().createButton().setLabel("Person Role").setStyleCss("faims-blue");
             quesnirTypeButtonDef = createViewDef().createButton().setLabel("Questionnaire Type").setStyleCss("faims-blue");
-            quesTypeButtonDef = createViewDef().createButton().setLabel("Question Propert").setStyleCss("faims-blue");
+            quesTypeButtonDef = createViewDef().createButton().setLabel("Question Property").setStyleCss("faims-blue");
             langTypeButtonDef = createViewDef().createButton().setLabel("Language Type").setStyleCss("faims-blue");
 
             createView("control/other_control/Role_Control", roleButtonDef,"control/other_control");
@@ -319,6 +319,8 @@ newQuesnirType(){
     createQuesnirTypePage();
     quesnirTypeId=null;
     newTabGroup("quesnirType");
+    tempPop=new ArrayList();
+    populateList("quesnirType/quesnirType_info/duplicateTypeList",tempPop);
 }
 
 loadQuesnirType(String typeFlag){
@@ -430,6 +432,17 @@ saveQuesnirType(){
 }
 
 /*** Question property ***/
+/*** Question property var(s) ***/
+quesPropertyId=null;
+quesProperty=new ArrayList();
+
+/*** Question property queries ***/
+loadAllQuesPropQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+        "WHERE latestNonDeletedAentValue.AttributeID "+
+        "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesPropDefName') "+
+        "GROUP BY uuid "+
+        "ORDER BY measure asc;";
+
 createQuesPropertyControlPage(){
     if(!hasView("prop_control/prop_control_info/New_Prop")){
         removeAllViewsAndContainers("prop_control");
@@ -470,22 +483,111 @@ createQuesPropPage(){
         });
     }
 }
-loadQuesProp(String typeflag){
 
+loadQuesProp(String typeflag){
+    fetchAll(loadAllQuesPropQuery, new FetchCallback() {
+        onFetch(result) {
+            if (!isNull(result)) {
+                if(typeflag.equals("propLoad")){
+                    quesProperty.clear();
+                    quesProperty.addAll(result);
+                    populateList("prop_control/prop_control_info/propList",quesProperty);
+                }
+                else{
+                    candidatePropList.clear();
+                    candidatePropList.addAll(result);
+                    populateDropDown("questionBank/questionInfo/questionProp", candidatePropList);
+                }
+            }
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
 }
 
 newQuesProp(){
-
+    quesPropertyId=null;
+    createQuesPropPage();
+    newTabGroup("quesProperty");
+    tempPop=new ArrayList();
+    populateList("quesProperty/quesPropertyInfo/propDupList",tempPop);
 }
 
 loadQuesPropInfo(){
-
+    quesPropertyId=getListItemValue();
+    if(isNull(quesPropertyId) || quesPropertyId.equals("placeholder")){
+        showWarning("Invalid data","No data selected");
+        return;
+    }
+    createQuesPropPage();
+    showTabGroup("quesProperty", quesPropertyId, new FetchCallback() {
+        onFetch(result) {
+            tempPop=new ArrayList();
+            tempPop.clear();
+            populateList("quesProperty/quesPropertyInfo/propDupList",tempPop);
+            showToast("Loaded data"+result.getId());        
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
 }
 
 quesPropCheck(){
+    String newPropName=getFieldValue("quesProperty/quesPropertyInfo/propName").trim();
+    if(isNull(newPropName)){
+            showWarning("Incomplete data", "You must input questionnaire property name");
+            return;
+        }
+        else{
 
+            quesnirPropCheckQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+                "WHERE latestNonDeletedAentValue.AttributeID "+
+                "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesPropDefName') "+
+                "AND latestNonDeletedAentValue.measure like '%"+newPropName+"%'; ";
+            if(quesPropertyId!=null){
+                 quesnirPropCheckQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+                "WHERE latestNonDeletedAentValue.AttributeID "+
+                "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesPropDefName') "+
+                "AND uuid<>'"+quesPropertyId+"' "+
+                "AND latestNonDeletedAentValue.measure like '%"+newPropName+"%'; ";
+            }              
+            fetchAll(quesnirPropCheckQuery,new FetchCallback() {
+                onFetch(result) {
+                    if (!isNull(result)) {
+                        populateList("quesProperty/quesPropertyInfo/propDupList",result);
+                        showAlert("Question property data", "This could be a duplicate data\n"+"The possible existing data is listed in the list\n"+"Do you still want to save?", "saveQuesProp()", "stayInCurrentPage()");
+                    }
+                    else{
+                        saveQuesProp();
+                    }
+                }
+                   
+                onError(message) {
+                    showToast(message);
+                }
+            });
+        }   
 }
 
+saveQuesProp(){
+    saveTabGroup("quesProperty", quesPropertyId, null, null, new SaveCallback() {
+        onSave(uuid, newRecord) {
+            quesPropertyId = uuid;
+            if (newRecord) {
+                showToast("New record created");
+                cancelTabGroup("quesProperty",true);
+            }
+            else{
+                showToast("Record changed");
+            }
+        }
+        onError(message) {
+            showWarning("error",message);
+        }  
+    });
+}
 /*** Language Type ***/
 createLangTypeControlPage(){
     if(!hasView("langType_control/langType_control_info/New_LangType")){
@@ -568,7 +670,7 @@ createPsRolePage(){
         removeAllViewsAndContainers("personRole");
         executeViewTask(new ViewTask() {
             doTask(){
-                roleNameViewDef=createViewDef.createTextField().setLabel("Role name").setAttributeName("PersonRoleName").setAttributeType("measure").setAnnotationEnabled(true);
+                roleNameViewDef=createViewDef.createTextField().setLabel("Role name").setAttributeName("PersonRoleName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
                 introQuesnirReqViewDef=createViewDef().createRadioGroup().setLabel("Answering introductory questionnaire required?");
                 photoReqViewDef=createViewDef().createRadioGroup().setLabel("Taking photo required?");
                 dataShownReqViewDef=createViewDef().createRadioGroup().setLabel("Shown on client module's list?");
