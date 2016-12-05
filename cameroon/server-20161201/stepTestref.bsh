@@ -748,6 +748,16 @@ saveLangType(){
     });
 }
 /*** Person role ***/
+/*** Person role var ***/
+role_id=null;
+role_list=new ArrayList();
+/*** Person role query ***/
+loadAllPersonRoleQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+        "WHERE latestNonDeletedAentValue.AttributeID "+
+        "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonRoleName') "+
+        "GROUP BY uuid "+
+        "ORDER BY measure asc";
+
 createPsRoleControlPage(){
     if(!hasView("role_control/role_control_info/New_Role")){
         removeAllViewsAndContainers("role_control");
@@ -772,53 +782,136 @@ createPsRolePage(){
         removeAllViewsAndContainers("personRole");
         executeViewTask(new ViewTask() {
             doTask(){
-                roleNameViewDef=createViewDef.createTextField().setLabel("Role name").setAttributeName("PersonRoleName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
-                introQuesnirReqViewDef=createViewDef().createRadioGroup().setLabel("Answering introductory questionnaire required?");
-                photoReqViewDef=createViewDef().createRadioGroup().setLabel("Taking photo required?");
-                dataShownReqViewDef=createViewDef().createRadioGroup().setLabel("Shown on client module's list?");
-                roleDupViewDef=createViewDef().createList().setLabel("Duplicate records").setAnnotationEnabled(false).setStyleCss("menu-list");
+                roleNameViewDef=createViewDef().createTextField().setLabel("Role name").setAttributeName("PersonRoleName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+                introQuesnirReqViewDef=createViewDef().createRadioGroup().setLabel("Answering introductory questionnaire required?").setAttributeName("RoleIntroAnsRequired").setAttributeType("measure");
+                photoReqViewDef=createViewDef().createRadioGroup().setLabel("Taking photo required?").setAttributeName("RolePhotoRequired").setAttributeType("measure");
+                dataShownReqViewDef=createViewDef().createRadioGroup().setLabel("Shown on client module's list?").setAttributeName("RoleDataOnClient").setAttributeType("measure");
                 finRoleViewDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
-                tempChoice=new ArrayList();
-                tempChoice.add(new NameValuePair("Yes", "Yes"));
-                tempChoice.add(new NameValuePair("No", "No"));
-
+                roleDupViewDef=createViewDef().createList().setLabel("Duplicate records").setStyleCss("menu-list");
+                
                 createView("personRole/personRoleInfo/personRoleName",roleNameViewDef,"personRole/personRoleInfo");
                 createView("personRole/personRoleInfo/RoleIntroRequired",introQuesnirReqViewDef,"personRole/personRoleInfo");
                 createView("personRole/personRoleInfo/RolePhotoRequired",photoReqViewDef,"personRole/personRoleInfo");
                 createView("personRole/personRoleInfo/RoleDataOnClient",dataShownReqViewDef,"personRole/personRoleInfo");
                 createView("personRole/personRoleInfo/SavePersonRole",finRoleViewDef,"personRole/personRoleInfo");
                 createView("personRole/personRoleInfo/duplicateRoleList",roleDupViewDef,"personRole/personRoleInfo");
-
                 refreshTabgroupCSS("personRole");
+
+                tempChoice=new ArrayList();
+                tempChoice.add(new NameValuePair("Yes", "Yes"));
+                tempChoice.add(new NameValuePair("No", "No"));
 
                 populateRadioGroup("personRole/personRoleInfo/RoleIntroRequired",tempChoice);
                 populateRadioGroup("personRole/personRoleInfo/RolePhotoRequired",tempChoice);
                 populateRadioGroup("personRole/personRoleInfo/RoleDataOnClient",tempChoice);
-
                 onEvent("personRole/personRoleInfo/SavePersonRole","click","checkRole()");
-
             }
         }); 
     }
 }
 
 newRole(){
-
+    role_id=null;
+    createPsRolePage();
+    newTabGroup("personRole");
+    tempPop=new ArrayList();
+    tempPop.clear();
+    populateList("personRole/personRoleInfo/duplicateRoleList",tempPop);
 }
 
 loadRoles(String typeFlag, String populateRef){
-
+    fetchAll(loadAllPersonRoleQuery,new FetchCallback() {
+        onFetch(result) {
+            role_list.clear();
+            role_list.addAll(result);
+            if(typeFlag.equals("newPerson")){
+                populateDropDown(populateRef, role_list);
+            }
+            else{
+                populateList(populateRef,role_list);
+            }
+            
+        }  
+    });
 }
 
 loadRoleInfo(){
-
+    role_id=getListItemValue();
+    if(isNull(role_id)){
+        showWarning("Invalid data","No role selected");
+        return;
+    }
+    createPsRolePage();
+    showTabGroup("personRole", role_id, new FetchCallback() {
+        onFetch(result) {
+            showToast("Loaded role"+result.getId());  
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
 }
+
 checkRole(){
+    String newRoleName=getFieldValue("personRole/personRoleInfo/personRoleName");
+    if(isNull(newRoleName)){
+        showWarning("Incomplete data","You must enter valid person role name");
+        return;
+    }
+    if((isNull(getFieldValue("personRole/personRoleInfo/RoleIntroRequired"))) || (isNull(getFieldValue("personRole/personRoleInfo/RolePhotoRequired"))) || (isNull(getFieldValue("personRole/personRoleInfo/RoleDataOnClient")))){
+        showWarning("Incomplete data","You must select answer for each requirement question");
+        return;
+    }
+    personRoleCheckQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+        "WHERE latestNonDeletedAentValue.AttributeID "+
+        "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonRoleName') "+
+        "AND latestNonDeletedAentValue.measure like '%"+newRoleName+"%'; ";
+
+    if(role_id!=null){
+         personRoleCheckQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+        "WHERE latestNonDeletedAentValue.AttributeID "+
+        "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonRoleName') "+
+        "AND uuid<>'"+role_id+"' "+
+        "AND latestNonDeletedAentValue.measure like '%"+newRoleName+"%'; ";
+    }
+
+    fetchAll(personRoleCheckQuery,new FetchCallback() {
+            onFetch(result) {
+                if (!isNull(result)) {
+                    populateList("personRole/personRoleInfo/duplicateRoleList",result);
+                    showAlert("Person Role data", "This could be a duplicate role\n"+"The possible existing roles are listed in the list\n"+"Do you still want to save this role?", "saveRole()", "stayInCurrentPage()");
+                }
+                else{
+                    saveRole();
+                }
+            }
+           
+        onError(message) {
+            showToast(message);
+        }
+    });
+    
+}
+saveRole(){
+    saveTabGroup("personRole", role_id, null, null, new SaveCallback() {
+        onSave(uuid, newRecord) {
+            role_id = uuid;
+            if (newRecord) {
+                showToast("New record created");
+                cancelTabGroup("personRole",true);
+                showTab("role_control/role_control_info");
+            }
+            else{
+                showToast("Record changed");    
+            }
+          
+        }
+        onError(message) {
+            showWarning("error",message);
+        }  
+    });
 
 }
-
-
-
 loadQuestionnaire(){
 
 }
@@ -903,20 +996,6 @@ saveNewLanguage(){
 
 }
 
-newRole(){
-
-}
-
-loadRoles(String typeFlag, String populateRef){
-
-}
-
-loadRoleInfo(){
-
-}
-checkRole(){
-
-}
 /*** Person ***/
 
 /*** Search page ***/
