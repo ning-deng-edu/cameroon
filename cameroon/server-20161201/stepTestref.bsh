@@ -889,9 +889,9 @@ checkRole(){
         onError(message) {
             showToast(message);
         }
-    });
-    
+    }); 
 }
+
 saveRole(){
     saveTabGroup("personRole", role_id, null, null, new SaveCallback() {
         onSave(uuid, newRecord) {
@@ -912,6 +912,7 @@ saveRole(){
     });
 
 }
+/*** Questionnaire ***/
 loadQuestionnaire(){
 
 }
@@ -979,21 +980,194 @@ newPerson(){
 loadPersonInfo(){
 
 }
+/*** Language ***/
+/*** Language var ***/
+language_id=null;
+originLangProp=new ArrayList();
+newLangProp=new ArrayList();
+candLangProp=new ArrayList();
+/*** Language query ***/
+loadAllLanguageQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+    "WHERE latestNonDeletedAentValue.AttributeID "+
+    "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='LanguageName') "+
+    "and uuid in "+
+    "(select uuid from latestNonDeletedArchEntIdentifiers "+
+    "where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID')) "+
+    "GROUP BY uuid ORDER BY measure asc";
 
-loadLanguage(){
+createLanguagePage(){
+    if(!hasView("language/languageInfo/languageID")){
+        removeAllViewsAndContainers("language");
+        executeViewTask(new ViewTask() {
+            doTask(){
+                langIDViewDef=createViewDef().createTextField().setLabel("Language code").setAttributeName("LanguageID").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");        
+                langNameViewDef=createViewDef().createTextField().setLabel("Language name").setAttributeName("LanguageName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+                langOtherNameViewDef=createViewDef().createTextField().setLabel("Language other name(s)").setAttributeName("LanguageOtherNames").setAttributeType("measure").setAnnotationEnabled(true);
+                langPropViewDef=createViewDef().createDropDown().setLabel("Language type").setAnnotationEnabled(false);
+                finLangViewDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
 
+                createView("language/languageInfo/languageID",langIDViewDef,"language/languageInfo");
+                createView("language/languageInfo/languageName",langNameViewDef,"language/languageInfo");
+                createView("language/languageInfo/languageOtherNames",langOtherNameViewDef,"language/languageInfo");
+                createView("language/languageInfo/languageType",langPropViewDef,"language/languageInfo");
+                createView("language/languageInfo/Finish_New_Language",finLangViewDef,"language/languageInfo");
+                refreshTabgroupCSS("language");
+                onEvent("language/languageInfo/Finish_New_Language","click","saveNewLanguage()");
+                onEvent("language/languageInfo","show","loadLangType(\"new\")");
+
+            }
+        }); 
+    }
+}
+
+initializeLangVar(){
+    language_id=null;
+    candLangProp.clear();
+    originLangProp.clear();
+    newLangProp.clear();
 }
 
 newLanguage(){
+    initializeLangVar();
+    createLanguagePage();
+    newTabGroup("language");
+}
 
+loadLanguage(){
+    fetchAll(loadAllLanguageQuery, new FetchCallback() {
+        onFetch(result) {
+            populateList("control/language_control/languageList", result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
 }
 
 loadLanguageInfo(){
-
+    language_id=getListItemValue();
+    if(isNull(language_id)){
+        showToast("No Language selected");
+        return;
+    }
+    createLanguagePage();
+    showTabGroup("language", language_id, new FetchCallback() {
+        onFetch(result) {
+            fetchAll(loadAllLangTypeQuery, new FetchCallback() {
+                onFetch(result) {
+                    candLangProp.clear();
+                    candLangProp.addAll(result); 
+                    loadLangPropOrder();
+                }
+            });
+            showToast("Loaded language"+result.getId());            
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
 }
 
-saveNewLanguage(){
+loadLangPropOrder(){
+    loadLangPropQuery="select lProp.measure from latestNonDeletedAentValue as lProp "+
+            "where lProp.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageTypeID') "+
+            "and lProp.uuid='"+language_id+"'";
+    fetchOne(loadLangPropQuery,new FetchCallback() {
+        onFetch(propResult) {
+            if(!isNull(propResult)){
+                tempPropList=new ArrayList();
+                tempPropList.clear();
+                //showWarning("isNull","isNull");
+                String tempProp=propResult.get(0);
+                //showWarning("tempProp",tempProp);
+                originLangProp.clear();
+                originLangProp.addAll(propResult);
+                newLangProp.clear();
 
+                for(prop: candLangProp){
+                    if(prop.get(0).equals(tempProp)){
+                        tempPropList.add(prop);
+                    }
+                }
+                for(prop: candLangProp){
+                    if(!(prop.get(0).equals(tempProp))){
+                        tempPropList.add(prop);
+                    }
+                }
+                populateDropDown("language/languageInfo/languageType", tempPropList);
+            }
+            else{
+                showWarning("Out-of-date data","The property of the language is not using anymore");
+            }
+        
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+saveNewLanguage(){
+    if(isNull(getFieldValue("language/languageInfo/languageName"))){
+        showWarning("Validation Error", "You must fill in the Language Name before you can continue");
+        return;
+    }
+    if(isNull(getFieldValue("language/languageInfo/languageID"))){
+        showWarning("Validation Error", "You must fill in the Language ID before you can continue");
+        return;
+    }
+
+    tempLangLabel=getFieldValue("language/languageInfo/languageID");
+    langDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+                "where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID') "+
+                "and measure ='"+tempLangLabel+"' or measure like '"+tempLangLabel+"(%)'";
+    if(language_id!=null){
+        langDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+                "where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID') "+
+                "and uuid<>'"+language_id+"' "+
+                "and measure ='"+tempLangLabel+"' or measure like '"+tempLangLabel+"(%)'";
+    }
+    
+    fetchAll(langDuplicateQuery,new FetchCallback() {
+        onFetch(result) {
+            if(!isNull(result)){
+                tempLangLabel=nonDupLabelGen(result,tempLangLabel, "Language","LanguageID",true);  
+            }
+            setFieldValue("language/languageInfo/languageID",tempLangLabel);
+            crntLangTypeId=getFieldValue("language/languageInfo/languageType");
+            saveTabGroup("language", language_id, null, null, new SaveCallback() {
+                onSave(uuid, newRecord) {
+                      language_id = uuid;
+                      if (newRecord) {
+                        attributes=createAttributeList();
+                        attributes.add(createEntityAttribute("LanguageTypeID", null, null, crntLangTypeId, null));
+                        saveArchEnt(language_id, "Language", null, attributes);
+                        showToast("New record created");
+                        cancelTabGroup("language",true);
+                        showTab("control/language_control");
+                      }
+                      else{
+                        showToast("Record changed");
+                      }
+                }
+                onError(message) {
+                    showWarning("error",message);
+                } 
+            });
+
+            if((language_id!=null) && (!isNull(originLangProp))){
+                newLangProp.add(crntLangTypeId);
+                Hashtable langPropChange=listChange(newLangProp,originLangProp);
+                if(langPropChange.containsKey("ADD")){
+                    attributes=createAttributeList();
+                    attributes.add(createEntityAttribute("LanguageTypeID", null, null, crntLangTypeId, null));
+                    saveArchEnt(language_id, "Language", null, attributes);
+                    showToast("language type changed");
+                }
+                
+            }
+        }
+    });
 }
 
 /*** Person ***/
@@ -1021,4 +1195,266 @@ recordSearch(){
 /*** Common methods ***/
 stayInCurrentPage(){
     return;
+}
+/* 
+** Getting the (\\d+) number suffix of a string
+** inputString: the input string
+*/
+getNumSuffix(String inputString){
+    String returnSuffix=null;
+    Pattern numberPat = Pattern.compile("\\(\\d+\\)");
+    Matcher numMatcher = numberPat.matcher(inputString);
+    Boolean suffixFind=numMatcher.find();
+    if(suffixFind){
+        String [] patternSplit=inputString.split("\\(");
+        Pattern numberPat2 = Pattern.compile("\\d+\\)");
+        Matcher numMatcher2 = numberPat2.matcher(patternSplit[patternSplit.length-1]);
+        if(numMatcher2.find()){
+            returnSuffix="("+patternSplit[patternSplit.length-1];
+        }
+    }
+    return returnSuffix;
+}
+/* 
+** Generating a non-dup label
+** dupList: the duplicate query result 
+** tempLbl: the label to be checking for duplicate
+** tableName: the table name for the label's update
+** attriName: the attribute name for the label's update
+** dataSaving: indicating if the old data should be updated to the database
+*/
+nonDupLabelGen(ArrayList dupList, String tempLbl, String tableName, String attriName, Boolean dataSaving){
+    String rtnLbl=tempLbl;
+    int sizeOfDup=0;
+    Pattern numberPat = Pattern.compile("\\(\\d+\\)");
+    sizeOfDup=dupList.size();
+
+    if(sizeOfDup==0){
+        return rtnLbl;
+    }
+
+    if(sizeOfDup==1){
+        duplicateOldLabel=dupList.get(0).get(1);
+        Matcher numMatcher = numberPat.matcher(duplicateOldLabel);
+
+        String newLabel=null;
+        if(numMatcher.find()){
+            suffix=getNumSuffix(duplicateOldLabel);
+            if(suffix!=null){
+                if(!suffix.equals("(1)"))
+                    {
+                        int sLen=suffix.length();
+                        newLabel=duplicateOldLabel.substring(0,duplicateOldLabel.length()-sLen)+"(1)";
+                    }
+            }
+            else{
+                newLabel=duplicateOldLabel+"(1)";
+            }
+        }
+        else{
+            newLabel=duplicateOldLabel+"(1)";
+        }
+        if(dataSaving){
+            if(newLabel!=null){
+                attributes = createAttributeList();
+                attributes.add(createEntityAttribute(attriName, null, null, newLabel, null));
+                entityId=dupList.get(0).get(0);
+                saveArchEnt(entityId, tableName, null, attributes);
+            }
+        }
+        rtnLbl=rtnLbl+"(2)";
+        if(!dataSaving){
+            if(newLabel!=null){
+                rtnLbl=rtnLbl+"|"+newLabel;
+            }
+        }
+    }
+
+    else{
+        int maxSuffix=0;
+        for(temp: dupList){
+            tempLabel=temp.get(1);
+            Matcher numMatcher = numberPat.matcher(tempLabel);
+            if(numMatcher.find()){
+                tempSuffix=getNumSuffix(tempLabel);
+                tempSuffixStr=null;
+                    if(tempSuffix!=null){
+                        int tempSuffixNum=Integer.parseInt(tempSuffix.replaceAll("[^0-9]", ""));
+                        if(tempSuffixNum>maxSuffix){
+                            maxSuffix=tempSuffixNum;
+                        }
+                }
+            }
+        }
+        maxSuffix=maxSuffix+1;
+        rtnLbl=rtnLbl+"("+maxSuffix+")";
+    }
+    return rtnLbl;
+}
+
+listChange(ArrayList targetList,ArrayList sourceList){
+    //showWarning("listChange","listChange");
+    Hashtable listChanges=new Hashtable();
+    target_list=new ArrayList();
+    source_list=new ArrayList();
+    target_diff_on_source=new ArrayList();
+    source_diff_on_target=new ArrayList();
+    listChanges.clear();
+    target_list.clear();
+    source_list.clear();
+    target_diff_on_source.clear();
+    source_diff_on_target.clear();
+    target_list.addAll(targetList);
+    source_list.addAll(sourceList);
+    target_list.removeAll(source_list);
+    target_diff_on_source.addAll(target_list);//target - source
+    target_list.clear();
+    target_list.addAll(targetList);
+    source_list.removeAll(target_list);
+    source_diff_on_target.addAll(source_list);//source - target
+    if((target_diff_on_source.isEmpty()) && (source_diff_on_target.isEmpty())){
+        listChanges.put("EQUAL",targetList);
+    }
+    else if((!target_diff_on_source.isEmpty()) && (source_diff_on_target.isEmpty())){
+        listChanges.put("PUREADD",target_diff_on_source);
+    }
+    else if((target_diff_on_source.isEmpty()) && (!source_diff_on_target.isEmpty())){
+        listChanges.put("PUREDELETE",source_diff_on_target);
+    }
+    else {
+        listChanges.put("ADD",target_diff_on_source);
+        listChanges.put("DELETE",source_diff_on_target);
+    }
+    return listChanges;
+}
+
+listChange(ArrayList newList, ArrayList oldList, int newCompIdx, int oldCompIdx){
+    //showWarning("listChange","listChange");
+    Hashtable listChanges=new Hashtable();
+    new_List=new ArrayList();
+    old_List=new ArrayList();
+    new_List.clear();
+    old_List.clear();
+    same_elements_old=new ArrayList();
+    same_elements_new=new ArrayList();
+    same_elements_old.clear();
+    same_elements_new.clear();
+    new_List.addAll(newList);
+    old_List.addAll(oldList);
+    //showWarning("add","addAll");
+    for (elmNew : new_List){
+        elmNewValue=elmNew.get(newCompIdx);
+        //showWarning("elmNewValue",elmNewValue);
+        for(elmOld: old_List){
+            //showWarning("elmOld",elmOld.get(0));
+            elmOldValue=elmOld.get(oldCompIdx);
+            //showWarning("elmOldValue",elmOldValue);
+            if(elmNewValue.equals(elmOldValue)){
+                same_elements_old.add(elmOld);
+                same_elements_new.add(elmNew);
+            }
+        }
+    }
+    //showWarning("for","for");
+    //get the to be deleted elements
+    if(!isNull(same_elements_old)){
+        old_List.removeAll(same_elements_old);
+        //showWarning("old_List","remove");
+    }
+    //get the to add elements
+    if(!isNull(same_elements_new)){
+        new_List.removeAll(same_elements_new);
+    }
+
+    if((new_List.isEmpty()) && (old_List.isEmpty())){
+        listChanges.put("EQUAL",new_List);
+        //showWarning("EQUAL","EQUAL");
+    }
+    else if((!new_List.isEmpty()) && (old_List.isEmpty())){
+        listChanges.put("PUREADD",new_List);
+    }
+    else if((new_List.isEmpty()) && (!old_List.isEmpty())){
+        listChanges.put("PUREDELETE",old_List);
+    }
+    else {
+        listChanges.put("ADD",new_List);
+        listChanges.put("DELETE",old_List);
+    }
+    return listChanges;
+}
+
+listChange(ArrayList newList, ArrayList oldList, int compareKey, ArrayList compareValues){
+    Hashtable listChanges=new Hashtable();
+    new_List=new ArrayList();
+    old_List=new ArrayList();
+    new_List.clear();
+    old_List.clear();
+    same_elements=new ArrayList();
+    same_elements.clear();
+    update_list=new ArrayList();
+    update_list.clear();
+    update_new_list=new ArrayList();
+    update_new_list.clear();
+    new_List.addAll(newList);
+    old_List.addAll(oldList);
+    del_list=new ArrayList();   
+    del_list.clear();
+
+
+    for(elmOld:old_List){
+        elmOldKey=elmOld.get(compareKey);
+        Boolean equalTo=false;
+        //showWarning("elmOldKey",elmOldKey);
+        for(elmNew:new_List){
+            elmNewKey=elmNew.get(compareKey);
+            //showWarning("elmNewKey",elmNewKey);
+            if(elmOldKey.equals(elmNewKey)){
+                equalTo=true;
+                Boolean updated=false;
+                //showWarning("equalTo","updated");
+                for(int i=0;i<compareValues.size();i++){
+                    if(!elmOld.get(compareValues.get(i)).equals(elmNew.get(compareValues.get(i))))
+                    {
+                        updated=true;
+                        /*
+                        tempOldUpdate=new ArrayList();
+                        tempOldUpdate.add(elmOldKey);
+                        tempUpdate=new ArrayList();
+                        tempUpdate.add(tempOldUpdate);
+                        tempUpdate.add(elmNew);
+                        */
+                        update_list.add(elmNew);
+                        //update_new_list.add(elmNew);
+                        //showWarning("updated","updated");
+                        break;
+                    }
+                }
+                if(!updated){
+                    same_elements.add(elmNew);
+                    //showWarning("equals","equals");
+                }
+                break;
+            }
+        }
+        
+        if(!equalTo){
+            del_list.add(elmOld);
+            //showWarning("del","del");
+        }
+    }
+
+    new_List.removeAll(update_list);
+    //showWarning("update_new_list","update_new_list");
+    new_List.removeAll(same_elements);
+    //showWarning("same_elements","same_elements");
+    listChanges.put("E",same_elements);
+    //showWarning("E","same_elements");
+    listChanges.put("A",new_List);
+    //showWarning("new_List","new_List");
+    listChanges.put("D",del_list);
+    //showWarning("del_list","del_list");
+    listChanges.put("U",update_list);
+    //showWarning("update_list","update_list");
+    return listChanges;
+
 }
