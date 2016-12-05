@@ -183,6 +183,7 @@ login() {
 }
 
 createControlGroupView(){
+	removeAllViewsAndContainers("control");
 	createQuesnirControlPage();
 	createQuestionControlPage();
 	createPersonControlPage();
@@ -339,9 +340,64 @@ createSearchControlPage(){
 		});
 	}
 }
+
+/*** Questionnaire type ***/
+createQuesnirTypeControlPage(){
+	if(!hasView("type_control/type_control_info/New_Type")){
+		removeAllViewsAndContainers("type_control");
+		executeViewTask(new ViewTask() {
+			doTask(){
+				
+				newQuesnirTypeViewDef=createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+				quesTypeViewDef=createViewDef().createList().setLabel("Tap to view").setAnnotationEnabled(false).setStyleCss("user-list");
+
+				createView("type_control/type_control_info/New_Type",newQuesnirTypeViewDef,"type_control/type_control_info");
+				createView("type_control/type_control_info/typeList",quesTypeViewDef,"type_control/type_control_info");
+				onEvent("type_control/type_control_info","show","loadQuesnirType(\"typeLoad\")");
+				onEvent("type_control/type_control_info/New_Type","click","newQuesnirType()");
+				onEvent("type_control/type_control_info/typeList","click","loadTypeInfo()");
+			}
+		});	
+	}
+}
+
+createQuesnirTypePage(){
+	if(!hasView("quesnirType/quesnirType_info/quesnirTypeName")){
+		removeAllViewsAndContainers("quesnirType");
+		executeViewTask(new ViewTask() {
+	    doTask() {
+	  		typeNameViewDef=createViewDef().createTextField().setLabel("Type name").setAttributeName("QuesnirTypeName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+	  		saveTypeBtnDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+	  		dupListDef=createViewDef().createList().setLabel("Duplicate records");
+
+	    	createView("quesnirType/quesnirType_info/quesnirTypeName",typeNameViewDef,"quesnirType/quesnirType_info");
+	    	createView("quesnirType/quesnirType_info/SaveQuesnirType",saveTypeBtnDef,"quesnirType/quesnirType_info");
+	        createView("quesnirType/quesnirType_info/duplicateTypeList",dupListDef,"quesnirType/quesnirType_info");
+	        
+			onEvent("quesnirType/quesnirType_info/SaveQuesnirType","click","quesnirTypePreCheck()");
+	   		}
+		});
+	}
+}
+
+newQuesnirType(){
+
+}
+
+loadQuesnirType(String typeFlag){
+
+}
+
+loadTypeInfo(){
+
+}
+quesnirTypePreCheck(){
+
+}
 /*** Questionnaire***/
 createQuesnirMainPage(){
 	if(!hasView("questionnaire/questionnaire_info/questionnaireID")){
+		removeAllViewsAndContainers("questionnaire");
 		executeViewTask(new ViewTask() {
     	doTask() { 
     		style1 = "orientation";
@@ -383,6 +439,7 @@ createQuesnirMainPage(){
 //TODO: think about the problem of unscrollable page
 createQuesSelPage(){
 	if(!hasView("questionnaire_question/questionnaire_question_info/questionList")){
+		removeAllViewsAndContainers("questionnaire_question");
 		executeViewTask(new ViewTask() {
     	doTask() { 
     		style1 = "orientation";
@@ -566,13 +623,9 @@ deleteSelectedQuestion(String quesContent){
 		return;
 	}
 	else{
-		//showWarning("start",questionCandidatesContent.size().toString());
 		for(int i=0;i<questionSelected.size();i++){
 			String ques=questionSelected.get(i).get(1);
-			//showWarning("ques",ques);
 			if (ques.equals(quesContent)){
-				//String quesId=questionSelected.get(i).get(0);
-				//showWarning("quesIdEqual",quesId);
 				String quesId=questionSelected.get(i).get(0);
 				//showWarning("quesWithNumber",quesWithNumber);
 				String quesCt=ques.substring(ques.indexOf("-")+1);
@@ -582,13 +635,9 @@ deleteSelectedQuestion(String quesContent){
 				quesDelete.add(quesCt);
 				questionCandidatesContent.add(quesDelete);
 				populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
-				//showWarning("questionCandidatesContent","add");
 				questionSelected.remove(i);
-				//showWarning("questionSelected","remove");
 				adjustQuesOrder("deletion",i,null);
-				//showWarning("adjustQuesOrder","adjustQuesOrder");
 				reConstructQuesOrder();
-				//populateRadioGroup("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
 				break;
 			}
 		}
@@ -596,18 +645,13 @@ deleteSelectedQuestion(String quesContent){
 	}
 }
 moveUpQues(String quesContent){
-	//question_in_questionnaire_id=getFieldValue("questionnaire_question/questionnaire_question_info/questionInQuestionnaire");
-	//showWarning("question_in_questionnaire_id",question_in_questionnaire_id);
 	if(isNull(quesContent)){
 		showToast("No Question selected");
 		return;
 	}
 	for(int i=0;i<questionSelected.size();i++){
 			String toUpQues=questionSelected.get(i).get(1);
-			//showWarning("toUpQuesId",toUpQuesId);
 			if (toUpQues.equals(quesContent)){
-				//String quesId=questionSelected.get(i).get(0);
-				//showWarning("quesIdEqual",toUpQuesId);
 				if(i==0){
 					showToast("This is the upmost question");
 					break;
@@ -615,15 +659,11 @@ moveUpQues(String quesContent){
 				}
 				adjustQuesOrder("moveUp",i,null);
 				reConstructQuesOrder();
-				//showWarning("adjustQuesOrder","moveUp");
-				//populateRadioGroup("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
 				break;
 			}
 		}
 }
 moveDownQues(String quesContent){
-//question_in_questionnaire_id=getFieldValue("questionnaire_question/questionnaire_question_info/questionInQuestionnaire");
-	//showWarning("question_in_questionnaire_id",question_in_questionnaire_id);
 	if(isNull(quesContent)){
 		showToast("No Question selected");
 		return;
@@ -631,10 +671,7 @@ moveDownQues(String quesContent){
 	int length=questionSelected.size();
 	for(int i=0;i<questionSelected.size();i++){
 			String toDownQues=questionSelected.get(i).get(1);
-			//showWarning("toUpQuesId",toUpQuesId);
 			if (toDownQues.equals(quesContent)){
-				//String quesId=questionSelected.get(i).get(0);
-				//showWarning("quesIdEqual",toUpQuesId);
 				if(i==length-1){
 					showToast("This is the last question");
 					break;
@@ -642,27 +679,20 @@ moveDownQues(String quesContent){
 				}
 				adjustQuesOrder("moveDown",i,null);
 				reConstructQuesOrder();
-				//showWarning("adjustQuesOrder","moveUp");
-				//populateRadioGroup("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
 				break;
 			}
 		}
 }
+
 adjustQuesOrder(String typeFlag, int strtIndex, ArrayList toAdjustList){
 	switch(typeFlag){
 		case "deletion":
-		//showWarning("Adeletion",strtIndex.toString());
 			for(int i=strtIndex; i<questionSelected.size();i++){
 				String quesId=questionSelected.get(i).get(0);
-				//showWarning("quesId",quesId);
 				String quesCotntWithNumber=questionSelected.get(i).get(1);
-				//showWarning("quesCotntWithNumber",quesCotntWithNumber);
 				String quesCotnt=quesCotntWithNumber.substring(quesCotntWithNumber.indexOf("-")+1);
-				//showWarning("quesCotnt",quesCotnt);
 				String newQuesNum=(i+1).toString();
-				//showWarning("newQuesNum",newQuesNum);
 				quesCotnt=newQuesNum+"-"+quesCotnt;
-				//showWarning("quesCotnt",quesCotnt);
 				newQuesWithNum=new ArrayList();
 				newQuesWithNum.add(quesId);
 				newQuesWithNum.add(quesCotnt);
@@ -675,82 +705,50 @@ adjustQuesOrder(String typeFlag, int strtIndex, ArrayList toAdjustList){
 
 		case "moveUp":
 			i=strtIndex;
-			//Change toUpQues (ith) info
 			String toUpQuesId=questionSelected.get(i).get(0);
-			//showWarning("toUpQuesId",toUpQuesId);
 			String toUpQuesCotntWithNumber=questionSelected.get(i).get(1);
-				//showWarning("toUpQuesCotntWithNumber",toUpQuesCotntWithNumber);
 			String toUpQuesCotnt=toUpQuesCotntWithNumber.substring(toUpQuesCotntWithNumber.indexOf("-")+1);
-				//showWarning("toUpQuesCotnt",toUpQuesCotnt);
 			String newtoUpQuesNum=i.toString();
-				//showWarning("newQuesNum",newtoUpQuesNum);
 			toUpQuesCotnt=newtoUpQuesNum+"-"+toUpQuesCotnt;
-				//showWarning("toUpQuesCotnt",toUpQuesCotnt);
 			newToUpQuesWithNum=new ArrayList();
 			newToUpQuesWithNum.add(toUpQuesId);
 			newToUpQuesWithNum.add(toUpQuesCotnt);
 			questionSelected.set(i,newToUpQuesWithNum);
-			//showWarning("questionSelected","set(i,newQuesWithNum)");
-			//Change (i-1)th ques info
 			String toDownQuesId=questionSelected.get(i-1).get(0);
-				//showWarning("toDownQuesId",toDownQuesId);
 			String toDownQuesCotntWithNumber=questionSelected.get(i-1).get(1);
-				//showWarning("toDownQuesCotntWithNumber",toDownQuesCotntWithNumber);
 			String toDownQuesCotnt=toDownQuesCotntWithNumber.substring(toDownQuesCotntWithNumber.indexOf("-")+1);
-				//showWarning("toDownQuesCotnt",toDownQuesCotnt);
 			String newtoDownQuesNum=(i+1).toString();
-			//showWarning("newtoDownQuesNum",newtoDownQuesNum);
 			toDownQuesCotnt=newtoDownQuesNum+"-"+toDownQuesCotnt;
-				//showWarning("toDownQuesCotnt",toDownQuesCotnt);
 			newtoDownQuesWithNum=new ArrayList();
 			newtoDownQuesWithNum.add(toDownQuesId);
 			newtoDownQuesWithNum.add(toDownQuesCotnt);
 			questionSelected.set(i-1,newtoDownQuesWithNum);
-			//showWarning("questionSelected","2ndset(i,newQuesWithNum)");
 
 			Collections.swap(questionSelected,i,i-1);
-			//reConstructQuesOrder();
-			//showWarning("Collections","Collections");
 		break;
 
 		case "moveDown":
 			i=strtIndex;
-			//Change toUpQues (ith) info
 			String toDnQuesId=questionSelected.get(i).get(0);
-			//showWarning("toUpQuesId",toUpQuesId);
 			String toDnQuesCotntNum=questionSelected.get(i).get(1);
-				//showWarning("toUpQuesCotntWithNumber",toUpQuesCotntWithNumber);
 			String toDnQuesCotnt=toDnQuesCotntNum.substring(toDnQuesCotntNum.indexOf("-")+1);
-				//showWarning("toUpQuesCotnt",toUpQuesCotnt);
 			String newtoDnQuesNum=(i+2).toString();
-				//showWarning("newQuesNum",newtoUpQuesNum);
 			toDnQuesCotnt=newtoDnQuesNum+"-"+toDnQuesCotnt;
-				//showWarning("toUpQuesCotnt",toUpQuesCotnt);
 			newToDnQuesWithNum=new ArrayList();
 			newToDnQuesWithNum.add(toDnQuesId);
 			newToDnQuesWithNum.add(toDnQuesCotnt);
 			questionSelected.set(i,newToDnQuesWithNum);
-			//showWarning("questionSelected","set(i,newQuesWithNum)");
-			//Change (i-1)th ques info
 			String toSwapQuesId=questionSelected.get(i+1).get(0);
-				//showWarning("toDownQuesId",toDownQuesId);
 			String toSwapQuesCotntNum=questionSelected.get(i+1).get(1);
-				//showWarning("toDownQuesCotntWithNumber",toDownQuesCotntWithNumber);
 			String toSwapQuesCotnt=toSwapQuesCotntNum.substring(toSwapQuesCotntNum.indexOf("-")+1);
-				//showWarning("toDownQuesCotnt",toDownQuesCotnt);
 			String newtoUpQuesNumber=(i+1).toString();
-			//showWarning("newtoDownQuesNum",newtoDownQuesNum);
 			toSwapQuesCotnt=newtoUpQuesNumber+"-"+toSwapQuesCotnt;
-				//showWarning("toDownQuesCotnt",toDownQuesCotnt);
 			newtoUpQuesNum=new ArrayList();
 			newtoUpQuesNum.add(toSwapQuesId);
 			newtoUpQuesNum.add(toSwapQuesCotnt);
 			questionSelected.set(i+1,newtoUpQuesNum);
-			//showWarning("questionSelected","2ndset(i,newQuesWithNum)");
 
 			Collections.swap(questionSelected,i,i+1);
-			//reConstructQuesOrder();
-			//showWarning("Collections","Collections");
 		break;
 	}
 
@@ -791,7 +789,84 @@ initializeQuestionSelect(){
 searchQuestion(){
 
 }
+finishChangeQuestionnaire(){
+
+}
+
+finishCreateQuestionnaire(){
+
+}
+/*** Question property ***/
+createQuesPropertyControlPage(){
+	if(!hasView("prop_control/prop_control_info/New_Prop")){
+		removeAllViewsAndContainers("prop_control");
+		executeViewTask(new ViewTask() {
+			doTask(){
+				
+				newQuesPropViewDef=createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+				quesPropViewDef=createViewDef().createList().setLabel("Tap to view").setAnnotationEnabled(false).setStyleCss("user-list");
+
+				createView("prop_control/prop_control_info/New_Prop",newQuesPropViewDef,"prop_control/prop_control_info");
+				createView("prop_control/prop_control_info/propList",langTypeListViewDef,"prop_control/prop_control_info");
+				onEvent("prop_control/prop_control_info","show","loadQuesProp(\"propLoad\")");
+				onEvent("prop_control/prop_control_info/New_Prop","click","newQuesProp()");
+				onEvent("prop_control/prop_control_info/propList","click","loadQuesPropInfo()");
+			}
+		});	
+	}
+}
+
+createQuesPropPage(){
+	if(!hasView("quesProperty/quesPropertyInfo/propName")){
+		removeAllViewsAndContainers("quesProperty");
+		executeViewTask(new ViewTask() {
+	    doTask() {
+	  		propNameViewDef=createViewDef().createTextField().setLabel("Property name").setAttributeName("QuesPropDefName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+	  		propDescViewDef=createViewDef().createTextField().setLabel("Description").setAttributeName("QuesPropDefDesc").setAttributeType("measure").setAnnotationEnabled(true);
+	  		savePropBtnDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+	  		dupListDef=createViewDef().createList().setLabel("Duplicate records");
+
+	    	createView("quesProperty/quesPropertyInfo/propName",propNameViewDef,"quesProperty/quesPropertyInfo");
+	    	createView("quesProperty/quesPropertyInfo/propDesc",propDescViewDef,"quesProperty/quesPropertyInfo");
+	        createView("quesProperty/quesPropertyInfo/saveProp",savePropBtnDef,"quesProperty/quesPropertyInfo");
+	        createView("quesProperty/quesPropertyInfo/propDupList",dupListDef,"quesProperty/quesPropertyInfo");
+	        
+			onEvent("quesProperty/quesPropertyInfo/saveProp","click","quesPropCheck()");
+	   		}
+		});
+	}
+}
+loadQuesProp(String typeflag){
+
+}
+
+newQuesProp(){
+
+}
+
+loadQuesPropInfo(){
+
+}
+
+quesPropCheck(){
+
+}
 /*** Question ***/
+createQuestionPage(){
+	if(!hasView("questionBank/questionInfo/questionID")){
+		removeAllViewsAndContainers("questionBank");
+		executeViewTask(new ViewTask() {
+			doTask(){
+				quesIDInputViewDef=createViewDef().createTextField().setLabel("Question label").setAttributeName("QuestionID").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");		
+				quesPropViewDef=createViewDef().createDropDown().setLabel("Question property").setAnnotationEnabled(false);
+				createView("questionBank/questionInfo/questionID", quesIDInputViewDef,"questionBank/questionInfo");
+				createView("questionBank/questionInfo/questionProp",quesPropViewDef,"questionBank/questionInfo");
+				onEvent("questionBank/questionInfo/","show","initialQuestionCreation()");
+			}
+		});	
+	}
+}
+
 loadQuestionBank(){
 
 }
@@ -808,6 +883,9 @@ loadQuestionInfo(){
 
 }
 
+initialQuestionCreation(){
+
+}
 /*** Person ***/
 loadPerson(){
 
@@ -822,6 +900,30 @@ loadPersonInfo(){
 }
 
 /*** Language ***/
+createLanguagePage(){
+	if(!hasView("language/languageInfo/languageID")){
+		removeAllViewsAndContainers("language");
+		executeViewTask(new ViewTask() {
+			doTask(){
+				langIDViewDef=createViewDef().createTextField().setLabel("Language code").setAttributeName("LanguageID").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");		
+				langNameViewDef=createViewDef().createTextField().setLabel("Language name").setAttributeName("LanguageName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+				langOtherNameViewDef=createViewDef().createTextField().setLabel("Language other name(s)").setAttributeName("LanguageOtherNames").setAttributeType("measure").setAnnotationEnabled(true);
+				langPropViewDef=createViewDef().createDropDown().setLabel("Language type").setAnnotationEnabled(false);
+				finLangViewDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+
+				createView("language/languageInfo/langaugeID",langIDViewDef,"language/languageInfo");
+				createView("language/languageInfo/languageName",langNameViewDef,"language/languageInfo");
+				createView("language/languageInfo/languageOtherNames",langOtherNameViewDef,"language/languageInfo");
+				createView("language/languageInfo/languageType",langPropViewDef,"language/languageInfo");
+				createView("language/languageInfo/Finish_New_Language",finLangViewDef,"language/languageInfo");
+
+				onEvent("language/languageInfo/Finish_New_Language","click","saveNewLanguage()");
+				onEvent("language/languageInfo","show","loadLangType(\"new\")");
+
+			}
+		});	
+	}
+}
 loadLanguage(){
 
 }
@@ -833,6 +935,137 @@ newLanguage(){
 loadLanguageInfo(){
 
 }
+
+saveNewLanguage(){
+
+}
+
+loadLangType(String typeFlag){
+
+}
+
+/*** Language Type ***/
+createLangTypeControlPage(){
+	if(!hasView("langType_control/langType_control_info/New_LangType")){
+		removeAllViewsAndContainers("langType_control");
+		executeViewTask(new ViewTask() {
+			doTask(){
+				langTypeListViewDef=createViewDef().createList().setLabel("Tap to view").setAnnotationEnabled(false).setStyleCss("user-list");
+				newLangTypeViewDef=createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+
+				createView("langType_control/langType_control_info/New_LangType",newLangTypeViewDef,"langType_control/langType_control_info");
+				createView("langType_control/langType_control_info/langTypeList",langTypeListViewDef,"langType_control/langType_control_info");
+				onEvent("langType_control/langType_control_info","show","loadLangType(\"def\")");
+				onEvent("langType_control/langType_control_info/New_LangType","click","newLangType()");
+				onEvent("langType_control/langType_control_info/langTypeList","click","loadLangTypeInfo()");
+			}
+		});	
+	}
+}
+
+createLangTypePage(){
+	if(!hasView("langType/langType_info/langTypeName")){
+		removeAllViewsAndContainers("langType");
+		executeViewTask(new ViewTask() {
+			doTask(){
+				langTypeViewDef=createViewDef().createTextField().setLabel("Language type name").setAttributeName("LangTypeName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+				langDupViewDef=createViewDef().createList().setLabel("Duplicate records").setAnnotationEnabled(false).setStyleCss("menu-list");
+				finLangTypeViewDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+
+				createView("langType/langType_info/langTypeName",langTypeViewDef,"langType/langType_info");
+				createView("langType/langType_info/SaveLangType",finLangTypeViewDef,"langType/langType_info");
+				createView("langType/langType_info/duplicateLangTypeList",langDupViewDef,"langType/langType_info");
+
+				onEvent("langType/langType_info/SaveLangType","click","langTypePreCheck()");
+
+			}
+		});	
+	}
+}
+
+loadLangType(String typeFlag){
+
+}
+
+newLangType(){
+
+}
+
+loadLangTypeInfo(){
+
+}
+
+langTypePreCheck(){
+
+}
+
+/*** Person role ***/
+createPsRoleControlPage(){
+	if(!hasView("role_control/role_control_info/New_Role")){
+		removeAllViewsAndContainers("role_control");
+		executeViewTask(new ViewTask() {
+			doTask(){
+				roleListViewDef=createViewDef().createList().setLabel("Tap to view").setAnnotationEnabled(false).setStyleCss("user-list");
+				newRoleTypeViewDef=createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+
+				createView("role_control/role_control_info/New_Rol",newRoleTypeViewDef,"role_control/role_control_info");
+				createView("role_control/role_control_info/roleList",roleListViewDef,"role_control/role_control_info");
+				onEvent("role_control/role_control_info/New_Role","click","newRole()");
+				onEvent("role_control/role_control_info","show","loadRoles(\"newRole\",\"role_control/role_control_info/roleList\")");
+				onEvent("role_control/role_control_info/roleList","click","loadRoleInfo()");
+			}
+		});	
+	}
+}
+
+createPsRolePage(){
+	if(!hasView("personRole/personRoleInfo/personRoleName")){
+		removeAllViewsAndContainers("personRole");
+		executeViewTask(new ViewTask() {
+			doTask(){
+				roleNameViewDef=createViewDef.createTextField().setLabel("Role name").setAttributeName("PersonRoleName").setAttributeType("measure").setAnnotationEnabled(true);
+				introQuesnirReqViewDef=createViewDef().createRadioGroup().setLabel("Answering introductory questionnaire required?");
+				photoReqViewDef=createViewDef().createRadioGroup().setLabel("Taking photo required?");
+				dataShownReqViewDef=createViewDef().createRadioGroup().setLabel("Shown on client module's list?");
+				roleDupViewDef=createViewDef().createList().setLabel("Duplicate records").setAnnotationEnabled(false).setStyleCss("menu-list");
+				finRoleViewDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+				tempChoice=new ArrayList();
+				tempChoice.add(new NameValuePair("Yes", "Yes"));
+				tempChoice.add(new NameValuePair("No", "No"));
+
+				createView("personRole/personRoleInfo/personRoleName",roleNameViewDef,"personRole/personRoleInfo");
+				createView("personRole/personRoleInfo/RoleIntroRequired",introQuesnirReqViewDef,"personRole/personRoleInfo");
+				createView("personRole/personRoleInfo/RolePhotoRequired",photoReqViewDef,"personRole/personRoleInfo");
+				createView("personRole/personRoleInfo/RoleDataOnClient",dataShownReqViewDef,"personRole/personRoleInfo");
+				createView("personRole/personRoleInfo/SavePersonRole",finRoleViewDef,"personRole/personRoleInfo");
+				createView("personRole/personRoleInfo/duplicateRoleList",roleDupViewDef,"personRole/personRoleInfo");
+				
+				populateRadioGroup("personRole/personRoleInfo/RoleIntroRequired",tempChoice);
+				populateRadioGroup("personRole/personRoleInfo/RolePhotoRequired",tempChoice);
+				populateRadioGroup("personRole/personRoleInfo/RoleDataOnClient",tempChoice);
+
+				onEvent("personRole/personRoleInfo/SavePersonRole","click","checkRole()");
+
+			}
+		});	
+	}
+}
+
+newRole(){
+
+}
+
+loadRoles(String typeFlag, String populateRef){
+
+}
+
+loadRoleInfo(){
+
+}
+checkRole(){
+
+}
+/*** Person ***/
 
 /*** Search page ***/
 showEntity(){
@@ -854,3 +1087,7 @@ recordSearch(){
 
 }
 
+/*** Common methods ***/
+stayInCurrentPage(){
+	return;
+}
