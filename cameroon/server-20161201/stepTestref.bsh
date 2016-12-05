@@ -1,0 +1,388 @@
+import java.util.concurrent.Callable;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import android.util.Log;
+import java.io.File;
+/*** 'Editable' - you can edit the code below based on the needs ***/
+User user; // don't touch
+String userid;
+
+/***Enable data and file syncing***/
+addActionBarItem("sync", new ToggleActionButtonCallback() {
+    actionOnLabel() {
+        "Disable Sync";
+    }
+    actionOn() {
+        setSyncEnabled(false);
+        setFileSyncEnabled(false);
+        showToast("Sync disabled.");
+    }
+    isActionOff() {
+        isSyncEnabled();
+    }
+    actionOffLabel() {
+        "Enable Sync";
+    }
+    actionOff() {
+        setSyncEnabled(true);
+        setFileSyncEnabled(true);
+        showToast("Sync enabled.");
+    }
+});
+
+onSyncEvent("onSyncStart()", "onSyncSuccess()", "onSyncFailure()");
+
+
+onSyncStart() {
+    showToast("sync started");
+}
+ 
+onSyncSuccess() {
+    showToast("sync success");
+}
+ 
+onSyncFailure() {
+    showToast("sync failed");
+}
+
+/*** USER ***/
+onEvent("user/usertab/users", "click", "login()");
+onEvent("user/usertab/user_Search", "click", "userSearch()");
+String username = "";
+String device = "";
+
+loadAllUserQuery="select userid, fname || ' ' || lname from user where userdeleted is null";
+
+loadUsers() {
+    fetchAll(loadAllUserQuery, new FetchCallback() {
+        onFetch(result) {
+            populateList("user/usertab/users", result);
+        }
+    });
+}
+
+loadUsers();
+
+login() {
+    fetchOne("select userid,fname,lname,email from user where userid='" + getListItemValue() + "';", new FetchCallback() {
+        onFetch(result) {
+            user = new User(result.get(0),result.get(1),result.get(2),result.get(3));
+            setUser(user);
+            username = result.get(1) + " " + result.get(2);
+            createControlGroupView();
+            showTabGroup("control");
+            //initializeData();
+        }
+    });
+}
+
+createControlGroupView(){
+    removeAllViewsAndContainers("control");
+    createQuesnirControlPage();
+    createQuestionControlPage();
+    createPersonControlPage();
+    createLanguageControlPage();
+    createOtherControlPage();
+    createSearchControlPage();
+}
+
+createQuesnirControlPage(){
+    if(!hasView("control/questionnaire_control/questionnaireList")){
+        executeViewTask(new ViewTask() {
+        doTask() { 
+            newQuesnirButtonDef = createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+            quesnirListDef=createViewDef().createList().setLabel("Questionnaire").setAnnotationEnabled(false).setStyleCss("questionnaire-list");
+
+            createView("control/questionnaire_control/New_Questionnaire", newQuesnirButtonDef,"control/questionnaire_control");
+            createView("control/questionnaire_control/questionnaireList", quesnirListDef,"control/questionnaire_control");
+
+            refreshTabgroupCSS("control");
+            onEvent("control/questionnaire_control/New_Questionnaire","click","newQuestionnaire()");
+            onEvent("control/questionnaire_control","show","loadQuestionnaire()");
+            onEvent("control/questionnaire_control/questionnaireList","click","loadQuestionnaireInfo()");
+            }
+        
+        });
+    }
+}
+
+createQuestionControlPage(){
+    if(!hasView("control/question_control/questionList")){
+        executeViewTask(new ViewTask() {
+        doTask() { 
+            newQuesButtonDef = createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+            langSelDropdownDef=createViewDef().createDropDown().setLabel("Select language").setAnnotationEnabled(false);
+            quesListDef=createViewDef().createList().setLabel("Question").setAnnotationEnabled(false).setStyleCss("question-list");
+
+            createView("control/question_control/New_Question", newQuesButtonDef,"control/question_control");
+            createView("control/question_control/lang_sel", langSelDropdownDef,"control/question_control");
+            createView("control/question_control/questionList", quesListDef,"control/question_control");
+
+            refreshTabgroupCSS("control");
+            onEvent("control/question_control/New_Question","click","newQuestion()");
+            onEvent("control/question_control","show","loadQuestionBank()");
+            onEvent("control/question_control/questionList","click","loadQuestionInfo()");
+            onEvent("control/question_control/lang_sel", "click","searchQuestionByLang()");
+            }
+        
+        });
+    }
+}
+
+createPersonControlPage(){
+    if(!hasView("control/user_control/userList")){
+        executeViewTask(new ViewTask() {
+        doTask() { 
+            newPsButtonDef = createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+            psListDef=createViewDef().createList().setLabel("Person").setAnnotationEnabled(false).setStyleCss("user-list");
+
+            createView("control/user_control/New_User", newPsButtonDef,"control/user_control");
+            createView("control/user_control/userList", psListDef,"control/user_control");
+
+            refreshTabgroupCSS("control");
+            onEvent("control/user_control","show","loadPerson()");
+            onEvent("control/user_control/New_User","click","newPerson()");
+            onEvent("control/user_control/userList","click","loadPersonInfo()");
+            }
+        
+        });
+    }
+}
+
+createLanguageControlPage(){
+    if(!hasView("control/language_control/userList")){
+        executeViewTask(new ViewTask() {
+        doTask() { 
+            newLangButtonDef = createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+            langListDef=createViewDef().createList().setLabel("Language").setAnnotationEnabled(false).setStyleCss("language-list");
+
+            createView("control/language_control/New_Language", newLangButtonDef,"control/language_control");
+            createView("control/language_control/languageList", langListDef,"control/language_control");
+
+            refreshTabgroupCSS("control");
+            onEvent("control/language_control","show","loadLanguage()");
+            onEvent("control/language_control/languageList","click","loadLanguageInfo()");
+            onEvent("control/language_control/New_Language","click","newLanguage()");
+            }
+        
+        });
+    }
+}
+
+createOtherControlPage(){
+    if(!hasView("control/other_control/Role_Control")){
+        executeViewTask(new ViewTask() {
+        doTask() { 
+            roleButtonDef = createViewDef().createButton().setLabel("Person Role").setStyleCss("faims-blue");
+            quesnirTypeButtonDef = createViewDef().createButton().setLabel("Questionnaire Type").setStyleCss("faims-blue");
+            quesTypeButtonDef = createViewDef().createButton().setLabel("Question Propert").setStyleCss("faims-blue");
+            langTypeButtonDef = createViewDef().createButton().setLabel("Language Type").setStyleCss("faims-blue");
+
+            createView("control/other_control/Role_Control", roleButtonDef,"control/other_control");
+            createView("control/other_control/Type_Control", quesnirTypeButtonDef,"control/other_control");
+            createView("control/other_control/Prop_Control", quesTypeButtonDef,"control/other_control");
+            createView("control/other_control/langType_Control", langTypeButtonDef,"control/other_control");
+
+            refreshTabgroupCSS("control");
+            onEvent("control/other_control/Role_Control","click","showTabGroup(\"role_control\")");
+            onEvent("control/other_control/Type_Control","click","showTabGroup(\"type_control\")");
+            onEvent("control/other_control/Prop_Control","click","showTabGroup(\"prop_control\")");
+            onEvent("control/other_control/langType_Control","click","showTabGroup(\"langType_control\")");
+
+            }
+        
+        });
+    }
+}
+
+createSearchControlPage(){
+    if(!hasView("control/search/entityList")){
+        executeViewTask(new ViewTask() {
+        doTask() { 
+            style1 = "orientation";
+            style2 = "even";
+
+            createContainer("control/search/searchContainer","orientation");
+            createContainer("control/search/searchCtnChild1","even","control/search/searchContainer");
+            createContainer("control/search/searchCtnChild2","even", "control/search/searchContainer");
+
+            entityTypeDropDownDef=createViewDef().createDropDown().setLabel("Select entity type").setAnnotationEnabled(false);
+            searchKeywordViewDef=createViewDef().createTextField().setLabel("Keyword").setAnnotationEnabled(false);
+
+            searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
+
+            createView("control/search/entityTypes", entityTypeDropDownDef,"control/search/searchCtnChild1");
+            createView("control/search/keyword", searchKeywordViewDef,"control/search/searchCtnChild2");
+            createView("control/search/Record_Search", searchButtonDef,"control/search");
+
+            resultListDef=createViewDef().createList().setLabel("Result").setAnnotationEnabled(false).setStyleCss("menu-list");
+
+            createView("control/search/entityList", resultListDef,"control/search");
+
+            refreshTabgroupCSS("control");
+
+            onEvent("control/search","show","initializeSearch()");
+            onEvent("control/search/Record_Search","click","recordSearch()");
+            onEvent("control/search/entityList","click","showEntity()");
+            }
+        
+        });
+    }
+}
+
+loadQuestionnaire(){
+
+}
+
+newQuestionnaire(){
+
+}
+
+loadQuestionnaireInfo(){
+
+}
+
+startQuestionSelection(){
+
+}
+
+loadQuesnirType(String typeFlag){
+
+}
+
+setQuesnirType(){
+
+}
+
+newQuesnirType(){
+
+}
+
+initializeQuestionSelect(){
+
+}
+
+searchQuestion(){
+
+}
+finishChangeQuestionnaire(){
+
+}
+
+finishCreateQuestionnaire(){
+
+}
+
+loadQuestionBank(){
+
+}
+
+searchQuestionByLang(){
+
+}
+
+newQuestion(){
+
+}
+
+loadQuestionInfo(){
+
+}
+
+initialQuestionCreation(){
+
+}
+
+/*** Person ***/
+loadPerson(){
+
+}
+
+newPerson(){
+
+}
+
+loadPersonInfo(){
+
+}
+
+loadLanguage(){
+
+}
+
+newLanguage(){
+
+}
+
+loadLanguageInfo(){
+
+}
+
+saveNewLanguage(){
+
+}
+
+loadLangType(String typeFlag){
+
+}
+
+loadLangType(String typeFlag){
+
+}
+
+newLangType(){
+
+}
+
+loadLangTypeInfo(){
+
+}
+
+langTypePreCheck(){
+
+}
+
+newRole(){
+
+}
+
+loadRoles(String typeFlag, String populateRef){
+
+}
+
+loadRoleInfo(){
+
+}
+checkRole(){
+
+}
+/*** Person ***/
+
+/*** Search page ***/
+showEntity(){
+    
+}
+
+initializeSearch(){
+    entityTypes = new ArrayList();
+    entityTypes.add(new NameValuePair("{Questionnaire}", "Questionnaire"));
+    entityTypes.add(new NameValuePair("{Question}", "QuestionBank"));
+    entityTypes.add(new NameValuePair("{Person}", "Person"));
+    entityTypes.add(new NameValuePair("{Language}", "Language"));
+    entityTypes.add(new NameValuePair("{Role}", "PersonRole"));
+
+    populateDropDown("control/search/entityTypes",entityTypes);
+}
+
+recordSearch(){
+
+}
+
+/*** Common methods ***/
+stayInCurrentPage(){
+    return;
+}

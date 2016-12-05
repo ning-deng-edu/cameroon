@@ -52,7 +52,7 @@ onSyncFailure() {
 /*** USER ***/
 onEvent("user/usertab/users", "click", "login()");
 onEvent("user/usertab/user_Search", "click", "userSearch()");
-
+loadAllUserQuery="select userid, fname || ' ' || lname from user where userdeleted is null";
 loadUsers() {
     fetchAll(loadAllUserQuery, new FetchCallback() {
         onFetch(result) {
@@ -353,6 +353,9 @@ createQuesnirTypeControlPage(){
 
 				createView("type_control/type_control_info/New_Type",newQuesnirTypeViewDef,"type_control/type_control_info");
 				createView("type_control/type_control_info/typeList",quesTypeViewDef,"type_control/type_control_info");
+
+				refreshTabgroupCSS("type_control");
+				
 				onEvent("type_control/type_control_info","show","loadQuesnirType(\"typeLoad\")");
 				onEvent("type_control/type_control_info/New_Type","click","newQuesnirType()");
 				onEvent("type_control/type_control_info/typeList","click","loadTypeInfo()");
@@ -373,7 +376,7 @@ createQuesnirTypePage(){
 	    	createView("quesnirType/quesnirType_info/quesnirTypeName",typeNameViewDef,"quesnirType/quesnirType_info");
 	    	createView("quesnirType/quesnirType_info/SaveQuesnirType",saveTypeBtnDef,"quesnirType/quesnirType_info");
 	        createView("quesnirType/quesnirType_info/duplicateTypeList",dupListDef,"quesnirType/quesnirType_info");
-	        
+	        refreshTabgroupCSS("quesnirType");
 			onEvent("quesnirType/quesnirType_info/SaveQuesnirType","click","quesnirTypePreCheck()");
 	   		}
 		});
@@ -808,6 +811,7 @@ createQuesPropertyControlPage(){
 
 				createView("prop_control/prop_control_info/New_Prop",newQuesPropViewDef,"prop_control/prop_control_info");
 				createView("prop_control/prop_control_info/propList",langTypeListViewDef,"prop_control/prop_control_info");
+				refreshTabgroupCSS("prop_control");
 				onEvent("prop_control/prop_control_info","show","loadQuesProp(\"propLoad\")");
 				onEvent("prop_control/prop_control_info/New_Prop","click","newQuesProp()");
 				onEvent("prop_control/prop_control_info/propList","click","loadQuesPropInfo()");
@@ -830,7 +834,7 @@ createQuesPropPage(){
 	    	createView("quesProperty/quesPropertyInfo/propDesc",propDescViewDef,"quesProperty/quesPropertyInfo");
 	        createView("quesProperty/quesPropertyInfo/saveProp",savePropBtnDef,"quesProperty/quesPropertyInfo");
 	        createView("quesProperty/quesPropertyInfo/propDupList",dupListDef,"quesProperty/quesPropertyInfo");
-	        
+	        refreshTabgroupCSS("quesProperty");
 			onEvent("quesProperty/quesPropertyInfo/saveProp","click","quesPropCheck()");
 	   		}
 		});
@@ -861,6 +865,9 @@ createQuestionPage(){
 				quesPropViewDef=createViewDef().createDropDown().setLabel("Question property").setAnnotationEnabled(false);
 				createView("questionBank/questionInfo/questionID", quesIDInputViewDef,"questionBank/questionInfo");
 				createView("questionBank/questionInfo/questionProp",quesPropViewDef,"questionBank/questionInfo");
+
+				refreshTabgroupCSS("questionBank");
+
 				onEvent("questionBank/questionInfo/","show","initialQuestionCreation()");
 			}
 		});	
@@ -916,7 +923,7 @@ createLanguagePage(){
 				createView("language/languageInfo/languageOtherNames",langOtherNameViewDef,"language/languageInfo");
 				createView("language/languageInfo/languageType",langPropViewDef,"language/languageInfo");
 				createView("language/languageInfo/Finish_New_Language",finLangViewDef,"language/languageInfo");
-
+				refreshTabgroupCSS("language");
 				onEvent("language/languageInfo/Finish_New_Language","click","saveNewLanguage()");
 				onEvent("language/languageInfo","show","loadLangType(\"new\")");
 
@@ -955,6 +962,8 @@ createLangTypeControlPage(){
 
 				createView("langType_control/langType_control_info/New_LangType",newLangTypeViewDef,"langType_control/langType_control_info");
 				createView("langType_control/langType_control_info/langTypeList",langTypeListViewDef,"langType_control/langType_control_info");
+				refreshTabgroupCSS("langType_control");
+
 				onEvent("langType_control/langType_control_info","show","loadLangType(\"def\")");
 				onEvent("langType_control/langType_control_info/New_LangType","click","newLangType()");
 				onEvent("langType_control/langType_control_info/langTypeList","click","loadLangTypeInfo()");
@@ -975,7 +984,7 @@ createLangTypePage(){
 				createView("langType/langType_info/langTypeName",langTypeViewDef,"langType/langType_info");
 				createView("langType/langType_info/SaveLangType",finLangTypeViewDef,"langType/langType_info");
 				createView("langType/langType_info/duplicateLangTypeList",langDupViewDef,"langType/langType_info");
-
+				refreshTabgroupCSS("langType");
 				onEvent("langType/langType_info/SaveLangType","click","langTypePreCheck()");
 
 			}
@@ -1010,6 +1019,7 @@ createPsRoleControlPage(){
 
 				createView("role_control/role_control_info/New_Rol",newRoleTypeViewDef,"role_control/role_control_info");
 				createView("role_control/role_control_info/roleList",roleListViewDef,"role_control/role_control_info");
+				refreshTabgroupCSS("role_control");
 				onEvent("role_control/role_control_info/New_Role","click","newRole()");
 				onEvent("role_control/role_control_info","show","loadRoles(\"newRole\",\"role_control/role_control_info/roleList\")");
 				onEvent("role_control/role_control_info/roleList","click","loadRoleInfo()");
@@ -1039,7 +1049,9 @@ createPsRolePage(){
 				createView("personRole/personRoleInfo/RoleDataOnClient",dataShownReqViewDef,"personRole/personRoleInfo");
 				createView("personRole/personRoleInfo/SavePersonRole",finRoleViewDef,"personRole/personRoleInfo");
 				createView("personRole/personRoleInfo/duplicateRoleList",roleDupViewDef,"personRole/personRoleInfo");
-				
+
+				refreshTabgroupCSS("personRole");
+
 				populateRadioGroup("personRole/personRoleInfo/RoleIntroRequired",tempChoice);
 				populateRadioGroup("personRole/personRoleInfo/RolePhotoRequired",tempChoice);
 				populateRadioGroup("personRole/personRoleInfo/RoleDataOnClient",tempChoice);
