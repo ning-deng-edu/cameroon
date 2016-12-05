@@ -628,6 +628,7 @@
             <trigger ref="CreateNewPerson" faims_style_class="faims-blue">
                 <label>New Person</label>
             </trigger>
+            
             <trigger ref="CreateNewRole" faims_style_class="faims-blue">
                 <label>New Role</label>
             </trigger>

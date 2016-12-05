@@ -968,18 +968,6 @@ initialQuestionCreation(){
 
 }
 
-/*** Person ***/
-loadPerson(){
-
-}
-
-newPerson(){
-
-}
-
-loadPersonInfo(){
-
-}
 /*** Language ***/
 /*** Language var ***/
 language_id=null;
@@ -1078,9 +1066,7 @@ loadLangPropOrder(){
             if(!isNull(propResult)){
                 tempPropList=new ArrayList();
                 tempPropList.clear();
-                //showWarning("isNull","isNull");
                 String tempProp=propResult.get(0);
-                //showWarning("tempProp",tempProp);
                 originLangProp.clear();
                 originLangProp.addAll(propResult);
                 newLangProp.clear();
@@ -1171,7 +1157,442 @@ saveNewLanguage(){
 }
 
 /*** Person ***/
+/*** Person var ***/
+person_id=null;
+role_id=null;
+role_list=new ArrayList();
+savePersonWfProperty=new ArrayList();
+/*** Person query ***/
+loadAllPersonIDQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+        "WHERE latestNonDeletedAentValue.AttributeID "+
+        "IN (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonID') "+
+        "GROUP BY uuid "+
+        "ORDER BY measure asc";
 
+createPersonRoleSelPage(){
+    if(!hasView("personRoleSelect/personRoleSelectInfo/CreateNewRole")){
+        removeAllViewsAndContainers("personRoleSelect");
+        executeViewTask(new ViewTask() {
+        doTask() { 
+            style1 = "orientation";
+            style2 = "even";
+
+            createContainer("personRoleSelect/personRoleSelectInfo/searchContainer","orientation");
+            createContainer("personRoleSelect/personRoleSelectInfo/searchCtnChild1","even","personRoleSelect/personRoleSelectInfo/searchContainer");
+            createContainer("personRoleSelect/personRoleSelectInfo/searchCtnChild2","even", "personRoleSelect/personRoleSelectInfo/searchContainer");
+
+            createContainer("personRoleSelect/personRoleSelectInfo/roleSelContainer","orientation");
+            createContainer("personRoleSelect/personRoleSelectInfo/roleSelCtnChild1","even","personRoleSelect/personRoleSelectInfo/roleSelContainer");
+            createContainer("personRoleSelect/personRoleSelectInfo/roleSelCtnChild2","even", "personRoleSelect/personRoleSelectInfo/roleSelContainer");
+
+            searchKeywordViewDef=createViewDef().createTextField().setLabel("Keyword").setAnnotationEnabled(false);
+            searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
+
+            roleListDropDownDef=createViewDef().createDropDown().setLabel("Role").setAnnotationEnabled(false);
+            newRoleButtonDef = createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+            newPersonButtonDef = createViewDef().createButton().setLabel("New Person").setStyleCss("faims-blue");
+            
+            createView("personRoleSelect/personRoleSelectInfo/keywordOfRole", searchKeywordViewDef,"personRoleSelect/personRoleSelectInfo/searchCtnChild1");
+            createView("personRoleSelect/personRoleSelectInfo/SearchRole", searchButtonDef,"personRoleSelect/personRoleSelectInfo/searchCtnChild2");
+
+            createView("personRoleSelect/personRoleSelectInfo/PersonRoleSelectList", roleListDropDownDef,"personRoleSelect/personRoleSelectInfo/roleSelCtnChild1");
+            createView("personRoleSelect/personRoleSelectInfo/CreateNewRole", newRoleButtonDef,"personRoleSelect/personRoleSelectInfo/roleSelCtnChild2");
+
+            createView("personRoleSelect/personRoleSelectInfo/CreateNewPerson", newPersonButtonDef,"personRoleSelect/personRoleSelectInfo");
+
+            refreshTabgroupCSS("personRoleSelect");
+            onEvent("personRoleSelect/personRoleSelectInfo/CreateNewRole","click","newRole()");
+            onEvent("personRoleSelect/personRoleSelectInfo/","show","loadRoles(\"newPerson\",\"personRoleSelect/personRoleSelectInfo/PersonRoleSelectList\")");
+            onEvent("personRoleSelect/personRoleSelectInfo/CreateNewPerson","click","newPersonByRole()");
+            }
+        
+        });
+    }
+}
+
+createPersonPage(){
+    if(!hasView("person/personInfo/Finish_New_Person")){
+        removeAllViewsAndContainers("person");
+        executeViewTask(new ViewTask() {
+        doTask() { 
+            personRoleIdViewDef=createViewDef().createTextField().setAttributeName("PersonRole").setAttributeType("measure");
+
+            createView("person/personInfoHide/personRoleId",personRoleIdViewDef,"person/personInfoHide");
+
+            personIdViewDef=createViewDef().createTextField().setLabel("Person label").setAttributeName("PersonID").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+            personNameViewDef=createViewDef().createTextField().setLabel("Person name").setAttributeName("PersonName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+            personOtherNameViewDef=createViewDef().createTextField().setLabel("Person other name(s)").setAttributeName("PersonOtherNames").setAttributeType("measure").setAnnotationEnabled(true);
+            personDOBViewDef=createViewDef().createTextField().setLabel("Date of birth").setAttributeName("PersonDOB").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+            personRoleViewDef=createViewDef().createTextField().setLabel("Person general role").setReadOnly(true);
+            personPhotoViewDef=createViewDef().createCameraGallery(true).setAttributeName("PersonPhoto").setAttributeType("measure").setAnnotationEnabled(true);
+            takePhotoViewDef=createViewDef().createButton().setLabel("Take Photo").setStyleCss("faims-blue");
+            psPhotoDescViewDef=createViewDef().createTextField().setLabel("Photo decription").setAttributeName("PersonPhotoDescription").setAttributeType("measure").setAnnotationEnabled(true);
+            introAnsCheckViewDef=createViewDef().createCheckboxGroup().addChoice("Answered Intro quesnir", "Answered");
+            introDescViewDef=createViewDef().createTextField().setLabel("Intro quesnir description").setAttributeName("PersonIntroQuenirDesp").setAttributeType("measure").setAnnotationEnabled(true);
+            finishNewPsViewDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+
+            createView("person/personInfo/personID", personIdViewDef,"person/personInfo");
+            createView("person/personInfo/personName", personNameViewDef,"person/personInfo");
+
+            createView("person/personInfo/personOtherNames", personOtherNameViewDef,"person/personInfo");
+            createView("person/personInfo/personDOB", personDOBViewDef,"person/personInfo");
+
+            createView("person/personInfo/personRoleName", personRoleViewDef,"person/personInfo");
+            createView("person/personInfo/personPhoto", personPhotoViewDef,"person/personInfo");
+            createView("person/personInfo/Take_Photo", takePhotoViewDef,"person/personInfo");
+            createView("person/personInfo/personPhotoDesc", psPhotoDescViewDef,"person/personInfo");
+            createView("person/personInfo/introAnsChecker", introAnsCheckViewDef,"person/personInfo");
+            createView("person/personInfo/personIntroDesc", introDescViewDef,"person/personInfo");
+            createView("person/personInfo/Finish_New_Person", finishNewPsViewDef,"person/personInfo");
+
+            refreshTabgroupCSS("person");
+            onEvent("person/personInfo/Finish_New_Person","click","savePersonCheck()");
+            onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
+            }
+        
+        });
+    }
+}
+
+newPerson(){
+    createPersonRoleSelPage();
+    showTabGroup("personRoleSelect");
+}
+
+newPersonByRole(){
+   
+    role_id=getFieldValue("personRoleSelect/personRoleSelectInfo/PersonRoleSelectList");
+    roleInfo=new ArrayList();
+    roleInfo.clear();
+    Hashtable propertyInfo=new Hashtable();
+    String roleName=null;
+    if(isNull(role_id)){
+        showWarning("Invalid role","This role is invalid, please select another role for continue");
+        return;
+    }
+    for(role : role_list){
+        if(role.get(0).equals(role_id)){
+            roleName=role.get(1);
+            break;
+        }
+    }
+    if(isNull(roleName)){
+        showWarning("Invalid role","This role is invalid, please select another role for continue");
+        return;
+    }
+    roleInfo.add(role_id);
+    roleInfo.add(roleName);
+   
+    checkRoleIntroQuery="SELECT measure from latestNonDeletedAentValue WHERE "+
+        "latestNonDeletedAentValue.AttributeID="+
+        "(select AttributeID from AttributeKey where AttributeKey.AttributeName='RoleIntroAnsRequired') "+
+        "AND latestNonDeletedAentValue.uuid='"+role_id+"';";
+    checkRolePhotoQuery="SELECT measure from latestNonDeletedAentValue WHERE "+
+        "latestNonDeletedAentValue.AttributeID="+
+        "(select AttributeID from AttributeKey where AttributeKey.AttributeName='RolePhotoRequired') "+
+        "AND latestNonDeletedAentValue.uuid='"+role_id+"';";
+
+    fetchOne(checkRoleIntroQuery,new FetchCallback() {
+        onFetch(result) {
+            if(!isNull(result)){
+                if(result.get(0).equals("Yes")){
+                    propertyInfo.put("I","Y");
+                }
+                else{
+                    propertyInfo.put("I","N");
+                    
+                }
+               
+                fetchOne(checkRolePhotoQuery,new FetchCallback() {
+                    onFetch(result) {
+                        if(!isNull(result)){
+                            if(result.get(0).equals("Yes")){
+                                propertyInfo.put("P","Y");
+                            }
+                            else{
+                                propertyInfo.put("P","N");
+                            }
+                            
+                            newPersonWithIntro(roleInfo,propertyInfo);
+                        }
+                        else{
+                            showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+                            return;
+                        }
+                     
+                    }  
+                });
+            }
+
+            else{
+                showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+                                return;
+            }
+         
+        }  
+    });
+}
+
+newPersonWithIntro(ArrayList roleflag, Hashtable propertyFlag){
+    createPersonPage();
+    person_id=null;
+    newTabGroup("person");
+    setFieldValue("person/personInfoHide/personRoleId",roleflag.get(0));
+    setFieldValue("person/personInfo/personRoleName",roleflag.get(1));
+    savePersonWfProperty.clear();
+    savePersonWfProperty.add(propertyFlag.get("I"));
+    savePersonWfProperty.add(propertyFlag.get("P"));
+}
+
+savePersonCheck(){
+    if((isNull(getFieldValue("person/personInfo/personName"))) || (isNull(getFieldValue("person/personInfo/personDOB")))){
+        showWarning("Validation Error", "You must fill the Person Name and Person DOB before you can continue");
+        return;
+    }
+    if(!timeValidation(getFieldValue("person/personInfo/personDOB"))){
+        showWarning("Invalid DOB","1.Datetime format should be yyyy-MM-dd \n"+"2.The value for date should be valid");
+        return;
+    }
+    if(savePersonWfProperty.get(1).equals("Y")){
+        if((isNull(getFieldValue("person/personInfo/personPhoto"))) && (isNull(getFieldValue("person/personInfo/personPhotoDesc")))){
+            showWarning("Validation Error", "You must either take person photo or write the reason of not taking photo");
+            return;
+        }
+    }
+    if(savePersonWfProperty.get(0).equals("Y")){
+        if(person_id==null){
+            if(isNull(getFieldValue("person/personInfo/personIntroDesc"))){
+                showWarning("Validation Error", "You must either take person introductory questionnaire \n"+"or write the reason of not taking introductory questionnaire");
+                return;
+            }
+            else{
+                savePersonData();
+            }
+        }
+        else{
+            if(isNull(getFieldValue("person/personInfo/personIntroDesc"))){
+                checkPsIntrSssQuery="select uuid,measure from latestNonDeletedArchEntIdentifiers "+
+                    "where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+                    "and uuid in ( select uuid from AentReln "+
+                        "where RelationshipID in(select RelationshipID from AentReln "+
+                            "where RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+                                "where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session' ) "+
+                                "and latestNonDeletedRelationship.Deleted IS NULL) "+
+                    "and uuid in (select uuid from latestNonDeletedAentValue "+
+                        "where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+                        "and latestNonDeletedAentValue.measure in(select uuid from latestNonDeletedAentValue "+
+                            "where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+                            "and measure=(select uuid from latestNonDeletedAentValue "+
+                                "where AttributeID= (select AttributeID from AttributeKey "+
+                                    "where AttributeName='QuesnirTypeName') and measure = 'Introductory'))))) "+
+                    "and uuid in (select measure from latestNonDeletedArchEntIdentifiers "+
+                        "where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
+                        "and uuid in (select uuid from latestNonDeletedAentValue "+
+                            "where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') "+
+                            "and measure=(select uuid from latestNonDeletedAentValue "+
+                                "where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
+                                "and measure='consultant') "+
+                    "and uuid in (select uuid from latestNonDeletedAentValue "+
+                        "where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
+                        "and measure ='"+person_id+"')));";
+                    fetchAll(checkPsIntrSssQuery,new FetchCallback() {
+                        onFetch(result) {                               
+                            if(isNull(result)){
+                                showWarning("Validation Error", "You must either take person introductory questionnaire \n"+"or write the reason of not taking introductory questionnaire");
+                                return;
+                            }
+                            else{
+                                savePersonData();
+                            }
+                        }
+                        onError(message) {
+                            Log.e("error",message);
+                            showToast(message);
+                        }
+                    });
+            }
+            else{
+                savePersonData();
+            }
+        }
+    }
+    else{
+        savePersonData();
+    }
+}
+
+savePersonData(){
+    String personNameOrigin=getFieldValue("person/personInfo/personName");
+    String personNameCamCase=nameCamCaseConverter(personNameOrigin);
+    String personLabel=personNameCamCase+"_"+getFieldValue("person/personInfo/personDOB");
+    String personDOB=getFieldValue("person/personInfo/personDOB");
+
+    psDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+        "where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonID') "+
+        "and measure ='"+personLabel+"' or measure like '"+personLabel+"(%)'";
+
+    if(person_id!=null){
+        psDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+            "where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonID') "+
+            "and uuid<>'"+person_id+"' "+
+            "and measure ='"+personLabel+"' or measure like '"+personLabel+"(%)'";
+    }
+    
+    fetchAll(psDuplicateQuery,new FetchCallback() {
+        onFetch(result) {
+            if(!isNull(result)){
+                personLabel= nonDupLabelGen(result, personLabel, "Person", "PersonID",true);    
+            }
+            
+            setFieldValue("person/personInfo/personID",personLabel);            
+            saveTabGroup("person", person_id, null, null, new SaveCallback() {
+                onSave(uuid, newRecord) {
+                    person_id = uuid;
+                    if (newRecord) {
+                        showToast("New record created");
+                        cancelTabGroup("person",true);
+                        showTab("control/user_control");
+                    }
+                    else{
+                        showToast("Record changed");    
+                    }
+
+                    }
+                    onError(message) {
+                        showWarning("error",message);
+                    }  
+            });
+        }
+    });
+}
+loadPerson(){
+    fetchAll(loadAllPersonIDQuery, new FetchCallback() {
+        onFetch(result) {
+            populateList("control/user_control/userList", result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+loadPersonInfo(){
+    person_id=getListItemValue();
+    if(isNull(person_id)){
+        showToast("No Person selected");
+        return;
+    }
+    createPersonPage();
+    showTabGroup("person", person_id, new FetchCallback() {
+        onFetch(result) {
+            person=result;
+            String roleUuid=getFieldValue("person/personInfoHide/personRoleId");
+            checkPersonRoleQuery="SELECT measure from latestNonDeletedAentValue "+
+                "WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
+                "AND latestNonDeletedAentValue.AttributeID="+
+                "(select AttributeID from AttributeKey where AttributeName='PersonRoleName');";
+
+            checkRoleIntroQuery="SELECT measure from latestNonDeletedAentValue "+
+                "WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
+                "AND latestNonDeletedAentValue.AttributeID="+
+                "(select AttributeID from AttributeKey where AttributeName='RoleIntroAnsRequired');";
+
+            checkRolePhotoQuery="SELECT measure from latestNonDeletedAentValue "+
+                "WHERE latestNonDeletedAentValue.uuid='"+roleUuid+"' "+
+                "AND latestNonDeletedAentValue.AttributeID="+
+                "(select AttributeID from AttributeKey where AttributeName='RolePhotoRequired');";
+
+            fetchOne(checkPersonRoleQuery,new FetchCallback() {
+                    onFetch(result) {
+                        if(!isNull(result)){
+                            setFieldValue("person/personInfo/personRoleName",result.get(0));
+                            
+                        }
+                        else{
+                            showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+                        }
+                     
+                    }  
+            });
+            checkPsIntrSssQuery="select uuid,measure from latestNonDeletedArchEntIdentifiers "+
+                "where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
+                "and uuid in ( select uuid from AentReln "+
+                    "where RelationshipID in(select RelationshipID from AentReln "+
+                        "where RelationshipID in (select RelationshipID from latestNonDeletedRelationship "+
+                            "where RelnTypeID=(select RelnTypeID from RelnType where RelnTypeName='Answer and Session' ) "+
+                            "and latestNonDeletedRelationship.Deleted IS NULL) "+
+                "and uuid in (select uuid from latestNonDeletedAentValue "+
+                    "where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionnaireID') "+
+                    "and latestNonDeletedAentValue.measure in(select uuid from latestNonDeletedAentValue "+
+                        "where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireType') "+
+                        "and measure=(select uuid from latestNonDeletedAentValue "+
+                            "where AttributeID= (select AttributeID from AttributeKey "+
+                                "where AttributeName='QuesnirTypeName') and measure = 'Introductory'))))) "+
+                "and uuid in (select measure from latestNonDeletedArchEntIdentifiers "+
+                    "where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') "+
+                    "and uuid in (select uuid from latestNonDeletedAentValue "+
+                        "where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') "+
+                        "and measure=(select uuid from latestNonDeletedAentValue "+
+                            "where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
+                            "and measure='consultant') "+
+                "and uuid in (select uuid from latestNonDeletedAentValue "+
+                    "where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
+                    "and measure ='"+person_id+"')));";
+            
+            fetchAll(checkPsIntrSssQuery, new FetchCallback() {
+                onFetch(result) {
+                        if(!isNull(result)){
+                            setFieldValue("person/personInfo/introAnsChecker","Answered");
+                        }
+                    }
+                    
+                onError(message) {
+                    showToast(message);
+                }
+            });
+
+            fetchOne(checkRoleIntroQuery,new FetchCallback() {
+                onFetch(result) {
+                    if(!isNull(result)){
+                        savePersonWfProperty.clear();
+                        if(result.get(0).equals("Yes")){
+                            savePersonWfProperty.add("Y");
+                        }
+                        else{
+                            savePersonWfProperty.add("N");
+                        }
+                        fetchOne(checkRolePhotoQuery,new FetchCallback() {
+                            onFetch(result) {
+                                if(!isNull(result)){
+                                    if(result.get(0).equals("Yes")){
+                                        savePersonWfProperty.add("Y");
+                                    }
+                                    else{
+                                        savePersonWfProperty.add("N");
+                                    }
+                                    
+                                }
+                                else{
+                                    showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+                                }
+                             
+                            }  
+                        });
+                    }
+                    else{
+                        showWarning("Invalid role","This role may not be using anymore\n"+" please contact the admin for details");
+                    }
+                 
+                }  
+            });
+
+            showToast("Loaded person"+person.getId());            
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
 /*** Search page ***/
 showEntity(){
     
@@ -1457,4 +1878,41 @@ listChange(ArrayList newList, ArrayList oldList, int compareKey, ArrayList compa
     //showWarning("update_list","update_list");
     return listChanges;
 
+}
+timeValidation(String startDateTime){   
+        String hyphenDateRegex="^\\d{4}[-]\\d{2}[-]\\d{2}$";
+        Pattern hyphenDatePattern=Pattern.compile(hyphenDateRegex);
+        Matcher hyphenDateMatcher=hyphenDatePattern.matcher(startDateTime);
+        if (hyphenDateMatcher.find()){      
+                DateFormat df=new SimpleDateFormat("yyyy-MM-dd");
+                df.setLenient(false);
+                Date sdt=null;
+                try{
+                    sdt=df.parse(startDateTime);    
+                }
+                catch(Exception ex){
+                    return false;
+                }
+            return true;
+        }
+    return false;
+}
+
+nameCamCaseConverter(String originName){
+    String camCase=null;
+    String [] originNameSplit=originName.split("\\s+");
+    //showWarning("originNameSplit",originNameSplit[0]);
+    StringBuffer sb=new StringBuffer();
+    //showWarning("StringBuffer","originNameSplit[0]");
+    for (part : originNameSplit){
+        if(part.length()>1){
+            sb.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+        }
+        else{
+            sb.append(Character.toUpperCase(part.charAt(0)));
+        }
+    }
+    camCase=sb.toString().trim();
+    return camCase;
+    //showWarning("camCase",camCase);
 }
