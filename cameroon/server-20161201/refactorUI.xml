@@ -83,8 +83,15 @@
 
           <questionBank>
               <questionInfo>
+                  <questionID/>
+                  <questionProp/>                             
               </questionInfo>
           </questionBank>
+
+          <questionChoice>
+            <questionChoiceInfo>
+            </questionChoiceInfo>
+          </questionChoice>
 
           <personRoleSelect>
             <personRoleSelectInfo>
@@ -273,10 +280,28 @@
     </group>
 
     <group ref="questionBank" faims_archent_type="QuestionBank">
-      <label>Question</label>
+        <label>Question</label>
+        
+        <group ref="questionInfo">
+          <label>Question Information</label>
+          <input ref="questionID" faims_attribute_name="QuestionID" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false" faims_style_class="required">
+          <label>Question label</label>
+        </input>
       
-      <group ref="questionInfo">
-        <label>Question Information</label>
+       <select1 ref="questionProp"  faims_certainty="false" faims_annotation="false">
+          <label>Question property</label>
+          <item>
+            <label>placeholder</label>
+            <value>placeholder</value>
+          </item>
+          </select1>
+        </group>
+    </group>
+
+    <group ref="questionChoice">
+      <label>Question answer options</label>     
+      <group ref="questionChoiceInfo">
+        <label>Question answer options</label>
       </group>
     </group>
 

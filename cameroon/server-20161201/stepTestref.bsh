@@ -910,6 +910,351 @@ saveRole(){
             showWarning("error",message);
         }  
     });
+}
+/*** Question bank ***/
+/*** Question bank var ***/
+question_id=null;
+current_selected_language_id=null;
+candidatePropList=new ArrayList();
+oldPropList=new ArrayList();
+newPropList=new ArrayList();
+canLangList=new ArrayList();
+selLangList=new ArrayList();
+oldLangList=new ArrayList();
+newLangList=new ArrayList();
+ArrayList <HashMap<String, ArrayList<String>>> oldQuestionOptionList=new ArrayList<>();
+ArrayList <HashMap<String, ArrayList<String>>> newQuestionOptionList=new ArrayList<>();
+/*** Question bank query ***/
+loadAllQuesPropQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+        "WHERE latestNonDeletedAentValue.AttributeID "+
+        "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuesPropDefName') "+
+        "GROUP BY uuid "+
+        "ORDER BY measure";
+
+loadAllLWCLanguageQuery="select lang.uuid, lang.measure from latestNonDeletedAentValue as lang, latestNonDeletedAentValue as lProp "+
+    "where lang.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageName') "+
+    "and lProp.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageTypeID') "+
+    "and lang.uuid=lProp.uuid "+
+    "and lProp.measure=(select lPropDef.uuid from latestNonDeletedAentValue as lPropDef where lPropDef.AttributeID=(select AttributeID from AttributeKey where AttributeName='LangTypeName') "+
+    "and lPropDef.measure='LWC') "+
+    "and lang.uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID')) group by lang.uuid "+
+    "ORDER BY lang.measure";
+/*
+createQuestionPage(){
+    if(!hasView("questionBank/questionInfo/questionID")){
+        removeAllViewsAndContainers("questionBank");
+        executeViewTask(new ViewTask() {
+            doTask(){
+                quesIDInputViewDef=createViewDef().createTextField().setLabel("Question label").setAttributeName("QuestionID").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");      
+                quesPropViewDef=createViewDef().createDropDown().setLabel("Question property").setAnnotationEnabled(false);
+                createView("questionBank/questionInfo/questionID", quesIDInputViewDef,"questionBank/questionInfo");
+                createView("questionBank/questionInfo/questionProp",quesPropViewDef,"questionBank/questionInfo");
+
+                refreshTabgroupCSS("questionBank");
+
+                onEvent("questionBank/questionInfo/","show","initialQuestionCreation()");
+            }
+        }); 
+    }
+}
+*/
+onEvent("questionBank/questionInfo/","show","initialQuestionCreation()");
+
+initializeQuesBankVar(){
+    question_id=null;
+    current_selected_language_id=null;
+    oldPropList.clear();
+    newPropList.clear();
+    oldLangList.clear();
+    newLangList.clear();
+    oldQuestionOptionList.clear();
+    newQuestionOptionList.clear();
+}
+
+initialQuestionCreation(){
+    canLangList.clear();
+    selLangList.clear();
+    candidatePropList.clear();
+    if(isNull(question_id)){
+        createQuesLangVer("new");
+        fetchAll(loadAllQuesPropQuery,new FetchCallback() {
+            onFetch(result) {
+                candidatePropList.addAll(result);
+                populateDropDown("questionBank/questionInfo/questionProp", result);
+            }  
+        }); 
+    }
+}
+
+createQuesLangVer(String typeflag){
+    canLangList.clear();
+    selLangList.clear();
+    fetchAll(loadAllLWCLanguageQuery, new FetchCallback() {
+        onFetch(result) {
+            canLangList.addAll(result);
+            createLangVerContent(typeflag);
+        }  
+    }); 
+}
+
+createLangVerContent(String typeflag){
+    int langCount=0;
+    int langSize=canLangList.size();
+    for(lang:canLangList){
+        String langID=lang.get(0);
+        String langName=lang.get(1);
+
+        style1="orientation";
+        style2="even";
+        style3="large";
+        
+        if(hasView("questionBank/questionInfo/Finish_New_Question")){
+            removeAllViewsAndContainers("questionBank");
+        }
+
+        executeViewTask(new ViewTask(){
+            doTask(){
+                createContainer("questionBank/questionInfo/lang_c"+langCount, "orientation","questionBank/questionInfo");
+                createContainer("questionBank/questionInfo/langName_c" + langCount, "even", "questionBank/questionInfo/lang_c" + langCount);
+                createContainer("questionBank/questionInfo/quesInput_c" + langCount, "even", "questionBank/questionInfo/lang_c" + langCount);
+                if(langCount==0){
+                    createView("questionBank/questionInfo/langc" + langCount, createViewDef().createCheckboxGroup().addChoice(langName, langID).setLabel("languages"), "questionBank/questionInfo/langName_c" + langCount);
+                    createView("questionBank/questionInfo/quesc" + langCount, createViewDef().createTextField("string").setLabel("Question content"), "questionBank/questionInfo/quesInput_c" + langCount);
+                }
+                else{
+                    createView("questionBank/questionInfo/langc" + langCount, createViewDef().createCheckboxGroup().addChoice(langName, langID), "questionBank/questionInfo/langName_c" + langCount);                   
+                    createView("questionBank/questionInfo/quesc" + langCount, createViewDef().createTextField("string"), "questionBank/questionInfo/quesInput_c" + langCount);
+                }
+                
+                if(langCount==langSize-1){
+                    createView("questionBank/questionInfo/Finish_New_Question", createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue"), "questionBank/questionInfo");    
+                    onEvent("questionBank/questionInfo/Finish_New_Question","click","saveNewQuestion()");   
+                }
+            }
+        });
+        langCount++;
+    }
+    refreshTabgroupCSS("questionBank");
+    if(typeflag.equals("new")){
+        fetchOne(loadEngUuiQuery,new FetchCallback() {
+            onFetch(result) {
+                if(!isNull(result)){
+                    for(int i=0;i<canLangList.size();i++){
+                        setFieldValue("questionBank/questionInfo/langc" + i,result.get(0));
+                    }
+                    
+                }
+            }  
+        });
+    }
+}
+
+createMultipleChoice(){
+    int langCount=0;
+    int langSize=canLangList.size();
+    for(lang:canLangList){
+        String langID=lang.get(0);
+        String langName=lang.get(1);
+
+        style1="orientation";
+        style2="even";
+        style3="large";
+        
+        if(hasView("questionBank/questionInfo/Finish_New_Question")){
+            removeAllViewsAndContainers("questionBank");
+        }
+
+        executeViewTask(new ViewTask(){
+            doTask(){
+                createContainer("questionBank/questionInfo/lang_c"+langCount, "orientation","questionBank/questionInfo");
+                createContainer("questionBank/questionInfo/langName_c" + langCount, "even", "questionBank/questionInfo/lang_c" + langCount);
+                createContainer("questionBank/questionInfo/quesInput_c" + langCount, "even", "questionBank/questionInfo/lang_c" + langCount);
+                createContainer("questionBank/questionInfo/quesOpt_c" + langCount, "even", "questionBank/questionInfo/lang_c" + langCount);
+
+                if(langCount==0){
+                    createView("questionBank/questionInfo/langc" + langCount, createViewDef().createCheckboxGroup().addChoice(langName, langID).setLabel("languages"), "questionBank/questionInfo/langName_c" + langCount);
+                    createView("questionBank/questionInfo/quesc" + langCount, createViewDef().createTextField("string").setLabel("Question content"), "questionBank/questionInfo/quesInput_c" + langCount);
+                }
+                else{
+                    createView("questionBank/questionInfo/langc" + langCount, createViewDef().createCheckboxGroup().addChoice(langName, langID), "questionBank/questionInfo/langName_c" + langCount);                   
+                    createView("questionBank/questionInfo/quesc" + langCount, createViewDef().createTextField("string"), "questionBank/questionInfo/quesInput_c" + langCount);
+                }
+                createView("questionBank/questionInfo/quesopc" + langCount, createViewDef().createButton().setLabel("Option"), "questionBank/questionInfo/quesOpt_c" + langCount);
+                onEvent("questionBank/questionInfo/quesopc","click",createQuestionChoicePage(langID));
+                if(langCount==langSize-1){
+                    createView("questionBank/questionInfo/Finish_New_Question", createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue"), "questionBank/questionInfo");    
+                    onEvent("questionBank/questionInfo/Finish_New_Question","click","saveNewQuestion()");   
+                }
+
+            }
+        });
+        langCount++;
+    }
+    refreshTabgroupCSS("questionBank");
+    if(typeflag.equals("new")){
+        fetchOne(loadEngUuiQuery,new FetchCallback() {
+            onFetch(result) {
+                if(!isNull(result)){
+                    for(int i=0;i<canLangList.size();i++){
+                        setFieldValue("questionBank/questionInfo/langc" + i,result.get(0));
+                    }
+                    
+                }
+            }  
+        });
+    }
+}
+
+createQuestionChoicePage(String langVerId){
+    Boolean optExist=false;
+    ArrayList<String> tempOptList=new ArrayList<>();
+    if(!isNull(newQuestionOptionList)){
+        for(optMap: newQuestionOptionList){
+            if(optMap.containsKey(langVerId)){
+                optExist=true;
+                tempOptList=optMap.get(langVerId);
+                break;
+            }
+        }    
+    }
+    
+    if(!optExist){
+        removeAllViewsAndContainers("questionChoice");
+        executeViewTask(new ViewTask(){
+            doTask(){
+                style1 = "orientation";
+                style2 = "even";
+                style3 = "large";
+
+                int quesOptCount=0;
+
+                for(quesOptCount=0;quesOptCount<2;quesOptCount++){
+                    createContainer("questionChoice/questionChoiceInfo/optCtn_c"+quesOptCount, "orientation","questionChoice/questionChoiceInfo");
+                    createContainer("questionChoice/questionChoiceInfo/opt_c" + quesOptCount, "even", "questionChoice/questionChoiceInfo/optCtn_c"+quesOptCount);
+                    createContainer("questionChoice/questionChoiceInfo/optDel_c" + quesOptCount, "even", "questionChoice/questionChoiceInfo/optCtn_c"+quesOptCount);
+                    if(quesOptCount==0){
+                        createView("questionChoice/questionChoiceInfo/optc" + quesOptCount, createViewDef().createTextField("string").setLabel("Question Option"), "questionChoice/questionChoiceInfo/opt_c" + quesOptCount);        
+                    }
+                    else{
+                        createView("questionChoice/questionChoiceInfo/optc" + quesOptCount, createViewDef().createTextField("string"), "questionChoice/questionChoiceInfo/opt_c" + quesOptCount);           
+                    }
+                    createView("questionChoice/questionChoiceInfo/optDelc" + quesOptCount, createViewDef().createButton().setLabel("X"), "questionChoice/questionChoiceInfo/optDel_c" + quesOptCount);
+                    onEvent("questionChoice/questionChoiceInfo/optDelc" + quesOptCount,"click","delOptCheck(quesOptCount)");
+                }
+                createQuesOptBtn(quesOptCount, langVerId);
+            }
+        });
+    }
+    else{
+        listExistingOpt(tempOptList,langVerId);
+    }
+}
+
+listExistingOpt(ArrayList tempOptList, String langVerId){
+    int quesOptCount=tempOptList.size();
+    for(int i=0;i<tempOptList.size();i++){
+        createContainer("questionChoice/questionChoiceInfo/optCtn_c"+i, "orientation","questionChoice/questionChoiceInfo");
+        createContainer("questionChoice/questionChoiceInfo/opt_c" + i, "even", "questionChoice/questionChoiceInfo/optCtn_c"+i);
+        createContainer("questionChoice/questionChoiceInfo/optDel_c" + i, "even", "questionChoice/questionChoiceInfo/optCtn_c"+i);
+        if(i==0){
+            createView("questionChoice/questionChoiceInfo/optc" + i, createViewDef().createTextField("string").setLabel("Question Option"), "questionChoice/questionChoiceInfo/opt_c" + i);        
+        }
+        else{
+            createView("questionChoice/questionChoiceInfo/optc" + i, createViewDef().createTextField("string"), "questionChoice/questionChoiceInfo/opt_c" + i);           
+        }
+        createView("questionChoice/questionChoiceInfo/optDelc" + i, createViewDef().createButton().setLabel("X"), "questionChoice/questionChoiceInfo/optDel_c" + i);
+        refreshTabgroupCSS("questionChoice");
+        setFieldValue("questionChoice/questionChoiceInfo/optc" + i, tempOptList.get(i));
+        onEvent("questionChoice/questionChoiceInfo/optDelc" + i,"click","delOptCheck(i)");
+    }
+    createQuesOptBtn(quesOptCount, langVerId);
+}
+
+createQuesOptBtn(int quesOptCount, String langVerId){
+    createView("questionChoice/questionChoiceInfo/newOpt",createViewDef().createButton.setLabel("Add Option"),"questionChoice/questionChoiceInfo");
+    createView("questionChoice/questionChoiceInfo/finOpt",createViewDef().createButton.setLabel("Finish"),"questionChoice/questionChoiceInfo");
+    onEvent("questionChoice/questionChoiceInfo/newOpt","click",addQuestionChoice(quesOptCount, langVerId));
+    onEvent("questionChoice/questionChoiceInfo/finOpt","click",storeQuestionChoice(quesOptCount,langVerId));
+    refreshTabgroupCSS("questionChoice");
+}
+
+addQuestionChoice(int quesOptCount, String langVerId){
+    removeView("questionChoice/questionChoiceInfo/newOpt"); 
+    createContainer("questionChoice/questionChoiceInfo/optCtn_c"+quesOptCount, "orientation","questionChoice/questionChoiceInfo");
+    createContainer("questionChoice/questionChoiceInfo/opt_c" + quesOptCount, "even", "questionChoice/questionChoiceInfo/optCtn_c"+quesOptCount);
+    createContainer("questionChoice/questionChoiceInfo/optDel_c" + quesOptCount, "even", "questionChoice/questionChoiceInfo/optCtn_c"+quesOptCount);
+    createView("questionChoice/questionChoiceInfo/optc" + quesOptCount, createViewDef().createTextField("string"), "questionChoice/questionChoiceInfo/opt_c" + quesOptCount);
+    createView("questionChoice/questionChoiceInfo/optDelc" + quesOptCount, createViewDef().createButton().setLabel("X"), "questionChoice/questionChoiceInfo/optDel_c" + quesOptCount);
+    onEvent("questionChoice/questionChoiceInfo/optDelc" + quesOptCount,"click","delOptCheck(quesOptCount)");
+    
+    quesOptCount++;
+    createQuesOptBtn(quesOptCount,langVerId);
+}
+
+delOptCheck(int quesOptCount){
+    showAlert("Deletion alert", "Are you sure to delete this option?\n"+getFieldValue("questionChoice/questionChoiceInfo/optc" + quesOptCount), "delOptConfirm(quesOptCount)", "stayInCurrentPage()"); 
+}
+
+delOptConfirm(int quesOptCount){
+    removeContainer("questionChoice/questionChoiceInfo/optCtn_c"+quesOptCount);
+    removeContainer("questionChoice/questionChoiceInfo/opt_cc"+quesOptCount);
+    removeContainer("questionChoice/questionChoiceInfo/optDel_c"+quesOptCount);
+    removeView("questionChoice/questionChoiceInfo/optc" + quesOptCount);
+    removeView("questionChoice/questionChoiceInfo/optDelc" + quesOptCount);
+    refreshTabgroupCSS("questionChoice");
+}
+
+storeQuestionChoice(int quesOptCount, String langVerId){
+    HashMap<String, ArrayList<String>> tempOptMap=new HashMap<>();
+    ArrayList<String> tempOptText=new ArrayList();
+    for(int i=0;i<quesOptCount-1;i++){
+        if(hasView("questionChoice/questionChoiceInfo/optc" + i)){
+            tempOptText.add(getFieldValue("questionChoice/questionChoiceInfo/optc" + i));
+        }
+    }
+
+    if(tempOptText==null||tempOptText.size()<2){
+        showWarning("No option added","No data added, you must add at least two options for this question");
+        return;
+    }
+
+    tempOptMap.put(langVerId,tempOptText);
+    
+    if(!isNull(newQuestionOptionList)){
+        for(optMap: newQuestionOptionList){
+            if(optMap.containsKey(langVerId)){
+                newQuestionOptionListList.remove(optMap);
+                break;
+            }
+        }    
+    }
+    newQuestionOptionList.add(tempOptMap);
+    cancelTabGroup("questionChoice",true);
+}
+
+searchQuestionByLang(){
+    String quesLangId=getFieldValue("control/question_control/lang_sel");
+
+    loadQuesContentByLanguageQuery="select qId.measure, qCntt.measure from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qCntt, latestNonDeletedAentValue as qLang "+
+    "where qId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
+    "and qCntt.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesContent') "+
+    "and qLang.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesLangUuid') "+
+    "and qId.uuid=qCntt.uuid "+
+    "and qCntt.uuid=qLang.uuid "+
+    "and qLang.measure='"+quesLangId+"'";
+
+    fetchAll(loadQuesContentByLanguageQuery, new FetchCallback() {
+        onFetch(result) {
+            populateList("control/question_control/questionList", result);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+
+saveNewQuestion(){
 
 }
 /*** Questionnaire ***/
