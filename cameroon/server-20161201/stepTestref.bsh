@@ -75,19 +75,22 @@ login() {
             username = result.get(1) + " " + result.get(2);
             createControlGroupView();
             showTabGroup("control");
-            //initializeData();
+            initializeData();
         }
     });
 }
 
 createControlGroupView(){
-    removeAllViewsAndContainers("control");
-    createQuesnirControlPage();
-    createQuestionControlPage();
-    createPersonControlPage();
-    createLanguageControlPage();
-    createOtherControlPage();
-    createSearchControlPage();
+    if(!hasView("control/questionnaire_control/questionnaireList")){
+        removeAllViewsAndContainers("control");
+        createQuesnirControlPage();
+        createQuestionControlPage();
+        createPersonControlPage();
+        createLanguageControlPage();
+        createOtherControlPage();
+        createSearchControlPage();
+    }
+   
 }
 
 createQuesnirControlPage(){
@@ -1125,15 +1128,16 @@ createLangVerContent(String typeflag){
 
 checkUIupdate(){
     String propUuid=getFieldValue("questionBank/questionInfo/questionProp");
-    for(prop: candidatePropList){
-        if(prop.get(0).equals(propUuid)){
-            if((prop.get(1).equals("MultiChoices")|| prop.get(1).equals("MultiChoice")) && !hasView("questionBank/questionInfo/quesopc0")){
-                dataTempStoreUIchange();
-            }
-            if(!prop.get(1).equals("MultiChoices") && !prop.get(1).equals("MultiChoice") && hasView("questionBank/questionInfo/quesopc0")){
-                alertLosingOptions();
-            }
-        }
+    String propText=getQuesPropText(propUuid);
+    if(propText==null|| propText.equals("")){
+        showWarning("Deprecated data","This property may not be using anymore\n"+"please contact the admin for more details");
+        return;
+    }
+    if((propText.equals("MultiChoices")|| propText.equals("MultiChoice")) && !hasView("questionBank/questionInfo/quesopc0")){
+        dataTempStoreUIchange();
+    }
+    if(!propText.equals("MultiChoices") && !propText.equals("MultiChoice") && hasView("questionBank/questionInfo/quesopc0")){
+        alertLosingOptions();
     }
 }
 
@@ -1360,7 +1364,7 @@ delOptConfirm(String quesOptCountStr){
 
 storeQuestionChoice(String quesOptCountStr, String langVerId){
     int quesOptCount=Integer.parseInt(quesOptCountStr);
-    
+
     HashMap tempOptMap=new HashMap();
     ArrayList tempOptText=new ArrayList();
     for(int i=0;i<quesOptCount;i++){
@@ -1395,6 +1399,167 @@ removeMultipleChoiceUI(){
         removeContainer("questionBank/questionInfo/quesOpt_c" + i);
    } 
    refreshTabgroupCSS("questionBank");
+   newQuestionOptionList.clear();
+}
+
+saveNewQuestion(){
+    if(isNull(getFieldValue("questionBank/questionInfo/questionID"))){
+        showWarning("Validation Error", "You must enter the question label before you can continue");
+        return;
+    }
+    selLangList=getSelLang();
+    if(isNull(selLangList)){
+        showWarning("Incomplete data", "You must:\n"+"indicate at least one language, and\n"+"enter the question content for every language");
+        return;
+    }
+
+    recording_req_id=getFieldValue("questionBank/questionInfo/questionProp");
+    recording_req_type=getQuesPropText(recording_req_id);
+    Boolean saveChoice=false;
+
+    if(recording_req_type!=null && !recording_req_type.equals("")){
+        if(recording_req_type.equals("MultiChoice")||recording_req_type.equals("MultiChoices")){
+            if(newQuestionOptionList==null || newQuestionOptionList.isEmpty()){
+                showWarning("No data of question option","No data of question option is recorded");
+                return;
+            }
+            else{
+                saveChoice=true;
+            }
+        }
+    }
+
+    tempQuesLabel=getFieldValue("questionBank/questionInfo/questionID");
+    quesDuplicateQuery=null;
+    if(question_id!=null){
+        quesDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+                "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
+                "and uuid<>'"+question_id+"' "+
+                "and measure ='"+tempQuesLabel+"' or measure like '"+tempQuesLabel+"(%)'";
+    }
+    else{
+        quesDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+                "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
+                "and measure ='"+tempQuesLabel+"' or measure like '"+tempQuesLabel+"(%)'";
+    }
+
+    fetchAll(quesDuplicateQuery,new FetchCallback() {
+        onFetch(result) {
+            if(!isNull(result)){
+                tempQuesLabel=nonDupLabelGen(result,tempQuesLabel,"QuestionBank","QuestionID",true);
+                setFieldValue("questionBank/questionInfo/questionID",tempQuesLabel);
+            }
+            recording_req_id=getFieldValue("questionBank/questionInfo/questionProp");
+            recording_req_type=getQuesPropText(recording_req_id);
+            saveTabGroup("questionBank", question_id, null, null, new SaveCallback() {
+                onSave(uuid, newRecord) {
+                  question_id = uuid;
+                  if (newRecord) {
+                    saveQuesProp(question_id,recording_req_id);
+                    showWarning("saveQuesProp","saveQuesProp");
+                    saveQuesLangs(question_id,selLangList);
+                    showWarning("saveQuesLangs","saveQuesLangs");
+                    if(saveChoice){
+                        showWarning("saveChoice","saveChoice");
+                        saveQuesChoice(question_id);
+                    }
+                    showToast("Record created");
+                    cancelTabGroup("questionBank",true);
+                    showTab("control/question_control");
+                  }
+                  else{
+                    showToast("Record changed");
+                  }
+                }
+                onError(message) {
+                    showWarning("error",message);
+                }  
+            });
+        }
+    });
+
+}
+
+saveQuesProp(String quesUuid, String propUuid){
+    quesPropAttributes= createAttributeList();
+    quesPropAttributes.add(createEntityAttribute("QuesUuid", null, null, quesUuid, null));
+    quesPropAttributes.add(createEntityAttribute("QuesPropDefID", null, null,propUuid, null));
+    quesPropAttributes.add(createEntityAttribute("QuesPropValue", null, null, "Yes", null));
+    saveArchEnt(null, "QuesProperty", null, quesPropAttributes);
+}
+
+saveQuesLangs(String quesUuid, ArrayList selLangList){
+    for(lang: selLangList){
+        quesLangVer=createAttributeList();
+        quesLangVer.add(createEntityAttribute("QuestionUuid", null, null, quesUuid, null));
+        quesLangVer.add(createEntityAttribute("QuesLangUuid", null, null, lang.get(0), null));
+        quesLangVer.add(createEntityAttribute("QuesContent", null, null, lang.get(1), null));
+        saveArchEnt(null, "QuestionLang", null, quesLangVer);
+    }
+}
+
+saveQuesChoice(String quesUuid){
+    for(int i=0;i<newQuestionOptionList.size();i++){
+        HashMap tempChoiceMap=newQuestionOptionList.get(i);
+        String quesLangUuid=null;
+        ArrayList quesOptTextList=new ArrayList();
+
+        for(String key: tempChoiceMap.keySet()){
+            quesLangUuid=key;
+            quesOptTextList.clear();
+            quesOptTextList.addAll(tempChoiceMap.get(key));
+            break;
+        }
+        if(quesLangUuid==null || quesOptTextList==null || quesOptTextList.isEmpty()){
+            showWarning("data lost","please report this problem to the admin");
+            return;
+        }
+        saveQuesChoiceByLang(quesUuid,quesLangUuid,quesLangUuid);
+    }
+}
+
+saveQuesChoiceByLang(String quesUuid,String quesLangUuid, ArrayList quesOptList){
+    for(int j=0;j<quesOptList.size();j++){
+        quesChoice=createAttributeList();
+        quesChoice.add(createEntityAttribute("QuesUuidOpt", null, null, quesUuid, null));
+        quesChoice.add(createEntityAttribute("QuesLangUuid", null, null, quesUuid, null));
+        quesChoice.add(createEntityAttribute("QuesOptionText", null, null, quesOptList.get(i), null));
+        saveArchEnt(null, "QuestionOption", null, quesChoice);
+    }
+}
+
+
+
+getSelLang(){
+    returnLangVer=new ArrayList();
+    returnLangVer.clear();
+    for(int i=0;i<canLangList.size();i++){
+        if(!isNull(getFieldValue("questionBank/questionInfo/langc" + i))){
+            tempLangVer=new ArrayList();
+            tempLangVer.add(getFieldValue("questionBank/questionInfo/langc" + i).get(0).getName());
+            if(!isNull(getFieldValue("questionBank/questionInfo/quesc" + i))){
+                tempLangVer.add(getFieldValue("questionBank/questionInfo/quesc" + i));
+                returnLangVer.add(tempLangVer);
+            }
+            else{
+                returnLangVer.clear();
+                return returnLangVer;
+            }
+            
+        }
+    }
+    return returnLangVer;
+}
+
+getQuesPropText(String propUuid){
+    String propText=null;
+    for(prop: candidatePropList){
+        if(prop.get(0).equals(propUuid)){
+            propText=prop.get(1);
+            break;
+        }
+    }
+    return propText;
 }
 /*** Questionnaire ***/
 loadQuestionnaire(){
@@ -2384,4 +2549,141 @@ nameCamCaseConverter(String originName){
     camCase=sb.toString().trim();
     return camCase;
     //showWarning("camCase",camCase);
+}
+
+onEvent("control/querytest/Submit","click","testQuery()");
+testQuery(){
+    query=getFieldValue("control/querytest/query");
+    //fetchAll("SELECT sql FROM sqlite_master WHERE name='archentity';",
+    fetchAll(query.toString()+";",
+    new FetchCallback() {
+        onFetch(result) {
+            if (isNull(result)) {
+                //code
+                showWarning("no","no result");
+            }
+            else{
+                for (re : result) {
+                showWarning("yes",re.toString());
+                //showWarning("me",re.toString());
+                
+            }           
+            //populateList("control/question_control/questionList", result);
+        }
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
+    
+}
+
+initializeData(){
+    //showWarning("initializeData","initializeData");
+    fetchOne("select * from AentValue", new FetchCallback() {
+        onFetch(result) {
+            if(isNull(result)){
+                //showWarning("NO DATA","NO DATA");
+                initializeQuesnirType();
+                initializeQuesProp();
+                initilizePersonRole();
+                initilizeLangType();
+                showToast("data initilized");
+            }
+        }
+    });
+}
+
+initializeQuesnirType(){
+    regQuesnirAttributes=createAttributeList();
+    regQuesnirAttributes.add(createEntityAttribute("QuesnirTypeName", null, null, "Regular", null));
+    saveArchEnt(null, "QuesnirType", null, regQuesnirAttributes);
+
+    introQuesnirAttributes=createAttributeList();
+    introQuesnirAttributes.add(createEntityAttribute("QuesnirTypeName", null, null, "Introductory", null));
+    saveArchEnt(null, "QuesnirType", null, introQuesnirAttributes);
+
+    sclingQuesnirAttributes=createAttributeList();
+    sclingQuesnirAttributes.add(createEntityAttribute("QuesnirTypeName", null, null, "Sociolinguistic", null));
+    saveArchEnt(null, "QuesnirType", null, sclingQuesnirAttributes);
+
+    emrQuesnirAttributes=createAttributeList();
+    emrQuesnirAttributes.add(createEntityAttribute("QuesnirTypeName", null, null, "Emergency", null));
+    saveArchEnt(null, "QuesnirType", null, emrQuesnirAttributes);
+
+    testQuesnirAttributes=createAttributeList();
+    testQuesnirAttributes.add(createEntityAttribute("QuesnirTypeName", null, null, "Test", null));
+    saveArchEnt(null, "QuesnirType", null, testQuesnirAttributes);
+}
+
+initializeQuesProp(){
+    audQuesAttributes=createAttributeList();
+    audQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "Audio", null));
+    saveArchEnt(null, "QuesPropDef", null, audQuesAttributes);
+
+    vedQuesAttributes=createAttributeList();
+    vedQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "Videod", null));
+    saveArchEnt(null, "QuesPropDef", null, vedQuesAttributes);
+
+    phtQuesAttributes=createAttributeList();
+    phtQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "Photo", null));
+    saveArchEnt(null, "QuesPropDef", null, phtQuesAttributes);
+
+    filQuesAttributes=createAttributeList();
+    filQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "File", null));
+    saveArchEnt(null, "QuesPropDef", null, filQuesAttributes);
+
+    nonQuesAttributes=createAttributeList();
+    nonQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "FreeText", null));
+    saveArchEnt(null, "QuesPropDef", null, nonQuesAttributes);
+
+    lanQuesAttributes=createAttributeList();
+    lanQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "LangList", null));
+    saveArchEnt(null, "QuesPropDef", null, lanQuesAttributes);
+
+    lanEndQuesAttributes=createAttributeList();
+    lanEndQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "LangListEnd", null));
+    saveArchEnt(null, "QuesPropDef", null, lanEndQuesAttributes);
+
+    choiceQuesAttributes=createAttributeList();
+    choiceQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "MultiChoice", null));
+    saveArchEnt(null, "QuesPropDef", null, choiceQuesAttributes);
+
+    choicesQuesAttributes=createAttributeList();
+    choicesQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "MultiChoices", null));
+    saveArchEnt(null, "QuesPropDef", null, choicesQuesAttributes);
+
+    emrQuesAttributes=createAttributeList();
+    emrQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "Emergency", null));
+    saveArchEnt(null, "QuesPropDef", null, emrQuesAttributes);
+
+    chkQuesAttributes=createAttributeList();
+    chkQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "CheckList", null));
+    saveArchEnt(null, "QuesPropDef", null, chkQuesAttributes);
+}
+
+initilizePersonRole(){
+    colPsAttributes=createAttributeList();
+    colPsAttributes.add(createEntityAttribute("PersonRoleName", null, null, "consultant", null));
+    colPsAttributes.add(createEntityAttribute("RoleIntroAnsRequired", null, null, "Yes", null));
+    colPsAttributes.add(createEntityAttribute("RolePhotoRequired", null, null, "Yes", null));
+    colPsAttributes.add(createEntityAttribute("RoleDataOnClient", null, null, "Yes", null));
+    saveArchEnt(null, "PersonRole", null, colPsAttributes);
+    
+    intPsAttributes=createAttributeList();
+    intPsAttributes.add(createEntityAttribute("PersonRoleName", null, null, "interviewer", null));
+    intPsAttributes.add(createEntityAttribute("RoleIntroAnsRequired", null, null, "No", null));
+    intPsAttributes.add(createEntityAttribute("RolePhotoRequired", null, null, "No", null));
+    intPsAttributes.add(createEntityAttribute("RoleDataOnClient", null, null, "Yes", null));
+    saveArchEnt(null, "PersonRole", null, intPsAttributes);
+}
+
+initilizeLangType(){
+    lwcLangAttributes=createAttributeList();
+    lwcLangAttributes.add(createEntityAttribute("LangTypeName", null, null, "LWC", null));
+    saveArchEnt(null, "LangTypeDef", null, lwcLangAttributes);
+
+    regLangAttributes=createAttributeList();
+    regLangAttributes.add(createEntityAttribute("LangTypeName", null, null, "Regional", null));
+    saveArchEnt(null, "LangTypeDef", null, regLangAttributes);
 }

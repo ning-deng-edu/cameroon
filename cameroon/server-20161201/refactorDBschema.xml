@@ -114,10 +114,11 @@
         <property name="QuestionType" type="measure"></property>       
     </ArchaeologicalElement>
 
-    <ArchaeologicalElement name="QuestionOptions">
+    <ArchaeologicalElement name="QuestionOption">
         <description>Entity QuestionOptions, stores the options for multi-chioce question</description>
         <property name="QuesUuidOpt" isIdentifier="true" type="measure"></property>  
-        <property name="OptionText" type="measure"></property>       
+        <property name="QuesLangUuidOpt" isIdentifier="true" type="measure"></property>  
+        <property name="QuesOptionText" type="measure"></property>       
     </ArchaeologicalElement>
 
     <ArchaeologicalElement name="QuestionLang">
