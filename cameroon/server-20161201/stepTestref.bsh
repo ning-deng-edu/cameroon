@@ -1456,11 +1456,11 @@ saveNewQuestion(){
                   question_id = uuid;
                   if (newRecord) {
                     saveQuesProp(question_id,recording_req_id);
-                    showWarning("saveQuesProp","saveQuesProp");
+                    //showWarning("saveQuesProp","saveQuesProp");
                     saveQuesLangs(question_id,selLangList);
-                    showWarning("saveQuesLangs","saveQuesLangs");
+                    //showWarning("saveQuesLangs","saveQuesLangs");
                     if(saveChoice){
-                        showWarning("saveChoice","saveChoice");
+                        //showWarning("saveChoice","saveChoice");
                         saveQuesChoice(question_id);
                     }
                     showToast("Record created");
@@ -1501,29 +1501,37 @@ saveQuesLangs(String quesUuid, ArrayList selLangList){
 saveQuesChoice(String quesUuid){
     for(int i=0;i<newQuestionOptionList.size();i++){
         HashMap tempChoiceMap=newQuestionOptionList.get(i);
+        //showWarning("tempChoiceMap","tempChoiceMap");
         String quesLangUuid=null;
         ArrayList quesOptTextList=new ArrayList();
-
+        //showWarning("quesOptTextList","quesOptTextList");
         for(String key: tempChoiceMap.keySet()){
+            //showWarning("key",key);
             quesLangUuid=key;
             quesOptTextList.clear();
             quesOptTextList.addAll(tempChoiceMap.get(key));
             break;
         }
+        //showWarning("forkey","forkey");
         if(quesLangUuid==null || quesOptTextList==null || quesOptTextList.isEmpty()){
             showWarning("data lost","please report this problem to the admin");
             return;
         }
-        saveQuesChoiceByLang(quesUuid,quesLangUuid,quesLangUuid);
+
+        saveQuesChoiceByLang(quesUuid,quesLangUuid,quesOptTextList);
     }
 }
 
 saveQuesChoiceByLang(String quesUuid,String quesLangUuid, ArrayList quesOptList){
+    //showWarning("saveQuesChoiceByLang","saveQuesChoiceByLang");
     for(int j=0;j<quesOptList.size();j++){
         quesChoice=createAttributeList();
         quesChoice.add(createEntityAttribute("QuesUuidOpt", null, null, quesUuid, null));
-        quesChoice.add(createEntityAttribute("QuesLangUuid", null, null, quesUuid, null));
-        quesChoice.add(createEntityAttribute("QuesOptionText", null, null, quesOptList.get(i), null));
+        //showWarning("QuesUuidOpt",quesUuid);
+        quesChoice.add(createEntityAttribute("QuesLangUuid", null, null, quesLangUuid, null));
+        //showWarning("QuesLangUuid",quesLangUuid);
+        quesChoice.add(createEntityAttribute("QuesOptionText", null, null, quesOptList.get(j), null));
+        //showWarning("QuesOptionText",quesOptList.get(j));
         saveArchEnt(null, "QuestionOption", null, quesChoice);
     }
 }
