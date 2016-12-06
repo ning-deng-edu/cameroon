@@ -975,7 +975,7 @@ createQuestionPage(){
     }
 }
 */
-onEvent("questionBank/questionInfo/","show","initialQuestionCreation()");
+//onEvent("questionBank/questionInfo/","show","initialQuestionCreation()");
 onEvent("questionBank/questionInfo/questionProp","select","checkUIupdate()");
 loadQuestionBank(){
     question_id=null;
@@ -1031,6 +1031,7 @@ searchQuestionByLang(){
 newQuestion(){
     question_id=null;
     newTabGroup("questionBank");
+    initialQuestionCreation();
 }
 
 initializeQuesBankVar(){
@@ -1043,6 +1044,7 @@ initializeQuesBankVar(){
     oldQuestionOptionList.clear();
     newQuestionOptionList.clear();
 }
+
 initialQuestionCreation(){
     canLangList.clear();
     selLangList.clear();
@@ -1141,14 +1143,11 @@ dataTempStoreUIchange(){
     //showWarning("Hashtable","Hashtable");
     for(int i=0;i<canLangList.size();i++){
         String tempQuesContent=getFieldValue("questionBank/questionInfo/quesc" + i);
-        //showWarning("tempQuesContent","tempQuesContent");
         if(tempQuesContent!=null && !tempQuesContent.equals("")){
-            //showWarning("tempQuesContentnull","tempQuesContentnull");
            String tempLangId=getFieldValue("questionBank/questionInfo/langc" + i);
            tempData.put(tempLangId,tempQuesContent);
         }
     }
-    //showWarning("tempstore","tempstore");
     createMultipleChoiceUI(tempData);
 }
 
@@ -1267,7 +1266,7 @@ createQuestionChoicePage(String langVerId){
                         createView("questionChoice/questionChoiceInfo/optc" + quesOptCount, createViewDef().createTextField("string"), "questionChoice/questionChoiceInfo/opt_c" + quesOptCount);           
                     }
                     createView("questionChoice/questionChoiceInfo/optDelc" + quesOptCount, createViewDef().createButton().setLabel("X"), "questionChoice/questionChoiceInfo/optDel_c" + quesOptCount);
-                    onEvent("questionChoice/questionChoiceInfo/optDelc" + quesOptCount,"click","delOptCheck(\""+quesOptCount+"\")");
+                    onEvent("questionChoice/questionChoiceInfo/optDelc" + quesOptCount,"click","delOptCheck(\""+quesOptCount.toString()+"\")");
                 }
                 createQuesOptBtn(quesOptCount, langVerId);
             }
@@ -1301,30 +1300,48 @@ listExistingOpt(ArrayList tempOptList, String langVerId){
 createQuesOptBtn(int quesOptCount, String langVerId){
     createView("questionChoice/questionChoiceInfo/newOpt",createViewDef().createButton().setLabel("Add Option"),"questionChoice/questionChoiceInfo");
     createView("questionChoice/questionChoiceInfo/finOpt",createViewDef().createButton().setLabel("Finish"),"questionChoice/questionChoiceInfo");
-    onEvent("questionChoice/questionChoiceInfo/newOpt","click","addQuestionChoice(\""+quesOptCount+"\", \""+langVerId+"\")");
-    onEvent("questionChoice/questionChoiceInfo/finOpt","click","storeQuestionChoice(\""+quesOptCount+"\", \""+langVerId+"\")");
+    //onEvent("questionChoice/questionChoiceInfo/newOpt","click","addQuestionChoice(\""+quesOptCount+"\",\""+langVerId+"\")");
+    String quesOptCountStr=quesOptCount.toString();
+    onEvent("questionChoice/questionChoiceInfo/newOpt","click","addQuestionChoice(\""+quesOptCountStr+"\",\""+langVerId+"\")");
+    onEvent("questionChoice/questionChoiceInfo/finOpt","click","storeQuestionChoice(\""+quesOptCountStr+"\", \""+langVerId+"\")");
     refreshTabgroupCSS("questionChoice");
 }
 
-addQuestionChoice(int quesOptCount, String langVerId){
-    removeView("questionChoice/questionChoiceInfo/newOpt"); 
-    removeView("questionChoice/questionChoiceInfo/finOpt"); 
-    createContainer("questionChoice/questionChoiceInfo/optCtn_c"+quesOptCount, "orientation","questionChoice/questionChoiceInfo");
-    createContainer("questionChoice/questionChoiceInfo/opt_c" + quesOptCount, "even", "questionChoice/questionChoiceInfo/optCtn_c"+quesOptCount);
-    createContainer("questionChoice/questionChoiceInfo/optDel_c" + quesOptCount, "even", "questionChoice/questionChoiceInfo/optCtn_c"+quesOptCount);
-    createView("questionChoice/questionChoiceInfo/optc" + quesOptCount, createViewDef().createTextField("string"), "questionChoice/questionChoiceInfo/opt_c" + quesOptCount);
-    createView("questionChoice/questionChoiceInfo/optDelc" + quesOptCount, createViewDef().createButton().setLabel("X"), "questionChoice/questionChoiceInfo/optDel_c" + quesOptCount);
-    onEvent("questionChoice/questionChoiceInfo/optDelc" + quesOptCount,"click","delOptCheck(\""+quesOptCount+"\")");
+addQuestionChoice(String quesOptCountStr, String langVerId){
+    int quesOptCount=Integer.parseInt(quesOptCountStr);
+    executeViewTask(new ViewTask(){
+        doTask(){
+            removeView("questionChoice/questionChoiceInfo/newOpt"); 
+            removeView("questionChoice/questionChoiceInfo/finOpt"); 
+            //showWarning("delView","delView");
+
+            style1 = "orientation";
+            style2 = "even";
+            style3 = "large";
+
+            createContainer("questionChoice/questionChoiceInfo/optCtn_c"+quesOptCount, "orientation","questionChoice/questionChoiceInfo");
+            createContainer("questionChoice/questionChoiceInfo/opt_c" + quesOptCount, "even", "questionChoice/questionChoiceInfo/optCtn_c"+quesOptCount);
+            createContainer("questionChoice/questionChoiceInfo/optDel_c" + quesOptCount, "even", "questionChoice/questionChoiceInfo/optCtn_c"+quesOptCount);
+            //showWarning("createContainer","createContainer");
+            
+            createView("questionChoice/questionChoiceInfo/optc" + quesOptCount, createViewDef().createTextField("string"), "questionChoice/questionChoiceInfo/opt_c" + quesOptCount);
+            createView("questionChoice/questionChoiceInfo/optDelc" + quesOptCount, createViewDef().createButton().setLabel("X"), "questionChoice/questionChoiceInfo/optDel_c" + quesOptCount);
+            onEvent("questionChoice/questionChoiceInfo/optDelc" + quesOptCount,"click","delOptCheck(\""+quesOptCount.toString()+"\")");
+           
+            quesOptCount++;
+            String quesOptCountStrInc=quesOptCount.toString();
+            createQuesOptBtn(quesOptCount,langVerId);
+        }
+    });
     
-    quesOptCount++;
-    createQuesOptBtn(quesOptCount,langVerId);
 }
 
-delOptCheck(int quesOptCount){
-    showAlert("Deletion alert", "Are you sure to delete this option?\n"+getFieldValue("questionChoice/questionChoiceInfo/optc" + quesOptCount), "delOptConfirm(quesOptCount)", "stayInCurrentPage()"); 
+delOptCheck(String quesOptCountStr){
+    showAlert("Deletion alert", "Are you sure to delete this option?\n"+getFieldValue("questionChoice/questionChoiceInfo/optc" + quesOptCountStr), "delOptConfirm(\""+quesOptCountStr+"\")", "stayInCurrentPage()"); 
 }
 
-delOptConfirm(int quesOptCount){
+delOptConfirm(String quesOptCountStr){
+    int quesOptCount=Integer.parseInt(quesOptCountStr);
     removeContainer("questionChoice/questionChoiceInfo/optCtn_c"+quesOptCount);
     removeContainer("questionChoice/questionChoiceInfo/opt_cc"+quesOptCount);
     removeContainer("questionChoice/questionChoiceInfo/optDel_c"+quesOptCount);
@@ -1333,12 +1350,16 @@ delOptConfirm(int quesOptCount){
     refreshTabgroupCSS("questionChoice");
 }
 
-storeQuestionChoice(int quesOptCount, String langVerId){
+storeQuestionChoice(String quesOptCountStr, String langVerId){
+    int quesOptCount=Integer.parseInt(quesOptCountStr);
+
     HashMap tempOptMap=new HashMap();
     ArrayList tempOptText=new ArrayList();
-    for(int i=0;i<quesOptCount-1;i++){
+    for(int i=0;i<quesOptCount;i++){
         if(hasView("questionChoice/questionChoiceInfo/optc" + i)){
-            tempOptText.add(getFieldValue("questionChoice/questionChoiceInfo/optc" + i));
+            String tempQuesContent=getFieldValue("questionChoice/questionChoiceInfo/optc" + i);
+            showWarning("tempQuesContent",tempQuesContent);
+            tempOptText.add(tempQuesContent);
         }
     }
 
@@ -1357,6 +1378,7 @@ storeQuestionChoice(int quesOptCount, String langVerId){
             }
         }    
     }
+
     newQuestionOptionList.add(tempOptMap);
     cancelTabGroup("questionChoice",true);
 }
