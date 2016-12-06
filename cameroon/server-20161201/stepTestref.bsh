@@ -1029,7 +1029,7 @@ searchQuestionByLang(){
 }
 
 newQuestion(){
-    question_id=null;
+    initializeQuesBankVar();
     newTabGroup("questionBank");
     initialQuestionCreation();
 }
@@ -1279,22 +1279,30 @@ createQuestionChoicePage(String langVerId){
 
 listExistingOpt(ArrayList tempOptList, String langVerId){
     int quesOptCount=tempOptList.size();
-    for(int i=0;i<tempOptList.size();i++){
-        createContainer("questionChoice/questionChoiceInfo/optCtn_c"+i, "orientation","questionChoice/questionChoiceInfo");
-        createContainer("questionChoice/questionChoiceInfo/opt_c" + i, "even", "questionChoice/questionChoiceInfo/optCtn_c"+i);
-        createContainer("questionChoice/questionChoiceInfo/optDel_c" + i, "even", "questionChoice/questionChoiceInfo/optCtn_c"+i);
-        if(i==0){
-            createView("questionChoice/questionChoiceInfo/optc" + i, createViewDef().createTextField("string").setLabel("Question Option"), "questionChoice/questionChoiceInfo/opt_c" + i);        
+    removeAllViewsAndContainers("questionChoice");
+    executeViewTask(new ViewTask(){
+        doTask(){
+            style1 = "orientation";
+            style2 = "even";
+            style3 = "large";
+            for(int i=0;i<quesOptCount;i++){
+                createContainer("questionChoice/questionChoiceInfo/optCtn_c"+i, "orientation","questionChoice/questionChoiceInfo");
+                createContainer("questionChoice/questionChoiceInfo/opt_c" + i, "even", "questionChoice/questionChoiceInfo/optCtn_c"+i);
+                createContainer("questionChoice/questionChoiceInfo/optDel_c" + i, "even", "questionChoice/questionChoiceInfo/optCtn_c"+i);
+                if(i==0){
+                    createView("questionChoice/questionChoiceInfo/optc" + i, createViewDef().createTextField("string").setLabel("Question Option"), "questionChoice/questionChoiceInfo/opt_c" + i);        
+                }
+                else{
+                    createView("questionChoice/questionChoiceInfo/optc" + i, createViewDef().createTextField("string"), "questionChoice/questionChoiceInfo/opt_c" + i);           
+                }
+                createView("questionChoice/questionChoiceInfo/optDelc" + i, createViewDef().createButton().setLabel("X"), "questionChoice/questionChoiceInfo/optDel_c" + i);
+                refreshTabgroupCSS("questionChoice");
+                setFieldValue("questionChoice/questionChoiceInfo/optc" + i, tempOptList.get(i));
+                onEvent("questionChoice/questionChoiceInfo/optDelc" + i,"click","delOptCheck(\""+i+"\")");
+            }
+        createQuesOptBtn(quesOptCount, langVerId);
         }
-        else{
-            createView("questionChoice/questionChoiceInfo/optc" + i, createViewDef().createTextField("string"), "questionChoice/questionChoiceInfo/opt_c" + i);           
-        }
-        createView("questionChoice/questionChoiceInfo/optDelc" + i, createViewDef().createButton().setLabel("X"), "questionChoice/questionChoiceInfo/optDel_c" + i);
-        refreshTabgroupCSS("questionChoice");
-        setFieldValue("questionChoice/questionChoiceInfo/optc" + i, tempOptList.get(i));
-        onEvent("questionChoice/questionChoiceInfo/optDelc" + i,"click","delOptCheck(\""+i+"\")");
-    }
-    createQuesOptBtn(quesOptCount, langVerId);
+    });
 }
 
 createQuesOptBtn(int quesOptCount, String langVerId){
@@ -1352,13 +1360,12 @@ delOptConfirm(String quesOptCountStr){
 
 storeQuestionChoice(String quesOptCountStr, String langVerId){
     int quesOptCount=Integer.parseInt(quesOptCountStr);
-
+    
     HashMap tempOptMap=new HashMap();
     ArrayList tempOptText=new ArrayList();
     for(int i=0;i<quesOptCount;i++){
         if(hasView("questionChoice/questionChoiceInfo/optc" + i)){
             String tempQuesContent=getFieldValue("questionChoice/questionChoiceInfo/optc" + i);
-            showWarning("tempQuesContent",tempQuesContent);
             tempOptText.add(tempQuesContent);
         }
     }
@@ -1378,9 +1385,16 @@ storeQuestionChoice(String quesOptCountStr, String langVerId){
             }
         }    
     }
-
     newQuestionOptionList.add(tempOptMap);
     cancelTabGroup("questionChoice",true);
+}
+
+removeMultipleChoiceUI(){
+   for(int i=0;i<canLangList.size();i++){
+        removeView("questionBank/questionInfo/quesopc"+ i);
+        removeContainer("questionBank/questionInfo/quesOpt_c" + i);
+   } 
+   refreshTabgroupCSS("questionBank");
 }
 /*** Questionnaire ***/
 loadQuestionnaire(){
