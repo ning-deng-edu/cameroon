@@ -1813,7 +1813,7 @@ loadAllQuestionnaireQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " 
     "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
     "GROUP BY uuid "+
     "ORDER BY measure;";
-    
+
 createQuesnirMainPage(){
     if(!hasView("questionnaire/questionnaire_info/questionnaireID")){
         removeAllViewsAndContainers("questionnaire");
@@ -1880,7 +1880,75 @@ newQuestionnaire(){
 }
 
 loadQuestionnaireInfo(){
+    questionnaireInfoOriginal.clear();
+    questionnaireInfoNew.clear();
+    finished_questionnaire_id=getListItemValue();
+    if(isNull(finished_questionnaire_id)){
+        showToast("No Questionnaire selected");
+        return;
+    }
+    //showWarning("questionnaireID",finished_questionnaire_id.toString());
+    showTabGroup("questionnaire", finished_questionnaire_id, new FetchCallback() {
+        onFetch(result) {
+            questionnaire=result;   
+            String qnirTypeUuid= getFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid");
+            //showWarning("qnirTypeUuid",qnirTypeUuid);
+            quesnirTypeNameQuery="SELECT measure from latestNonDeletedAentValue "+
+                "WHERE latestNonDeletedAentValue.AttributeID="+
+                "(SELECT AttributeID from AttributeKey WHERE AttributeName='QuesnirTypeName') "+
+                "AND latestNonDeletedAentValue.uuid='"+qnirTypeUuid+"';";
 
+            fetchOne(quesnirTypeNameQuery,new FetchCallback() {
+                onFetch(result) {
+                    if(!isNull(result)){
+                        setFieldValue("questionnaire/questionnaire_info/questionnaireType",result.get(0));
+                        //showToast("Loaded question"+question_id);
+                    }
+                    else{
+                        showWarning("Out-of-date data","The questionnaire type in the questionnaire is not using anymore");
+                    }
+                }
+                 onError(message) {
+                    showToast(message);
+                }
+
+            });
+
+            showToast("Loaded questionnaire"+questionnaire.getId());
+
+            //populateDropDown("questionnaire/questionnaire_info/questionnaireTypeSelection",questionirType);
+            
+
+            questionnaireInfoOriginal.add(getFieldValue("questionnaire/questionnaire_info/questionnaireID"));
+            questionnaireInfoOriginal.add(getFieldValue("questionnaire/questionnaire_info/questionnaireName"));
+            questionnaireInfoOriginal.add(getFieldValue("questionnaire/questionnaire_info/questionnaireDescription"));
+            //questionnaireInfoOriginal.add(getFieldValue("questionnaire/questionnaire_info/questionnaireType"));
+            questionnaireInfoOriginal.add(qnirTypeUuid);
+            loadQuesnirType("load");
+
+            quesnir_type_reln_query="select RelationshipID from AentReln where AentReln.uuid="+finished_questionnaire_id+" "+
+                "and RelationshipID in "+
+                "(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+                    "(select RelnTypeID from RelnType where RelnTypeName='Questionnaire and QuesnirType') "+
+                "and latestNonDeletedRelationship.Deleted IS NULL)";
+
+            fetchAll(quesnir_type_reln_query, new FetchCallback() {
+            onFetch(result) {
+                quesnirTypeRelnOrigin.clear();
+                quesnirTypeRelnOrigin.addAll(result);
+            }
+
+            onError(message) {
+                showToast(message);
+            }
+         });
+
+
+        }
+        onError(message) {
+            showToast(message);
+        }
+    });
 }
 
 startQuestionSelection(){
@@ -2413,7 +2481,7 @@ finishCreateQuestionnaire(){
     fetchAll(quesnirDuplicateQuery,new FetchCallback() {
         onFetch(result) {
             if(!isNull(result)){
-                tempQuesnirLabel=nonDupLabelGen(result,tempQuesnirLabel,"Questionnaire","QuestionnaireID");
+                tempQuesnirLabel=nonDupLabelGen(result,tempQuesnirLabel,"Questionnaire","QuestionnaireID",true);
                 setFieldValue("questionnaire/questionnaire_info/questionnaireID",tempQuesnirLabel);
             }
             finished_questionnaire_id=null;//Creating a new questionnaire
