@@ -1684,35 +1684,32 @@ loadMultiChoiceQuesInfo(String quesUuid){
     fetchAll(loadQuesChoiceQuery, new FetchCallback() {
         onFetch(choiceResult) {
             if(!isNull(choiceResult)){
-                //showWarning("choiceResult","choiceResult");
                 oldQuestionOptionList.clear();
                 newQuestionOptionList.clear();
                 Boolean keyExist=false;
-                //showWarning("varinit","varinit");
                 for(int i=0;i<choiceResult.size();i++){
                     String tempLangID=choiceResult.get(i).get(1);
-                    //showWarning("tempLangID",tempLangID);
-                    //showWarning("oldQuestionOptionList",oldQuestionOptionList.size().toString());
                     keyExist=false;
-                    //showWarning("keyExist","keyExist");
                     for(int j=0;j<oldQuestionOptionList.size();j++){
-                       // showWarning("forj",j.toString());
                         HashMap tempQuesOptMap=oldQuestionOptionList.get(j);
-                        //showWarning("tempQuesOptMap","tempQuesOptMap");
                         if(tempQuesOptMap.containsKey(tempLangID)){
-                           // showWarning("containsKey","containsKey");
                             ArrayList tempOptList=tempQuesOptMap.get(tempLangID);
-                            ArrayList tempNewOptList=tempQuesOptMap.get(tempLangID);
-                            //showWarning("tempNewOptList","tempNewOptList");
+
+                            HashMap tempNewQuesOptMap=newQuestionOptionList.get(j);
+                            ArrayList tempNewOptList=tempNewQuesOptMap.get(tempLangID);
+
                             if(tempOptList==null){
                                 tempOptList.clear();
                             }
+
                             if(tempNewOptList==null){
                                 tempNewOptList.clear();
                             }
+
                             String tempOptTextStr=choiceResult.get(i).get(0)+":"+choiceResult.get(i).get(2);
                             tempOptList.add(tempOptTextStr);
                             tempNewOptList.add(choiceResult.get(i).get(2));
+
                             oldQuestionOptionList.get(j).put(tempLangID,tempOptList);
                             newQuestionOptionList.get(j).put(tempLangID,tempNewOptList);
                             keyExist=true;
@@ -1722,22 +1719,23 @@ loadMultiChoiceQuesInfo(String quesUuid){
                     if(!keyExist){
                         HashMap tempOptMap=new HashMap();
                         ArrayList tempOptList=new ArrayList();
+
                         HashMap tempNewOptMap=new HashMap();
                         ArrayList tempNewOptList=new ArrayList();
-                        //showWarning("tempNewOptListinit","tempNewOptListinit");
+
                         String tempOptTextStr=choiceResult.get(i).get(0)+":"+choiceResult.get(i).get(2);
-                        //showWarning("tempOptTextStr",tempOptTextStr);
+
                         tempOptList.add(tempOptTextStr);
                         tempNewOptList.add(choiceResult.get(i).get(2));
-                        //showWarning("tempNewOptListadd","tempNewOptListadd");
+
                         tempOptMap.put(tempLangID,tempOptList);
                         tempNewOptMap.put(tempLangID,tempNewOptList);
-                        //showWarning("tempNewOptListput","tempNewOptListput");
+
                         oldQuestionOptionList.add(tempOptMap);
                         newQuestionOptionList.add(tempNewOptMap);
-                        //showWarning("newQuestionOptionList","newQuestionOptionList");
                     }
                 }
+
                 createMultipleChoiceUI(null,"load");
 
                 loadLangForQues(quesUuid);
