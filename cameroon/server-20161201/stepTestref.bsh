@@ -1887,6 +1887,7 @@ loadQuestionnaireInfo(){
         showToast("No Questionnaire selected");
         return;
     }
+    createQuesnirMainPage();
     //showWarning("questionnaireID",finished_questionnaire_id.toString());
     showTabGroup("questionnaire", finished_questionnaire_id, new FetchCallback() {
         onFetch(result) {
@@ -2575,36 +2576,40 @@ finishChangeQuestionnaire(){
         showWarning("Error","saving error happened, the old data is lost, please report to the Admin");
     }
 }
+
 updateBasicQuesnirInfo(){
+   // showWarning("updateBasicQuesnirInfo","updateBasicQuesnirInfo");
     String tempQuesnirLabel=getFieldValue("questionnaire/questionnaire_info/questionnaireID");
+    String quesnirTypeUuid=getFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid");
     quesnirDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
         "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireID') "+
-        "and uuid <>'"+finished_questionnaire_id+"'' "+
+        "and uuid <>'"+finished_questionnaire_id+"' "+
         "and measure ='"+tempQuesnirLabel+"' or measure like '"+tempQuesnirLabel+"(%)'";
     
     fetchAll(quesnirDuplicateQuery,new FetchCallback() {
         onFetch(result) {
-                if(!isNull(result)){
-                    tempQuesnirLabel=nonDupLabelGen(result,tempQuesnirLabel,"Questionnaire","QuestionnaireID",true);
-                    setFieldValue("questionnaire/questionnaire_info/questionnaireID",tempQuesnirLabel);
-                }
-
-                saveTabGroup("questionnaire", finished_questionnaire_id, null, null, new SaveCallback() {
-                    onSave(uuid, newRecord) {
-                        for (quesTypeDel : quesnirTypeRelnOrigin){
-                            deleteRel(quesTypeDel.get(0));
-                        }
-                        saveEntitiesToRel("Questionnaire and QuesnirType",finished_questionnaire_id,quesnirTypeUuid);
-
-                        showToast("Questionnaire data is changed");
-                        cancelTabGroup("questionnaire_question",true);
-                    }
-                    onError(message) {
-                        showWarning("error",message);
-                    }  
-                });
+            if(!isNull(result)){
+                tempQuesnirLabel=nonDupLabelGen(result,tempQuesnirLabel,"Questionnaire","QuestionnaireID",true);
+                setFieldValue("questionnaire/questionnaire_info/questionnaireID",tempQuesnirLabel);
             }
-        });
+
+            saveTabGroup("questionnaire", finished_questionnaire_id, null, null, new SaveCallback() {
+                onSave(uuid, newRecord) {
+                    for (quesTypeDel : quesnirTypeRelnOrigin){
+                        deleteRel(quesTypeDel.get(0));
+                    }
+                    saveEntitiesToRel("Questionnaire and QuesnirType",finished_questionnaire_id,quesnirTypeUuid);
+                    showToast("Questionnaire basic data is changed");
+                }
+                onError(message) {
+                    showWarning("error",message);
+                }  
+            });
+        }
+        onError(message) {
+            showWarning("fetch error",message);
+        } 
+    });
 }
 //TODO: delete the "DELETE" only
 updateQuesnirQuesList(Hashtable questionListChanges){
