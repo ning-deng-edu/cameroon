@@ -2087,6 +2087,9 @@ loadQuesnirQuesReln(String currentQuesnirID){
         "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
         "and measure='"+currentQuesnirID+"' ";
 
+    /* quesnir_ques_reln_query="select uuid,measure from latestNonDeletedArchEntIdentifiers "+
+        "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+        "and measure='"+currentQuesnirID+"' ";*/
     
     fetchAll(quesnir_ques_reln_query, new FetchCallback() {
         onFetch(result) {
@@ -2560,16 +2563,19 @@ finishChangeQuestionnaire(){
         //case 2: basic info changed, question list info does not change
         else if ((!questionnaireInfoChanges.containsKey("EQUAL"))&&(questionListChanges.containsKey("EQUAL"))){
             updateBasicQuesnirInfo();
+            //updatedQuesnirInfoPrep();
         }
         //case 3: basic info does not change, question list info changed
         else if((questionnaireInfoChanges.containsKey("EQUAL"))&&(!questionListChanges.containsKey("EQUAL"))){
             //First delete old relns
             updateQuesnirQuesList(questionListChanges);
+            //updatedQuesnirInfoPrep();
         }
         //case 4: both basic info and question list changed
         else{
             updateBasicQuesnirInfo();
             updateQuesnirQuesList(questionListChanges);
+            //updatedQuesnirInfoPrep();
         }
     }
     else{
@@ -2611,8 +2617,56 @@ updateBasicQuesnirInfo(){
         } 
     });
 }
-//TODO: delete the "DELETE" only
+//TODO: test: delete the "DELETE" only
 updateQuesnirQuesList(Hashtable questionListChanges){
+    /*
+    if(questionListChanges.containsKey("ADD")){
+        ArrayList delQues=questionListChanges.get("DELETE");
+        ArrayList addQues=questionListChanges.get("ADD");
+        for(int i=0;i<quesListRelnOrigin.size();i++){
+            for(int j=0;j<delQues.size();j++){
+                if(quesListRelnOrigin.get(i).get(1).equals(delQues.get(j).get(0))){
+                    deleteArchEnt(quesListRelnOrigin.get(0));
+                }
+            }
+        }
+        for (question : addQues){
+            String quesInQuesnirID=question.get(0);
+            String quesContnt=question.get(1);
+            String quesOrderNum=quesContnt.substring(0,quesContnt.indexOf("-"));
+            quesOrderAttributes= createAttributeList();
+            quesOrderAttributes.add(createEntityAttribute("QuesnirID", null, null, finished_questionnaire_id, null));
+            quesOrderAttributes.add(createEntityAttribute("QuesID", null, null,quesInQuesnirID, null));
+            quesOrderAttributes.add(createEntityAttribute("QuesOrderLocal", null, null, quesOrderNum, null));
+            saveArchEnt(null, "QuesnirQuesOrder", null, quesOrderAttributes);
+        }
+        
+    }
+    else if(questionListChanges.containsKey("PUREADD")){
+        ArrayList addQues=questionListChanges.get("PUREADD");
+        for (question : addQues){
+            String quesInQuesnirID=question.get(0);
+            String quesContnt=question.get(1);
+            String quesOrderNum=quesContnt.substring(0,quesContnt.indexOf("-"));
+            quesOrderAttributes= createAttributeList();
+            quesOrderAttributes.add(createEntityAttribute("QuesnirID", null, null, finished_questionnaire_id, null));
+            quesOrderAttributes.add(createEntityAttribute("QuesID", null, null,quesInQuesnirID, null));
+            quesOrderAttributes.add(createEntityAttribute("QuesOrderLocal", null, null, quesOrderNum, null));
+            saveArchEnt(null, "QuesnirQuesOrder", null, quesOrderAttributes);
+        }
+    }
+    if(questionListChanges.containsKey("PUREDELETE")){
+        ArrayList delQues=questionListChanges.get("PUREDELETE");
+        for(int i=0;i<quesListRelnOrigin.size();i++){
+            for(int j=0;j<delQues.size();j++){
+                if(quesListRelnOrigin.get(i).get(1).equals(delQues.get(j).get(0))){
+                    deleteArchEnt(quesListRelnOrigin.get(0));
+                }
+            }
+        }
+    }
+    
+    */
     for (oldReln:quesListRelnOrigin){
         String oldRelnId=oldReln.get(0);
         deleteArchEnt(oldRelnId);
@@ -2627,12 +2681,18 @@ updateQuesnirQuesList(Hashtable questionListChanges){
         quesOrderAttributes.add(createEntityAttribute("QuesID", null, null,quesInQuesnirID, null));
         quesOrderAttributes.add(createEntityAttribute("QuesOrderLocal", null, null, quesOrderNum, null));
         saveArchEnt(null, "QuesnirQuesOrder", null, quesOrderAttributes);
-//showWarning("savedrel()",question.get(0).toString());
     }
     showToast("question list data is changed");
     cancelTabGroup("questionnaire_question",true);
 }
 
+updatedQuesnirInfoPrep(String currentQuesnirID){
+    loadQuesnirQuesReln(currentQuesnirID);
+    questionOriginal.clear();
+    questionOriginal.addAll(questionSelected);
+    questionnaireInfoOriginal.clear();
+    questionnaireInfoOriginal.addAll(questionnaireInfoNew);
+}
 
 /*** Language ***/
 /*** Language var ***/
