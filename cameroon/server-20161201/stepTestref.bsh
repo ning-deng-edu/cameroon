@@ -1808,7 +1808,12 @@ searchQuesType=new ArrayList();
 searchQuesType.add("candidate");
 searchQuesType.add("selected");
 /*** Questionnaire query***/
-
+loadAllQuestionnaireQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
+    "WHERE latestNonDeletedAentValue.AttributeID "+
+    "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
+    "GROUP BY uuid "+
+    "ORDER BY measure;";
+    
 createQuesnirMainPage(){
     if(!hasView("questionnaire/questionnaire_info/questionnaireID")){
         removeAllViewsAndContainers("questionnaire");
@@ -1853,10 +1858,6 @@ createQuesnirMainPage(){
         
         });
     }
-}
-
-loadQuestionnaire(){
-
 }
 
 initilizQuestionnaireVar(){
@@ -2365,15 +2366,198 @@ adjustQuesOrder(String typeFlag, int strtIndex, ArrayList toAdjustList){
     }
 
 }
+
 searchQuestion(){
 
 }
-finishChangeQuestionnaire(){
 
+loadQuestionnaire(){
+    finished_questionnaire_id=null;
+    existing_questionnaires=new ArrayList();
+    /*The fetchAll query returns the uuid and the question content of all the questions*/
+    fetchAll( loadAllQuestionnaireQuery, new FetchCallback() {
+        onFetch(result) {
+            if (!isNull(result)) {
+                existing_questionnaires.addAll(result);
+            }
+            populateList("control/questionnaire_control/questionnaireList", existing_questionnaires);
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+}
+finishCreateQuestionnaire(){
+    if(questionSelected.isEmpty())
+    {
+        showWarning("No question selected","No question selected in this questionnaire");
+        return;
+    }
+    if((isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireID")))||(isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireName")))){
+        showWarning("Incomplete basic data","Please input questionnaire label and questionnaire name");
+        return;
+    }
+    String quesnirTypeUuid=getFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid");
+
+    if(isNull(quesnirTypeUuid)){
+        showWarning("Incomplete basic data","Please input questionnaire type data");
+        return;
+    }
+
+    String tempQuesnirLabel=getFieldValue("questionnaire/questionnaire_info/questionnaireID");
+    quesnirDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+        "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireID') "+
+        "and measure ='"+tempQuesnirLabel+"' or measure like '"+tempQuesnirLabel+"(%)'";
+
+    fetchAll(quesnirDuplicateQuery,new FetchCallback() {
+        onFetch(result) {
+            if(!isNull(result)){
+                tempQuesnirLabel=nonDupLabelGen(result,tempQuesnirLabel,"Questionnaire","QuestionnaireID");
+                setFieldValue("questionnaire/questionnaire_info/questionnaireID",tempQuesnirLabel);
+            }
+            finished_questionnaire_id=null;//Creating a new questionnaire
+            //showWarning("save started","started");
+            saveTabGroup("questionnaire", finished_questionnaire_id, null, null, new SaveCallback() {
+            //showWarning("saveTabGroup()","started");
+                onSave(uuid, newRecord) {
+                    finished_questionnaire_id = uuid;
+                    if (newRecord) {
+                        for (question : questionSelected){
+
+                            String quesInQuesnirID=question.get(0);
+                            String quesContnt=question.get(1);
+                            String quesOrderNum=quesContnt.substring(0,quesContnt.indexOf("-"));
+              
+                            quesOrderAttributes= createAttributeList();
+                            quesOrderAttributes.add(createEntityAttribute("QuesnirID", null, null, finished_questionnaire_id, null));
+                            quesOrderAttributes.add(createEntityAttribute("QuesID", null, null,quesInQuesnirID, null));
+                            quesOrderAttributes.add(createEntityAttribute("QuesOrderLocal", null, null, quesOrderNum, null));
+                            saveArchEnt(null, "QuesnirQuesOrder", null, quesOrderAttributes);
+                    
+                        }
+                        saveEntitiesToRel("Questionnaire and QuesnirType",finished_questionnaire_id,quesnirTypeUuid);
+                        //showWarning("Questionnaire and QuesnirType",finished_questionnaire_id);
+                        //questionOriginal.addAll(questionSelected);
+                        showToast("New record created");
+                        cancelTabGroup("questionnaire_question",true);
+                        cancelTabGroup("questionnaire",true);
+                        showTab("control/questionnaire_control");
+                    }
+                }
+                onError(message) {
+                    showWarning("error",message);
+                }  
+            });
+
+        }
+    });
 }
 
-finishCreateQuestionnaire(){
+finishChangeQuestionnaire(){
+    if(isNull(finished_questionnaire_id)){
+        showWarning("Failed","Please create questionnaire then change");
+        return;
+    }
 
+    if(questionSelected.isEmpty())
+    {
+        showWarning("No question selected","No question selected in this questionnaire");
+        return;
+    }
+
+    if((isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireID")))||(isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireName")))){
+        showWarning("Incomplete basic data","Please input questionnaire label and questionnaire name");
+        return;
+    }
+
+    String quesnirTypeUuid=getFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid");
+
+    if(isNull(quesnirTypeUuid)){
+        showWarning("Incomplete basic data","Please input questionnaire type data");
+        return;
+    }
+
+    question_origin=new ArrayList();
+    question_origin.addAll(questionOriginal);
+    Hashtable questionListChanges=listChange(questionSelected,questionOriginal);
+    if (!isNull(questionnaireInfoOriginal)){//change from the list
+        Hashtable questionnaireInfoChanges=listChange(questionnaireInfoNew,questionnaireInfoOriginal);
+        //case 1: no data changed
+        if((questionnaireInfoChanges.containsKey("EQUAL"))&&(questionListChanges.containsKey("EQUAL"))){
+            showWarning("Questionnaire Modification","No data is changed");
+            return;
+        }
+        //case 2: basic info changed, question list info does not change
+        else if ((!questionnaireInfoChanges.containsKey("EQUAL"))&&(questionListChanges.containsKey("EQUAL"))){
+            updateBasicQuesnirInfo();
+        }
+        //case 3: basic info does not change, question list info changed
+        else if((questionnaireInfoChanges.containsKey("EQUAL"))&&(!questionListChanges.containsKey("EQUAL"))){
+            //First delete old relns
+            updateQuesnirQuesList(questionListChanges);
+        }
+        //case 4: both basic info and question list changed
+        else{
+            updateBasicQuesnirInfo();
+            updateQuesnirQuesList(questionListChanges);
+        }
+    }
+    else{
+        showWarning("Error","saving error happened, the old data is lost, please report to the Admin");
+    }
+}
+updateBasicQuesnirInfo(){
+    String tempQuesnirLabel=getFieldValue("questionnaire/questionnaire_info/questionnaireID");
+    quesnirDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+        "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireID') "+
+        "and uuid <>'"+finished_questionnaire_id+"'' "+
+        "and measure ='"+tempQuesnirLabel+"' or measure like '"+tempQuesnirLabel+"(%)'";
+    
+    fetchAll(quesnirDuplicateQuery,new FetchCallback() {
+        onFetch(result) {
+                if(!isNull(result)){
+                    tempQuesnirLabel=nonDupLabelGen(result,tempQuesnirLabel,"Questionnaire","QuestionnaireID",true);
+                    setFieldValue("questionnaire/questionnaire_info/questionnaireID",tempQuesnirLabel);
+                }
+
+                saveTabGroup("questionnaire", finished_questionnaire_id, null, null, new SaveCallback() {
+                    onSave(uuid, newRecord) {
+                        for (quesTypeDel : quesnirTypeRelnOrigin){
+                            deleteRel(quesTypeDel.get(0));
+                        }
+                        saveEntitiesToRel("Questionnaire and QuesnirType",finished_questionnaire_id,quesnirTypeUuid);
+
+                        showToast("Questionnaire data is changed");
+                        cancelTabGroup("questionnaire_question",true);
+                    }
+                    onError(message) {
+                        showWarning("error",message);
+                    }  
+                });
+            }
+        });
+}
+//TODO: delete the "DELETE" only
+updateQuesnirQuesList(Hashtable questionListChanges){
+    for (oldReln:quesListRelnOrigin){
+        String oldRelnId=oldReln.get(0);
+        deleteArchEnt(oldRelnId);
+    }
+    //Then add new relns
+    for (question : questionSelected){
+        String quesInQuesnirID=question.get(0);
+        String quesContnt=question.get(1);
+        String quesOrderNum=quesContnt.substring(0,quesContnt.indexOf("-"));
+        quesOrderAttributes= createAttributeList();
+        quesOrderAttributes.add(createEntityAttribute("QuesnirID", null, null, finished_questionnaire_id, null));
+        quesOrderAttributes.add(createEntityAttribute("QuesID", null, null,quesInQuesnirID, null));
+        quesOrderAttributes.add(createEntityAttribute("QuesOrderLocal", null, null, quesOrderNum, null));
+        saveArchEnt(null, "QuesnirQuesOrder", null, quesOrderAttributes);
+//showWarning("savedrel()",question.get(0).toString());
+    }
+    showToast("question list data is changed");
+    cancelTabGroup("questionnaire_question",true);
 }
 
 
@@ -3002,6 +3186,7 @@ loadPersonInfo(){
         }
     });
 }
+
 /*** Search page ***/
 showEntity(){
     
@@ -3025,6 +3210,19 @@ recordSearch(){
 /*** Common methods ***/
 stayInCurrentPage(){
     return;
+}
+
+saveEntitiesToRel(String type, String entity1, String entity2) {
+    if (isNull(entity1) || isNull(entity2)) return;
+    saveRel(null, type, null, null, new SaveCallback() {
+        onSave(rel_id, newRecord) {
+            addReln(entity1, rel_id, null);
+            addReln(entity2, rel_id, null);
+        }
+        onError(message) {
+            showWarning("error saveEntitiesToRel",type+":"+message);
+        }
+    });
 }
 /* 
 ** Getting the (\\d+) number suffix of a string
