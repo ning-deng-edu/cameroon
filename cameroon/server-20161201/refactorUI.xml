@@ -78,6 +78,18 @@
 
           <questionnaire_question>
               <questionnaire_question_info>
+                <container3>
+                  <child1>
+                    <keywordOfQuestion/>
+                  </child1>
+                  <child2>
+                    <category/>
+                  </child2>
+                  <child3>
+                    <Search_Question/>
+                  </child3>
+                </container3>
+                <questionList/>
               </questionnaire_question_info>
           </questionnaire_question>
 
@@ -265,11 +277,49 @@
     </group>
 
     <group ref="questionnaire_question">
-      <label>Questionnaire</label>
-      
-      <group ref="questionnaire_question_info">
-        <label>Question Selction</label>
-      </group>
+        <label>Questionnaire</label>
+        
+        <group ref="questionnaire_question_info">
+          <label>Question Selction</label>
+
+            <group ref="container3" faims_style="orientation">
+        
+              <label></label>
+              <group ref="child1" faims_style="even">
+                <label></label>
+
+                   <input ref="keywordOfQuestion" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+                    <label>Keyword</label>
+                </input>
+              </group>
+
+              <group ref="child2" faims_style="even">
+                <label></label>
+                   <select1 ref="category">
+                    <label>Category</label>
+                    <item>
+                        <label>placeholder</label>
+                        <value>placeholder</value>
+                    </item>
+                </select1>
+              </group>            
+           <group ref="child3" faims_style="even">
+                <label></label>
+                 <trigger ref="Search_Question" faims_style_class="faims-blue-search">
+                 <label>Search</label>
+               </trigger>
+              </group>
+        
+        </group>
+
+           <select1 appearance="compact" faims_annotation="false" ref="questionList" faims_style_class="session-file-list">
+                <label>Add question</label>
+                <item>
+                    <label>placeholder</label>
+                    <value>placeholder</value>
+                </item>
+          </select1>      
+        </group>
     </group>
 
     <group ref="quesProperty" faims_archent_type="QuesPropDef">

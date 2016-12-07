@@ -1793,12 +1793,89 @@ loadNonChoiceQuesInfo(String quesUuid){
     loadLangForQues(quesUuid);
 }
 /*** Questionnaire ***/
+/*** Questionnaire var ***/
+finished_questionnaire_id=null;//flag for marking if any questionnaire is selected
+questionCandidates=new ArrayList();//original questions to be selected in questionnaire
+questionCandidatesContent=new ArrayList();//manipulatable question list to be selected in questionnaire
+questionSelected=new ArrayList();//questions selected in questionnaire
+questionOriginal=new ArrayList();//when changing questionnaire, this is for showing whether or not the questions in questionnaire are changed
+questionnaireInfoOriginal=new ArrayList();//Comparing whether or not the questionnaire basic info is changed
+questionnaireInfoNew=new ArrayList();//Comparing whether or not the questionnaire basic info is changed
+quesListRelnOrigin=new ArrayList();//Storing the existing reln between questions and questionnaire, used for deletion
+questionirType = new ArrayList();
+quesnirTypeRelnOrigin=new ArrayList();
+searchQuesType=new ArrayList();
+searchQuesType.add("candidate");
+searchQuesType.add("selected");
+/*** Questionnaire query***/
+
+createQuesnirMainPage(){
+    if(!hasView("questionnaire/questionnaire_info/questionnaireID")){
+        removeAllViewsAndContainers("questionnaire");
+        executeViewTask(new ViewTask() {
+        doTask() { 
+            style1 = "orientation";
+            style2 = "even";
+
+            quesnirTypeUuidViewDef=createViewDef().createTextField().setAttributeName("QuestionnaireType").setAttributeType("measure");
+            createView("questionnaire/questionnaire_info_hide/questionnaireTypeUuid", quesnirTypeUuidViewDef,"questionnaire/questionnaire_info_hide");     
+
+            quesnirLabelViewDef=createViewDef().createTextField().setLabel("Questionnaire label").setAttributeName("QuestionnaireID").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+            quesnirNameViewDef=createViewDef().createTextField().setLabel("Questionnaire name").setAttributeName("QuestionnaireName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+            quesnirDescViewDef=createViewDef().createTextField().setLabel("Description").setAttributeName("QuestionnaireDescription").setAttributeType("measure").setAnnotationEnabled(true);
+            quesnirTypeViewDef=createViewDef().createTextField().setLabel("Questionnaire type").setAttributeName("QuestionnaireDescription").setAnnotationEnabled(false).setReadOnly(true);
+            
+            quesnirTypeDropDownDef=createViewDef().createDropDown().setLabel("Select type").setAnnotationEnabled(false);
+            newTypeButtonDef = createViewDef().createButton().setLabel("New Type").setStyleCss("faims-blue");
+
+            createView("questionnaire/questionnaire_info/questionnaireID", quesnirLabelViewDef,"questionnaire/questionnaire_info");
+            createView("questionnaire/questionnaire_info/questionnaireName", quesnirNameViewDef,"questionnaire/questionnaire_info");
+            createView("questionnaire/questionnaire_info/questionnaireDescription", quesnirDescViewDef,"questionnaire/questionnaire_info");
+            createView("questionnaire/questionnaire_info/questionnaireType", quesnirTypeViewDef,"questionnaire/questionnaire_info");
+
+            createContainer("questionnaire/questionnaire_info/quesnirTypeCtn","orientation");
+            createContainer("questionnaire/questionnaire_info/quesnirTypeCtnChild1","even","questionnaire/questionnaire_info/quesnirTypeCtn");
+            createContainer("questionnaire/questionnaire_info/quesnirTypeCtnChild2","even", "questionnaire/questionnaire_info/quesnirTypeCtn");
+            createView("questionnaire/questionnaire_info/questionnaireTypeSelection", quesnirTypeDropDownDef,"questionnaire/questionnaire_info/quesnirTypeCtnChild1");
+            createView("questionnaire/questionnaire_info/New_QuesnirType", newTypeButtonDef,"questionnaire/questionnaire_info/quesnirTypeCtnChild2");
+
+            quesSelButtonDef = createViewDef().createButton().setLabel("Select/View Question").setStyleCss("faims-blue");
+
+            createView("questionnaire/questionnaire_info/Start_Question_Selection", quesSelButtonDef,"questionnaire/questionnaire_info");
+
+            refreshTabgroupCSS("questionnaire");
+
+            onEvent("questionnaire/questionnaire_info/Start_Question_Selection","click","startQuestionSelection()");
+            onEvent("questionnaire/questionnaire_info","show","loadQuesnirType(\"newQuesnir\")");
+            onEvent("questionnaire/questionnaire_info/questionnaireTypeSelection", "select", "setQuesnirType()");
+            onEvent("questionnaire/questionnaire_info/New_QuesnirType", "click", "newQuesnirType()");
+            }
+        
+        });
+    }
+}
+
 loadQuestionnaire(){
 
 }
 
-newQuestionnaire(){
+initilizQuestionnaireVar(){
+    questionCandidates.clear();
+    questionCandidatesContent.clear();
+    questionSelected.clear();
+    questionOriginal.clear();
+    questionnaireInfoOriginal.clear();
+    questionnaireInfoNew.clear();
+    quesListRelnOrigin.clear();
+    questionirType.clear();
+    quesnirTypeRelnOrigin.clear();
+    finished_questionnaire_id=null;
+}
 
+newQuestionnaire(){
+    createQuesnirMainPage();
+    newTabGroup("questionnaire");
+    initilizQuestionnaireVar();
 }
 
 loadQuestionnaireInfo(){
@@ -1806,17 +1883,235 @@ loadQuestionnaireInfo(){
 }
 
 startQuestionSelection(){
+    if((isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireName")))||(isNull(getFieldValue("questionnaire/questionnaire_info/questionnaireID")))) {
+            showWarning("Validation Error", "You must fill in the Questionnaire ID/Name before you can continue");
+            return;
+    } 
+    else{
+            questionnaire_id=getFieldValue("questionnaire/questionnaire_info/questionnaireID");
+            questionnaire_name = getFieldValue("questionnaire/questionnaire_info/questionnaireName");
+            questionnaireInfoNew.add(questionnaire_id);
+            questionnaireInfoNew.add(questionnaire_name);
+            questionnaireInfoNew.add(getFieldValue("questionnaire/questionnaire_info/questionnaireDescription"));
+
+            questionnaireInfoNew.add(getFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid"));
+            showTabGroup("questionnaire_question");
+    }
 
 }
 
 setQuesnirType(){
+    String quesnirType=getFieldValue("questionnaire/questionnaire_info/questionnaireTypeSelection");
+    setFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid",quesnirType);
+    for (type:questionirType){
+        if (type.get(0).equals(quesnirType)){
+            String quernirTypeName=type.get(1);
+            setFieldValue("questionnaire/questionnaire_info/questionnaireType",quernirTypeName);
+            break;
+        }
+    }
+}
+onEvent("questionnaire_question/questionnaire_question_info","show","initializeQuestionSelect()");
+onEvent("questionnaire_question/questionnaire_question_info/questionList","click","questionSelection()");
+onEvent("questionnaire_question/questionnaire_question_info/Search_Question","click","searchQuestion()");
+reConstructQuesOrder(){
+    removeAllViewsAndContainers("questionnaire_question");
+    for(int j=0; j<questionSelected.size();j++){
+        String quesContent= questionSelected.get(j).get(1);
+        quesCountDel=j+1;
+        executeViewTask(new ViewTask() {
+            doTask() {
+                createContainer("questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel, "orientation", "questionnaire_question/questionnaire_question_info");
+                createContainer("questionnaire_question/questionnaire_question_info/quesc_" + quesCountDel, "even", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+                createContainer("questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCountDel, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+                createContainer("questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCountDel, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+                createContainer("questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCountDel, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+                createView("questionnaire_question/questionnaire_question_info/Ques_" + quesCountDel, createViewDef().createTextField("string").setReadOnly(true), "questionnaire_question/questionnaire_question_info/quesc_" + quesCountDel);
+                createView("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCountDel, createViewDef().createButton().setLabel("X").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCountDel);
+                createView("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCountDel, createViewDef().createButton().setLabel("↑").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCountDel);
+                createView("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCountDel, createViewDef().createButton().setLabel("↓").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCountDel);
+                setFieldValue("questionnaire_question/questionnaire_question_info/Ques_" + quesCountDel, quesContent);
+                onEvent("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCountDel,"click","deleteQuesConfirm(\""+quesContent+"\")");
+                onEvent("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCountDel,"click","moveUpQues(\""+quesContent+"\")");
+                onEvent("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCountDel,"click","moveDownQues(\""+quesContent+"\")");
+                }
+        });
+    }
+    createChangeBtnQuesnir();
+}
 
+createChangeBtnQuesnir(){
+    executeViewTask(new ViewTask() {
+        doTask(){
+            createContainer("questionnaire_question/questionnaire_question_info/quesnirBtnC", "orientation", "questionnaire_question/questionnaire_question_info");
+            createContainer("questionnaire_question/questionnaire_question_info/child1", "even", "questionnaire_question/questionnaire_question_info/quesnirBtnC");
+            createContainer("questionnaire_question/questionnaire_question_info/child2", "even", "questionnaire_question/questionnaire_question_info/quesnirBtnC");
+            createView("questionnaire_question/questionnaire_question_info/Change_Questionnaire", createViewDef().createButton().setLabel("Update").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info/child1");
+            createView("questionnaire_question/questionnaire_question_info/Finish_Questionnaire_Creation", createViewDef().createButton().setLabel("Create").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info/child2");
+            onEvent("questionnaire_question/questionnaire_question_info/Change_Questionnaire","click","finishChangeQuestionnaire()");
+            onEvent("questionnaire_question/questionnaire_question_info/Finish_Questionnaire_Creation","click","finishCreateQuestionnaire()");
+            refreshTabgroupCSS("questionnaire_question");       
+        }
+    }); 
+}       
+rmQuesnirNewChangeBtn(){
+    removeContainer("questionnaire_question/questionnaire_question_info/quesnirBtnC");
+    removeContainer("questionnaire_question/questionnaire_question_info/child1");
+    removeContainer("questionnaire_question/questionnaire_question_info/child2");
+    removeView("questionnaire_question/questionnaire_question_info/Change_Questionnaire");
+    removeView("questionnaire_question/questionnaire_question_info/Finish_Questionnaire_Creation");
 }
 
 initializeQuestionSelect(){
+    questionCandidates.clear();
+    questionCandidatesContent.clear();
+    questionSelected.clear();
+    questionOriginal.clear();
+    setFieldValue("questionnaire_question/questionnaire_question_info/keywordOfQuestion", "*");
+    populateDropDown("questionnaire_question/questionnaire_question_info/category",searchQuesType);
+        
+    if(isNull(finished_questionnaire_id)){
+        loadQuesSelection("new");
+    }
+    
+    else{
+        current_questionnaire_id=finished_questionnaire_id;
+        
+        tempQuestionList=new ArrayList();
+        tempQuestionList.clear();
+        if(isNull(current_questionnaire_id)){
+                showWarning("Message","This questionnaire may not be using anymore, please contact the Admin for more details");
+                return;
+        }
+        loadQuesnirWithQues(current_questionnaire_id);
+    }
+}
+
+loadQuesSelection(String typeflag){
+    fetchAll(loadAllEngQuesContentQuery,
+        new FetchCallback() {
+            onFetch(result) {
+                if (!isNull(result)) {
+                    questionCandidates.addAll(result);
+                    questionCandidatesContent.addAll(result);
+                    populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+                    if(typeflag.equals("new")){
+                        removeAllViewsAndContainers("questionnaire_question");
+                    }
+                }
+            
+        }
+
+        onError(message) {
+            showToast(message);
+        }   
+    });
+}
+
+loadQuesnirWithQues(String currentQuesnirID){
+    loadQuesnirQuesReln(currentQuesnirID);
+    loadQuesnirQuesOrderContent(currentQuesnirID);
+}
+
+loadQuesnirQuesReln(String currentQuesnirID){
+    quesnir_ques_reln_query="select uuid from latestNonDeletedArchEntIdentifiers "+
+        "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+        "and measure='"+currentQuesnirID+"' ";
+
+    
+    fetchAll(quesnir_ques_reln_query, new FetchCallback() {
+        onFetch(result) {
+            if(!isNull(result)){
+                quesListRelnOrigin.clear();
+                quesListRelnOrigin.addAll(result);
+            }
+            else{
+                showWarning("Deprecated data","Some data in this questionnaire may be deprecated or updated, please contact the Admin for more details");
+            }
+        }
+    });
+}
+
+loadQuesnirQuesOrderContent(String currentQuesnirID){
+    loadQuesContentandOrderQuery="select t1.quesId, t1.quesOrder || '-' || t2.quesContent as qOrderedContent from "+
+        "(select quId.measure as quesId, qOrder.measure as quesOrder "+
+        "from latestNonDeletedAentValue as quId, latestNonDeletedAentValue as qOrder "+
+        "where qOrder.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesOrderLocal') "+
+        "and quId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+        "and quId.uuid=qOrder.uuid "+
+        "and quId.measure in "+
+            "(select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+            "where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+            "and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+            "and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+currentQuesnirID+"') "+
+        "and qOrder.uuid in "+
+            "(select uuid from latestNonDeletedArchEntIdentifiers where AttributeID = (select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+            "and measure='"+currentQuesnirID+"')) t1 "+
+    "inner join "+
+        "(select qId.measure as quesId, qContent.measure as quesContent "+
+        "from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qContent "+
+        "where qContent.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesContent') "+
+        "and qId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
+        "and qId.uuid=qContent.uuid "+
+        "and qId.measure in "+
+            "(select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+            "where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+            "and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+            "and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+currentQuesnirID+"') "+
+        "and qId.uuid in "+
+            "(select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid'))) t2 "+
+    "on t1.quesId=t2.quesId "+
+    "order by qOrderedContent asc";
+
+    fetchAll(loadQuesContentandOrderQuery, new FetchCallback() {
+            onFetch(result) {
+                if (!isNull(result)) {
+                    questionSelected.addAll(result);//order the questionSelected list in order
+                    reConstructQuesOrder();
+                    questionOriginal.addAll(result);
+                    prepareCandidateQues(questionOriginal);
+                }
+        }
+
+        onError(message) {
+            showToast(message);
+        }   
+    });
+}
+
+prepareCandidateQues(ArrayList selectedQuesList){
+    ArrayList tempQuesArr=new ArrayList();
+    for(ques:selectedQuesList){
+        String [] quesSplit=ques.get(1).split("-");
+        ArrayList tempSingleQues=new ArrayList();
+        tempSingleQues.add(ques.get(0));
+        tempSingleQues.add(quesSplit[1]);
+        tempQuesArr.add(tempSingleQues);
+    }
+
+    fetchAll(loadAllEngQuesContentQuery, new FetchCallback() {
+        onFetch(result) {
+            if (!isNull(result)) {
+                questionCandidates.addAll(result);
+                questionCandidatesContent.addAll(result);
+                questionCandidatesContent.removeAll(tempQuesArr);
+                populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+            }
+            else{
+                populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+            }
+    
+        }
+        onError(message) {
+            showToast(message);
+        }
+    }); 
 
 }
 
+questionSelection(){
+
+}
 searchQuestion(){
 
 }
