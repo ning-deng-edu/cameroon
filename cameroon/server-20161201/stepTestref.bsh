@@ -1129,14 +1129,16 @@ createLangVerContent(String typeflag){
 checkUIupdate(){
     String propUuid=getFieldValue("questionBank/questionInfo/questionProp");
     String propText=getQuesPropText(propUuid);
+    
     if(propText==null|| propText.equals("")){
-        showWarning("Deprecated data","This property may not be using anymore\n"+"please contact the admin for more details");
-        return;
+        //showWarning("Deprecated data","This property may not be using anymore\n"+"please contact the admin for more details");
+        //return;
     }
-    if((propText.equals("MultiChoices")|| propText.equals("MultiChoice")) && !hasView("questionBank/questionInfo/quesopc0")){
+
+    else if((propText.equals("MultiChoices")|| propText.equals("MultiChoice")) && !hasView("questionBank/questionInfo/quesopc0")){
         dataTempStoreUIchange();
     }
-    if(!propText.equals("MultiChoices") && !propText.equals("MultiChoice") && hasView("questionBank/questionInfo/quesopc0")){
+    else if(!propText.equals("MultiChoices") && !propText.equals("MultiChoice") && hasView("questionBank/questionInfo/quesopc0")){
         alertLosingOptions();
     }
 }
