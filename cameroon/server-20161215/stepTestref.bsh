@@ -303,10 +303,12 @@ createQuesnirTypePage(){
         executeViewTask(new ViewTask() {
         doTask() {
             typeNameViewDef=createViewDef().createTextField().setLabel("Type name").setAttributeName("QuesnirTypeName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+            typeDescViewDef=createViewDef().createTextField().setLabel("Type description").setAttributeName("QuesnirTypeDesc").setAttributeType("measure").setAnnotationEnabled(true);
             saveTypeBtnDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
             dupListDef=createViewDef().createList().setLabel("Duplicate records");
 
             createView("quesnirType/quesnirType_info/quesnirTypeName",typeNameViewDef,"quesnirType/quesnirType_info");
+            createView("quesnirType/quesnirType_info/QuesnirTypeDesc",typeDescViewDef,"quesnirType/quesnirType_info");
             createView("quesnirType/quesnirType_info/SaveQuesnirType",saveTypeBtnDef,"quesnirType/quesnirType_info");
             createView("quesnirType/quesnirType_info/duplicateTypeList",dupListDef,"quesnirType/quesnirType_info");
             refreshTabgroupCSS("quesnirType");
@@ -628,10 +630,13 @@ createLangTypePage(){
         executeViewTask(new ViewTask() {
             doTask(){
                 langTypeViewDef=createViewDef().createTextField().setLabel("Language type name").setAttributeName("LangTypeName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+                langTypeDescViewDef=createViewDef().createTextField().setLabel("Language type name").setAttributeName("LangTypeDesc").setAttributeType("measure").setAnnotationEnabled(true);
+
                 langDupViewDef=createViewDef().createList().setLabel("Duplicate records").setAnnotationEnabled(false).setStyleCss("menu-list");
                 finLangTypeViewDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
 
                 createView("langType/langType_info/langTypeName",langTypeViewDef,"langType/langType_info");
+                createView("langType/langType_info/langTypeDesc",langTypeDescViewDef,"langType/langType_info");
                 createView("langType/langType_info/SaveLangType",finLangTypeViewDef,"langType/langType_info");
                 createView("langType/langType_info/duplicateLangTypeList",langDupViewDef,"langType/langType_info");
                 refreshTabgroupCSS("langType");
@@ -925,8 +930,10 @@ canLangList=new ArrayList();
 selLangList=new ArrayList();
 oldLangList=new ArrayList();
 newLangList=new ArrayList();
-ArrayList oldQuestionOptionList=new ArrayList();
-ArrayList newQuestionOptionList=new ArrayList();
+//ArrayList oldQuestionOptionList=new ArrayList();
+//ArrayList newQuestionOptionList=new ArrayList();
+HashMap oldQuestionOptionList=new HashMap();
+HashMap newQuestionOptionList=new HashMap();
 /*** Question bank query ***/
 loadAllQuesPropQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
         "WHERE latestNonDeletedAentValue.AttributeID "+
@@ -1255,13 +1262,19 @@ createQuestionChoicePage(String langVerId){
     Boolean optExist=false;
     ArrayList tempOptList=new ArrayList();
     if(newQuestionOptionList!=null && !newQuestionOptionList.isEmpty()){
+    	if(newQuestionOptionList.containsKey(langVerId)){
+    		optExist=true;
+    		tempOptList=newQuestionOptionList.get(langVerId);
+    	}
+    	/*
         for(optMap: newQuestionOptionList){
             if(optMap.containsKey(langVerId)){
                 optExist=true;
                 tempOptList=optMap.get(langVerId);
                 break;
             }
-        }    
+        } 
+        */   
     }
     
     if(!optExist){
@@ -1384,6 +1397,17 @@ delOptConfirm(String langVerId, String quesOptCountStr){
 }
 //TODO: NOT TESTED
 delOptInList(String langVerId, String optText){
+	if(newQuestionOptionList.containsKey(langVerId)){
+		ArrayList tempOptList=new ArrayList();
+		for(opt: tempOptList){
+			if(opt.equals(optText)){
+				tempOptList.remove(opt);
+				newQuestionOptionList.put(langVerId,tempOptList);
+				break;
+			}
+		}
+	}
+	/*
     for(int i=0;i<newQuestionOptionList.size();i++){
         if(newQuestionOptionList.get(i).containsKey(langVerId)){
             for(opt: newQuestionOptionList.get(i).get(langVerId)){
@@ -1394,12 +1418,12 @@ delOptInList(String langVerId, String optText){
             break;
         }
     }
+    */
 }
 
 storeQuestionChoice(String quesOptCountStr, String langVerId){
     int quesOptCount=Integer.parseInt(quesOptCountStr);
-
-    HashMap tempOptMap=new HashMap();
+   
     ArrayList tempOptText=new ArrayList();
     for(int i=0;i<quesOptCount;i++){
         if(hasView("questionChoice/questionChoiceInfo/optc" + i)){
@@ -1412,8 +1436,23 @@ storeQuestionChoice(String quesOptCountStr, String langVerId){
         showWarning("No option added","No data added, you must add at least two options for this question");
         return;
     }
+    ArrayList dupCheck=checkDupItem(tempOptText);
+    if(dupCheck==null){
+    	storeQuestionChoiceNoDup(tempOptText,langVerId);
+    }
+    else{
+        showWarning("Duplicate option added","No duplicate option allowed:"+dupCheck.get(0)+"\n Please correct the option"){
+            return;
+        }
+    }
+    
+}
 
-    tempOptMap.put(langVerId,tempOptText);
+storeQuestionChoiceNoDup(ArrayList optList, String langVerId){
+	newQuestionOptionList.put(langVerId,optList);
+	/*
+    HashMap tempOptMap=new HashMap();
+    tempOptMap.put(langVerId,optList);
     
     if(!isNull(newQuestionOptionList)){
         for(optMap: newQuestionOptionList){
@@ -1424,7 +1463,29 @@ storeQuestionChoice(String quesOptCountStr, String langVerId){
         }    
     }
     newQuestionOptionList.add(tempOptMap);
+    */
     cancelTabGroup("questionChoice",true);
+}
+
+checkDupItem(ArrayList elmList){
+	HashSet dupCheck=new HashSet();
+	ArrayList dupList=new ArrayList();
+	Boolean dup=false;
+	for(elm: elmList){
+		if(dupCheck.contains(elm)){
+			dup=true;
+			dupList.add(elm);
+		}
+		else{
+			dupCheck.add(elm);
+		}
+	}
+	if(!dup){
+		return null;
+	}
+	else{
+		return dupList;
+	}
 }
 
 removeMultipleChoiceUI(){
@@ -1509,6 +1570,9 @@ saveNewQuestion(){
                     showWarning("error",message);
                 }  
             });
+            if(question_id!=null){
+            	updateNonBasicQuesInfo();
+            }
         }
     });
 
@@ -1533,6 +1597,11 @@ saveQuesLangs(String quesUuid, ArrayList selLangList){
 }
 
 saveQuesChoice(String quesUuid){
+	for(String key: newQuestionOptionList.keySet()){
+		saveQuesChoiceByLang(quesUuid,key,newQuestionOptionList.get(key));
+	}
+
+	/*
     for(int i=0;i<newQuestionOptionList.size();i++){
         HashMap tempChoiceMap=newQuestionOptionList.get(i);
         //showWarning("tempChoiceMap","tempChoiceMap");
@@ -1554,6 +1623,7 @@ saveQuesChoice(String quesUuid){
 
         saveQuesChoiceByLang(quesUuid,quesLangUuid,quesOptTextList);
     }
+    */
 }
 
 saveQuesChoiceByLang(String quesUuid,String quesLangUuid, ArrayList quesOptList){
@@ -1564,6 +1634,98 @@ saveQuesChoiceByLang(String quesUuid,String quesLangUuid, ArrayList quesOptList)
         quesChoice.add(createEntityAttribute("QuesOptionText", null, null, quesOptList.get(j), null));
         saveArchEnt(null, "QuestionOption", null, quesChoice);
     }
+}
+updateNonBasicQuesInfo(){
+	updateQuesProp();
+	updateQuesLang();
+	updateQuesChoice();
+}
+updateQuesProp(){
+	if(question_id==null || oldPropList==null || oldPropList.isEmpty()){
+		return;
+	}
+
+	tempPropAttr=new ArrayList();
+	tempPropAttr.add(recording_req_id);
+	tempPropAttr.add("Yes");
+	newPropList.add(tempPropAttr);
+	//showWarning("oldPropList",oldPropList.get(0).get(0));
+	Hashtable quesPropChange=listChange(newPropList,oldPropList,0,0);
+	//showWarning("quesPropChange","quesPropChange");
+	if(quesPropChange.containsKey("ADD")){
+		//showWarning("ADD","ADD");
+		for(eleDel: quesPropChange.get("DELETE")){
+			//showWarning("uuid",eleDel.get(1));
+			deleteArchEnt(eleDel.get(1));
+		}
+		for(eleAdd:quesPropChange.get("ADD")){
+			quesPropAttributes= createAttributeList();
+			quesPropAttributes.add(createEntityAttribute("QuesUuid", null, null, question_id, null));
+			quesPropAttributes.add(createEntityAttribute("QuesPropDefID", null, null,eleAdd.get(0), null));
+			quesPropAttributes.add(createEntityAttribute("QuesPropValue", null, null, "Yes", null));
+			saveArchEnt(null, "QuesProperty", null, quesPropAttributes);
+		}
+	}
+	
+}
+
+updateQuesLang(){
+	if(question_id==null || oldLangList==null || oldLangList.isEmpty()){
+		return;
+	}
+	tempOldLangList=new ArrayList();
+	for(old:oldLangList){
+		ArrayList tempLang=new ArrayList();
+		tempLang.add(old.get(1));
+		tempLang.add(old.get(2));
+		tempOldLangList.add(tempLang);
+	}
+	compIndex=new ArrayList();
+	compIndex.add(1);
+	Hashtable quesLangChange=listChange(selLangList,tempOldLangList,0,compIndex);
+	tempNewLang=quesLangChange.get("A");
+	for(lang: tempNewLang){
+		quesLangVer=createAttributeList();
+		quesLangVer.add(createEntityAttribute("QuestionUuid", null, null, question_id, null));
+		quesLangVer.add(createEntityAttribute("QuesLangUuid", null, null, lang.get(0), null));
+		quesLangVer.add(createEntityAttribute("QuesContent", null, null, lang.get(1), null));
+		saveArchEnt(null, "QuestionLang", null, quesLangVer);
+		//showWarning("added",lang.get(0)+":"+lang.get(1));
+	}
+	tempDelLang=quesLangChange.get("D");
+	for(delLang: tempDelLang){
+		//deleteArchEnt(delLang.get(0));
+		for(oldLang:oldLangList){
+			if(delLang.get(0).equals(oldLang.get(1))){
+				deleteArchEnt(oldLang.get(0));
+				//showWarning("deleted",oldLang.get(0)+":"+delLang.get(0));
+			}
+		}
+	}
+	tempUpdLang=quesLangChange.get("U");
+	for(uLang: tempUpdLang){
+		for(oldLang:oldLangList){
+			if(uLang.get(0).equals(oldLang.get(1))){
+				quesLangVer=createAttributeList();
+				quesLangVer.add(createEntityAttribute("QuestionUuid", null, null, question_id, null));
+				quesLangVer.add(createEntityAttribute("QuesLangUuid", null, null, uLang.get(0), null));
+				quesLangVer.add(createEntityAttribute("QuesContent", null, null, uLang.get(1), null));
+				saveArchEnt(oldLang.get(0), "QuestionLang", null, quesLangVer);
+				//showWarning("updated",oldLang.get(0)+":"+uLang.get(0)+":"+uLang.get(1));
+
+			}
+		}
+	}
+	showToast("Question language updated");
+	
+}
+
+updateQuesChoice(){
+	if(question_id==null || oldQuestionOptionList==null ||oldQuestionOptionList.isEmpty()){
+		return;
+	}
+	checkQuesOptUpdate();
+
 }
 
 getSelLang(){
@@ -1688,10 +1850,42 @@ loadMultiChoiceQuesInfo(String quesUuid){
             if(!isNull(choiceResult)){
                 oldQuestionOptionList.clear();
                 newQuestionOptionList.clear();
-                Boolean keyExist=false;
+                //Boolean keyExist=false;
                 for(int i=0;i<choiceResult.size();i++){
                     String tempLangID=choiceResult.get(i).get(1);
-                    keyExist=false;
+                    //keyExist=false;
+
+                    if(oldQuestionOptionList.containsKey(tempLangID)){
+                    	ArrayList tempOptList=oldQuestionOptionList.get(tempLangID);
+                    	ArrayList tempNewOptList=newQuestionOptionList.get(tempLangID);
+                    	if(tempOptList==null){
+                    		tempOptList.clear();
+                    	}
+                    	if(tempNewOptList==null){
+                    		tempNewOptList.clear();
+                    	}
+
+                    	String tempOptTextStr=choiceResult.get(i).get(0)+":"+choiceResult.get(i).get(2);
+
+                        tempOptList.add(tempOptTextStr);
+                        tempNewOptList.add(choiceResult.get(i).get(2));
+                        oldQuestionOptionList.put(tempLangID,tempOptList);
+                        newQuestionOptionList.put(tempLangID,tempNewOptList);
+                    }
+                    else{
+                    	ArrayList tempOptList=new ArrayList();
+
+                        ArrayList tempNewOptList=new ArrayList();
+
+                        String tempOptTextStr=choiceResult.get(i).get(0)+":"+choiceResult.get(i).get(2);
+
+                        tempOptList.add(tempOptTextStr);
+                        tempNewOptList.add(choiceResult.get(i).get(2));
+
+                       	oldQuestionOptionList.put(tempLangID,tempOptList);
+                        newQuestionOptionList.put(tempLangID,tempNewOptList);
+                    }
+                    /*
                     for(int j=0;j<oldQuestionOptionList.size();j++){
                         HashMap tempQuesOptMap=oldQuestionOptionList.get(j);
                         if(tempQuesOptMap.containsKey(tempLangID)){
@@ -1736,6 +1930,7 @@ loadMultiChoiceQuesInfo(String quesUuid){
                         oldQuestionOptionList.add(tempOptMap);
                         newQuestionOptionList.add(tempNewOptMap);
                     }
+                    */
                 }
 
                 createMultipleChoiceUI(null,"load");
@@ -1793,6 +1988,186 @@ loadLangForQues(String quesUuid){
 loadNonChoiceQuesInfo(String quesUuid){
     createQuesLangVer("load");
     loadLangForQues(quesUuid);
+}
+
+checkQuesOptUpdate(){
+	//HashMap changeByLang=new HashMap();
+	ArrayList oldKeySet=new ArrayList();
+	oldKeySet.addAll(oldQuestionOptionList.keySet());
+	ArrayList newKeySet=new ArrayList();
+	newKeySet.addAll(newQuestionOptionList.keySet());
+
+	HashMap keyDiff=listChange(newKeySet,oldKeySet);
+	HashMap langDiff=addOrDelQuesOptListByLang(keyDiff);
+
+	ArrayList equalKey=getEquiKey(langDiff);
+	if(langDiff==null){
+		checkQuesOptContentUpdate(equalKey);
+	}
+	else if(langDiff.containsKey("PA")){
+		updateQuesChoiceAdd(langDiff.get("PA"));
+		checkQuesOptContentUpdate(equalKey);
+	}
+	else if(langDiff.containsKey("PD")){
+		updateQuesChoiceDel(langDiff.get("PD"));
+		checkQuesOptContentUpdate(equalKey);
+	}
+	else{
+		updateQuesChoiceDel(langDiff.get("D"));
+		updateQuesChoiceAdd(langDiff.get("A"));
+		checkQuesOptContentUpdate(equalKey);
+	}
+}
+
+getEquKey(ArrayList originList, HashMap keyDiff){
+	ArrayList tempList=new ArrayList();
+	tempList.addAll(originList);
+	for(String key: keyDiff){
+		tempList.removeAll(keyDiff.get(key));
+	}
+	return tempList;
+}
+
+addOrDelQuesOptListByLang(HashMap keyDiff){
+	HashMap updateList=new HashMap();
+	if(keyDiff.containsKey("EQUAL")){
+		return null;
+	}
+	else if(keyDiff.containsKey("PUREADD")){
+		ArrayList langAdded=keyDiff.get("PUREADD");
+		ArrayList pureAddList=new ArrayList();
+		for(lang:langAdded){
+			ArrayList tempLangOpt=newQuestionOptionList.get(lang);
+			HashMap pureAddMap=new HashMap();
+			pureAddMap.put(lang,tempLangOpt);
+			pureAddList.add(pureAddMap);
+		}
+		updateList.put("PA",pureAddList);
+	}
+	else if(keyDiff.containsKey("PUREDELETE")){
+		ArrayList langDel=keyDiff.get("PUREDELETE");
+		ArrayList pureDelList=new ArrayList();
+		for(lang:langDel){
+			ArrayList tempLangOpt=oldQuestionOptionList.get(lang);
+			HashMap pureDelMap=new HashMap();
+			pureDelMap.put(lang,tempLangOpt);
+			pureDelList.add(pureDelMap);
+		}
+		updateList.put("PD",pureDelList);
+	}
+	else{
+		ArrayList langAdded=keyDiff.get("PUREADD");
+		ArrayList addList=new ArrayList();
+		for(lang:langAdded){
+			ArrayList tempLangOpt=newQuestionOptionList.get(lang);
+			HashMap addMap=new HashMap();
+			addMap.put(lang,tempLangOpt);
+			addList.add(addMap);
+		}
+		updateList.put("A",addList);
+
+		ArrayList langDel=keyDiff.get("PUREDELETE");
+		ArrayList delList=new ArrayList();
+		for(lang:langDel){
+			ArrayList tempLangOpt=oldQuestionOptionList.get(lang);
+			HashMap delMap=new HashMap();
+			delMap.put(lang,tempLangOpt);
+			delList.add(delMap);
+		}
+		updateList.put("D",delList);
+	}
+	return updateList;
+}
+
+updateQuesChoiceAdd(ArrayList pureAddList){
+	if(pureAddList==null){
+		return;
+	}
+	for(int i=0;i<pureAddList.size();i++){
+		HashMap tempOptMap=pureAddList.get(i);
+		String langKey=tempOptMap.keySet().get(0);
+		ArrayList tempOptList= tempOptMap.get(langKey);
+		saveQuesChoiceByLang(question_id, langKey, tempOptList);
+	}
+}
+
+updateQuesChoiceDel(ArrayList pureDelList){
+	if(pureDelList==null){
+		return;
+	}
+	for(int i=0;i<pureDelList.size();i++){
+		HashMap tempOptMap=pureDelList.get(i);
+		String langKey=tempOptMap.keySet().get(0);
+		ArrayList tempOptList= tempOptMap.get(langKey);
+		ArrayList tempDelIdList= new ArrayList();
+		for(int i=0;i<tempOptList.size();i++){
+			String [] idSplit= tempOptList.get(i);
+			tempDelIdList.add(idSplit[0]); 
+		}
+	}
+	delOldQuesChoice(tempDelIdList);
+}
+
+delOldQuesChoice(ArrayList delIdList){
+	if(delIdList==null){
+		return;
+	}
+	for(int i=0;i<delIdList.size();i++){
+		deleteArchEnt(delIdList.get(i));
+	}
+}
+
+delOldQuesChoice(ArrayList delIdList, int idIdx){
+	if(delIdList==null){
+		return;
+	}
+	for(int i=0;i<delIdList.size();i++){
+		deleteArchEnt(delIdList.get(i).get(idIdx));
+	}
+}
+
+checkQuesOptContentUpdate(ArrayList equKeyList){
+	HashMap contentUpdate=new HashMap();
+	for(int i=0;i<equKeyList.size();i++){
+		String key=equKeyList.get(i);
+		ArrayList tempOldOptList=extractOldOptByLang(key);
+		ArrayList tempNewOptList=newQuestionOptionList.get(key);
+		HashMap optContentDiff=listChange(tempNewOptList,tempOldOptList, 0, 1);
+		contentUpdate.put(key, optContentDiff);
+	}
+}
+
+extractOldOptByLang(String key){
+	ArrayList tempOpt=oldQuestionOptionList.get(key);
+	ArrayList extedOldOptList=new ArrayList();
+	for(int i=0;i<tempOpt.size();i++){
+		String [] idSplit= tempOptList.get(i);
+		ArrayList tempOptItem=new ArrayList();
+		tempOptItem.add(idSplit[0]);
+		tempOptItem.add(idSplit[1]);
+		extedOldOptList.add(tempOptItem); 
+	}
+	return extedOldOptList;
+}
+
+quesOptContentUpdate(HashMap optUpdate){
+	for(String key:optUpdate){
+		HashMap diff=optUpdate.get(key);
+		if(diff.containsKey("PUREADD")){
+			ArrayList addList=diff.get("PUREADD");
+			saveQuesChoiceByLang(question_id, key, addList);
+		}
+		else if(diff.containsKey("PUREDELETE")){
+			ArrayList delList=diff.get("PUREDELETE");
+			delOldQuesChoice(delList,0);
+		}
+		else if(diff.containsKey("ADD")){
+			ArrayList delList=diff.get("DELETE");
+			delOldQuesChoice(delList,0);
+			ArrayList addList=diff.get("ADD");
+			saveQuesChoiceByLang(question_id, key, addList);
+		}
+	}
 }
 /*** Questionnaire ***/
 /*** Questionnaire var ***/
@@ -3593,13 +3968,6 @@ listChange(ArrayList newList, ArrayList oldList, int compareKey, ArrayList compa
                     if(!elmOld.get(compareValues.get(i)).equals(elmNew.get(compareValues.get(i))))
                     {
                         updated=true;
-                        /*
-                        tempOldUpdate=new ArrayList();
-                        tempOldUpdate.add(elmOldKey);
-                        tempUpdate=new ArrayList();
-                        tempUpdate.add(tempOldUpdate);
-                        tempUpdate.add(elmNew);
-                        */
                         update_list.add(elmNew);
                         //update_new_list.add(elmNew);
                         //showWarning("updated","updated");
