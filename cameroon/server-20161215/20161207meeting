@@ -1,0 +1,19 @@
+Types of question we have in the module:
+	1.FreeText
+	2.Audio
+	3.Video
+	4.Photo
+	5.File
+	6.CheckList
+	7.LangList
+	8.Emergency
+
+List of expected new types of question:
+	1.Integer only
+	2.Number only
+	!3.Date time (format: yyyy-mm-dd, yyyy/mm/dd, or yyyy)
+	4.Query based multiChoice question
+	(select languageName from Language where LanguageType="LWC")
+	(select locationName form Location)
+	5.Multiple choice
+	6.Multiple choice(>1 answers) (!Need to specify the special reserved keyword: Other?)

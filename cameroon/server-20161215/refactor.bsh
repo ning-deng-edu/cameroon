@@ -1,0 +1,1106 @@
+import java.util.concurrent.Callable;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import android.util.Log;
+import java.io.File;
+/*** 'Editable' - you can edit the code below based on the needs ***/
+User user; // don't touch
+String userid;
+
+/***Enable data and file syncing***/
+addActionBarItem("sync", new ToggleActionButtonCallback() {
+    actionOnLabel() {
+        "Disable Sync";
+    }
+    actionOn() {
+        setSyncEnabled(false);
+        setFileSyncEnabled(false);
+        showToast("Sync disabled.");
+    }
+    isActionOff() {
+        isSyncEnabled();
+    }
+    actionOffLabel() {
+        "Enable Sync";
+    }
+    actionOff() {
+        setSyncEnabled(true);
+        setFileSyncEnabled(true);
+        showToast("Sync enabled.");
+    }
+});
+
+onSyncEvent("onSyncStart()", "onSyncSuccess()", "onSyncFailure()");
+
+
+onSyncStart() {
+    showToast("sync started");
+}
+ 
+onSyncSuccess() {
+    showToast("sync success");
+}
+ 
+onSyncFailure() {
+    showToast("sync failed");
+}
+
+/*** USER ***/
+onEvent("user/usertab/users", "click", "login()");
+onEvent("user/usertab/user_Search", "click", "userSearch()");
+loadAllUserQuery="select userid, fname || ' ' || lname from user where userdeleted is null";
+loadUsers() {
+    fetchAll(loadAllUserQuery, new FetchCallback() {
+        onFetch(result) {
+            populateList("user/usertab/users", result);
+        }
+    });
+}
+
+loadUsers();
+
+initializeData(){
+	//showWarning("initializeData","initializeData");
+	fetchOne("select * from AentValue", new FetchCallback() {
+        onFetch(result) {
+            if(isNull(result)){
+            	//showWarning("NO DATA","NO DATA");
+            	initializeQuesnirType();
+            	initializeQuesProp();
+            	initilizePersonRole();
+            	initilizeLangType();
+            	showToast("data initilized");
+            }
+        }
+    });
+}
+
+initializeQuesnirType(){
+	regQuesnirAttributes=createAttributeList();
+	regQuesnirAttributes.add(createEntityAttribute("QuesnirTypeName", null, null, "Regular", null));
+	saveArchEnt(null, "QuesnirType", null, regQuesnirAttributes);
+
+	introQuesnirAttributes=createAttributeList();
+	introQuesnirAttributes.add(createEntityAttribute("QuesnirTypeName", null, null, "Introductory", null));
+	saveArchEnt(null, "QuesnirType", null, introQuesnirAttributes);
+
+	sclingQuesnirAttributes=createAttributeList();
+	sclingQuesnirAttributes.add(createEntityAttribute("QuesnirTypeName", null, null, "Sociolinguistic", null));
+	saveArchEnt(null, "QuesnirType", null, sclingQuesnirAttributes);
+
+	emrQuesnirAttributes=createAttributeList();
+	emrQuesnirAttributes.add(createEntityAttribute("QuesnirTypeName", null, null, "Emergency", null));
+	saveArchEnt(null, "QuesnirType", null, emrQuesnirAttributes);
+}
+
+initializeQuesProp(){
+	audQuesAttributes=createAttributeList();
+	audQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "Audio", null));
+	saveArchEnt(null, "QuesPropDef", null, audQuesAttributes);
+
+	vedQuesAttributes=createAttributeList();
+	vedQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "Video", null));
+	saveArchEnt(null, "QuesPropDef", null, vedQuesAttributes);
+
+	phtQuesAttributes=createAttributeList();
+	phtQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "Photo", null));
+	saveArchEnt(null, "QuesPropDef", null, phtQuesAttributes);
+
+	nonQuesAttributes=createAttributeList();
+	nonQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "Freetext", null));
+	saveArchEnt(null, "QuesPropDef", null, nonQuesAttributes);
+
+	filQuesAttributes=createAttributeList();
+	filQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "File", null));
+	saveArchEnt(null, "QuesPropDef", null, filQuesAttributes);
+
+	lanQuesAttributes=createAttributeList();
+	lanQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "LangList", null));
+	saveArchEnt(null, "QuesPropDef", null, lanQuesAttributes);
+
+	nonQuesAttributes=createAttributeList();
+	nonQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "MultipleChoices", null));
+	saveArchEnt(null, "QuesPropDef", null, nonQuesAttributes);
+
+	nonQuesAttributes=createAttributeList();
+	nonQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "MultipleChoice", null));
+	saveArchEnt(null, "QuesPropDef", null, nonQuesAttributes);
+
+	nonQuesAttributes=createAttributeList();
+	nonQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "LangListEnd", null));
+	saveArchEnt(null, "QuesPropDef", null, nonQuesAttributes);
+
+	emrQuesAttributes=createAttributeList();
+	emrQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "EmergencyQuestion", null));
+	saveArchEnt(null, "QuesPropDef", null, emrQuesAttributes);
+
+	chkQuesAttributes=createAttributeList();
+	chkQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "CheckList", null));
+	saveArchEnt(null, "QuesPropDef", null, chkQuesAttributes);
+}
+
+initilizePersonRole(){
+	colPsAttributes=createAttributeList();
+	colPsAttributes.add(createEntityAttribute("PersonRoleName", null, null, "consultant", null));
+	colPsAttributes.add(createEntityAttribute("RoleIntroAnsRequired", null, null, "Yes", null));
+	colPsAttributes.add(createEntityAttribute("RolePhotoRequired", null, null, "Yes", null));
+	colPsAttributes.add(createEntityAttribute("RoleDataOnClient", null, null, "Yes", null));
+	saveArchEnt(null, "PersonRole", null, colPsAttributes);
+	
+	intPsAttributes=createAttributeList();
+	intPsAttributes.add(createEntityAttribute("PersonRoleName", null, null, "interviewer", null));
+	intPsAttributes.add(createEntityAttribute("RoleIntroAnsRequired", null, null, "No", null));
+	intPsAttributes.add(createEntityAttribute("RolePhotoRequired", null, null, "No", null));
+	intPsAttributes.add(createEntityAttribute("RoleDataOnClient", null, null, "Yes", null));
+	saveArchEnt(null, "PersonRole", null, intPsAttributes);
+}
+
+initilizeLangType(){
+	lwcLangAttributes=createAttributeList();
+	lwcLangAttributes.add(createEntityAttribute("LangTypeName", null, null, "LWC", null));
+	saveArchEnt(null, "LangTypeDef", null, lwcLangAttributes);
+}
+
+
+String username = "";
+String device = "";
+
+login() {
+    fetchOne("select userid,fname,lname,email from user where userid='" + getListItemValue() + "';", new FetchCallback() {
+        onFetch(result) {
+            user = new User(result.get(0),result.get(1),result.get(2),result.get(3));
+            setUser(user);
+            username = result.get(1) + " " + result.get(2);
+
+            showTabGroup("control");
+            initializeData();
+        }
+    });
+}
+
+createControlGroupView(){
+	removeAllViewsAndContainers("control");
+	createQuesnirControlPage();
+	createQuestionControlPage();
+	createPersonControlPage();
+	createLanguageControlPage();
+	createOtherControlPage();
+	createSearchControlPage();
+}
+
+createQuesnirControlPage(){
+	if(!hasView("control/questionnaire_control/questionnaireList")){
+		executeViewTask(new ViewTask() {
+    	doTask() { 
+	        newQuesnirButtonDef = createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+	        quesnirListDef=createViewDef().createList().setLabel("Questionnaire").setAnnotationEnabled(false).setStyleCss("questionnaire-list");
+
+	        createView("control/questionnaire_control/New_Questionnaire", quesnirListDef,"control/questionnaire_control");
+			createView("control/questionnaire_control/questionnaireList", quesnirListDef,"control/questionnaire_control");
+
+	        refreshTabgroupCSS("control");
+	        onEvent("control/questionnaire_control/New_Questionnaire","click","newQuestionnaire()");
+			onEvent("control/questionnaire_control","show","loadQuestionnaire()");
+			onEvent("control/questionnaire_control/questionnaireList","click","loadQuestionnaireInfo()");
+			}
+	    
+		});
+	}
+}
+
+createQuestionControlPage(){
+	if(!hasView("control/question_control/questionList")){
+		executeViewTask(new ViewTask() {
+    	doTask() { 
+	        newQuesButtonDef = createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+	        langSelDropdownDef=createViewDef().createDropDown().setLabel("Select language").setAnnotationEnabled(false);
+	        quesListDef=createViewDef().createList().setLabel("Question").setAnnotationEnabled(false).setStyleCss("question-list");
+
+	        createView("control/question_control/New_Question", quesnirListDef,"control/question_control");
+	        createView("control/question_control/lang_sel", quesnirListDef,"control/question_control");
+			createView("control/question_control/questionList", quesnirListDef,"control/question_control");
+
+	        refreshTabgroupCSS("control");
+	        onEvent("control/question_control/New_Question","click","newQuestion()");
+			onEvent("control/question_control","show","loadQuestionBank()");
+	        onEvent("control/question_control/questionList","click","loadQuestionInfo()");
+			onEvent("control/question_control/lang_sel", "click","searchQuestionByLang()");
+			}
+	    
+		});
+	}
+}
+
+createPersonControlPage(){
+	if(!hasView("control/user_control/userList")){
+		executeViewTask(new ViewTask() {
+    	doTask() { 
+	        newPsButtonDef = createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+	        psListDef=createViewDef().createList().setLabel("Question").setAnnotationEnabled(false).setStyleCss("user-list");
+
+	        createView("control/user_control/New_User", newPsButtonDef,"control/user_control");
+			createView("control/user_control/userList", psListDef,"control/user_control");
+
+	        refreshTabgroupCSS("control");
+	        onEvent("control/user_control","show","loadPerson()");
+	        onEvent("control/user_control/New_User","click","newPerson()");
+	     	onEvent("control/user_control/userList","click","loadPersonInfo()");
+			}
+	    
+		});
+	}
+}
+
+createLanguageControlPage(){
+	if(!hasView("control/language_control/userList")){
+		executeViewTask(new ViewTask() {
+    	doTask() { 
+	        newLangButtonDef = createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+	        langListDef=createViewDef().createList().setLabel("Language").setAnnotationEnabled(false).setStyleCss("language-list");
+
+	        createView("control/language_control/New_User", newPsButtonDef,"control/language_control");
+			createView("control/language_control/userList", psListDef,"control/language_control");
+
+	        refreshTabgroupCSS("control");
+	        onEvent("control/language_control","show","loadLanguage()");
+			onEvent("control/language_control/languageList","click","loadLanguageInfo()");
+			onEvent("control/language_control/New_Language","click","newLanguage()");
+			}
+	    
+		});
+	}
+}
+
+createOtherControlPage(){
+	if(!hasView("control/other_control/Role_Control")){
+		executeViewTask(new ViewTask() {
+    	doTask() { 
+	        roleButtonDef = createViewDef().createButton().setLabel("Person Role").setStyleCss("faims-blue");
+			quesnirTypeButtonDef = createViewDef().createButton().setLabel("Questionnaire Type").setStyleCss("faims-blue");
+			quesTypeButtonDef = createViewDef().createButton().setLabel("Question Propert").setStyleCss("faims-blue");
+			langTypeButtonDef = createViewDef().createButton().setLabel("Language Type").setStyleCss("faims-blue");
+
+	        createView("control/other_control/Role_Control", roleButtonDef,"control/other_control");
+			createView("control/other_control/Type_Control", quesnirTypeButtonDef,"control/other_control");
+			createView("control/other_control/Prop_Control", quesTypeButtonDef,"control/other_control");
+			createView("control/other_control/langType_Control", langTypeButtonDef,"control/other_control");
+
+	        refreshTabgroupCSS("control");
+	        onEvent("control/other_control/Role_Control","click","showTabGroup(\"role_control\")");
+	        onEvent("control/other_control/Type_Control","click","showTabGroup(\"type_control\")");
+	        onEvent("control/other_control/Prop_Control","click","showTabGroup(\"prop_control\")");
+	        onEvent("control/other_control/langType_Control","click","showTabGroup(\"langType_control\")");
+
+			}
+	    
+		});
+	}
+}
+
+createSearchControlPage(){
+	if(!hasView("control/search/entityList")){
+		executeViewTask(new ViewTask() {
+    	doTask() { 
+    		style1 = "orientation";
+	        style2 = "even";
+
+	        createContainer("control/search/searchContainer","orientation");
+	        createContainer("control/search/searchCtnChild1","even","control/search/searchContainer");
+	        createContainer("control/search/searchCtnChild2","even", "control/search/searchContainer");
+
+	        entityTypeDropDownDef=createViewDef().createDropDown().setLabel("Select entity type").setAnnotationEnabled(false);
+	        searchKeywordViewDef=createViewDef().createTextField().setLabel("Keyword").setAnnotationEnabled(false);
+
+	        searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
+
+	        createView("control/search/entityTypes", entityTypeDropDownDef,"control/search/searchCtnChild1");
+	        createView("control/search/keyword", searchKeywordViewDef,"control/search/searchCtnChild2");
+	        createView("control/search/Record_Search", searchButtonDef,"control/search");
+
+	        resultListDef=createViewDef().createList().setLabel("Result").setAnnotationEnabled(false).setStyleCss("menu-list");
+
+			createView("control/search/entityList", resultListDef,"control/search");
+
+	        refreshTabgroupCSS("control");
+
+	        onEvent("control/user_control/New_User","click","createPersonRolePage()");
+	        onEvent("control/user_control","show","loadPerson()");
+	        onEvent("control/user_control/userList","click","loadPersonInfo(\"person\",null)");
+	        onEvent("control/user_control/Person_Search","click","entitySearch(\"person\",\"control/user_control/person_keyword\",\"control/user_control/userList\",null,null)");
+
+	        onEvent("control/search","show","initializeSearch()");
+			onEvent("control/search/Record_Search","click","recordSearch()");
+			onEvent("control/search/entityList","click","showEntity()");
+			}
+	    
+		});
+	}
+}
+
+/*** Questionnaire type ***/
+createQuesnirTypeControlPage(){
+	if(!hasView("type_control/type_control_info/New_Type")){
+		removeAllViewsAndContainers("type_control");
+		executeViewTask(new ViewTask() {
+			doTask(){
+				
+				newQuesnirTypeViewDef=createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+				quesTypeViewDef=createViewDef().createList().setLabel("Tap to view").setAnnotationEnabled(false).setStyleCss("user-list");
+
+				createView("type_control/type_control_info/New_Type",newQuesnirTypeViewDef,"type_control/type_control_info");
+				createView("type_control/type_control_info/typeList",quesTypeViewDef,"type_control/type_control_info");
+
+				refreshTabgroupCSS("type_control");
+				
+				onEvent("type_control/type_control_info","show","loadQuesnirType(\"typeLoad\")");
+				onEvent("type_control/type_control_info/New_Type","click","newQuesnirType()");
+				onEvent("type_control/type_control_info/typeList","click","loadTypeInfo()");
+			}
+		});	
+	}
+}
+
+createQuesnirTypePage(){
+	if(!hasView("quesnirType/quesnirType_info/quesnirTypeName")){
+		removeAllViewsAndContainers("quesnirType");
+		executeViewTask(new ViewTask() {
+	    doTask() {
+	  		typeNameViewDef=createViewDef().createTextField().setLabel("Type name").setAttributeName("QuesnirTypeName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+	  		saveTypeBtnDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+	  		dupListDef=createViewDef().createList().setLabel("Duplicate records");
+
+	    	createView("quesnirType/quesnirType_info/quesnirTypeName",typeNameViewDef,"quesnirType/quesnirType_info");
+	    	createView("quesnirType/quesnirType_info/SaveQuesnirType",saveTypeBtnDef,"quesnirType/quesnirType_info");
+	        createView("quesnirType/quesnirType_info/duplicateTypeList",dupListDef,"quesnirType/quesnirType_info");
+	        refreshTabgroupCSS("quesnirType");
+			onEvent("quesnirType/quesnirType_info/SaveQuesnirType","click","quesnirTypePreCheck()");
+	   		}
+		});
+	}
+}
+
+newQuesnirType(){
+
+}
+
+loadQuesnirType(String typeFlag){
+
+}
+
+loadTypeInfo(){
+
+}
+quesnirTypePreCheck(){
+
+}
+/*** Questionnaire***/
+createQuesnirMainPage(){
+	if(!hasView("questionnaire/questionnaire_info/questionnaireID")){
+		removeAllViewsAndContainers("questionnaire");
+		executeViewTask(new ViewTask() {
+    	doTask() { 
+    		style1 = "orientation";
+	        style2 = "even";
+
+	        quesnirTypeUuidViewDef=createViewDef().createTextField().setAttributeName("QuestionnaireType").setAttributeType("measure");
+	        createView("questionnaire/questionnaire_info_hide/questionnaireTypeUuid", quesnirTypeUuidViewDef,"questionnaire/questionnaire_info_hide");
+
+	        createContainer("questionnaire/questionnaire_info/quesnirTypeCtn","orientation");
+	        createContainer("questionnaire/questionnaire_info/quesnirTypeCtnChild1","even","questionnaire/questionnaire_info/quesnirTypeCtn");
+	        createContainer("questionnaire/questionnaire_info/quesnirTypeCtnChild2","even", "questionnaire/questionnaire_info/quesnirTypeCtn");
+
+	        quesnirLabelViewDef=createViewDef().createTextField().setLabel("Questionnaire label").setAttributeName("QuestionnaireID").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+	        quesnirNameViewDef=createViewDef().createTextField().setLabel("Questionnaire name").setAttributeName("QuestionnaireName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+	        quesnirDescViewDef=createViewDef().createTextField().setLabel("Description").setAttributeName("QuestionnaireDescription").setAttributeType("measure").setAnnotationEnabled(true);
+	        quesnirTypeViewDef=createViewDef().createTextField().setLabel("Questionnaire type").setAttributeName("QuestionnaireDescription").setAnnotationEnabled(false).setReadOnly(true);
+	       	
+			quesnirTypeDropDownDef=createViewDef().createDropDown().setLabel("Select type").setAnnotationEnabled(false);
+	        newTypeButtonDef = createViewDef().createButton().setLabel("New Type").setStyleCss("faims-blue");
+
+	        createView("questionnaire/questionnaire_info/questionnaireTypeSelection", quesnirTypeDropDownDef,"questionnaire/questionnaire_info/quesnirTypeCtnChild1");
+	        createView("questionnaire/questionnaire_info/New_QuesnirType", newTypeButtonDef,"questionnaire/questionnaire_info/quesnirTypeCtnChild2");
+
+	        quesSelButtonDef = createViewDef().createButton().setLabel("Select/View Question").setStyleCss("faims-blue");
+
+			createView("questionnaire/questionnaire_info/Start_Question_Selection", quesSelButtonDef,"questionnaire/questionnaire_info");
+
+	        refreshTabgroupCSS("questionnaire");
+
+	        onEvent("questionnaire/questionnaire_info/Start_Question_Selection","click","startQuestionSelection()");
+			onEvent("questionnaire/questionnaire_info","show","loadQuesnirType(\"newQuesnir\")");
+			onEvent("questionnaire/questionnaire_info/questionnaireTypeSelection", "click", "setQuesnirType()");
+			onEvent("questionnaire/questionnaire_info/New_QuesnirType", "click", "newQuesnirType()");
+			}
+	    
+		});
+	}
+}
+//TODO: think about the problem of unscrollable page
+createQuesSelPage(){
+	if(!hasView("questionnaire_question/questionnaire_question_info/questionList")){
+		removeAllViewsAndContainers("questionnaire_question");
+		executeViewTask(new ViewTask() {
+    	doTask() { 
+    		style1 = "orientation";
+	        style2 = "even";
+
+	        createContainer("questionnaire_question/questionnaire_question_info/searchCtn","orientation");
+	        createContainer("questionnaire_question/questionnaire_question_info/searchCtnChild1","even","questionnaire_question/questionnaire_question_info/searchCtn");
+	        createContainer("questionnaire_question/questionnaire_question_info/searchCtnChild2","even", "questionnaire_question/questionnaire_question_info/searchCtn");
+	        createContainer("questionnaire_question/questionnaire_question_info/searchCtnChild3","even", "questionnaire_question/questionnaire_question_info/searchCtn");
+
+	        keywordInputViewDef=createViewDef().createTextField.setLabel("keyword");
+	        searchTypeDropDownDef=createViewDef().createDropDown().setLabel("Type").setAnnotationEnabled(false);
+	        searchButtonDef=createViewDef().createButton().setLabel("search").setStyleCss("faims-blue");
+
+	        createView("questionnaire_question/questionnaire_question_info/keywordOfQuestion", keywordInputViewDef,"questionnaire_question/questionnaire_question_info/searchCtnChild1");
+	        createView("questionnaire_question/questionnaire_question_info/category", searchTypeDropDownDef,"questionnaire_question/questionnaire_question_info/searchCtnChild2");
+	        createView("questionnaire_question/questionnaire_question_info/Search_Question", searchButtonDef,"questionnaire_question/questionnaire_question_info/searchCtnChild3");
+
+	        candidateQuesListDef=createViewDef().createList().setLabel("Add question").setAnnotationEnabled(false).setStyleCss("menu-list");
+	        createView("questionnaire_question/questionnaire_question_info/questionList", candidateQuesListDef,"questionnaire_question/questionnaire_question_info");
+	   
+	        refreshTabgroupCSS("questionnaire_question");
+
+	        onEvent("questionnaire_question/questionnaire_question_info","show","initializeQuestionSelect()");
+			onEvent("questionnaire_question/questionnaire_question_info/questionList","click","questionSelection()");
+			onEvent("questionnaire_question/questionnaire_question_info/Search_Question","click","searchQuestion()");
+			}
+	    
+		});
+	}
+}
+
+questionSelection(){
+	questionnaire_question_id=getListItemValue();
+	//int idx_question=-1;
+	if(isNull(questionnaire_question_id)){
+		showToast("No Question selected");
+		return;
+	}
+	else{
+		for(quesCandidate:questionCandidatesContent){
+			if(quesCandidate.get(0).equals(questionnaire_question_id)){
+				//get the question
+				String quesId=quesCandidate.get(0);
+				String quesContent=quesCandidate.get(1);
+				int quesCount=questionSelected.size()+1;
+				String quesNumber=(quesCount).toString();
+				quesContent=quesNumber+"-"+quesContent;
+				quesSelected=new ArrayList();
+				quesSelected.add(quesId);
+				quesSelected.add(quesContent);
+				questionSelected.add(quesSelected);
+				//rm this question from quesCandidate
+				questionCandidatesContent.remove(quesCandidate);
+				populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+				//generate a new dynamic ui
+				style1 = "orientation";
+            	style2 = "even";
+            	style3 = "large";
+				if(hasView("questionnaire_question/questionnaire_question_info/Change_Questionnaire")){
+					rmQuesnirNewChangeBtn();
+				}
+            	executeViewTask(new ViewTask() {
+    			doTask() { 	
+				createContainer("questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCount, "orientation", "questionnaire_question/questionnaire_question_info");
+
+                createContainer("questionnaire_question/questionnaire_question_info/quesc_" + quesCount, "even", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCount);
+                createContainer("questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCount, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCount);
+                createContainer("questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCount, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCount);
+                createContainer("questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCount, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCount);
+
+                createView("questionnaire_question/questionnaire_question_info/Ques_" + quesCount, createViewDef().createTextField("string").setReadOnly(true), "questionnaire_question/questionnaire_question_info/quesc_" + quesCount);
+                createView("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCount, createViewDef().createButton().setLabel("X").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCount);
+                createView("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCount, createViewDef().createButton().setLabel("↑").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCount);
+                createView("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCount, createViewDef().createButton().setLabel("↓").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCount);
+
+				setFieldValue("questionnaire_question/questionnaire_question_info/Ques_" + quesCount, quesContent);
+				onEvent("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCount,"click","deleteQuesConfirm(\""+quesContent+"\")");
+				onEvent("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCount,"click","moveUpQues(\""+quesContent+"\")");
+				onEvent("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCount,"click","moveDownQues(\""+quesContent+"\")");
+					}
+				});
+				createChangeBtnQuesnir();
+
+				break;
+			}
+		}
+		
+	}
+}
+
+reConstructQuesOrder(){
+	removeAllViewsAndContainers("questionnaire_question");
+	for(int j=0; j<questionSelected.size();j++){
+		String quesContent= questionSelected.get(j).get(1);
+		//showWarning("quesContent",quesContent);
+		quesCountDel=j+1;
+		executeViewTask(new ViewTask() {
+	    	doTask() {
+	    		createContainer("questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel, "orientation", "questionnaire_question/questionnaire_question_info");
+		        createContainer("questionnaire_question/questionnaire_question_info/quesc_" + quesCountDel, "even", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+		        createContainer("questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCountDel, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+		        createContainer("questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCountDel, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+		        createContainer("questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCountDel, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+		        createView("questionnaire_question/questionnaire_question_info/Ques_" + quesCountDel, createViewDef().createTextField("string").setReadOnly(true), "questionnaire_question/questionnaire_question_info/quesc_" + quesCountDel);
+		        createView("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCountDel, createViewDef().createButton().setLabel("X").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCountDel);
+		        createView("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCountDel, createViewDef().createButton().setLabel("↑").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCountDel);
+		        createView("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCountDel, createViewDef().createButton().setLabel("↓").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCountDel);
+				setFieldValue("questionnaire_question/questionnaire_question_info/Ques_" + quesCountDel, quesContent);
+				onEvent("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCountDel,"click","deleteQuesConfirm(\""+quesContent+"\")");
+				onEvent("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCountDel,"click","moveUpQues(\""+quesContent+"\")");
+				onEvent("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCountDel,"click","moveDownQues(\""+quesContent+"\")");
+		    	}
+	    });
+		
+		//quesCount++;
+		//refreshTabgroupCSS("questionnaire_question");
+	}
+	createChangeBtnQuesnir();
+}
+
+reConstructQuesOrder(ArrayList searchResult){
+	removeAllViewsAndContainers("questionnaire_question");
+	for(int j=0; j<searchResult.size();j++){
+		String quesContent= searchResult.get(j).get(1);
+		//showWarning("quesContent",quesContent);
+		quesCountDel=j+1;
+		executeViewTask(new ViewTask() {
+	    	doTask() {
+	    		createContainer("questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel, "orientation", "questionnaire_question/questionnaire_question_info");
+		        createContainer("questionnaire_question/questionnaire_question_info/quesc_" + quesCountDel, "even", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+		        createContainer("questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCountDel, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+		        createContainer("questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCountDel, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+		        createContainer("questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCountDel, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+		        createView("questionnaire_question/questionnaire_question_info/Ques_" + quesCountDel, createViewDef().createTextField("string").setReadOnly(true), "questionnaire_question/questionnaire_question_info/quesc_" + quesCountDel);
+		        createView("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCountDel, createViewDef().createButton().setLabel("X").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCountDel);
+		        createView("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCountDel, createViewDef().createButton().setLabel("↑").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCountDel);
+		        createView("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCountDel, createViewDef().createButton().setLabel("↓").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCountDel);
+				setFieldValue("questionnaire_question/questionnaire_question_info/Ques_" + quesCountDel, quesContent);
+				onEvent("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCountDel,"click","deleteQuesConfirm(\""+quesContent+"\")");
+				onEvent("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCountDel,"click","moveUpQues(\""+quesContent+"\")");
+				onEvent("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCountDel,"click","moveDownQues(\""+quesContent+"\")");
+		    	}
+	    });
+		
+		//quesCount++;
+		//refreshTabgroupCSS("questionnaire_question");
+	}
+	createChangeBtnQuesnir();
+}
+
+createChangeBtnQuesnir(){
+	executeViewTask(new ViewTask() {
+		doTask(){
+			createContainer("questionnaire_question/questionnaire_question_info/quesnirBtnC", "orientation", "questionnaire_question/questionnaire_question_info");
+			createContainer("questionnaire_question/questionnaire_question_info/child1", "even", "questionnaire_question/questionnaire_question_info/quesnirBtnC");
+			createContainer("questionnaire_question/questionnaire_question_info/child2", "even", "questionnaire_question/questionnaire_question_info/quesnirBtnC");
+			createView("questionnaire_question/questionnaire_question_info/Change_Questionnaire", createViewDef().createButton().setLabel("Update").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info/child1");
+		    createView("questionnaire_question/questionnaire_question_info/Finish_Questionnaire_Creation", createViewDef().createButton().setLabel("Create").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info/child2");
+		    onEvent("questionnaire_question/questionnaire_question_info/Change_Questionnaire","click","finishChangeQuestionnaire()");
+		    onEvent("questionnaire_question/questionnaire_question_info/Finish_Questionnaire_Creation","click","finishCreateQuestionnaire()");
+			refreshTabgroupCSS("questionnaire_question");		
+		}
+	});	
+}	
+
+rmQuesnirNewChangeBtn(){
+	removeContainer("questionnaire_question/questionnaire_question_info/quesnirBtnC");
+	removeContainer("questionnaire_question/questionnaire_question_info/child1");
+	removeContainer("questionnaire_question/questionnaire_question_info/child2");
+	removeView("questionnaire_question/questionnaire_question_info/Change_Questionnaire");
+	removeView("questionnaire_question/questionnaire_question_info/Finish_Questionnaire_Creation");
+}
+
+deleteQuesConfirm(String quesContent){
+	showAlert("Deleting question", "Do you want to delete this question?", "deleteSelectedQuestion(\""+quesContent+"\")", "stayInCurrentPage()");
+}
+
+deleteSelectedQuestion(String quesContent){
+	if(isNull(quesContent)){
+		showToast("No Question selected");
+		return;
+	}
+	else{
+		for(int i=0;i<questionSelected.size();i++){
+			String ques=questionSelected.get(i).get(1);
+			if (ques.equals(quesContent)){
+				String quesId=questionSelected.get(i).get(0);
+				//showWarning("quesWithNumber",quesWithNumber);
+				String quesCt=ques.substring(ques.indexOf("-")+1);
+				//showWarning("quesContent",quesContent);
+				quesDelete=new ArrayList();
+				quesDelete.add(quesId);
+				quesDelete.add(quesCt);
+				questionCandidatesContent.add(quesDelete);
+				populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+				questionSelected.remove(i);
+				adjustQuesOrder("deletion",i,null);
+				reConstructQuesOrder();
+				break;
+			}
+		}
+		
+	}
+}
+moveUpQues(String quesContent){
+	if(isNull(quesContent)){
+		showToast("No Question selected");
+		return;
+	}
+	for(int i=0;i<questionSelected.size();i++){
+			String toUpQues=questionSelected.get(i).get(1);
+			if (toUpQues.equals(quesContent)){
+				if(i==0){
+					showToast("This is the upmost question");
+					break;
+					//return;
+				}
+				adjustQuesOrder("moveUp",i,null);
+				reConstructQuesOrder();
+				break;
+			}
+		}
+}
+moveDownQues(String quesContent){
+	if(isNull(quesContent)){
+		showToast("No Question selected");
+		return;
+	}
+	int length=questionSelected.size();
+	for(int i=0;i<questionSelected.size();i++){
+			String toDownQues=questionSelected.get(i).get(1);
+			if (toDownQues.equals(quesContent)){
+				if(i==length-1){
+					showToast("This is the last question");
+					break;
+					//return;
+				}
+				adjustQuesOrder("moveDown",i,null);
+				reConstructQuesOrder();
+				break;
+			}
+		}
+}
+
+adjustQuesOrder(String typeFlag, int strtIndex, ArrayList toAdjustList){
+	switch(typeFlag){
+		case "deletion":
+			for(int i=strtIndex; i<questionSelected.size();i++){
+				String quesId=questionSelected.get(i).get(0);
+				String quesCotntWithNumber=questionSelected.get(i).get(1);
+				String quesCotnt=quesCotntWithNumber.substring(quesCotntWithNumber.indexOf("-")+1);
+				String newQuesNum=(i+1).toString();
+				quesCotnt=newQuesNum+"-"+quesCotnt;
+				newQuesWithNum=new ArrayList();
+				newQuesWithNum.add(quesId);
+				newQuesWithNum.add(quesCotnt);
+				questionSelected.set(i,newQuesWithNum);
+			}
+			//dynamic ui refreshing
+			
+				
+		break;
+
+		case "moveUp":
+			i=strtIndex;
+			String toUpQuesId=questionSelected.get(i).get(0);
+			String toUpQuesCotntWithNumber=questionSelected.get(i).get(1);
+			String toUpQuesCotnt=toUpQuesCotntWithNumber.substring(toUpQuesCotntWithNumber.indexOf("-")+1);
+			String newtoUpQuesNum=i.toString();
+			toUpQuesCotnt=newtoUpQuesNum+"-"+toUpQuesCotnt;
+			newToUpQuesWithNum=new ArrayList();
+			newToUpQuesWithNum.add(toUpQuesId);
+			newToUpQuesWithNum.add(toUpQuesCotnt);
+			questionSelected.set(i,newToUpQuesWithNum);
+			String toDownQuesId=questionSelected.get(i-1).get(0);
+			String toDownQuesCotntWithNumber=questionSelected.get(i-1).get(1);
+			String toDownQuesCotnt=toDownQuesCotntWithNumber.substring(toDownQuesCotntWithNumber.indexOf("-")+1);
+			String newtoDownQuesNum=(i+1).toString();
+			toDownQuesCotnt=newtoDownQuesNum+"-"+toDownQuesCotnt;
+			newtoDownQuesWithNum=new ArrayList();
+			newtoDownQuesWithNum.add(toDownQuesId);
+			newtoDownQuesWithNum.add(toDownQuesCotnt);
+			questionSelected.set(i-1,newtoDownQuesWithNum);
+
+			Collections.swap(questionSelected,i,i-1);
+		break;
+
+		case "moveDown":
+			i=strtIndex;
+			String toDnQuesId=questionSelected.get(i).get(0);
+			String toDnQuesCotntNum=questionSelected.get(i).get(1);
+			String toDnQuesCotnt=toDnQuesCotntNum.substring(toDnQuesCotntNum.indexOf("-")+1);
+			String newtoDnQuesNum=(i+2).toString();
+			toDnQuesCotnt=newtoDnQuesNum+"-"+toDnQuesCotnt;
+			newToDnQuesWithNum=new ArrayList();
+			newToDnQuesWithNum.add(toDnQuesId);
+			newToDnQuesWithNum.add(toDnQuesCotnt);
+			questionSelected.set(i,newToDnQuesWithNum);
+			String toSwapQuesId=questionSelected.get(i+1).get(0);
+			String toSwapQuesCotntNum=questionSelected.get(i+1).get(1);
+			String toSwapQuesCotnt=toSwapQuesCotntNum.substring(toSwapQuesCotntNum.indexOf("-")+1);
+			String newtoUpQuesNumber=(i+1).toString();
+			toSwapQuesCotnt=newtoUpQuesNumber+"-"+toSwapQuesCotnt;
+			newtoUpQuesNum=new ArrayList();
+			newtoUpQuesNum.add(toSwapQuesId);
+			newtoUpQuesNum.add(toSwapQuesCotnt);
+			questionSelected.set(i+1,newtoUpQuesNum);
+
+			Collections.swap(questionSelected,i,i+1);
+		break;
+	}
+
+}
+
+loadQuestionnaire(){
+
+}
+
+newQuestionnaire(){
+
+}
+
+loadQuestionnaireInfo(){
+
+}
+
+startQuestionSelection(){
+
+}
+
+loadQuesnirType(String typeFlag){
+
+}
+
+setQuesnirType(){
+
+}
+
+newQuesnirType(){
+
+}
+
+initializeQuestionSelect(){
+
+}
+
+searchQuestion(){
+
+}
+finishChangeQuestionnaire(){
+
+}
+
+finishCreateQuestionnaire(){
+
+}
+/*** Question property ***/
+createQuesPropertyControlPage(){
+	if(!hasView("prop_control/prop_control_info/New_Prop")){
+		removeAllViewsAndContainers("prop_control");
+		executeViewTask(new ViewTask() {
+			doTask(){
+				
+				newQuesPropViewDef=createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+				quesPropViewDef=createViewDef().createList().setLabel("Tap to view").setAnnotationEnabled(false).setStyleCss("user-list");
+
+				createView("prop_control/prop_control_info/New_Prop",newQuesPropViewDef,"prop_control/prop_control_info");
+				createView("prop_control/prop_control_info/propList",langTypeListViewDef,"prop_control/prop_control_info");
+				refreshTabgroupCSS("prop_control");
+				onEvent("prop_control/prop_control_info","show","loadQuesProp(\"propLoad\")");
+				onEvent("prop_control/prop_control_info/New_Prop","click","newQuesProp()");
+				onEvent("prop_control/prop_control_info/propList","click","loadQuesPropInfo()");
+			}
+		});	
+	}
+}
+
+createQuesPropPage(){
+	if(!hasView("quesProperty/quesPropertyInfo/propName")){
+		removeAllViewsAndContainers("quesProperty");
+		executeViewTask(new ViewTask() {
+	    doTask() {
+	  		propNameViewDef=createViewDef().createTextField().setLabel("Property name").setAttributeName("QuesPropDefName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+	  		propDescViewDef=createViewDef().createTextField().setLabel("Description").setAttributeName("QuesPropDefDesc").setAttributeType("measure").setAnnotationEnabled(true);
+	  		savePropBtnDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+	  		dupListDef=createViewDef().createList().setLabel("Duplicate records");
+
+	    	createView("quesProperty/quesPropertyInfo/propName",propNameViewDef,"quesProperty/quesPropertyInfo");
+	    	createView("quesProperty/quesPropertyInfo/propDesc",propDescViewDef,"quesProperty/quesPropertyInfo");
+	        createView("quesProperty/quesPropertyInfo/saveProp",savePropBtnDef,"quesProperty/quesPropertyInfo");
+	        createView("quesProperty/quesPropertyInfo/propDupList",dupListDef,"quesProperty/quesPropertyInfo");
+	        refreshTabgroupCSS("quesProperty");
+			onEvent("quesProperty/quesPropertyInfo/saveProp","click","quesPropCheck()");
+	   		}
+		});
+	}
+}
+loadQuesProp(String typeflag){
+
+}
+
+newQuesProp(){
+
+}
+
+loadQuesPropInfo(){
+
+}
+
+quesPropCheck(){
+
+}
+/*** Question ***/
+createQuestionPage(){
+	if(!hasView("questionBank/questionInfo/questionID")){
+		removeAllViewsAndContainers("questionBank");
+		executeViewTask(new ViewTask() {
+			doTask(){
+				quesIDInputViewDef=createViewDef().createTextField().setLabel("Question label").setAttributeName("QuestionID").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");		
+				quesPropViewDef=createViewDef().createDropDown().setLabel("Question property").setAnnotationEnabled(false);
+				createView("questionBank/questionInfo/questionID", quesIDInputViewDef,"questionBank/questionInfo");
+				createView("questionBank/questionInfo/questionProp",quesPropViewDef,"questionBank/questionInfo");
+
+				refreshTabgroupCSS("questionBank");
+
+				onEvent("questionBank/questionInfo/","show","initialQuestionCreation()");
+			}
+		});	
+	}
+}
+
+loadQuestionBank(){
+
+}
+
+searchQuestionByLang(){
+
+}
+
+newQuestion(){
+
+}
+
+loadQuestionInfo(){
+
+}
+
+initialQuestionCreation(){
+
+}
+/*** Person ***/
+loadPerson(){
+
+}
+
+newPerson(){
+
+}
+
+loadPersonInfo(){
+
+}
+
+/*** Language ***/
+createLanguagePage(){
+	if(!hasView("language/languageInfo/languageID")){
+		removeAllViewsAndContainers("language");
+		executeViewTask(new ViewTask() {
+			doTask(){
+				langIDViewDef=createViewDef().createTextField().setLabel("Language code").setAttributeName("LanguageID").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");		
+				langNameViewDef=createViewDef().createTextField().setLabel("Language name").setAttributeName("LanguageName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+				langOtherNameViewDef=createViewDef().createTextField().setLabel("Language other name(s)").setAttributeName("LanguageOtherNames").setAttributeType("measure").setAnnotationEnabled(true);
+				langPropViewDef=createViewDef().createDropDown().setLabel("Language type").setAnnotationEnabled(false);
+				finLangViewDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+
+				createView("language/languageInfo/langaugeID",langIDViewDef,"language/languageInfo");
+				createView("language/languageInfo/languageName",langNameViewDef,"language/languageInfo");
+				createView("language/languageInfo/languageOtherNames",langOtherNameViewDef,"language/languageInfo");
+				createView("language/languageInfo/languageType",langPropViewDef,"language/languageInfo");
+				createView("language/languageInfo/Finish_New_Language",finLangViewDef,"language/languageInfo");
+				refreshTabgroupCSS("language");
+				onEvent("language/languageInfo/Finish_New_Language","click","saveNewLanguage()");
+				onEvent("language/languageInfo","show","loadLangType(\"new\")");
+
+			}
+		});	
+	}
+}
+loadLanguage(){
+
+}
+
+newLanguage(){
+
+}
+
+loadLanguageInfo(){
+
+}
+
+saveNewLanguage(){
+
+}
+
+loadLangType(String typeFlag){
+
+}
+
+/*** Language Type ***/
+createLangTypeControlPage(){
+	if(!hasView("langType_control/langType_control_info/New_LangType")){
+		removeAllViewsAndContainers("langType_control");
+		executeViewTask(new ViewTask() {
+			doTask(){
+				langTypeListViewDef=createViewDef().createList().setLabel("Tap to view").setAnnotationEnabled(false).setStyleCss("user-list");
+				newLangTypeViewDef=createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+
+				createView("langType_control/langType_control_info/New_LangType",newLangTypeViewDef,"langType_control/langType_control_info");
+				createView("langType_control/langType_control_info/langTypeList",langTypeListViewDef,"langType_control/langType_control_info");
+				refreshTabgroupCSS("langType_control");
+
+				onEvent("langType_control/langType_control_info","show","loadLangType(\"def\")");
+				onEvent("langType_control/langType_control_info/New_LangType","click","newLangType()");
+				onEvent("langType_control/langType_control_info/langTypeList","click","loadLangTypeInfo()");
+			}
+		});	
+	}
+}
+
+createLangTypePage(){
+	if(!hasView("langType/langType_info/langTypeName")){
+		removeAllViewsAndContainers("langType");
+		executeViewTask(new ViewTask() {
+			doTask(){
+				langTypeViewDef=createViewDef().createTextField().setLabel("Language type name").setAttributeName("LangTypeName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+				langDupViewDef=createViewDef().createList().setLabel("Duplicate records").setAnnotationEnabled(false).setStyleCss("menu-list");
+				finLangTypeViewDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+
+				createView("langType/langType_info/langTypeName",langTypeViewDef,"langType/langType_info");
+				createView("langType/langType_info/SaveLangType",finLangTypeViewDef,"langType/langType_info");
+				createView("langType/langType_info/duplicateLangTypeList",langDupViewDef,"langType/langType_info");
+				refreshTabgroupCSS("langType");
+				onEvent("langType/langType_info/SaveLangType","click","langTypePreCheck()");
+
+			}
+		});	
+	}
+}
+
+loadLangType(String typeFlag){
+
+}
+
+newLangType(){
+
+}
+
+loadLangTypeInfo(){
+
+}
+
+langTypePreCheck(){
+
+}
+
+/*** Person role ***/
+createPsRoleControlPage(){
+	if(!hasView("role_control/role_control_info/New_Role")){
+		removeAllViewsAndContainers("role_control");
+		executeViewTask(new ViewTask() {
+			doTask(){
+				roleListViewDef=createViewDef().createList().setLabel("Tap to view").setAnnotationEnabled(false).setStyleCss("user-list");
+				newRoleTypeViewDef=createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
+
+				createView("role_control/role_control_info/New_Rol",newRoleTypeViewDef,"role_control/role_control_info");
+				createView("role_control/role_control_info/roleList",roleListViewDef,"role_control/role_control_info");
+				refreshTabgroupCSS("role_control");
+				onEvent("role_control/role_control_info/New_Role","click","newRole()");
+				onEvent("role_control/role_control_info","show","loadRoles(\"newRole\",\"role_control/role_control_info/roleList\")");
+				onEvent("role_control/role_control_info/roleList","click","loadRoleInfo()");
+			}
+		});	
+	}
+}
+
+createPsRolePage(){
+	if(!hasView("personRole/personRoleInfo/personRoleName")){
+		removeAllViewsAndContainers("personRole");
+		executeViewTask(new ViewTask() {
+			doTask(){
+				roleNameViewDef=createViewDef.createTextField().setLabel("Role name").setAttributeName("PersonRoleName").setAttributeType("measure").setAnnotationEnabled(true);
+				introQuesnirReqViewDef=createViewDef().createRadioGroup().setLabel("Answering introductory questionnaire required?");
+				photoReqViewDef=createViewDef().createRadioGroup().setLabel("Taking photo required?");
+				dataShownReqViewDef=createViewDef().createRadioGroup().setLabel("Shown on client module's list?");
+				roleDupViewDef=createViewDef().createList().setLabel("Duplicate records").setAnnotationEnabled(false).setStyleCss("menu-list");
+				finRoleViewDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
+				tempChoice=new ArrayList();
+				tempChoice.add(new NameValuePair("Yes", "Yes"));
+				tempChoice.add(new NameValuePair("No", "No"));
+
+				createView("personRole/personRoleInfo/personRoleName",roleNameViewDef,"personRole/personRoleInfo");
+				createView("personRole/personRoleInfo/RoleIntroRequired",introQuesnirReqViewDef,"personRole/personRoleInfo");
+				createView("personRole/personRoleInfo/RolePhotoRequired",photoReqViewDef,"personRole/personRoleInfo");
+				createView("personRole/personRoleInfo/RoleDataOnClient",dataShownReqViewDef,"personRole/personRoleInfo");
+				createView("personRole/personRoleInfo/SavePersonRole",finRoleViewDef,"personRole/personRoleInfo");
+				createView("personRole/personRoleInfo/duplicateRoleList",roleDupViewDef,"personRole/personRoleInfo");
+
+				refreshTabgroupCSS("personRole");
+
+				populateRadioGroup("personRole/personRoleInfo/RoleIntroRequired",tempChoice);
+				populateRadioGroup("personRole/personRoleInfo/RolePhotoRequired",tempChoice);
+				populateRadioGroup("personRole/personRoleInfo/RoleDataOnClient",tempChoice);
+
+				onEvent("personRole/personRoleInfo/SavePersonRole","click","checkRole()");
+
+			}
+		});	
+	}
+}
+
+newRole(){
+
+}
+
+loadRoles(String typeFlag, String populateRef){
+
+}
+
+loadRoleInfo(){
+
+}
+checkRole(){
+
+}
+/*** Person ***/
+
+/*** Search page ***/
+showEntity(){
+	entityTypes = new ArrayList();
+	entityTypes.add(new NameValuePair("{Questionnaire}", "Questionnaire"));
+	entityTypes.add(new NameValuePair("{Question}", "QuestionBank"));
+	entityTypes.add(new NameValuePair("{Person}", "Person"));
+	entityTypes.add(new NameValuePair("{Language}", "Language"));
+	entityTypes.add(new NameValuePair("{Role}", "PersonRole"));
+
+	populateDropDown("control/search/entityTypes",entityTypes);
+}
+
+initializeSearch(){
+
+}
+
+recordSearch(){
+
+}
+
+/*** Common methods ***/
+stayInCurrentPage(){
+	return;
+}
