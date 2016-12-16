@@ -1519,8 +1519,11 @@ saveNewQuestion(){
                     saveQuesLangs(question_id,selLangList);
                     //showWarning("saveQuesLangs","saveQuesLangs");
                     if(saveChoice){
-                        showWarning("saveChoice","saveChoice");
-                        //saveQuesChoice(question_id);
+                        //showWarning("saveChoice","saveChoice");
+                        saveQuesChoice(question_id);
+                    }
+                    if(recording_req_type.equals("MultiChoice")||recording_req_type.equals("MultiChoices")){
+                        removeAllViewsAndContainers("questionBank");
                     }
                     showToast("Record created");
                     cancelTabGroup("questionBank",true);
@@ -1535,7 +1538,10 @@ saveNewQuestion(){
                 }  
             });
             if(question_id!=null){
-                updateNonBasicQuesInfo();
+                updateNonBasicQuesInfo(recording_req_id, selLangList);
+                if(recording_req_type.equals("MultiChoice")||recording_req_type.equals("MultiChoices")){
+                        removeAllViewsAndContainers("questionBank");
+                }
             }
         }
     });
@@ -1574,9 +1580,9 @@ saveQuesChoice(String quesUuid){
     }
 }
 
-updateNonBasicQuesInfo(){
-    updateQuesProp();
-    updateQuesLang();
+updateNonBasicQuesInfo(String recording_req_id,ArrayList selLangList){
+    updateQuesProp(recording_req_id);
+    updateQuesLang(selLangList);
     updateQuesChoice();
 }
 
@@ -1622,7 +1628,7 @@ getQuesPropText(String propUuid){
     return propText;
 }
 
-updateQuesProp(){
+updateQuesProp(String recording_req_id){
     if(question_id==null || oldPropList==null || oldPropList.isEmpty()){
         return;
     }
@@ -1650,10 +1656,11 @@ updateQuesProp(){
     }  
 }
 
-updateQuesLang(){
+updateQuesLang(ArrayList selLangList){
     if(question_id==null || oldLangList==null || oldLangList.isEmpty()){
         return;
     }
+    //showWarning("updateQuesLang","updateQuesLang");
     tempOldLangList=new ArrayList();
     for(old:oldLangList){
         ArrayList tempLang=new ArrayList();
@@ -1661,9 +1668,11 @@ updateQuesLang(){
         tempLang.add(old.get(2));
         tempOldLangList.add(tempLang);
     }
+    //showWarning("tempOldLangList","tempOldLangList");
     compIndex=new ArrayList();
     compIndex.add(1);
     Hashtable quesLangChange=listChange(selLangList,tempOldLangList,0,compIndex);
+    //showWarning("quesLangChange","quesLangChange");
     tempNewLang=quesLangChange.get("A");
     for(lang: tempNewLang){
         quesLangVer=createAttributeList();
@@ -1712,23 +1721,28 @@ checkQuesOptUpdate(){
     oldKeySet.addAll(oldQuestionOptionList.keySet());
     ArrayList newKeySet=new ArrayList();
     newKeySet.addAll(newQuestionOptionList.keySet());
-
+    //showWarning("newKeySet","newKeySet");
     HashMap keyDiff=listChange(newKeySet,oldKeySet);
+    showWarning("keyDiff","keyDiff");
     HashMap langDiff=addOrDelQuesOptListByLang(keyDiff);
-
+    showWarning("langDiff","langDiff");
     ArrayList equalKey=getEquiKey(langDiff);
     if(langDiff==null){
+        showWarning("null","null");
         checkQuesOptContentUpdate(equalKey);
     }
     else if(langDiff.containsKey("PA")){
+        showWarning("PA","PA");
         updateQuesChoiceAdd(langDiff.get("PA"));
         checkQuesOptContentUpdate(equalKey);
     }
     else if(langDiff.containsKey("PD")){
+        showWarning("PD","PD");
         updateQuesChoiceDel(langDiff.get("PD"));
         checkQuesOptContentUpdate(equalKey);
     }
     else{
+        showWarning("A","D");
         updateQuesChoiceDel(langDiff.get("D"));
         updateQuesChoiceAdd(langDiff.get("A"));
         checkQuesOptContentUpdate(equalKey);
@@ -1745,6 +1759,7 @@ getEquKey(ArrayList originList, HashMap keyDiff){
 }
 
 addOrDelQuesOptListByLang(HashMap keyDiff){
+    showWarning("addOrDelQuesOptListByLang","addOrDelQuesOptListByLang");
     HashMap updateList=new HashMap();
     if(keyDiff.containsKey("EQUAL")){
         return null;
@@ -3904,7 +3919,7 @@ listChange(ArrayList newList, ArrayList oldList, int compareKey, ArrayList compa
     listChanges.put("D",del_list);
     //showWarning("del_list","del_list");
     listChanges.put("U",update_list);
-    //showWarning("update_list","update_list");
+    showWarning("update_list","update_list");
     return listChanges;
 
 }
