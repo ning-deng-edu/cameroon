@@ -1515,12 +1515,12 @@ saveNewQuestion(){
                   question_id = uuid;
                   if (newRecord) {
                     saveQuesProp(question_id,recording_req_id);
-                    //showWarning("saveQuesProp","saveQuesProp");
+                   // showWarning("saveQuesProp","saveQuesProp");
                     saveQuesLangs(question_id,selLangList);
                     //showWarning("saveQuesLangs","saveQuesLangs");
                     if(saveChoice){
-                        //showWarning("saveChoice","saveChoice");
-                        saveQuesChoice(question_id);
+                        showWarning("saveChoice","saveChoice");
+                        //saveQuesChoice(question_id);
                     }
                     showToast("Record created");
                     cancelTabGroup("questionBank",true);
@@ -1560,25 +1560,16 @@ saveQuesLangs(String quesUuid, ArrayList selLangList){
 }
 
 saveQuesChoice(String quesUuid){
-    for(int i=0;i<newQuestionOptionList.size();i++){
-        HashMap tempChoiceMap=newQuestionOptionList.get(i);
-        //showWarning("tempChoiceMap","tempChoiceMap");
+    for(String key: newQuestionOptionList.keySet()){
         String quesLangUuid=null;
         ArrayList quesOptTextList=new ArrayList();
-        //showWarning("quesOptTextList","quesOptTextList");
-        for(String key: tempChoiceMap.keySet()){
-            //showWarning("key",key);
-            quesLangUuid=key;
-            quesOptTextList.clear();
-            quesOptTextList.addAll(tempChoiceMap.get(key));
-            break;
-        }
-        //showWarning("forkey","forkey");
+        quesLangUuid=key;
+        quesOptTextList.clear();
+        quesOptTextList.addAll(newQuestionOptionList.get(key));
         if(quesLangUuid==null || quesOptTextList==null || quesOptTextList.isEmpty()){
             showWarning("data lost","please report this problem to the admin");
             return;
         }
-
         saveQuesChoiceByLang(quesUuid,quesLangUuid,quesOptTextList);
     }
 }
