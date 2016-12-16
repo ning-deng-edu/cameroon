@@ -1710,23 +1710,27 @@ updateQuesLang(ArrayList selLangList){
 }
 
 updateQuesChoice(){
-    if(question_id==null || oldQuestionOptionList==null ||oldQuestionOptionList.isEmpty()){
+    if(question_id==null || oldQuestionOptionList==null || oldQuestionOptionList.isEmpty()){
         return;
     }
     checkQuesOptUpdate();
 }
 
 checkQuesOptUpdate(){
+    //showWarning("checkQuesOptUpdate","checkQuesOptUpdate");
     ArrayList oldKeySet=new ArrayList();
     oldKeySet.addAll(oldQuestionOptionList.keySet());
+    //showWarning("oldQuestionOptionList","oldQuestionOptionList");
     ArrayList newKeySet=new ArrayList();
     newKeySet.addAll(newQuestionOptionList.keySet());
     //showWarning("newKeySet","newKeySet");
-    HashMap keyDiff=listChange(newKeySet,oldKeySet);
-    showWarning("keyDiff","keyDiff");
+    Hashtable keyDiff=listChange(newKeySet,oldKeySet);
+    //showWarning("keyDiff","keyDiff");
     HashMap langDiff=addOrDelQuesOptListByLang(keyDiff);
-    showWarning("langDiff","langDiff");
-    ArrayList equalKey=getEquiKey(langDiff);
+    //showWarning("langDiff","langDiff");
+    //TODO TODAY: NOT WORKING GETEQUKEY
+    ArrayList equalKey=getEquKey(oldKeySet,langDiff);
+    showWarning("equalKey","equalKey");
     if(langDiff==null){
         showWarning("null","null");
         checkQuesOptContentUpdate(equalKey);
@@ -1752,42 +1756,54 @@ checkQuesOptUpdate(){
 getEquKey(ArrayList originList, HashMap keyDiff){
     ArrayList tempList=new ArrayList();
     tempList.addAll(originList);
+    
     for(String key: keyDiff){
         tempList.removeAll(keyDiff.get(key));
     }
     return tempList;
 }
 
-addOrDelQuesOptListByLang(HashMap keyDiff){
+addOrDelQuesOptListByLang(Hashtable keyDiff){
     showWarning("addOrDelQuesOptListByLang","addOrDelQuesOptListByLang");
     HashMap updateList=new HashMap();
     if(keyDiff.containsKey("EQUAL")){
         return null;
     }
     else if(keyDiff.containsKey("PUREADD")){
+        showWarning("PUREADD","PUREADD");
         ArrayList langAdded=keyDiff.get("PUREADD");
         ArrayList pureAddList=new ArrayList();
+        showWarning("langAdded","langAdded");
         for(lang:langAdded){
             ArrayList tempLangOpt=newQuestionOptionList.get(lang);
+            showWarning("tempLangOpt","tempLangOpt");
             HashMap pureAddMap=new HashMap();
             pureAddMap.put(lang,tempLangOpt);
+            showWarning("pureAddMap","pureAddMap");
             pureAddList.add(pureAddMap);
         }
         updateList.put("PA",pureAddList);
+        showWarning("updateList","PA");
     }
     else if(keyDiff.containsKey("PUREDELETE")){
+        showWarning("PUREDELETE","PUREDELETE");
         ArrayList langDel=keyDiff.get("PUREDELETE");
         ArrayList pureDelList=new ArrayList();
+        showWarning("langDel","langDel");
         for(lang:langDel){
             ArrayList tempLangOpt=oldQuestionOptionList.get(lang);
+            showWarning("tempLangOpt","tempLangOpt");
             HashMap pureDelMap=new HashMap();
             pureDelMap.put(lang,tempLangOpt);
+            showWarning("pureDelMap","pureDelMap");
             pureDelList.add(pureDelMap);
         }
         updateList.put("PD",pureDelList);
+        showWarning("updateList","PD");
     }
     else{
-        ArrayList langAdded=keyDiff.get("PUREADD");
+        showWarning("ADD","ADD");
+        ArrayList langAdded=keyDiff.get("ADD");
         ArrayList addList=new ArrayList();
         for(lang:langAdded){
             ArrayList tempLangOpt=newQuestionOptionList.get(lang);
@@ -1797,7 +1813,7 @@ addOrDelQuesOptListByLang(HashMap keyDiff){
         }
         updateList.put("A",addList);
 
-        ArrayList langDel=keyDiff.get("PUREDELETE");
+        ArrayList langDel=keyDiff.get("DELETE");
         ArrayList delList=new ArrayList();
         for(lang:langDel){
             ArrayList tempLangOpt=oldQuestionOptionList.get(lang);
@@ -3919,7 +3935,7 @@ listChange(ArrayList newList, ArrayList oldList, int compareKey, ArrayList compa
     listChanges.put("D",del_list);
     //showWarning("del_list","del_list");
     listChanges.put("U",update_list);
-    showWarning("update_list","update_list");
+    //showWarning("update_list","update_list");
     return listChanges;
 
 }
