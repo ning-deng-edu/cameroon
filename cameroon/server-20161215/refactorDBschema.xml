@@ -86,6 +86,7 @@
     <ArchaeologicalElement name="QuesnirType">
         <description> Entity Questionnaire type</description>
         <property name="QuesnirTypeName" isIdentifier="true" type="measure">
+        </property>
         <property name="QuesnirTypeDesc" type="measure">
         </property>
     </ArchaeologicalElement>
