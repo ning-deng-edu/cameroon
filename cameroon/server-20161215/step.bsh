@@ -1882,20 +1882,21 @@ updateQuesChoiceDel(ArrayList pureDelList){
     }
     showWarning("del","del");
     ArrayList tempOptIdList=new ArrayList();
-    for(lang:pureDelList){
+    for(lang : pureDelList){//lang is a hashmap
         for(String key: lang.keySet()){
-            String lang=key;
+            lang=key;
             ArrayList tempOptList=oldQuestionOptionList.get(lang);
             for(opt: tempOptList){
                 String [] idSplit=opt.split(":");
+                showWarning("idSplit",idSplit[0]);
                 tempOptIdList.add(idSplit[0]);
                 showWarning("tempOptIdListadd","tempOptIdListadd");
             }
         }
-       
         showWarning("tempOptIdList","tempOptIdList");
     }
-    delOldQuesChoice(tempDelIdList);
+    showWarning("pureDelList","pureDelList");
+    delOldQuesChoice(tempOptIdList);
 }
 
 delOldQuesChoice(ArrayList delIdList){
@@ -1931,6 +1932,7 @@ checkQuesOptContentUpdate(ArrayList equKeyList){
         showWarning("tempOldOptList","tempOldOptList");
         ArrayList tempNewOptList=newQuestionOptionList.get(key);
         showWarning("tempNewOptList","tempNewOptList");
+        //to here when del
         Hashtable optContentDiff=listChange(tempNewOptList,tempOldOptContentList);
         showWarning("optContentDiff","optContentDiff");
     
