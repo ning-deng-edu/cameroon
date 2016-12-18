@@ -1933,21 +1933,26 @@ checkQuesOptContentUpdate(ArrayList equKeyList){
         showWarning("tempOldOptList","tempOldOptList");
         ArrayList tempNewOptList=newQuestionOptionList.get(key);
         showWarning("tempNewOptList","tempNewOptList");
-        HashMap optContentDiff=listChange(tempNewOptList,tempOldOptContentList);
+        Hashtable optContentDiff=listChange(tempNewOptList,tempOldOptContentList);
         showWarning("optContentDiff","optContentDiff");
-
+        //todo: to here
         if(optContentDiff.containsKey("PUREDELETE")){
+            showWarning("containsKeyPUREDELETE","containsKeyPUREDELETE");
             HashMap toDelOptMap=prepDelOpt(optContentDiff,tempOldOptList);
+            showWarning("toDelOptMapP","toDelOptMapP");
             optContentDiff.put("PUREDELETE",toDelOptMap);
         }
         
         else if(optContentDiff.containsKey("DELETE")){
+            showWarning("containsKeyDELETE","containsKeyDELETE");
             HashMap toDelOptMap=prepDelOpt(optContentDiff,tempOldOptList);
+            showWarning("toDelOptMapD","toDelOptMapD");
             optContentDiff.put("DELETE",toDelOptMap);
         }
-
         contentUpdate.put(key, optContentDiff);
+        showWarning("contentUpdate","contentUpdate");
     }
+    showWarning("TOquesOptContentUpdate","contentUpdate");
     quesOptContentUpdate(contentUpdate);
 }
 
@@ -1965,7 +1970,7 @@ extractOldOptByLang(String key){
     return extedOldOptList;
 }
 
-prepDelOpt(HashMap diffMap, HashMap oldOptMap){
+prepDelOpt(Hashtable diffMap, HashMap oldOptMap){
     showWarning("prepDelOpt","prepDelOpt");
     HashMap toDelOptMap=new HashMap();
     for(String diffKey: diffMap.keySet()){
@@ -1985,19 +1990,26 @@ prepDelOpt(HashMap diffMap, HashMap oldOptMap){
 }
 
 quesOptContentUpdate(HashMap optUpdate){
-    for(String key:optUpdate){
-        HashMap diff=optUpdate.get(key);
+    showWarning("quesOptContentUpdate","quesOptContentUpdate");
+    for(String key:optUpdate.keySet()){
+        showWarning("quesOptContentUpdatekey",key);
+        Hashtable diff=optUpdate.get(key);
+        showWarning("quesOptContentUpdatediff","diff");
+        //tohere
         if(diff.containsKey("PUREADD")){
+            showWarning("diffPUREADD","diffPUREADD");
             ArrayList addList=diff.get("PUREADD");
             saveQuesChoiceByLang(question_id, key, addList);
             showWarning("saveQuesChoiceByLang","saveQuesChoiceByLang");
         }
         else if(diff.containsKey("PUREDELETE")){
+            showWarning("diffPUREDELETE","diffPUREDELETE");
             ArrayList delList=diff.get("PUREDELETE");
             delOldQuesChoice(delList,0);
             showWarning("delOldQuesChoice","delOldQuesChoice");
         }
         else if(diff.containsKey("ADD")){
+            showWarning("diffADD","diffADD");
             ArrayList delList=diff.get("DELETE");
             delOldQuesChoice(delList,0);
             showWarning("delList","delList");
