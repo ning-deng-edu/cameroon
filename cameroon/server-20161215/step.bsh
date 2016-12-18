@@ -2317,9 +2317,6 @@ loadQuestionnaireInfo(){
 
             showToast("Loaded questionnaire"+questionnaire.getId());
 
-            //populateDropDown("questionnaire/questionnaire_info/questionnaireTypeSelection",questionirType);
-            
-
             questionnaireInfoOriginal.add(getFieldValue("questionnaire/questionnaire_info/questionnaireID"));
             questionnaireInfoOriginal.add(getFieldValue("questionnaire/questionnaire_info/questionnaireName"));
             questionnaireInfoOriginal.add(getFieldValue("questionnaire/questionnaire_info/questionnaireDescription"));
@@ -2483,9 +2480,11 @@ loadQuesnirWithQues(String currentQuesnirID){
 }
 
 loadQuesnirQuesReln(String currentQuesnirID){
-    quesnir_ques_reln_query="select uuid from latestNonDeletedArchEntIdentifiers "+
-        "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
-        "and measure='"+currentQuesnirID+"' ";
+    quesnir_ques_reln_query="select ques.uuid,ques.measure from latestNonDeletedArchEntIdentifiers as quesnir, latestNonDeletedArchEntIdentifiers as ques "+
+        "where quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+        "and ques.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+        "and quesnir.uuid=ques.uuid "+
+        "and quesnir.measure='"+currentQuesnirID+"' ";
 
     /* quesnir_ques_reln_query="select uuid,measure from latestNonDeletedArchEntIdentifiers "+
         "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
@@ -2505,6 +2504,7 @@ loadQuesnirQuesReln(String currentQuesnirID){
 }
 
 loadQuesnirQuesOrderContent(String currentQuesnirID){
+
     loadQuesContentandOrderQuery="select t1.quesId, t1.quesOrder || '-' || t2.quesContent as qOrderedContent from "+
         "(select quId.measure as quesId, qOrder.measure as quesOrder "+
         "from latestNonDeletedAentValue as quId, latestNonDeletedAentValue as qOrder "+
@@ -2521,10 +2521,14 @@ loadQuesnirQuesOrderContent(String currentQuesnirID){
             "and measure='"+currentQuesnirID+"')) t1 "+
     "inner join "+
         "(select qId.measure as quesId, qContent.measure as quesContent "+
-        "from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qContent "+
+        "from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qContent, latestNonDeletedAentValue as qLanguage "+
         "where qContent.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesContent') "+
         "and qId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
+        "and qLanguage.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesLangUuid') "+
         "and qId.uuid=qContent.uuid "+
+        "and qId.uuid=qLanguage.uuid "+
+        "and qLanguage.measure IN (select eng.uuid from latestNonDeletedAentValue as eng where eng.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageName') "+
+        "and eng.measure='English' and eng.uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID'))) "+
         "and qId.measure in "+
             "(select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
             "where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
@@ -2532,7 +2536,7 @@ loadQuesnirQuesOrderContent(String currentQuesnirID){
             "and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+currentQuesnirID+"') "+
         "and qId.uuid in "+
             "(select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid'))) t2 "+
-    "on t1.quesId=t2.quesId "+
+    "on t1.quesId=t2.quesId group by t1.quesId "+
     "order by qOrderedContent asc";
 
     fetchAll(loadQuesContentandOrderQuery, new FetchCallback() {
@@ -3019,14 +3023,16 @@ updateBasicQuesnirInfo(){
 }
 //TODO: test: delete the "DELETE" only
 updateQuesnirQuesList(Hashtable questionListChanges){
-    /*
+
     if(questionListChanges.containsKey("ADD")){
+        //showWarning("questionListChanges","ADD");
         ArrayList delQues=questionListChanges.get("DELETE");
         ArrayList addQues=questionListChanges.get("ADD");
-        for(int i=0;i<quesListRelnOrigin.size();i++){
-            for(int j=0;j<delQues.size();j++){
-                if(quesListRelnOrigin.get(i).get(1).equals(delQues.get(j).get(0))){
-                    deleteArchEnt(quesListRelnOrigin.get(0));
+        for(reln: quesListRelnOrigin){
+            for(del: delQues){
+                if(reln.get(1).equals(del.get(0))){
+                    deleteArchEnt(reln.get(0));
+                    //showWarning("DELETE",reln.get(0));
                 }
             }
         }
@@ -3055,33 +3061,20 @@ updateQuesnirQuesList(Hashtable questionListChanges){
             saveArchEnt(null, "QuesnirQuesOrder", null, quesOrderAttributes);
         }
     }
-    if(questionListChanges.containsKey("PUREDELETE")){
+    else if(questionListChanges.containsKey("PUREDELETE")){
+        //showWarning("questionListChanges","PUREDELETE");
         ArrayList delQues=questionListChanges.get("PUREDELETE");
-        for(int i=0;i<quesListRelnOrigin.size();i++){
-            for(int j=0;j<delQues.size();j++){
-                if(quesListRelnOrigin.get(i).get(1).equals(delQues.get(j).get(0))){
-                    deleteArchEnt(quesListRelnOrigin.get(0));
+         for(reln: quesListRelnOrigin){
+            for(del: delQues){
+                showWarning(reln.get(1),del.get(0));
+                if(reln.get(1).equals(del.get(0))){
+                    deleteArchEnt(reln.get(0));
+                   // showWarning("PUREDELETE",reln.get(0));
                 }
             }
         }
     }
     
-    */
-    for (oldReln:quesListRelnOrigin){
-        String oldRelnId=oldReln.get(0);
-        deleteArchEnt(oldRelnId);
-    }
-    //Then add new relns
-    for (question : questionSelected){
-        String quesInQuesnirID=question.get(0);
-        String quesContnt=question.get(1);
-        String quesOrderNum=quesContnt.substring(0,quesContnt.indexOf("-"));
-        quesOrderAttributes= createAttributeList();
-        quesOrderAttributes.add(createEntityAttribute("QuesnirID", null, null, finished_questionnaire_id, null));
-        quesOrderAttributes.add(createEntityAttribute("QuesID", null, null,quesInQuesnirID, null));
-        quesOrderAttributes.add(createEntityAttribute("QuesOrderLocal", null, null, quesOrderNum, null));
-        saveArchEnt(null, "QuesnirQuesOrder", null, quesOrderAttributes);
-    }
     showToast("question list data is changed");
     cancelTabGroup("questionnaire_question",true);
 }
