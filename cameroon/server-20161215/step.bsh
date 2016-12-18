@@ -1540,6 +1540,7 @@ saveNewQuestion(){
             });
             if(question_id!=null){
                 updateNonBasicQuesInfo(recording_req_id, selLangList);
+                cancelTabGroup("questionBank",true);
             }
         }
     });
@@ -1725,7 +1726,7 @@ checkQuesOptUpdate(ArrayList selLangList){
     //showWarning("oldQuestionOptionList","oldQuestionOptionList");
      
     getNewLangKey(selLangList);
-   
+    showWarning("getNewLangKey",newQuestionOptionList.keySet().size().toString());
     ArrayList newKeySet=new ArrayList();
     newKeySet.addAll(newQuestionOptionList.keySet());
 
@@ -1733,8 +1734,8 @@ checkQuesOptUpdate(ArrayList selLangList){
     
     HashMap langDiff=addOrDelQuesOptListByLang(keyDiff);
     showWarning("langDiff","langDiff");
-    ArrayList equalKey=getEquKey(oldKeySet,langDiff);
-    showWarning("equalKey","equalKey");
+    ArrayList equalKey=getEquKey(oldKeySet,newKeySet);
+    showWarning("equalKey",equalKey.size().toString());
     if(langDiff==null||langDiff.isEmpty()){
         showWarning("null","null");
         checkQuesOptContentUpdate(equalKey);
@@ -1777,19 +1778,12 @@ getNewLangKey(ArrayList selLangList){
     }
 }
 
-getEquKey(ArrayList originList, HashMap keyDiff){
+getEquKey(ArrayList originList, ArrayList newList){
     ArrayList tempList=new ArrayList();
     tempList.addAll(originList);
-   // showWarning("tempList","tempList");
-    for(String key: keyDiff.keySet()){
-        if(key.equals("PUREDELETE")||key.equals("DELETE")){
-             ArrayList test=keyDiff.get(key);
-            //showWarning("test","test");
-            tempList.removeAll(test);
-            //showWarning("tempListremoveAll","tempListremoveAll");
-        }
-    }
-    showWarning("tempListfor","tempListfor");
+    ArrayList tempNewList=new ArrayList();
+    tempNewList.addAll(newList);
+    tempList.retainAll(tempNewList);
     return tempList;
 }
 
@@ -1800,32 +1794,32 @@ addOrDelQuesOptListByLang(Hashtable keyDiff){
         return null;
     }
     else if(keyDiff.containsKey("PUREADD")){
-        showWarning("PUREADD","PUREADD");
+        //showWarning("PUREADD","PUREADD");
         ArrayList langAdded=keyDiff.get("PUREADD");
         ArrayList pureAddList=new ArrayList();
-        showWarning("langAdded","langAdded");
+        //showWarning("langAdded","langAdded");
         for(lang:langAdded){
             ArrayList tempLangOpt=newQuestionOptionList.get(lang);
-            showWarning("tempLangOpt","tempLangOpt");
+           // showWarning("tempLangOpt","tempLangOpt");
             HashMap pureAddMap=new HashMap();
             pureAddMap.put(lang,tempLangOpt);
-            showWarning("pureAddMap","pureAddMap");
+            //showWarning("pureAddMap","pureAddMap");
             pureAddList.add(pureAddMap);
         }
         updateList.put("PA",pureAddList);
         showWarning("updateList","PA");
     }
     else if(keyDiff.containsKey("PUREDELETE")){
-        showWarning("PUREDELETE","PUREDELETE");
+        //showWarning("PUREDELETE","PUREDELETE");
         ArrayList langDel=keyDiff.get("PUREDELETE");
         ArrayList pureDelList=new ArrayList();
-        showWarning("langDel","langDel");
+        //showWarning("langDel","langDel");
         for(lang:langDel){
             ArrayList tempLangOpt=oldQuestionOptionList.get(lang);
-            showWarning("tempLangOpt","tempLangOpt");
+           // showWarning("tempLangOpt","tempLangOpt");
             HashMap pureDelMap=new HashMap();
             pureDelMap.put(lang,tempLangOpt);
-            showWarning("pureDelMap","pureDelMap");
+           // showWarning("pureDelMap","pureDelMap");
             pureDelList.add(pureDelMap);
         }
         updateList.put("PD",pureDelList);
@@ -1861,13 +1855,13 @@ updateQuesChoiceAdd(ArrayList pureAddList){
     if(pureAddList==null|| pureAddList.isEmpty()){
         return;
     }
-    showWarning("updateQuesChoiceAddpureAddList","updateQuesChoiceAddpureAddList");
+    //showWarning("updateQuesChoiceAddpureAddList","updateQuesChoiceAddpureAddList");
     for(lang:pureAddList){
         for(String key: lang.keySet()){
             langKey=key;
-            showWarning("langKey",langKey);
+           // showWarning("langKey",langKey);
             ArrayList langOptList=newQuestionOptionList.get(langKey);
-            showWarning("newQuestionOptionList","newQuestionOptionList.getlangkey");
+           // showWarning("newQuestionOptionList","newQuestionOptionList.getlangkey");
             saveQuesChoiceByLang(question_id, langKey,langOptList);
             showWarning("pureAddList","pureAddList");
         }    
@@ -1880,7 +1874,7 @@ updateQuesChoiceDel(ArrayList pureDelList){
     if(pureDelList==null|| pureDelList.isEmpty()){
         return;
     }
-    showWarning("del","del");
+   // showWarning("del","del");
     ArrayList tempOptIdList=new ArrayList();
     for(lang : pureDelList){//lang is a hashmap
         for(String key: lang.keySet()){
@@ -1888,9 +1882,9 @@ updateQuesChoiceDel(ArrayList pureDelList){
             ArrayList tempOptList=oldQuestionOptionList.get(lang);
             for(opt: tempOptList){
                 String [] idSplit=opt.split(":");
-                showWarning("idSplit",idSplit[0]);
+               // showWarning("idSplit",idSplit[0]);
                 tempOptIdList.add(idSplit[0]);
-                showWarning("tempOptIdListadd","tempOptIdListadd");
+               // showWarning("tempOptIdListadd","tempOptIdListadd");
             }
         }
         showWarning("tempOptIdList","tempOptIdList");
@@ -1912,7 +1906,7 @@ delOldQuesChoice(ArrayList delIdList){
 
 delOldQuesChoice(ArrayList delIdList, int idIdx){
     showWarning("delOldQuesChoice","idIdx");
-    if(delIdList==null){
+    if(delIdList==null|| delIdList.isEmpty()){
         return;
     }
     for(int i=0;i<delIdList.size();i++){
@@ -1923,15 +1917,20 @@ delOldQuesChoice(ArrayList delIdList, int idIdx){
 
 checkQuesOptContentUpdate(ArrayList equKeyList){
     showWarning("checkQuesOptContentUpdate","checkQuesOptContentUpdate");
+    if(equKeyList==null || equKeyList.size()==0){
+        return;
+    }
     HashMap contentUpdate=new HashMap();
     for(int i=0;i<equKeyList.size();i++){
+        showWarning("equKeyList",equKeyList.size().toString());
         String key=equKeyList.get(i);
         HashMap tempOldOptList=extractOldOptByLang(key);
         ArrayList tempOldOptContentList=new ArrayList();
         tempOldOptContentList.addAll(tempOldOptList.keySet());
-        showWarning("tempOldOptList","tempOldOptList");
-        ArrayList tempNewOptList=newQuestionOptionList.get(key);
-        showWarning("tempNewOptList","tempNewOptList");
+        showWarning("tempOldOptList",tempOldOptContentList.size().toString());
+        ArrayList tempNewOptList=new ArrayList();
+        tempNewOptList.addAll(newQuestionOptionList.get(key));
+        showWarning("tempNewOptList",tempNewOptList.size().toString());
         //to here when del
         Hashtable optContentDiff=listChange(tempNewOptList,tempOldOptContentList);
         showWarning("optContentDiff","optContentDiff");
@@ -1949,6 +1948,7 @@ checkQuesOptContentUpdate(ArrayList equKeyList){
             showWarning("toDelOptMapD","toDelOptMapD");
             optContentDiff.put("DELETE",toDelOptList);
         }
+
         contentUpdate.put(key, optContentDiff);
         showWarning("contentUpdate","contentUpdate");
     }
