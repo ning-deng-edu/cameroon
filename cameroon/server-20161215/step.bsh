@@ -1039,6 +1039,7 @@ searchQuestionByLang(){
 newQuestion(){
     initializeQuesBankVar();
     newTabGroup("questionBank");
+    removeAllViewsAndContainers("questionBank");
     initialQuestionCreation();
 }
 
@@ -1539,9 +1540,6 @@ saveNewQuestion(){
             });
             if(question_id!=null){
                 updateNonBasicQuesInfo(recording_req_id, selLangList);
-                if(recording_req_type.equals("MultiChoice")||recording_req_type.equals("MultiChoices")){
-                        removeAllViewsAndContainers("questionBank");
-                }
             }
         }
     });
@@ -1883,7 +1881,7 @@ updateQuesChoiceDel(ArrayList pureDelList){
         return;
     }
     showWarning("del","del");
-     ArrayList tempOptIdList=new ArrayList();
+    ArrayList tempOptIdList=new ArrayList();
     for(lang:pureDelList){
         for(String key: lang.keySet()){
             String lang=key;
@@ -1935,19 +1933,19 @@ checkQuesOptContentUpdate(ArrayList equKeyList){
         showWarning("tempNewOptList","tempNewOptList");
         Hashtable optContentDiff=listChange(tempNewOptList,tempOldOptContentList);
         showWarning("optContentDiff","optContentDiff");
-        //todo: to here
+    
         if(optContentDiff.containsKey("PUREDELETE")){
             showWarning("containsKeyPUREDELETE","containsKeyPUREDELETE");
-            HashMap toDelOptMap=prepDelOpt(optContentDiff,tempOldOptList);
+            ArrayList toDelOptList=prepDelOpt(optContentDiff,tempOldOptList);
             showWarning("toDelOptMapP","toDelOptMapP");
-            optContentDiff.put("PUREDELETE",toDelOptMap);
+            optContentDiff.put("PUREDELETE",toDelOptList);
         }
         
         else if(optContentDiff.containsKey("DELETE")){
             showWarning("containsKeyDELETE","containsKeyDELETE");
-            HashMap toDelOptMap=prepDelOpt(optContentDiff,tempOldOptList);
+            ArrayList toDelOptList=prepDelOpt(optContentDiff,tempOldOptList);
             showWarning("toDelOptMapD","toDelOptMapD");
-            optContentDiff.put("DELETE",toDelOptMap);
+            optContentDiff.put("DELETE",toDelOptList);
         }
         contentUpdate.put(key, optContentDiff);
         showWarning("contentUpdate","contentUpdate");
@@ -1972,21 +1970,25 @@ extractOldOptByLang(String key){
 
 prepDelOpt(Hashtable diffMap, HashMap oldOptMap){
     showWarning("prepDelOpt","prepDelOpt");
-    HashMap toDelOptMap=new HashMap();
+    ArrayList toDelOptList=new ArrayList();
     for(String diffKey: diffMap.keySet()){
         if(diffKey.equals("PUREDELETE")||diffKey.equals("DELETE")){
             ArrayList diffList=diffMap.get(diffKey);
-            showWarning("diffList","diffList");
+
             for(optCtn:diffList){
                 if(oldOptMap.containsKey(optCtn)){
-                    toDelOptMap.put(oldOptMap.get(optCtn),optCtn);
+                    ArrayList tempOpt=new ArrayList();
+                    tempOpt.add(oldOptMap.get(optCtn));
+                    tempOpt.add(optCtn);
+                    toDelOptList.add(tempOpt);
                     showWarning("toDelOptMap","toDelOptMap");
                 }
             }
+
         }
     }
     showWarning("toDelOptMapFOREND","toDelOptMapFOREND");
-    return toDelOptMap;
+    return toDelOptList;
 }
 
 quesOptContentUpdate(HashMap optUpdate){
@@ -2029,6 +2031,7 @@ loadQuestionInfo(){
 
     showTabGroup("questionBank", question_id, new FetchCallback() {
         onFetch(result) {
+            removeAllViewsAndContainers("questionBank");
             loadQuesProperty(question_id);
             showToast("Loaded Question:"+question_id);
         }
