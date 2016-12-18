@@ -1541,6 +1541,7 @@ saveNewQuestion(){
             if(question_id!=null){
                 updateNonBasicQuesInfo(recording_req_id, selLangList);
                 cancelTabGroup("questionBank",true);
+                showTab("control/question_control");
             }
         }
     });
@@ -1726,32 +1727,32 @@ checkQuesOptUpdate(ArrayList selLangList){
     //showWarning("oldQuestionOptionList","oldQuestionOptionList");
      
     getNewLangKey(selLangList);
-    showWarning("getNewLangKey",newQuestionOptionList.keySet().size().toString());
+    //showWarning("getNewLangKey",newQuestionOptionList.keySet().size().toString());
     ArrayList newKeySet=new ArrayList();
     newKeySet.addAll(newQuestionOptionList.keySet());
 
     Hashtable keyDiff=listChange(newKeySet,oldKeySet);
     
     HashMap langDiff=addOrDelQuesOptListByLang(keyDiff);
-    showWarning("langDiff","langDiff");
+   // showWarning("langDiff","langDiff");
     ArrayList equalKey=getEquKey(oldKeySet,newKeySet);
-    showWarning("equalKey",equalKey.size().toString());
+    //showWarning("equalKey",equalKey.size().toString());
     if(langDiff==null||langDiff.isEmpty()){
-        showWarning("null","null");
+       // showWarning("null","null");
         checkQuesOptContentUpdate(equalKey);
     }
     else if(langDiff.containsKey("PA")){
-        showWarning("PA","PA");
+        //showWarning("PA","PA");
         updateQuesChoiceAdd(langDiff.get("PA"));
         checkQuesOptContentUpdate(equalKey);
     }
     else if(langDiff.containsKey("PD")){
-        showWarning("PD","PD");
+        //showWarning("PD","PD");
         updateQuesChoiceDel(langDiff.get("PD"));
         checkQuesOptContentUpdate(equalKey);
     }
     else{
-        showWarning("A","D");
+       // showWarning("A","D");
         updateQuesChoiceDel(langDiff.get("D"));
         updateQuesChoiceAdd(langDiff.get("A"));
         checkQuesOptContentUpdate(equalKey);
@@ -1807,7 +1808,7 @@ addOrDelQuesOptListByLang(Hashtable keyDiff){
             pureAddList.add(pureAddMap);
         }
         updateList.put("PA",pureAddList);
-        showWarning("updateList","PA");
+        //showWarning("updateList","PA");
     }
     else if(keyDiff.containsKey("PUREDELETE")){
         //showWarning("PUREDELETE","PUREDELETE");
@@ -1823,7 +1824,7 @@ addOrDelQuesOptListByLang(Hashtable keyDiff){
             pureDelList.add(pureDelMap);
         }
         updateList.put("PD",pureDelList);
-        showWarning("updateList","PD");
+       // showWarning("updateList","PD");
     }
     else{
         showWarning("ADD","ADD");
@@ -1851,7 +1852,7 @@ addOrDelQuesOptListByLang(Hashtable keyDiff){
 }
 
 updateQuesChoiceAdd(ArrayList pureAddList){
-    showWarning("updateQuesChoiceAdd","updateQuesChoiceAdd");
+    //showWarning("updateQuesChoiceAdd","updateQuesChoiceAdd");
     if(pureAddList==null|| pureAddList.isEmpty()){
         return;
     }
@@ -1863,14 +1864,14 @@ updateQuesChoiceAdd(ArrayList pureAddList){
             ArrayList langOptList=newQuestionOptionList.get(langKey);
            // showWarning("newQuestionOptionList","newQuestionOptionList.getlangkey");
             saveQuesChoiceByLang(question_id, langKey,langOptList);
-            showWarning("pureAddList","pureAddList");
+            //showWarning("pureAddList","pureAddList");
         }    
     }
-    showWarning("updateQuesChoiceAdd","updateQuesChoiceAdd");
+   // showWarning("updateQuesChoiceAdd","updateQuesChoiceAdd");
 }
 
 updateQuesChoiceDel(ArrayList pureDelList){
-    showWarning("updateQuesChoiceDel","updateQuesChoiceDel");
+    //showWarning("updateQuesChoiceDel","updateQuesChoiceDel");
     if(pureDelList==null|| pureDelList.isEmpty()){
         return;
     }
@@ -1887,139 +1888,124 @@ updateQuesChoiceDel(ArrayList pureDelList){
                // showWarning("tempOptIdListadd","tempOptIdListadd");
             }
         }
-        showWarning("tempOptIdList","tempOptIdList");
+        //showWarning("tempOptIdList","tempOptIdList");
     }
-    showWarning("pureDelList","pureDelList");
+   // showWarning("pureDelList","pureDelList");
     delOldQuesChoice(tempOptIdList);
 }
 
 delOldQuesChoice(ArrayList delIdList){
-    showWarning("delOldQuesChoice","delOldQuesChoice");
+    //showWarning("delOldQuesChoice","delOldQuesChoice");
     if(delIdList==null){
         return;
     }
     for(int i=0;i<delIdList.size();i++){
-        showWarning("delOldQuesChoice",delIdList.get(i));
+        //showWarning("delOldQuesChoice",delIdList.get(i));
         deleteArchEnt(delIdList.get(i));
     }
 }
 
-delOldQuesChoice(ArrayList delIdList, int idIdx){
-    showWarning("delOldQuesChoice","idIdx");
-    if(delIdList==null|| delIdList.isEmpty()){
-        return;
-    }
-    for(int i=0;i<delIdList.size();i++){
-        showWarning("delOldQuesChoice",delIdList.get(i));
-        deleteArchEnt(delIdList.get(i).get(idIdx));
-    }
-}
-
 checkQuesOptContentUpdate(ArrayList equKeyList){
-    showWarning("checkQuesOptContentUpdate","checkQuesOptContentUpdate");
+   // showWarning("checkQuesOptContentUpdate","checkQuesOptContentUpdate");
     if(equKeyList==null || equKeyList.size()==0){
         return;
     }
     HashMap contentUpdate=new HashMap();
     for(int i=0;i<equKeyList.size();i++){
-        showWarning("equKeyList",equKeyList.size().toString());
+      //  showWarning("equKeyList",equKeyList.size().toString());
         String key=equKeyList.get(i);
         HashMap tempOldOptList=extractOldOptByLang(key);
         ArrayList tempOldOptContentList=new ArrayList();
         tempOldOptContentList.addAll(tempOldOptList.keySet());
-        showWarning("tempOldOptList",tempOldOptContentList.size().toString());
+       // showWarning("tempOldOptList",tempOldOptContentList.size().toString());
         ArrayList tempNewOptList=new ArrayList();
         tempNewOptList.addAll(newQuestionOptionList.get(key));
-        showWarning("tempNewOptList",tempNewOptList.size().toString());
+       // showWarning("tempNewOptList",tempNewOptList.size().toString());
         //to here when del
         Hashtable optContentDiff=listChange(tempNewOptList,tempOldOptContentList);
-        showWarning("optContentDiff","optContentDiff");
+      //  showWarning("optContentDiff","optContentDiff");
     
         if(optContentDiff.containsKey("PUREDELETE")){
-            showWarning("containsKeyPUREDELETE","containsKeyPUREDELETE");
+       //     showWarning("containsKeyPUREDELETE","containsKeyPUREDELETE");
             ArrayList toDelOptList=prepDelOpt(optContentDiff,tempOldOptList);
-            showWarning("toDelOptMapP","toDelOptMapP");
+      //      showWarning("toDelOptMapP","toDelOptMapP");
             optContentDiff.put("PUREDELETE",toDelOptList);
         }
         
         else if(optContentDiff.containsKey("DELETE")){
-            showWarning("containsKeyDELETE","containsKeyDELETE");
+    //        showWarning("containsKeyDELETE","containsKeyDELETE");
             ArrayList toDelOptList=prepDelOpt(optContentDiff,tempOldOptList);
-            showWarning("toDelOptMapD","toDelOptMapD");
+    //        showWarning("toDelOptMapD","toDelOptMapD");
             optContentDiff.put("DELETE",toDelOptList);
         }
 
         contentUpdate.put(key, optContentDiff);
-        showWarning("contentUpdate","contentUpdate");
+    //   showWarning("contentUpdate","contentUpdate");
     }
-    showWarning("TOquesOptContentUpdate","contentUpdate");
+   // showWarning("TOquesOptContentUpdate","contentUpdate");
     quesOptContentUpdate(contentUpdate);
 }
 
 extractOldOptByLang(String key){
     ArrayList tempOpt=oldQuestionOptionList.get(key);
     HashMap extedOldOptList=new HashMap();
-    showWarning("extractOldOptByLang","extractOldOptByLang");
+   // showWarning("extractOldOptByLang","extractOldOptByLang");
     for(int i=0;i<tempOpt.size();i++){
         String [] idSplit= tempOpt.get(i).split(":");
         ArrayList tempOptItem=new ArrayList();
         extedOldOptList.put(idSplit[1],idSplit[0]);
-        showWarning("extedOldOptListput","extedOldOptListput");
+     //   showWarning("extedOldOptListput","extedOldOptListput");
     }
-    showWarning("extedOldOptList","extedOldOptList");
+   // showWarning("extedOldOptList","extedOldOptList");
     return extedOldOptList;
 }
 
 prepDelOpt(Hashtable diffMap, HashMap oldOptMap){
-    showWarning("prepDelOpt","prepDelOpt");
+   // showWarning("prepDelOpt","prepDelOpt");
     ArrayList toDelOptList=new ArrayList();
     for(String diffKey: diffMap.keySet()){
         if(diffKey.equals("PUREDELETE")||diffKey.equals("DELETE")){
             ArrayList diffList=diffMap.get(diffKey);
-
             for(optCtn:diffList){
                 if(oldOptMap.containsKey(optCtn)){
-                    ArrayList tempOpt=new ArrayList();
-                    tempOpt.add(oldOptMap.get(optCtn));
-                    tempOpt.add(optCtn);
-                    toDelOptList.add(tempOpt);
-                    showWarning("toDelOptMap","toDelOptMap");
+                    toDelOptList.add(oldOptMap.get(optCtn));
+                    //showWarning("toDelOptMap","toDelOptMap");
                 }
             }
 
         }
     }
-    showWarning("toDelOptMapFOREND","toDelOptMapFOREND");
+  //  showWarning("toDelOptMapFOREND","toDelOptMapFOREND");
     return toDelOptList;
 }
 
 quesOptContentUpdate(HashMap optUpdate){
-    showWarning("quesOptContentUpdate","quesOptContentUpdate");
+   // showWarning("quesOptContentUpdate","quesOptContentUpdate");
     for(String key:optUpdate.keySet()){
-        showWarning("quesOptContentUpdatekey",key);
+       // showWarning("quesOptContentUpdatekey",key);
         Hashtable diff=optUpdate.get(key);
-        showWarning("quesOptContentUpdatediff","diff");
+       // showWarning("quesOptContentUpdatediff","diff");
         //tohere
         if(diff.containsKey("PUREADD")){
-            showWarning("diffPUREADD","diffPUREADD");
+           // showWarning("diffPUREADD","diffPUREADD");
             ArrayList addList=diff.get("PUREADD");
             saveQuesChoiceByLang(question_id, key, addList);
-            showWarning("saveQuesChoiceByLang","saveQuesChoiceByLang");
+           // showWarning("saveQuesChoiceByLang","saveQuesChoiceByLang");
         }
         else if(diff.containsKey("PUREDELETE")){
-            showWarning("diffPUREDELETE","diffPUREDELETE");
+          //  showWarning("diffPUREDELETE","diffPUREDELETE");
             ArrayList delList=diff.get("PUREDELETE");
-            delOldQuesChoice(delList,0);
-            showWarning("delOldQuesChoice","delOldQuesChoice");
+            delOldQuesChoice(delList);
+           // showWarning("delOldQuesChoice","delOldQuesChoice");
         }
         else if(diff.containsKey("ADD")){
-            showWarning("diffADD","diffADD");
+          //  showWarning("diffADD","diffADD");
             ArrayList delList=diff.get("DELETE");
-            delOldQuesChoice(delList,0);
-            showWarning("delList","delList");
+            delOldQuesChoice(delList);
+          // showWarning("delList","delList");
             ArrayList addList=diff.get("ADD");
             saveQuesChoiceByLang(question_id, key, addList);
-            showWarning("addList","addList");
+          //  showWarning("addList","addList");
         }
     }
 }
