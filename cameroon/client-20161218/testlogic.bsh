@@ -4655,7 +4655,7 @@ createDateAnswerPage(){
 	    doTask() {
 	    	quesContentDef = createViewDef().createTextField().setReadOnly(true);
 	    	dateDef = createViewDef().createDatePicker().setLabel("Select Date");
-	    	ansEnterDef = createViewDef().createTextField().setLabel("Enter answer if date is not available");
+	    	ansEnterDef = createViewDef().createTextField().setLabel("Enter answer if date is not available(YYYY or YYYY/MM)");
 	    	nextBtnDef = createViewDef().createButton().setLabel("Finish").setStyleCss("faims-blue");
 	    	
 			createView("choiceAns/choiceAnsInfo/ques",quesContentDef,"choiceAns/choiceAnsInfo");
@@ -4672,8 +4672,74 @@ createDateAnswerPage(){
 }
 
 saveNewDateAnswer(int loopCount){
-	String x=getFieldValue("choiceAns/choiceAnsInfo/dateSel");
-	showWarning("x",x);
+	String tempAnsText=null;
+	if(!isNull(getFieldValue("choiceAns/choiceAnsInfo/ansEn"))){
+		tempAnsText=getFieldValue("choiceAns/choiceAnsInfo/ansEn");
+		if(!dateValidation(tempAnsText)){
+			showWarning("Invalid data","the entered date is not valid:\n"+"1.The format should be YYYY or YYYY/MM\n"+"2.MM should greater than 01 and less than 12");
+			return;
+		}
+	}
+	else{
+		tempAnsText=getFieldValue("choiceAns/choiceAnsInfo/dateSel");
+	}
+	if(tempAnsText==null || tempAnsText.equals("")){
+		showWarning("Incomplete data","the answer data is not collected");
+		return;
+	}
+
+	if(current_answer_id==null){
+		attributes = createAttributeList();
+	
+		attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, hiddenAnsInfo.get("quesnir_id"), null));
+		attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
+		attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
+		attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
+		attributes.add(createEntityAttribute("AnswerText", null, null,tempAnsText, null));
+
+		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
+		onSave(uuid, newRecord){
+			answer_id = uuid;
+			current_answer_id=answer_id;
+			if (newRecord) {
+				opAfterNewAns(answer_id,hiddenAnsInfo.get("label"),hiddenAnsInfo.get("ques_id"));
+				cancelTabGroup("choiceAns",true);
+			}
+		}
+		onError(message) {
+			if(loopCount<3){
+				loopCount++;
+				saveNewDateAnswer(loopCount);
+			}
+			else{
+				showWarning("Error happened, saving failed on Answer",message+"\n"+"please report this to the admin\n"+"click ok to continue");
+			}
+		}  
+		});
+	}
+	else{//update answer info
+		if(!tempAnsText.equals(choiceDateOriginInfo.get(0))){
+
+			attributes = createAttributeList();
+			attributes.add(createEntityAttribute("AnswerText", null, null,tempAnsText, null));
+
+			saveArchEnt(current_answer_id, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
+				onSave(uuid, newRecord){
+					choiceDateOriginInfo.set(0,tempAnsText);
+					showToast("answer updated");
+				}
+				onError(message) {
+					if(loopCount<3){
+						loopCount++;
+						saveNewDateAnswer(loopCount);
+					}
+					else{
+						showWarning("Error happened, updating failed on Answer",message+"\n"+"please report this to the admin\n"+"click ok to continue");
+					}
+				}  
+			});
+		}
+	}
 }
 
 
@@ -4816,7 +4882,13 @@ loadDateAnsInfo(String tempQuesId, String tempQuesLabel, String tempAnsText){
 	showTabGroup("choiceAns");
 	choiceDateOriginInfo.clear();
 	choiceDateOriginInfo.add(tempAnsText);
-	setFieldValue("choiceAns/choiceAnsInfo/dateSel",tempAnsText);
+
+	if(systemDateValidation(tempAnsText)){
+		setFieldValue("choiceAns/choiceAnsInfo/dateSel",tempAnsText);
+	}
+	else{
+		setFieldValue("choiceAns/choiceAnsInfo/ansEn",tempAnsText);
+	}	
 }
 
 loadAnswerFromQuesInQuesnir(String ques_id){
@@ -7202,6 +7274,45 @@ timeValidation(String startDateTime){
 return false;
 }
 
+/*
+** check if date is in valid format
+** date: input string
+*/
+dateValidation(String dateStr){	
+
+	String hyphenDateRegex="^\\d{4}[/]\\d{2}$";
+	String hyphenDateRegex2="^\\d{4}$";
+
+	Pattern hyphenDatePattern=Pattern.compile(hyphenDateRegex);
+	Pattern hyphenDatePattern2=Pattern.compile(hyphenDateRegex2);
+
+	Matcher hyphenDateMatcher=hyphenDatePattern.matcher(dateStr);
+	Matcher hyphenDateMatcher2=hyphenDatePattern2.matcher(dateStr);
+
+	if (hyphenDateMatcher.find()){		
+		String [] dateSplit=dateStr.split("/");
+		int month= Integer.parseInt(dateSplit[1]);
+		if(month<1||month>12){
+			return false;
+		}
+		return true;
+	}
+	else if(hyphenDateMatcher2.find()){
+		return true;
+	}
+
+	return false;
+}
+
+systemDateValidation(String dateStr){
+	String slashDateRegex="^\\d{2}[/]\\d{2}[/]\\d{4}$";
+	Pattern slashDatePattern=Pattern.compile(slashDateRegex);
+	Matcher slashDateMatcher=slashDatePattern.matcher(dateStr);
+	if (slashDateMatcher.find()){
+		return true;
+	}
+	return false;
+}
 /*
 ** get the current data through the system function of getCurrentTime()
 */
