@@ -618,22 +618,41 @@ checkDelOrView(){
 }
 
 preLoadAnswerInfo(String tempAnswerId){
-	checkLangIntroAnsQuery="select 1 from (select measure as ansQuesID from latestNonDeletedAentValue "+
-		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionID') and uuid='"+tempAnswerId+"') t1 "+
-		"inner join (select langIntroQues.measure as langIntroQuesID from latestNonDeletedAentValue as langIntroQues, latestNonDeletedAentValue as QuesType "+
-		"where langIntroQues.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
-		"and QuesType.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefID') "+
-		"and langIntroQues.uuid=QuesType.uuid and QuesType.measure=(select QuesTypeID.uuid from latestNonDeletedAentValue as QuesTypeID "+
-		"where QuesTypeID.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefName') and QuesTypeID.measure='LangIntro' ) limit 1) t2 "+
-		"on t1.ansQuesID=t2.langIntroQuesID";
-
-	fetchOne(checkLangIntroAnsQuery,new FetchCallback() {
+	checkAnsQuesType="select measure from latestNonDeletedAentValue where "+
+		"AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefName') "+
+		"AND uuid="+
+		"(select measure from latestNonDeletedAentValue where "+
+	        "AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesPropDefID')"+
+	        "and uuid = (select uuid from latestNonDeletedArchEntIdentifiers "+
+	        "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesUuid') "+
+	        "and measure=(select measure from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionID') and uuid='"+tempAnswerId+"')))";
+	fetchOne(checkAnsQuesType,new FetchCallback() {
 		onFetch(result) {
-			if(isNull(result)){
-				loadAnswerInfo();
+			if(!isNull(result)){
+				switch(result.get(0)){
+					case "LangList":
+						loadLangIntroAnsInfo(tempAnswerId);
+					break;
+					case "ChooseOne":
+						loadChoiceDateAnswer("ChooseOne",tempAnswerId);
+					break;
+
+					case "SelectMultiple":
+						loadChoiceDateAnswer("SelectMultiple",tempAnswerId);
+					break;
+
+					case "Date":
+						loadChoiceDateAnswer("Date",tempAnswerId);
+					break;
+
+					default:
+						loadAnswerInfo();
+					break;
+				}
 			}
 			else{
-				loadLangIntroAnsInfo(tempAnswerId);
+				showWarning("Deprecated data","This answer may not be using anymore");
+				return;
 			}
 		}	       
 		onError(message) {
@@ -4412,15 +4431,17 @@ saveNewChooseOneAnswer(int loopCount){
 		return;
 	}
 
-	attributes = createAttributeList();
 	
-	attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, hiddenAnsInfo.get("quesnir_id"), null));
-	attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
-	attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
-	attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
-	attributes.add(createEntityAttribute("AnswerText", null, null,tempChooseOneAnswer, null));
 
 	if(current_answer_id==null){
+		attributes = createAttributeList();
+	
+		attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, hiddenAnsInfo.get("quesnir_id"), null));
+		attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
+		attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
+		attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
+		attributes.add(createEntityAttribute("AnswerText", null, null,tempChooseOneAnswer, null));
+
 		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
 		onSave(uuid, newRecord){
 			answer_id = uuid;
@@ -4442,23 +4463,26 @@ saveNewChooseOneAnswer(int loopCount){
 		});
 	}
 	else{//update answer info
-			if(!tempChooseOneAnswer.equals(choiceDateOriginInfo.get(0))){
-				saveArchEnt(current_answer_id, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
-					onSave(uuid, newRecord){
-						answer_id = uuid;
-						current_answer_id=answer_id;
-						choiceDateOriginInfo.set(0,tempChooseOneAnswer);
+		if(!tempChooseOneAnswer.equals(choiceDateOriginInfo.get(0))){
+
+			attributes = createAttributeList();
+			attributes.add(createEntityAttribute("AnswerText", null, null,tempChooseOneAnswer, null));
+
+			saveArchEnt(current_answer_id, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
+				onSave(uuid, newRecord){
+					choiceDateOriginInfo.set(0,tempChooseOneAnswer);
+					showToast("answer updated");
+				}
+				onError(message) {
+					if(loopCount<3){
+						loopCount++;
+						saveNewChooseOneAnswer(loopCount);
 					}
-					onError(message) {
-						if(loopCount<3){
-							loopCount++;
-							saveNewChooseOneAnswer(loopCount);
-						}
-						else{
-							showWarning("Error happened, saving failed on Answer",message+"\n"+"please report this to the admin\n"+"click ok to continue");
-						}
-					}  
-				});
+					else{
+						showWarning("Error happened, updating failed on Answer",message+"\n"+"please report this to the admin\n"+"click ok to continue");
+					}
+				}  
+			});
 		}
 	}
 	
@@ -4579,6 +4603,139 @@ createDateAnswerPage(){
 saveNewDateAnswer(int loopCount){
 	String x=getFieldValue("choiceAns/choiceAnsInfo/dateSel");
 	showWarning("x",x);
+}
+
+
+loadChoiceDateAnswer(String typeflag, String tempAnswerId){
+	loadQuesContentByAnsIdQuery="select qId.measure, qContent.measure "+
+        "from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qContent, latestNonDeletedAentValue as qLanguage "+
+        "where qContent.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesContent') "+
+        "and qId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
+        "and qLanguage.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesLangUuid') "+
+        "and qId.uuid=qContent.uuid "+
+        "and qId.uuid=qLanguage.uuid "+
+        "and qLanguage.measure IN (select eng.uuid from latestNonDeletedAentValue as eng where eng.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageName') "+
+        "and eng.measure='English' and eng.uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID'))) "+
+        "and qId.measure = "+
+            "(select measure from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionID') and uuid='"+tempAnswerId+"') "+
+        "and qId.uuid in "+
+            "(select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid'))";
+
+    loadAnsTextByAnsIdQuery="select ansText.measure "+
+        "from latestNonDeletedAentValue as ansId, latestNonDeletedAentValue as ansText "+
+        "where ansId.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='AnswerQuestionID') "+
+        "and ansText.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerText') "+
+        "and ansId.uuid=ansText.uuid "+
+        "and ansId.measure = "+
+            "(select measure from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionID') and uuid='"+tempAnswerId+"') "+
+        "and ansId.uuid in "+
+            "(select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionID'))";
+
+    fetchOne(loadQuesContentByAnsIdQuery,new FetchCallback() {
+		onFetch(result) {
+			if(!isNull(result)){
+				fetchOne(loadAnsTextByAnsIdQuery,new FetchCallback() {
+					onFetch(ansTextresult) {
+						if(!isNull(ansTextresult)){
+							loadChoiceDateAnswerInfo(typeflag, result.get(0),result.get(1),ansTextresult.get(0));	
+						}
+						else{
+							showWarning("Deprecated data","This answer may not be using anymore\n"+" please contact the admin for details");
+						}
+					 
+					}  
+				});
+			}
+			else{
+				showWarning("Deprecated data","This question may not be using anymore\n"+" please contact the admin for details");
+			}
+		 
+		}  
+	});
+}
+
+loadChoiceDateAnswerInfo(String typeflag, String tempQuesId, String tempQuesLabel, String tempAnsText){
+	switch(typeflag){
+		case "ChooseOne":
+			loadChooseOneAnsInfo(tempQuesId,tempQuesLabel,tempAnsText);
+		break;
+
+		case "SelectMultiple":
+			loadMulAnsInfo(tempQuesId,tempQuesLabel,tempAnsText);
+		break;
+
+		case "Date":
+			loadDateAnsInfo(tempQuesId,tempQuesLabel,tempAnsText);
+		break;
+	}
+}
+
+loadChooseOneAnsInfo(String tempQuesId, String tempQuesLabel, String tempAnsText){
+	createChooseOneAnswerPage();
+	showTabGroup("choiceAns");
+	choiceDateOriginInfo.clear();
+	choiceDateOriginInfo.add(tempAnsText);
+	//showWarning("choiceDateOriginInfo",tempAnsText);
+	loadEngQuesOptQuery="SELECT opt.uuid, opt.measure "+
+        "from latestNonDeletedAentValue as lang, latestNonDeletedAentValue as opt, latestNonDeletedAentValue as ques "+
+        "WHERE lang.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesLangUuidOpt') "+
+        "AND opt.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesOptionText') "+
+        "AND ques.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesUuidOpt') "+
+        "AND lang.measure=(select eng.uuid from latestNonDeletedAentValue as eng where eng.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageName') "+
+        "and eng.measure='English' and eng.uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID'))) "+
+        "AND ques.measure='"+tempQuesId+"' and ques.uuid=lang.uuid AND ques.uuid=opt.uuid "+
+        "AND ques.uuid IN (SELECT uuid from latestNonDeletedArchEntIdentifiers "+
+        "WHERE AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesUuidOpt'))";
+
+    fetchAll(loadEngQuesOptQuery,new FetchCallback() {
+		onFetch(result) {
+			if(!isNull(result)){
+				populateRadioGroup("choiceAns/choiceAnsInfo/selRadio",result);
+				setFieldValue("choiceAns/choiceAnsInfo/ques",tempQuesLabel);
+				setFieldValue("choiceAns/choiceAnsInfo/selRadio",tempAnsText);
+			}
+			else{
+				showWarning("Deprecated data","The options for this ques is not available");
+			}
+		}
+	});
+}
+//todo:
+loadMulAnsInfo(String tempQuesId, String tempQuesLabel, String tempAnsText){
+	createSelMulAnswerPage();
+	showTabGroup("choiceAns");
+	choiceDateOriginInfo.clear();
+	//choiceDateOriginInfo.add(tempAnsText);
+	
+	loadEngQuesOptQuery="SELECT opt.uuid, opt.measure "+
+        "from latestNonDeletedAentValue as lang, latestNonDeletedAentValue as opt, latestNonDeletedAentValue as ques "+
+        "WHERE lang.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesLangUuidOpt') "+
+        "AND opt.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesOptionText') "+
+        "AND ques.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesUuidOpt') "+
+        "AND lang.measure=(select eng.uuid from latestNonDeletedAentValue as eng where eng.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageName') "+
+        "and eng.measure='English' and eng.uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID'))) "+
+        "AND ques.measure='"+tempQuesId+"' and ques.uuid=lang.uuid AND ques.uuid=opt.uuid "+
+        "AND ques.uuid IN (SELECT uuid from latestNonDeletedArchEntIdentifiers "+
+        "WHERE AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesUuidOpt'))";
+
+    fetchAll(loadEngQuesOptQuery,new FetchCallback() {
+		onFetch(result) {
+			if(!isNull(result)){
+				populateCheckBoxGroup("choiceAns/choiceAnsInfo/selCheckBox",result);
+			}
+			else{
+				showWarning("Deprecated data","The options for this ques is not available");
+			}
+		}
+	});
+}
+
+loadDateAnsInfo(String tempQuesId, String tempQuesLabel, String tempAnsText){
+	createDateAnswerPage();
+	showTabGroup("choiceAns");
+	choiceDateOriginInfo.clear();
+	choiceDateOriginInfo.add(tempAnsText);
+	setFieldValue("choiceAns/choiceAnsInfo/dateSel",tempAnsText);
 }
 
 loadAnswerFromQuesInQuesnir(String ques_id){
@@ -4713,10 +4870,6 @@ ansTypeChecking(String ques_id){
 
 				case "LangListEnd":
 					answerType="lnd";
-				break;
-
-				case "FreeText":
-					answerType="non";
 				break;
 
 				case "ChooseOne":
@@ -7726,22 +7879,6 @@ quesnirSearch(String keyword, String listRef){
 				}  
 			});
 		}
-		/*
-		loadAllQuestionnaireQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
-			"WHERE latestNonDeletedAentValue.AttributeID "+
-			"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionnaireName') "+
-			"GROUP BY uuid;";
-		fetchAll(loadAllQuestionnaireQuery,new FetchCallback() {
-			onFetch(result) {
-				if(!isNull(result)){
-					populateList(listRef, result);
-				}
-				else{
-					showWarning("No result","No record matches the keyword");
-				}
-			}  
-		});
-		*/
 	}
 	else{
 		if(!introAns){
