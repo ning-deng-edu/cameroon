@@ -4163,13 +4163,13 @@ startNewAnswer(String typeflag){
     	break;
     	case "cho":
     	//showWarning("cho","cho");
-    		startNewAnswerChooseOne(current_start_time);
+    		startChoiceAnswer(current_start_time, typeflag);
     	break;
     	case "sem":
-    		startNewAnswerSelMul(current_start_time);
+    		startChoiceAnswer(current_start_time,typeflag);
     	break;
     	case "dat":
-    		startNewAnswerDate(current_start_time);
+    		startChoiceAnswer(current_start_time,typeflag);
     	break;
     	default:
     		startNewAnswerFile(typeflag, current_start_time);
@@ -4284,10 +4284,52 @@ startNewAnswerFile(String typeflag, String current_start_time){
 		}
 	});
 }
+
+startChoiceAnswer(String current_start_time, String typeflag){
+	hiddenAnsInfo.put("quesnir_id",current_quesnir_id);
+	hiddenAnsInfo.put("ques_id",current_question_id);
+	hiddenAnsInfo.put("start_time",current_start_time);
+	//showWarning("hiddenAnsInfo","hiddenAnsInfo");
+	ansLabelDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+		"and (measure = '"+tempAnsLabel+"' or measure like '"+tempAnsLabel+"(%)')";
+	fetchAll(ansLabelDuplicateQuery,new FetchCallback() {
+		onFetch(result) {
+			if(!isNull(result)){
+				tempAnsLabel=nonDupLabelGen(result,tempAnsLabel,null,null, false);
+				if(result.size()==1){
+					String newLabel=null;
+					ArrayList tempLabels=extractLabelToList(tempAnsLabel);
+					if(tempLabels !=null && !tempLabels.isEmpty()){
+						tempAnsLabel=tempLabels.get(0);
+						if(tempLabels.size()>1){
+							newLabel=tempLabels.get(1);
+							dupAnsLblChange=true;
+							dupAnsLblInfo.add(result.get(0).get(0));
+							dupAnsLblInfo.add(newLabel);
+						}
+					}
+				}
+			}
+			hiddenAnsInfo.put("label",tempAnsLabel);
+			switch(typeflag){
+				case "cho":
+					startNewAnswerChooseOne();
+				break;
+				case "sem":
+					startNewAnswerSelMul();
+				break;
+				case "dat":
+					startNewAnswerDate();
+				break;
+			}
+		}
+	});
+}
 startNewAnswerLangEnd(){
 
 }
-
+/*
 startNewAnswerChooseOne(String current_start_time){
 	//showWarning("startNewAnswerChooseOne","startNewAnswerChooseOne");
 	hiddenAnsInfo.put("quesnir_id",current_quesnir_id);
@@ -4320,14 +4362,15 @@ startNewAnswerChooseOne(String current_start_time){
 		}
 	});
 }
-
-newAnswerChooseOne(){
+*/
+startNewAnswerChooseOne(){
 	//showWarning("newAnswerChooseOne","newAnswerChooseOne");
 	createChooseOneAnswerPage();
 	newTabGroup("choiceAns");
 	String tempQuesLabel=getQuesLabel();
 
 	setFieldValue("choiceAns/choiceAnsInfo/ques",tempQuesLabel);
+	/*
 	loadAllQuesOptQuery="SELECT lang.uuid, lang.measure, opt.measure "+
         "from latestNonDeletedAentValue as lang, latestNonDeletedAentValue as opt, latestNonDeletedAentValue as ques "+
         "WHERE lang.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesLangUuidOpt') "+
@@ -4336,7 +4379,7 @@ newAnswerChooseOne(){
         "AND ques.measure='"+current_question_id+"' and ques.uuid=lang.uuid AND ques.uuid=opt.uuid "+
         "AND ques.uuid IN (SELECT uuid from latestNonDeletedArchEntIdentifiers "+
         "WHERE AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesUuidOpt'))";
-
+	*/
     loadEngQuesOptQuery="SELECT opt.uuid, opt.measure "+
         "from latestNonDeletedAentValue as lang, latestNonDeletedAentValue as opt, latestNonDeletedAentValue as ques "+
         "WHERE lang.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesLangUuidOpt') "+
@@ -4360,13 +4403,7 @@ newAnswerChooseOne(){
 	});
 }
 
-startNewAnswerSelMul(String current_start_time){
 
-}
-
-startNewAnswerDate(String current_start_time){
-
-}
 
 createChooseOneAnswerPage(){
 	//showWarning("createChooseOneAnswerPage","createChooseOneAnswerPage");
@@ -4398,6 +4435,45 @@ saveNewChooseOneAnswer(int loopCount){
 
 }
 
+startNewAnswerSelMul(){
+	createSelMulAnswerPage();
+	newTabGroup("choiceAns");
+	String tempQuesLabel=getQuesLabel();
+
+	setFieldValue("choiceAns/choiceAnsInfo/ques",tempQuesLabel);
+	/*
+	loadAllQuesOptQuery="SELECT lang.uuid, lang.measure, opt.measure "+
+        "from latestNonDeletedAentValue as lang, latestNonDeletedAentValue as opt, latestNonDeletedAentValue as ques "+
+        "WHERE lang.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesLangUuidOpt') "+
+        "AND opt.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesOptionText') "+
+        "AND ques.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesUuidOpt') "+
+        "AND ques.measure='"+current_question_id+"' and ques.uuid=lang.uuid AND ques.uuid=opt.uuid "+
+        "AND ques.uuid IN (SELECT uuid from latestNonDeletedArchEntIdentifiers "+
+        "WHERE AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesUuidOpt'))";
+	*/
+    loadEngQuesOptQuery="SELECT opt.uuid, opt.measure "+
+        "from latestNonDeletedAentValue as lang, latestNonDeletedAentValue as opt, latestNonDeletedAentValue as ques "+
+        "WHERE lang.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesLangUuidOpt') "+
+        "AND opt.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesOptionText') "+
+        "AND ques.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesUuidOpt') "+
+        "AND lang.measure=(select eng.uuid from latestNonDeletedAentValue as eng where eng.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageName') "+
+        "and eng.measure='English' and eng.uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID'))) "+
+        "AND ques.measure='"+current_question_id+"' and ques.uuid=lang.uuid AND ques.uuid=opt.uuid "+
+        "AND ques.uuid IN (SELECT uuid from latestNonDeletedArchEntIdentifiers "+
+        "WHERE AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesUuidOpt'))";
+
+    fetchAll(loadEngQuesOptQuery,new FetchCallback() {
+		onFetch(result) {
+			if(!isNull(result)){
+				populateCheckBoxGroup("choiceAns/choiceAnsInfo/selCheckBox",result);
+			}
+			else{
+				showWarning("Deprecated data","The options for this ques is not available");
+			}
+		}
+	});
+}
+
 createSelMulAnswerPage(){
 	if(!hasView("choiceAns/choiceAnsInfo/SelMulButton")){
 		removeAllViewsAndContainers("choiceAns");
@@ -4412,7 +4488,7 @@ createSelMulAnswerPage(){
 	        createView("choiceAns/choiceAnsInfo/SelMulButton",nextBtnDef,"choiceAns/choiceAnsInfo");
 	        refreshTabgroupCSS("choiceAns");
 			/**Events for answer**/
-			onEvent("choiceAns/choiceAnsInfo/ChooseOneButton","click","saveNewSelMulAnswer(0)");
+			onEvent("choiceAns/choiceAnsInfo/SelMulButton","click","saveNewSelMulAnswer(0)");
    		}
 		});
 	}
@@ -4422,23 +4498,32 @@ saveNewSelMulAnswer(int loopCount){
 
 }
 
+startNewAnswerDate(){
+	createDateAnswerPage();
+	newTabGroup("choiceAns");
+	String tempQuesLabel=getQuesLabel();
+
+	setFieldValue("choiceAns/choiceAnsInfo/ques",tempQuesLabel);
+}
+
 createDateAnswerPage(){
 	if(!hasView("choiceAns/choiceAnsInfo/dateSave")){
 		removeAllViewsAndContainers("choiceAns");
 		executeViewTask(new ViewTask() {
 	    doTask() {
 	    	quesContentDef = createViewDef().createTextField().setReadOnly(true);
-	    	ansSelDef=createViewDef().createDatePicker().setLabel("Select Date");
+	    	dateDef = createViewDef().createDatePicker().setLabel("Select Date");
 	    	ansEnterDef = createViewDef().createTextField().setLabel("Enter answer if date is not available");
 	    	nextBtnDef = createViewDef().createButton().setLabel("Finish").setStyleCss("faims-blue");
 	    	
 			createView("choiceAns/choiceAnsInfo/ques",quesContentDef,"choiceAns/choiceAnsInfo");
-	    	createView("choiceAns/choiceAnsInfo/dateSel",ansSelDef,"choiceAns/choiceAnsInfo");
+	    	createView("choiceAns/choiceAnsInfo/dateSel",dateDef,"choiceAns/choiceAnsInfo");
 	    	createView("choiceAns/choiceAnsInfo/ansEn",ansEnterDef,"choiceAns/choiceAnsInfo");
-	        createView("choiceAns/choiceAnsInfo/SelMulButton",nextBtnDef,"choiceAns/choiceAnsInfo");
+	        createView("choiceAns/choiceAnsInfo/dateSave",nextBtnDef,"choiceAns/choiceAnsInfo");
+
 	        refreshTabgroupCSS("choiceAns");
 			/**Events for answer**/
-			onEvent("choiceAns/choiceAnsInfo/ChooseOneButton","click","saveNewDateAnswer(0)");
+			onEvent("choiceAns/choiceAnsInfo/dateSave","click","saveNewDateAnswer(0)");
    		}
 		});
 	}
@@ -5110,7 +5195,7 @@ newFile(String typeFlag, String fileType){
 					setFieldValue("file/fileHidden/photoFileStartTime", getCurrentTime());
 				
 				break;
-				case "Other":
+				case "Sketch":
 					//createSketchPage("new");
 					createFilePage("sketch","attachFileToField(\"file/fileInfo/sketchFileContent\")",
 						"saveFileFromAnswer(\"file/fileHidden/sketchFileID\",\"file/fileInfo/sketchFileContent\",\"file\",\"Recording\")");
