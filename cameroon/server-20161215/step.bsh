@@ -1141,10 +1141,10 @@ checkUIupdate(){
         //return;
     }
 
-    else if((propText.equals("MultiChoices")|| propText.equals("MultiChoice")) && !hasView("questionBank/questionInfo/quesopc0")){
+    else if((propText.equals("SelectMultiple")|| propText.equals("ChooseOne")) && !hasView("questionBank/questionInfo/quesopc0")){
         dataTempStoreUIchange();
     }
-    else if(!propText.equals("MultiChoices") && !propText.equals("MultiChoice") && hasView("questionBank/questionInfo/quesopc0")){
+    else if(!propText.equals("SelectMultiple") && !propText.equals("ChooseOne") && hasView("questionBank/questionInfo/quesopc0")){
         alertLosingOptions();
     }
 }
@@ -1385,7 +1385,7 @@ delOptConfirm(String langVerId, String quesOptCountStr){
     }
     
 }
-//TODO: NOT TESTED
+
 delOptInList(String langVerId, String optText){
     if(newQuestionOptionList.containsKey(langVerId)){
         ArrayList tempOptList=newQuestionOptionList.get(langVerId);
@@ -1478,7 +1478,7 @@ saveNewQuestion(){
     Boolean saveChoice=false;
 
     if(recording_req_type!=null && !recording_req_type.equals("")){
-        if(recording_req_type.equals("MultiChoice")||recording_req_type.equals("MultiChoices")){
+        if(recording_req_type.equals("ChooseOne")||recording_req_type.equals("SelectMultiple")){
             if(newQuestionOptionList==null || newQuestionOptionList.isEmpty()){
                 showWarning("No data of question option","No data of question option is recorded");
                 return;
@@ -1523,7 +1523,7 @@ saveNewQuestion(){
                         //showWarning("saveChoice","saveChoice");
                         saveQuesChoice(question_id);
                     }
-                    if(recording_req_type.equals("MultiChoice")||recording_req_type.equals("MultiChoices")){
+                    if(recording_req_type.equals("ChooseOne")||recording_req_type.equals("SelectMultiple")){
                         removeAllViewsAndContainers("questionBank");
                     }
                     showToast("Record created");
@@ -2065,7 +2065,7 @@ loadQuesProperty(String quesUuid){
                         }
                         populateDropDown("questionBank/questionInfo/questionProp", tempPropList);
 
-                        if(tempPropText!=null && (tempPropText.equals("MultiChoices") || tempPropText.equals("MultiChoice"))){
+                        if(tempPropText!=null && (tempPropText.equals("SelectMultiple") || tempPropText.equals("ChooseOne"))){
                             loadMultiChoiceQuesInfo(quesUuid);
                         }
                         else{
@@ -3021,7 +3021,7 @@ updateBasicQuesnirInfo(){
         } 
     });
 }
-//TODO: test: delete the "DELETE" only
+
 updateQuesnirQuesList(Hashtable questionListChanges){
 
     if(questionListChanges.containsKey("ADD")){
@@ -4135,7 +4135,7 @@ initializeQuesProp(){
     saveArchEnt(null, "QuesPropDef", null, audQuesAttributes);
 
     vedQuesAttributes=createAttributeList();
-    vedQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "Videod", null));
+    vedQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "Video", null));
     saveArchEnt(null, "QuesPropDef", null, vedQuesAttributes);
 
     phtQuesAttributes=createAttributeList();
@@ -4159,11 +4159,11 @@ initializeQuesProp(){
     saveArchEnt(null, "QuesPropDef", null, lanEndQuesAttributes);
 
     choiceQuesAttributes=createAttributeList();
-    choiceQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "MultiChoice", null));
+    choiceQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "ChooseOne", null));
     saveArchEnt(null, "QuesPropDef", null, choiceQuesAttributes);
 
     choicesQuesAttributes=createAttributeList();
-    choicesQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "MultiChoices", null));
+    choicesQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "SelectMultiple", null));
     saveArchEnt(null, "QuesPropDef", null, choicesQuesAttributes);
 
     emrQuesAttributes=createAttributeList();
@@ -4173,6 +4173,10 @@ initializeQuesProp(){
     chkQuesAttributes=createAttributeList();
     chkQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "CheckList", null));
     saveArchEnt(null, "QuesPropDef", null, chkQuesAttributes);
+
+    dateQuesAttributes=createAttributeList();
+    dateQuesAttributes.add(createEntityAttribute("QuesPropDefName", null, null, "Date", null));
+    saveArchEnt(null, "QuesPropDef", null, dateQuesAttributes);
 }
 
 initilizePersonRole(){
