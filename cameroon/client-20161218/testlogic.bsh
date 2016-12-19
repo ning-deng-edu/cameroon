@@ -4610,7 +4610,7 @@ saveNewSelMulAnswer(int loopCount){
 
 			saveArchEnt(current_answer_id, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
 				onSave(uuid, newRecord){
-					choiceDateOriginInfo.set(0,tempChooseOneAnswer);
+					choiceDateOriginInfo.set(0,tempAnsText);
 					showToast("answer updated");
 				}
 				onError(message) {
@@ -4771,12 +4771,12 @@ loadChooseOneAnsInfo(String tempQuesId, String tempQuesLabel, String tempAnsText
 		}
 	});
 }
-//todo:
+
 loadMulAnsInfo(String tempQuesId, String tempQuesLabel, String tempAnsText){
 	createSelMulAnswerPage();
 	showTabGroup("choiceAns");
 	choiceDateOriginInfo.clear();
-	//choiceDateOriginInfo.add(tempAnsText);
+	choiceDateOriginInfo.add(tempAnsText);
 	
 	loadEngQuesOptQuery="SELECT opt.uuid, opt.measure "+
         "from latestNonDeletedAentValue as lang, latestNonDeletedAentValue as opt, latestNonDeletedAentValue as ques "+
