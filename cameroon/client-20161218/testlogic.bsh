@@ -3992,6 +3992,8 @@ Boolean ansOrNot=true;//denoting if the answer has the answer ui page
 hiddenAnsInfo=new HashMap();// holding the answer info when no answer ui
 
 Boolean answerFile=false;//denoting whether user is viewing file from answer page
+ArrayList choiceDateOriginInfo=new ArrayList();
+ArrayList choiceDateNewInfo=new ArrayList();
 
 initAnswerVar(){
 	answerInfoOriginal.clear();
@@ -4015,9 +4017,14 @@ initAnswerVar(){
 	dupAnsLblInfo.clear();
 	dupFileLblInfo.clear();
 	hiddenAnsInfo.clear();
+
+	choiceDateOriginInfo.clear();
+	choiceDateNewInfo.clear();
 }
 
 loadAnswerInfo(){
+	initAnswerVar();
+
 	current_answer_id=getListItemValue();
 
 	if(isNull(current_answer_id)){
@@ -4400,7 +4407,74 @@ createChooseOneAnswerPage(){
 
 saveNewChooseOneAnswer(int loopCount){
 	String tempChooseOneAnswer=getFieldValue("choiceAns/choiceAnsInfo/selRadio");
-	showWarning("tempChooseOneAnswer",tempChooseOneAnswer);
+	if(tempChooseOneAnswer==null|| tempChooseOneAnswer.equals("")){
+		showWarning("No answer collected","This question is not answered, please select one option that applies");
+		return;
+	}
+
+	attributes = createAttributeList();
+	
+	attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, hiddenAnsInfo.get("quesnir_id"), null));
+	attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
+	attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
+	attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
+	attributes.add(createEntityAttribute("AnswerText", null, null,tempChooseOneAnswer, null));
+
+	if(current_answer_id==null){
+		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
+		onSave(uuid, newRecord){
+			answer_id = uuid;
+			current_answer_id=answer_id;
+			if (newRecord) {
+				opAfterNewAns(answer_id,hiddenAnsInfo.get("label"),hiddenAnsInfo.get("ques_id"));
+				cancelTabGroup("choiceAns",true);
+			}
+		}
+		onError(message) {
+			if(loopCount<3){
+				loopCount++;
+				saveNewChooseOneAnswer(loopCount);
+			}
+			else{
+				showWarning("Error happened, saving failed on Answer",message+"\n"+"please report this to the admin\n"+"click ok to continue");
+			}
+		}  
+		});
+	}
+	else{//update answer info
+			if(!tempChooseOneAnswer.equals(choiceDateOriginInfo.get(0))){
+				saveArchEnt(current_answer_id, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
+					onSave(uuid, newRecord){
+						answer_id = uuid;
+						current_answer_id=answer_id;
+						choiceDateOriginInfo.set(0,tempChooseOneAnswer);
+					}
+					onError(message) {
+						if(loopCount<3){
+							loopCount++;
+							saveNewChooseOneAnswer(loopCount);
+						}
+						else{
+							showWarning("Error happened, saving failed on Answer",message+"\n"+"please report this to the admin\n"+"click ok to continue");
+						}
+					}  
+				});
+		}
+	}
+	
+}
+
+opAfterNewAns(String tempAnswerId, String tempAnswerLbl, String tempQuesId){
+	newAnswer=new ArrayList();
+	newAnswer.add(tempAnswerId);
+	newAnswer.add(tempAnswerLbl);
+	sss_answer_list.add(newAnswer);
+	populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+
+	updateDupLabel(dupAnsLblInfo,"AnswerToQuestionnaire","AnswerLabel");
+	showToast("new answer created");
+	autoSaveSession("head");
+	nextQuestion(tempQuesId,ques_in_current_quesnir,false);
 }
 
 startNewAnswerSelMul(){
@@ -4770,10 +4844,10 @@ saveNewAnswer(int loopCount){
 			Hashtable answerBasicInfoChange=listChange(answerInfoNew,answerInfoOriginal);
 			//case1: Nothing changed
 			if((fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
-					showWarning("Answer Modification","No data is changed");
-					saveAnnotation("survey", current_answer_id);
-					return;
-				}
+				showWarning("Answer Modification","No data is changed");
+				saveAnnotation("survey", current_answer_id);
+				return;
+			}
 			//case2: only fileList changed
 			else if((!fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
 				ansFileRelnUpdate(fileListChange);
