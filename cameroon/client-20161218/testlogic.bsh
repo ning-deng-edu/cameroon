@@ -4563,10 +4563,81 @@ createSelMulAnswerPage(){
 saveNewSelMulAnswer(int loopCount){
 	//selectedOpts is an arraylist of NameValuePair objects
 	selectedOpts=getFieldValue("choiceAns/choiceAnsInfo/selCheckBox");
-	for(tempx:selectedOpts){
-		t=tempx.getName();
+	if(selectedOpts==null ||selectedOpts.isEmpty()){
+		showWarning("No option selected","Please select at least one option that applies");
+		return;
 	}
+	String tempAnsText=makeSelMulAnsText(selectedOpts);
+	if(tempAnsText==null|| tempAnsText.equals("")){
+		showWarning("No answer collected","This question is not answered, please select at least one option that applies");
+		return;
+	}
+
+	if(current_answer_id==null){
+		attributes = createAttributeList();
 	
+		attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, hiddenAnsInfo.get("quesnir_id"), null));
+		attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
+		attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
+		attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
+		attributes.add(createEntityAttribute("AnswerText", null, null,tempAnsText, null));
+
+		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
+		onSave(uuid, newRecord){
+			answer_id = uuid;
+			current_answer_id=answer_id;
+			if (newRecord) {
+				opAfterNewAns(answer_id,hiddenAnsInfo.get("label"),hiddenAnsInfo.get("ques_id"));
+				cancelTabGroup("choiceAns",true);
+			}
+		}
+		onError(message) {
+			if(loopCount<3){
+				loopCount++;
+				saveNewSelMulAnswer(loopCount);
+			}
+			else{
+				showWarning("Error happened, saving failed on Answer",message+"\n"+"please report this to the admin\n"+"click ok to continue");
+			}
+		}  
+		});
+	}
+	else{//update answer info
+		if(!tempAnsText.equals(choiceDateOriginInfo.get(0))){
+
+			attributes = createAttributeList();
+			attributes.add(createEntityAttribute("AnswerText", null, null,tempAnsText, null));
+
+			saveArchEnt(current_answer_id, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
+				onSave(uuid, newRecord){
+					choiceDateOriginInfo.set(0,tempChooseOneAnswer);
+					showToast("answer updated");
+				}
+				onError(message) {
+					if(loopCount<3){
+						loopCount++;
+						saveNewSelMulAnswer(loopCount);
+					}
+					else{
+						showWarning("Error happened, updating failed on Answer",message+"\n"+"please report this to the admin\n"+"click ok to continue");
+					}
+				}  
+			});
+		}
+	}
+}
+
+makeSelMulAnsText(ArrayList selectedOpts){
+	StringBuilder sb=new StringBuilder();
+
+	for(tempx:selectedOpts){
+		str=tempx.getName();
+		if(sb.length()>1){
+			sb.append(",");
+		}
+		sb.append(str);
+	}
+	return sb.toString();
 }
 
 startNewAnswerDate(){
@@ -4722,12 +4793,22 @@ loadMulAnsInfo(String tempQuesId, String tempQuesLabel, String tempAnsText){
 		onFetch(result) {
 			if(!isNull(result)){
 				populateCheckBoxGroup("choiceAns/choiceAnsInfo/selCheckBox",result);
+				setFieldValue("choiceAns/choiceAnsInfo/ques", tempQuesLabel);
+				setMulAnsOpt(tempAnsText);
 			}
 			else{
 				showWarning("Deprecated data","The options for this ques is not available");
 			}
 		}
 	});
+}
+
+setMulAnsOpt(String tempAnsText){
+	String [] ansSplit=tempAnsText.split(",");
+	for(subAns: ansSplit){
+		setFieldValue("choiceAns/choiceAnsInfo/selCheckBox", subAns);
+	}
+
 }
 
 loadDateAnsInfo(String tempQuesId, String tempQuesLabel, String tempAnsText){
