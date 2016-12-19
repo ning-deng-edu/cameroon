@@ -4329,40 +4329,7 @@ startChoiceAnswer(String current_start_time, String typeflag){
 startNewAnswerLangEnd(){
 
 }
-/*
-startNewAnswerChooseOne(String current_start_time){
-	//showWarning("startNewAnswerChooseOne","startNewAnswerChooseOne");
-	hiddenAnsInfo.put("quesnir_id",current_quesnir_id);
-	hiddenAnsInfo.put("ques_id",current_question_id);
-	hiddenAnsInfo.put("start_time",current_start_time);
-	//showWarning("hiddenAnsInfo","hiddenAnsInfo");
-	ansLabelDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
-		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
-		"and (measure = '"+tempAnsLabel+"' or measure like '"+tempAnsLabel+"(%)')";
-	fetchAll(ansLabelDuplicateQuery,new FetchCallback() {
-		onFetch(result) {
-			if(!isNull(result)){
-				tempAnsLabel=nonDupLabelGen(result,tempAnsLabel,null,null, false);
-				if(result.size()==1){
-					String newLabel=null;
-					ArrayList tempLabels=extractLabelToList(tempAnsLabel);
-					if(tempLabels !=null && !tempLabels.isEmpty()){
-						tempAnsLabel=tempLabels.get(0);
-						if(tempLabels.size()>1){
-							newLabel=tempLabels.get(1);
-							dupAnsLblChange=true;
-							dupAnsLblInfo.add(result.get(0).get(0));
-							dupAnsLblInfo.add(newLabel);
-						}
-					}
-				}
-			}
-			hiddenAnsInfo.put("label",tempAnsLabel);
-			newAnswerChooseOne();
-		}
-	});
-}
-*/
+
 startNewAnswerChooseOne(){
 	//showWarning("newAnswerChooseOne","newAnswerChooseOne");
 	createChooseOneAnswerPage();
@@ -4432,7 +4399,8 @@ createChooseOneAnswerPage(){
 }
 
 saveNewChooseOneAnswer(int loopCount){
-
+	String tempChooseOneAnswer=getFieldValue("choiceAns/choiceAnsInfo/selRadio");
+	showWarning("tempChooseOneAnswer",tempChooseOneAnswer);
 }
 
 startNewAnswerSelMul(){
@@ -4495,7 +4463,12 @@ createSelMulAnswerPage(){
 }
 
 saveNewSelMulAnswer(int loopCount){
-
+	//selectedOpts is an arraylist of NameValuePair objects
+	selectedOpts=getFieldValue("choiceAns/choiceAnsInfo/selCheckBox");
+	for(tempx:selectedOpts){
+		t=tempx.getName();
+	}
+	
 }
 
 startNewAnswerDate(){
@@ -4528,9 +4501,12 @@ createDateAnswerPage(){
 		});
 	}
 }
-saveNewDateAnswer(int loopCount){
 
+saveNewDateAnswer(int loopCount){
+	String x=getFieldValue("choiceAns/choiceAnsInfo/dateSel");
+	showWarning("x",x);
 }
+
 loadAnswerFromQuesInQuesnir(String ques_id){
 	//showWarning("loadAnswerFromQuesInQuesnirques_id",ques_id);
 	if(isNull(current_quesnir_name)){
