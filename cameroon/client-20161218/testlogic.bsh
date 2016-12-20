@@ -450,7 +450,7 @@ createQuesSel(){
 	        createView("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireDescription", descTextViewDef,"questionnaireInfo/surveyQuesnirHidden");
 	    		    	
 
-	        quesSelListDef=createViewDef().createList().setLabel("Questions").setStyleCss("questionQuestionnaire-list");
+	        quesSelListDef=createViewDef().createList().setLabel("Questions").setStyleCss("survey-list");
 
 	        style1 = "orientation";
 	        style2 = "even";
@@ -3005,7 +3005,7 @@ sclngstPrepQuesRecordingType(){
 	        int tempStartingOrder=-1;
 	        int tempEndingOrder=-1;
 	        for(ques:ques_in_current_quesnir){
-	        	if(ques.get(0).equals(tempQuesStartId)){
+	        	if(tempQuesStartId!=null && ques.get(0).equals(tempQuesStartId)){
 	        		//showWarning("ques.get(0)",ques.get(0));
 	        		String [] quesSplit=ques.get(1).split("-");
 	        		tempStartingOrder=Integer.parseInt(quesSplit[0]);
@@ -3022,6 +3022,12 @@ sclngstPrepQuesRecordingType(){
 	        	String [] quesSplit=ques_in_current_quesnir.get(ques_in_current_quesnir.size()-1).get(1).split("-");
 	        	tempEndingOrder=Integer.parseInt(quesSplit[0]);
 	        	tempEndingOrder++;
+	        }
+
+	        if(tempStartingOrder==-1){
+	        	String [] quesSplit=ques_in_current_quesnir.get(ques_in_current_quesnir.size()-1).get(1).split("-");
+	        	tempStartingOrder=Integer.parseInt(quesSplit[0]);
+	        	tempStartingOrder++;
 	        }
 	        //showWarning("ques",tempStartingOrder.toString());
 	        for(ques:ques_in_current_quesnir){
@@ -3458,6 +3464,7 @@ checkFinishAllQuesForLang(){
 	}
 	if(closeOrNot){
 		nextQuestion(langIntroEndQuesUuid,ques_in_current_quesnir,false);
+		cancelTabGroup("langIntroAns",true);
 	}
 }
 
@@ -3997,7 +4004,7 @@ quesRecordingPrep(String crntQuesnirId){
 	        int tempStartingOrder=-1;
 	        int tempEndingOrder=-1;
 	        for(ques:ques_in_current_quesnir){
-	        	if(ques.get(0).equals(tempQuesStartId)){
+	        	if(tempQuesStartId!=null && ques.get(0).equals(tempQuesStartId)){
 	        		//showWarning("ques.get(0)",ques.get(0));
 	        		String [] quesSplit=ques.get(1).split("-");
 	        		tempStartingOrder=Integer.parseInt(quesSplit[0]);
@@ -4014,6 +4021,11 @@ quesRecordingPrep(String crntQuesnirId){
 	        	String [] quesSplit=ques_in_current_quesnir.get(ques_in_current_quesnir.size()-1).get(1).split("-");
 	        	tempEndingOrder=Integer.parseInt(quesSplit[0]);
 	        	tempEndingOrder++;
+	        }
+	         if(tempStartingOrder==-1){
+	        	String [] quesSplit=ques_in_current_quesnir.get(ques_in_current_quesnir.size()-1).get(1).split("-");
+	        	tempStartingOrder=Integer.parseInt(quesSplit[0]);
+	        	tempStartingOrder++;
 	        }
 	        //showWarning("ques",tempStartingOrder.toString());
 	        for(ques:ques_in_current_quesnir){
@@ -4066,6 +4078,10 @@ quesRelnPrep(String crntQuesnirId){
 }
 //summarize existing questions and the languages
 answeredLangQuesPrep(ArrayList quesIdList){
+	if(quesIdList==null || quesIdList.isEmpty()){
+		finLangAndQues.clear();
+		return;
+	}
 	finLangAndQues.clear();
 	for(ques: quesIdList){
 		String quesId=ques.get(0);
