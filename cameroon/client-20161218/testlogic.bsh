@@ -3184,12 +3184,15 @@ saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, St
 					//showWarning("populateList","populateList");
 					updateDupLabel(dupAnsLblInfo,"AnswerToQuestionnaire","AnswerLabel");
 
-					if(!isNull(tempInfo)){
+					if(!isNull(tempInfo) && typeflag.equals("s")){
 						saveFurtherFileAndAnswer(tempInfo.get(0),tempInfo.get(1),tempInfo.get(2),tempInfo.get(3));
 					}
 
-					if(!typeflag.equals("s")){
+					else if(!typeflag.equals("s")){
 						saveFurtherChoiceDateAns(typeflag);
+					}
+					else if(typeflag.equals("s") && tempInfo==null){
+						saveLangIntroAnswerWithoutFile();
 					}
 				}
 		}
@@ -3376,15 +3379,6 @@ saveLangIntroAnswerWithFile(int loopCount){
 }
 
 saveLangIntroAnswerWithoutFile(){
-	if((files_in_current_ques==null || files_in_current_ques.isEmpty()) && isNull(getFieldValue("survey/answerBasic/answerText")) ){
-		showWarning("Warning","Please input answer text or adding an answer file");
-		return;
-	}
-
-	else{
-		setFieldValue("survey/answerBasic/answerText", crntLangIntroId);
-	}
-
 	String newAnsLabel=getFieldValue("survey/answerHidden/answerLabel");
 	
 	saveTabGroup("survey", null, null, null, new SaveCallback() {
@@ -3412,9 +3406,7 @@ saveLangIntroAnswerWithoutFile(){
 				tempLangAndQues.add(crntLangIntroId);
 				tempLangAndQues.add(curntQuesId);
 				finLangAndQues.add(tempLangAndQues);
-				//cancelTabGroup("answerToQuestion", true);
-				
-				//autoSaveSession("head");
+
 				if(finLangAndQues.size()>1){
 					saveLangIntroQuesAnswer("ans",curntQuesnirId,curntQuesId,crntLangIntroId);
 				}
@@ -3524,7 +3516,7 @@ checkUnfinishedQuesForLang(ArrayList tempSearchList, ArrayList tempAllQues){
 }
 
 checkIfGoToQues(String tempUnfinLangId,String tempQuesId){
-	showWarning("checkIfGoToQues","checkIfGoToQues");
+	//showWarning("checkIfGoToQues","checkIfGoToQues");
 	String tempQuesLabel=null;
 	for(ques: loopQuesOrder){
 		if(tempQuesId.equals(ques.get(0))){
@@ -3540,7 +3532,7 @@ checkIfGoToQues(String tempUnfinLangId,String tempQuesId){
 			break;
 		}
 	}
-	showWarning("tempLangLabel","tempLangLabel");
+	//showWarning("tempLangLabel","tempLangLabel");
 	if(tempQuesLabel==null || tempLangLabel==null){
 		showWarning("Something went wrong","Please report to the admin the problem with the error code 'checkIfGoToQues'");
 		return;
@@ -5401,130 +5393,150 @@ ansTypeChecking(String ques_id){
 }
 
 saveNewAnswer(int loopCount){
-	if(!ansOrNot){
-		attributes = createAttributeList();
-		
-		attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, hiddenAnsInfo.get("quesnir_id"), null));
-		attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
-		attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
-		attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
-
-		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
-			onSave(uuid, newRecord){
-				//showWarning("saveArchEnt 1","saveArchEnt 1");
-				answer_id = uuid;
-				//showWarning("answer_id 1",answer_id);
-				current_answer_id=answer_id;
-				if (newRecord) {
-					for(file : files_in_current_ques){
-						saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
-					}
-					//showWarning("answer_id newRecord","newRecord");
-					newAnswer=new ArrayList();
-					newAnswer.add(answer_id);
-					//showWarning(".add(answer_id)",".add(answer_id)");
-					newAnswer.add(hiddenAnsInfo.get("label"));
-					//showWarning(".hiddenAnsInfo",".hiddenAnsInfo)");
-					sss_answer_list.add(newAnswer);
-					populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-					//showWarning("populateList","populateList");
-
-					updateDupLabel(dupAnsLblInfo,"AnswerToQuestionnaire","AnswerLabel");
-					showToast("new answer created");
-					//cancelTabGroup("file", true);
-					autoSaveSession("head");
-					//showWarning("autoSaveSession 3","autoSaveSession 3");
-					nextQuestion(hiddenAnsInfo.get("ques_id"),ques_in_current_quesnir,false);
-				}
-			}
-			onError(message) {
-				if(loopCount<3){
-					loopCount++;
-					saveNewAnswer(loopCount);
-				}
-				else{
-					showWarning("Error happened, saving failed on Answer",message+"\n"+"please report this to the admin\n"+"click ok to continue");
-				}
-			}  
-		});
-	}
-	else{
-		if((files_in_current_ques==null || files_in_current_ques.isEmpty()) && isNull(getFieldValue("survey/answerBasic/answerText")) ){
-			showWarning("Warning","Please input answer text or adding an answer file");
-			return;
-		}
-		
-		if(isNull(current_answer_id)){//create new answer
-			String newAnsLabel=getFieldValue("survey/answerHidden/answerLabel");
+	if(!langIntro){
+		if(!ansOrNot){
+			attributes = createAttributeList();
 			
-			saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
-				onSave(uuid, newRecord) {
-					answer_id = uuid;
-					//showWarning("answer_id",answer_id);
-					current_answer_id=answer_id;
-					//showWarning("current_answer_id",current_answer_id);
+			attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, hiddenAnsInfo.get("quesnir_id"), null));
+			attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
+			attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
+			attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
 
+			saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
+				onSave(uuid, newRecord){
+					//showWarning("saveArchEnt 1","saveArchEnt 1");
+					answer_id = uuid;
+					//showWarning("answer_id 1",answer_id);
+					current_answer_id=answer_id;
 					if (newRecord) {
 						for(file : files_in_current_ques){
 							saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
 						}
-						
+						//showWarning("answer_id newRecord","newRecord");
 						newAnswer=new ArrayList();
 						newAnswer.add(answer_id);
-						newAnswer.add(newAnsLabel);
+						//showWarning(".add(answer_id)",".add(answer_id)");
+						newAnswer.add(hiddenAnsInfo.get("label"));
+						//showWarning(".hiddenAnsInfo",".hiddenAnsInfo)");
 						sss_answer_list.add(newAnswer);
-						
 						populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-						//if this is the second answer with a duplicate label
-						//the other answer label will be changed with a suffix (1)
+						//showWarning("populateList","populateList");
+
 						updateDupLabel(dupAnsLblInfo,"AnswerToQuestionnaire","AnswerLabel");
 						showToast("new answer created");
-						//String curntQuesId=getFieldValue("survey/answerHidden/answerQuestionID");
-						cancelTabGroup("survey", true);
-						//showWarning("cancelTabGroupNewAnswer","survey");
-						//cancelTabGroup("answerToQuestion", true);
+						//cancelTabGroup("file", true);
 						autoSaveSession("head");
-						nextQuestion(getFieldValue("survey/answerHidden/answerQuestionID"), ques_in_current_quesnir,false);
+						//showWarning("autoSaveSession 3","autoSaveSession 3");
+						nextQuestion(hiddenAnsInfo.get("ques_id"),ques_in_current_quesnir,false);
 					}
 				}
 				onError(message) {
-					showWarning("error on saveNewAnswer2",message);
+					if(loopCount<3){
+						loopCount++;
+						saveNewAnswer(loopCount);
+					}
+					else{
+						showWarning("Error happened, saving failed on Answer",message+"\n"+"please report this to the admin\n"+"click ok to continue");
+					}
 				}  
 			});
 		}
-
-		else{//this is changing answerInfo		
-			answerInfoNew.clear();
-			answerInfoNew.add(getFieldValue("survey/answerHidden/answerLabel"));
-			answerInfoNew.add(getFieldValue("survey/answerBasic/answerText"));
-			answerInfoNew.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
-			Hashtable fileListChange=listChange(files_in_current_ques,files_origin);
-			Hashtable answerBasicInfoChange=listChange(answerInfoNew,answerInfoOriginal);
-			//case1: Nothing changed
-			if((fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
-				showWarning("Answer Modification","No data is changed");
-				saveAnnotation("survey", current_answer_id);
+		else{
+			if((files_in_current_ques==null || files_in_current_ques.isEmpty()) && isNull(getFieldValue("survey/answerBasic/answerText")) ){
+				showWarning("Warning","Please input answer text or adding an answer file");
 				return;
 			}
-			//case2: only fileList changed
-			else if((!fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
-				ansFileRelnUpdate(fileListChange);
-				saveAnnotation("survey", current_answer_id);
-				showToast("file list changed");
-					//cancelTabGroup("survey", true);
-			}
-			else{//case 3: both answer basic info and file list are changed
-				saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
+			
+			if(isNull(current_answer_id)){//create new answer
+				String newAnsLabel=getFieldValue("survey/answerHidden/answerLabel");
+				
+				saveTabGroup("survey", answer_id, null, null, new SaveCallback() {
 					onSave(uuid, newRecord) {
-						answer_id = uuid;	//not sure how it's working
-						ansFileRelnUpdate(fileListChange);
-						showToast("Answer Info Changed");		
+						answer_id = uuid;
+						//showWarning("answer_id",answer_id);
+						current_answer_id=answer_id;
+						//showWarning("current_answer_id",current_answer_id);
+
+						if (newRecord) {
+							for(file : files_in_current_ques){
+								saveEntitiesToRel("Answer and File",answer_id,file.get(0));		
+							}
+							
+							newAnswer=new ArrayList();
+							newAnswer.add(answer_id);
+							newAnswer.add(newAnsLabel);
+							sss_answer_list.add(newAnswer);
+							
+							populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+							//if this is the second answer with a duplicate label
+							//the other answer label will be changed with a suffix (1)
+							updateDupLabel(dupAnsLblInfo,"AnswerToQuestionnaire","AnswerLabel");
+							showToast("new answer created");
+							//String curntQuesId=getFieldValue("survey/answerHidden/answerQuestionID");
+							cancelTabGroup("survey", true);
+							//showWarning("cancelTabGroupNewAnswer","survey");
+							//cancelTabGroup("answerToQuestion", true);
+							autoSaveSession("head");
+							nextQuestion(getFieldValue("survey/answerHidden/answerQuestionID"), ques_in_current_quesnir,false);
+						}
 					}
 					onError(message) {
-						showWarning("error on saveNewAnswer3 ",message);
+						showWarning("error on saveNewAnswer2",message);
 					}  
 				});
 			}
+
+			else{//this is changing answerInfo		
+				answerInfoNew.clear();
+				answerInfoNew.add(getFieldValue("survey/answerHidden/answerLabel"));
+				answerInfoNew.add(getFieldValue("survey/answerBasic/answerText"));
+				answerInfoNew.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
+				Hashtable fileListChange=listChange(files_in_current_ques,files_origin);
+				Hashtable answerBasicInfoChange=listChange(answerInfoNew,answerInfoOriginal);
+				//case1: Nothing changed
+				if((fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
+					showWarning("Answer Modification","No data is changed");
+					saveAnnotation("survey", current_answer_id);
+					return;
+				}
+				//case2: only fileList changed
+				else if((!fileListChange.containsKey("EQUAL"))&&(answerBasicInfoChange.containsKey("EQUAL"))){
+					ansFileRelnUpdate(fileListChange);
+					saveAnnotation("survey", current_answer_id);
+					showToast("file list changed");
+						//cancelTabGroup("survey", true);
+				}
+				else{//case 3: both answer basic info and file list are changed
+					saveTabGroup("survey", current_answer_id, null, null, new SaveCallback() {
+						onSave(uuid, newRecord) {
+							answer_id = uuid;	//not sure how it's working
+							ansFileRelnUpdate(fileListChange);
+							showToast("Answer Info Changed");		
+						}
+						onError(message) {
+							showWarning("error on saveNewAnswer3 ",message);
+						}  
+					});
+				}
+			}
+		}
+	}
+	else if(langIntro){
+		if((files_in_current_ques==null || files_in_current_ques.isEmpty()) && isNull(getFieldValue("survey/answerBasic/answerText")) ){
+			showWarning("Warning","Please input answer text or adding an answer file");
+			return;
+		}
+		saveLangIntroFreeTextAns(getFieldValue("survey/answerHidden/answerQuestionnaireID"), getFieldValue("survey/answerHidden/answerQuestionID"));
+	}
+}
+
+saveLangIntroFreeTextAns(String tempQuesnirId, String tempQuesId){
+	if(!isNull(tempQuesnirId) && !isNull(tempQuesId)){
+		if(finLangAndQues.size()<1){
+			saveNewLangIntroAns("s",tempQuesnirId,tempQuesId,crntLangIntroId,null);
+		}
+		else{
+			saveLangIntroAnswerWithoutFile();
 		}
 	}
 }
