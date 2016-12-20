@@ -2237,7 +2237,7 @@ checkClickValidity(String tempQuesId){
 	if(loopQuesOrder!=null && !loopQuesOrder.isEmpty()){
 		for(ques:loopQuesOrder){
 			if(ques.get(0).equals(tempQuesUuid)){
-				//TODO: ADD ALERT, GO TO THE KNOWN LANGU QUESTION
+			
 				showAlert("Unselectable question", "You need to answer this question after answering the known language question \n"+"Do you still want to go to the entry question?", "checkLangIntroAnsInSss()", "stayInCurrentPage()");
 				//showWarning("Unselectable question","Please start with the 'known languages' question for answering this question");
 				return;
@@ -3192,6 +3192,7 @@ saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, St
 						saveFurtherChoiceDateAns(typeflag);
 					}
 					else if(typeflag.equals("s") && tempInfo==null){
+						//showWarning("saveLangIntroAnswerWithoutFile","saveLangIntroAnswerWithoutFile");
 						saveLangIntroAnswerWithoutFile();
 					}
 				}
@@ -3396,6 +3397,7 @@ saveLangIntroAnswerWithoutFile(){
 				populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
 				//if this is the second answer with a duplicate label
 				//the other answer label will be changed with a suffix (1)
+				autoSaveSession("head");
 				saveDupAns();
 
 				showToast("new answer created");
@@ -3514,7 +3516,7 @@ checkUnfinishedQuesForLang(ArrayList tempSearchList, ArrayList tempAllQues){
 	}
 	return unFinQuesId;
 }
-
+//todo: stay in current page change to close current tab and go to the next question
 checkIfGoToQues(String tempUnfinLangId,String tempQuesId){
 	//showWarning("checkIfGoToQues","checkIfGoToQues");
 	String tempQuesLabel=null;
@@ -3537,12 +3539,25 @@ checkIfGoToQues(String tempUnfinLangId,String tempQuesId){
 		showWarning("Something went wrong","Please report to the admin the problem with the error code 'checkIfGoToQues'");
 		return;
 	}
-	showAlert("Unifinished question","The below question is not answered:\n"+tempQuesLabel+"\nfor language "+tempLangLabel+"\nDo you want to answer this question?","ansUnfinQues(\""+tempUnfinLangId+"\",\""+tempQuesId+"\")","stayInCurrentPage()");
+	Boolean temp=false;
+	showAlert("Unifinished question","The below question is not answered:\n"+tempQuesLabel+"\nfor language "+tempLangLabel+"\nDo you want to answer this question?","ansUnfinQues(\""+tempUnfinLangId+"\",\""+tempQuesId+"\")","askExitLangList(\""+tempQuesId+"\")");
 }
 
 ansUnfinQues(String tempLangId, String toAnsQuesId){
 	startLoopQues(tempLangId);
 	startNewLoopAns(toAnsQuesId);
+}
+
+askExitLangList(String toAnsQuesId){
+	//showWarning("askExitLangList",toAnsQuesId);
+	if(langIntroEndQuesUuid!=null){
+		//showWarning("langIntroEndQuesUuid","langIntroEndQuesUuid");
+		nextQuestion(langIntroEndQuesUuid,ques_in_current_quesnir,false);
+	}
+	else{
+		cancelTabGroup("langIntroAns",true);
+	}
+	
 }
 
 saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId, String tempLangId){
@@ -4694,6 +4709,7 @@ choiceDateAnsLangIntroCallBack(String tempUuid){
 	sss_answer_list.add(newAnswer);
 	
 	populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
+	autoSaveSession("head");
 	saveDupAns();
 	showToast("new answer created");
 	tempLangAndQues=new ArrayList();
@@ -5533,6 +5549,7 @@ saveNewAnswer(int loopCount){
 saveLangIntroFreeTextAns(String tempQuesnirId, String tempQuesId){
 	if(!isNull(tempQuesnirId) && !isNull(tempQuesId)){
 		if(finLangAndQues.size()<1){
+			//showWarning("finLangAndQues","finLangAndQues");
 			saveNewLangIntroAns("s",tempQuesnirId,tempQuesId,crntLangIntroId,null);
 		}
 		else{
@@ -7044,7 +7061,7 @@ createPersonPage(){
 			createView("person/personInfo/Finish_New_Person", finishNewPsViewDef,"person/personInfo");
 
 	        refreshTabgroupCSS("person");
-	        //TODO: ASK THE REQUIREMENTS FOR FINISHING INTRO QUESTIONNAIRE
+	    
 	        onEvent("person/personInfo/Finish_New_Person","click","savePersonCheck(\"save\")");
 			onEvent("person/personInfo/Take_Intro_Quesnir","click","checkPersonIntroSession()");
 			onEvent("person/personInfo/Take_Photo","click","attachPictureTo(\"person/personInfo/personPhoto\")");
@@ -7984,6 +8001,7 @@ saveTabGroupFailSafe(String tableName, String entId, int loopCount){
 ** not checking if a question is answered or not
 */
 nextQuestion(String curntQuesId, ArrayList questionList, Boolean chkQues){
+	//showWarning("nextQuestion","nextQuestion");
 	int idxCrntQues=-1;
 	String nextQuesContent=null;
 	String nextQuesId=null;
