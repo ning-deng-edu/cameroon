@@ -2427,6 +2427,33 @@ reConstructQuesOrder(){
     createChangeBtnQuesnir();
 }
 
+reConstructQuesOrder(ArrayList searchResult){
+    removeAllViewsAndContainers("questionnaire_question");
+    for(int j=0; j<searchResult.size();j++){
+        String quesContent= searchResult.get(j).get(1);
+        //showWarning("quesContent",quesContent);
+        quesCountDel=j+1;
+        executeViewTask(new ViewTask() {
+            doTask() {
+                createContainer("questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel, "orientation", "questionnaire_question/questionnaire_question_info");
+                createContainer("questionnaire_question/questionnaire_question_info/quesc_" + quesCountDel, "even", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+                createContainer("questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCountDel, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+                createContainer("questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCountDel, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+                createContainer("questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCountDel, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
+                createView("questionnaire_question/questionnaire_question_info/Ques_" + quesCountDel, createViewDef().createTextField("string").setReadOnly(true), "questionnaire_question/questionnaire_question_info/quesc_" + quesCountDel);
+                createView("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCountDel, createViewDef().createButton().setLabel("X").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCountDel);
+                createView("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCountDel, createViewDef().createButton().setLabel("↑").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCountDel);
+                createView("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCountDel, createViewDef().createButton().setLabel("↓").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCountDel);
+                setFieldValue("questionnaire_question/questionnaire_question_info/Ques_" + quesCountDel, quesContent);
+                onEvent("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCountDel,"click","deleteQuesConfirm(\""+quesContent+"\")");
+                onEvent("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCountDel,"click","moveUpQues(\""+quesContent+"\")");
+                onEvent("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCountDel,"click","moveDownQues(\""+quesContent+"\")");
+                }
+        });
+    }
+    createChangeBtnQuesnir();
+}
+
 createChangeBtnQuesnir(){
     executeViewTask(new ViewTask() {
         doTask(){
@@ -2862,9 +2889,92 @@ adjustQuesOrder(String typeFlag, int strtIndex, ArrayList toAdjustList){
     }
 
 }
-
+//todo: search ques by language
 searchQuestion(){
+    String keywordForQuestion=getFieldValue("questionnaire_question/questionnaire_question_info/keywordOfQuestion").trim();
+    String ctgy=getFieldValue("questionnaire_question/questionnaire_question_info/category");
+    if(ctgy.equals("candidate")){
+        if((isNull(keywordForQuestion))||(keywordForQuestion.equals("*"))){
+            fetchAll(loadAllEngQuesContentQuery, new FetchCallback() {
+                onFetch(result) {
+                    questionCandidatesContent.clear();
+                    questionCandidates.clear();
+                    questionCandidates.addAll(result);
+                    questionCandidatesContent.addAll(result);
+                    tempToDelQues=new ArrayList();
+                    tempToDelQues.clear();
+                    for(quesSel:questionSelected){
+                        String toDelId=quesSel.get(0);
+                        //showWarning("toDelId",toDelId);
+                        for (quesDel:questionCandidatesContent){
+                            String delId=quesDel.get(0);
+                            //showWarning("quesDel",delId);
+                            if(delId.equals(toDelId)){
+                                tempToDelQues.add(quesDel);
+                                //questionCandidatesContent.remove(quesDel);
+                                //showWarning("questionCandidatesContent","questionCandidatesContent");
+                            }
+                        }
+                    }
+                    questionCandidatesContent.removeAll(tempToDelQues);
+                    //questionCandidatesContent.removeAll(questionSelected);
+                    populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+                }  
+            });     
+        }
 
+        else {
+            
+            searchQuestionQueryFirstHalf="select qId.measure, qContent.measure "+
+                "from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qContent "+
+                "where qContent.measure like '%"; 
+            searchQuestionQueryLastHalf="%' and qContent.AttributeID = "+
+                    "(select AttributeID from AttributeKey where AttributeName='QuesContent') "+
+                    "and qId.AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionUuid') "+
+                    "and qId.uuid=qContent.uuid "+
+                    "and qId.uuid in"+
+                    "(select uuid from latestNonDeletedArchEntIdentifiers "+
+                    "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid'));";
+                    
+            fetchAll(searchQuestionQueryFirstHalf+keywordForQuestion+searchQuestionQueryLastHalf, new FetchCallback() {
+                onFetch(result) {
+                    questionCandidatesContent.clear();
+                    questionCandidates.clear();
+                    questionCandidates.addAll(result);
+                    questionCandidatesContent.addAll(result);
+                    tempToDelQues=new ArrayList();
+                    tempToDelQues.clear();
+                    for(quesSel:questionSelected){
+                            String toDelId=quesSel.get(0);
+                            for (quesDel:questionCandidatesContent){
+                                if(quesDel.get(0).equals(toDelId)){
+                                    tempToDelQues.add(quesDel);
+                                }
+                            }
+                        }
+                    questionCandidatesContent.removeAll(tempToDelQues);
+                    populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+            
+                }  
+                });
+            }
+    }
+    else{//searching in the arraylist 
+        if((isNull(keywordForQuestion))||(keywordForQuestion.equals("*"))){
+            reConstructQuesOrder();
+        }
+        else{
+            tempQuesQuery=new ArrayList();
+            tempQuesQuery.clear();
+            Pattern pattern = Pattern.compile(Pattern.quote(keywordForQuestion), Pattern.CASE_INSENSITIVE);
+            for (ques : questionSelected){
+                if(pattern.matcher(ques.get(1)).find()){
+                    tempQuesQuery.add(ques);
+                }
+            }
+            reConstructQuesOrder(tempQuesQuery);
+        }
+    }
 }
 
 loadQuestionnaire(){
