@@ -2744,7 +2744,6 @@ saveEmrPsInSss(String sessionId){
 loopQuesOrder=new ArrayList();
 finLangAndQues=new ArrayList();
 String langIntroQuesUuid=null;
-String langIntroEndQuesUuid=null;
 int newLangInLangIntro=0;
 String crntLangIntroId=null;
 String langIntroAnsLabel=null;
@@ -2756,7 +2755,6 @@ initSocioLinguVar(){
 	loopQuesOrder.clear();
 	finLangAndQues.clear();
 	langIntroQuesUuid=null;
-	langIntroEndQuesUuid=null;
 	newLangInLangIntro=0;
 	crntLangIntroId=null;
 	langIntroAnsLabel=null;
@@ -2912,7 +2910,6 @@ showLangIntroAnsPage(ArrayList langDegList){
 
 sclngstPrep(){
 	langIntroQuesUuid=null;
-	langIntroEndQuesUuid=null;
 	sclngstPrepQues();
 	sclngstPrepQuesReln();
 	finLangAndQues.clear();
@@ -2979,7 +2976,6 @@ sclngstPrepQuesRecordingType(){
 		"and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+current_quesnir_id+"')) t2 "+
 		"on t1.prId=t2.qPropId";
 	String tempQuesStartId=null;
-	String tempQuesEndId=null;
     loopQuesOrder.clear();
     fetchAll(quesRecordingTypeQuery, new FetchCallback() {
 	    onFetch(result) {
@@ -2990,44 +2986,23 @@ sclngstPrepQuesRecordingType(){
 	        	if (quesRec.get(1).equals("LangList")){
 	        		tempQuesStartId=quesRec.get(0);
 	        		langIntroQuesUuid=tempQuesStartId;
-	        		//break;
-	        	}
-	        	else if(quesRec.get(1).equals("LangListEnd")){
-	        		tempQuesEndId=quesRec.get(0);
-	        		langIntroEndQuesUuid=tempQuesEndId;
-	        	}
-	        	if(tempQuesStartId!=null && tempQuesEndId!=null){
 	        		break;
 	        	}
-
 	        }
 	        //showWarning("quesRec",tempQuesStartId);
-	        int tempStartingOrder=-1;
-	        int tempEndingOrder=-1;
+	        int tempStartingOrder=0;
 	        for(ques:ques_in_current_quesnir){
 	        	if(ques.get(0).equals(tempQuesStartId)){
 	        		//showWarning("ques.get(0)",ques.get(0));
 	        		String [] quesSplit=ques.get(1).split("-");
 	        		tempStartingOrder=Integer.parseInt(quesSplit[0]);
-	        	}
-	        	else if(tempQuesEndId!=null && ques.get(0).equals(tempQuesEndId)){
-	        		String [] quesSplit=ques.get(1).split("-");
-	        		tempEndingOrder=Integer.parseInt(quesSplit[0]);
-	        	}
-	        	if(tempStartingOrder!=-1 && tempEndingOrder!=-1){
 	        		break;
 	        	}
-	        }
-	        if(tempEndingOrder==-1){
-	        	String [] quesSplit=ques_in_current_quesnir.get(ques_in_current_quesnir.size()-1).get(1).split("-");
-	        	tempEndingOrder=Integer.parseInt(quesSplit[0]);
-	        	tempEndingOrder++;
 	        }
 	        //showWarning("ques",tempStartingOrder.toString());
 	        for(ques:ques_in_current_quesnir){
 	        	String [] quesSplit=ques.get(1).split("-");
-	        	int currentQuesOrder=Integer.parseInt(quesSplit[0]);
-	        	if((currentQuesOrder>tempStartingOrder) && (currentQuesOrder<tempEndingOrder)){
+	        	if(Integer.parseInt(quesSplit[0])>tempStartingOrder){
 	        		loopQuesOrder.add(ques);
 	        	}
 	        }
@@ -3186,10 +3161,6 @@ saveNewLangIntroAns(String typeflag, String tempQuesnirId, String tempQuesId, St
 
 					if(!isNull(tempInfo)){
 						saveFurtherFileAndAnswer(tempInfo.get(0),tempInfo.get(1),tempInfo.get(2),tempInfo.get(3));
-					}
-
-					if(!typeflag.equals("s")){
-						saveFurtherChoiceDateAns(typeflag);
 					}
 				}
 		}
@@ -3438,129 +3409,13 @@ saveDupAns(){
 	}
 }
 
-checkFinishAllQuesForLang(){
-	//showWarning("checkFinishAllQuesForLang","checkFinishAllQuesForLang");
-	Hashtable tempSearchMap=getAllAnsweredQuesIdForLang();
-	//showWarning("tempSearchMap","tempSearchMap");
-	Boolean closeOrNot=true;
-	if(tempSearchMap==null || tempSearchMap.isEmpty()){
-		showWarning("Something went wrong","Report this problem to the admin");
-		return;
-	}
-
-	ArrayList tempAllQues=new ArrayList();
-	for(tempQues: loopQuesOrder){
-		tempAllQues.add(tempQues.get(0));
-	}
-	//showWarning("tempAllQues","tempAllQues");
-	for(String key: tempSearchMap.keySet()){
-		String unfinQues=checkUnfinishedQuesForLang(tempSearchMap.get(key),tempAllQues);
-		if(unfinQues!=null){
-			closeOrNot=false;
-			//showWarning("closeOrNot","closeOrNot");
-			checkIfGoToQues(key,unfinQues);
-		}
-		//showWarning("unfinQues","unfinQues");
-	}
-	if(closeOrNot){
-		nextQuestion(langIntroEndQuesUuid,ques_in_current_quesnir,false);
-	}
-}
-
-getAllAnsweredQuesIdForLang(){
-	//showWarning("getAllAnsweredQuesIdForLang","getAllAnsweredQuesIdForLang");
-	Hashtable tempSearchMap=new Hashtable();
-	if(finLangAndQues==null || finLangAndQues.isEmpty()){
-		return null;
-	}
-	//showWarning("finLangAndQues!null","finLangAndQues!null");
-	for(item: finLangAndQues){
-		String tempKey=item.get(0);
-		String tempQuesId=item.get(1);
-		//showWarning(tempKey,tempQuesId);
-		if(!tempSearchMap.containsKey(tempKey)){
-			//showWarning("!containsKey","!containsKey");
-			ArrayList subSearchList=new ArrayList();
-			subSearchList.add(item.get(1));
-			//showWarning("!add","!add");
-			tempSearchMap.put(tempKey,subSearchList);
-			//showWarning("!put","!put");
-		}
-		else{
-			//showWarning("containsKey","containsKey");
-			ArrayList subSearchList=tempSearchMap.get(tempKey);
-			//showWarning("subSearchListget","subSearchListget");
-			if(subSearchList!=null && !subSearchList.isEmpty()){
-				//showWarning("subSearchListnnull","subSearchListnnull");
-				subSearchList.add(item.get(1));
-				//showWarning("subSearchListadd","subSearchListadd");
-				tempSearchMap.put(tempKey,subSearchList);
-				//showWarning("subSearchListput","subSearchListput");
-			}
-			else{
-				//showWarning("subSearchListNULL","subSearchListNULL");
-				ArrayList newSubSearchList=new ArrayList();
-				//showWarning("newSubSearchList","newSubSearchList");
-				newSubSearchList.add(item.get(1));
-				//showWarning("newSubSearchListget","newSubSearchListget");
-				tempSearchMap.put(tempKey,newSubSearchList);
-				//showWarning("newSubSearchListput","newSubSearchListput");
-			}
-		}
-	}
-	return tempSearchMap;
-}
-
-checkUnfinishedQuesForLang(ArrayList tempSearchList, ArrayList tempAllQues){
-	//showWarning("checkUnfinishedQuesForLang","checkUnfinishedQuesForLang");
-	String unFinQuesId=null;
-	ArrayList tempSearchQues=new ArrayList();
-	tempSearchQues.addAll(tempAllQues);
-	tempSearchQues.removeAll(tempSearchList);
-	if(tempSearchQues.size()>0){
-		unFinQuesId=tempSearchQues.get(0);
-	}
-	return unFinQuesId;
-}
-
-checkIfGoToQues(String tempUnfinLangId,String tempQuesId){
-	showWarning("checkIfGoToQues","checkIfGoToQues");
-	String tempQuesLabel=null;
-	for(ques: loopQuesOrder){
-		if(tempQuesId.equals(ques.get(0))){
-			tempQuesLabel=ques.get(1);
-			break;
-		}
-	}
-	String tempLangLabel=null;
-
-	for(lang: canLangList){
-		if(tempUnfinLangId.equals(lang.get(0))){
-			tempLangLabel=lang.get(1);
-			break;
-		}
-	}
-	showWarning("tempLangLabel","tempLangLabel");
-	if(tempQuesLabel==null || tempLangLabel==null){
-		showWarning("Something went wrong","Please report to the admin the problem with the error code 'checkIfGoToQues'");
-		return;
-	}
-	showAlert("Unifinished question","The below question is not answered:\n"+tempQuesLabel+"\nfor language "+tempLangLabel+"\nDo you want to answer this question?","ansUnfinQues(\""+tempUnfinLangId+"\",\""+tempQuesId+"\")","stayInCurrentPage()");
-}
-
-ansUnfinQues(String tempLangId, String toAnsQuesId){
-	startLoopQues(tempLangId);
-	startNewLoopAns(toAnsQuesId);
-}
-
 saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId, String tempLangId){
 	if(typeflag!=null){
 		if(sss_id!=null){//only need to append the current lang and degree to the existing answerText
 			updateLangIntroQuesAnsText(tempQuesnirId);
-			//checkFinishAllQuesForLang();
 		}	
 	}
-	//change basic info of the lang intro answer
+	//change basic info of the lang intro query
 	else{//case passed
 		String ansText=null;
 		ansText=getLangIntroAnsText();
@@ -3571,13 +3426,9 @@ saveLangIntroQuesAnswer(String typeflag, String tempQuesnirId, String tempQuesId
 		//showWarning("ansText",ansText);
 		if(sss_id==null){
 			newLangIntroQuesAnsText(ansText,tempQuesnirId);
-			//showWarning("newLangIntroQuesAnsText","newLangIntroQuesAnsText");
-			checkFinishAllQuesForLang();
 		}
 		else{//case passed
 			updateLangIntroQuesAnsText(ansText,tempQuesnirId);
-			//showWarning("updateLangIntroQuesAnsText","updateLangIntroQuesAnsText");
-			checkFinishAllQuesForLang();
 		}
 	}
 }
@@ -3966,7 +3817,6 @@ quesRecordingPrep(String crntQuesnirId){
 		"on t1.prId=t2.qPropId";
 
     String tempQuesStartId=null;
-    String tempQuesEndId=null;
     loopQuesOrder.clear();
     fetchAll(quesRecordingTypeQuery, new FetchCallback() {
 	    onFetch(result) {
@@ -3977,42 +3827,23 @@ quesRecordingPrep(String crntQuesnirId){
 	        	if (quesRec.get(1).equals("LangList")){
 	        		tempQuesStartId=quesRec.get(0);
 	        		langIntroQuesUuid=tempQuesStartId;
-	        	}
-	        	else if(quesRec.get(1).equals("LangListEnd")){
-	        		tempQuesEndId=quesRec.get(0);
-	        		langIntroEndQuesUuid=tempQuesEndId;
-	        	}
-	        	if(tempQuesStartId!=null && tempQuesEndId!=null){
 	        		break;
 	        	}
 	        }
 	        //showWarning("quesRec",tempQuesStartId);
-	        int tempStartingOrder=-1;
-	        int tempEndingOrder=-1;
+	        int tempStartingOrder=0;
 	        for(ques:ques_in_current_quesnir){
 	        	if(ques.get(0).equals(tempQuesStartId)){
 	        		//showWarning("ques.get(0)",ques.get(0));
 	        		String [] quesSplit=ques.get(1).split("-");
 	        		tempStartingOrder=Integer.parseInt(quesSplit[0]);
-	        	}
-	        	else if(tempQuesEndId!=null && ques.get(0).equals(tempQuesEndId)){
-	        		String [] quesSplit=ques.get(1).split("-");
-	        		tempEndingOrder=Integer.parseInt(quesSplit[0]);
-	        	}
-	        	if(tempStartingOrder!=-1 && tempEndingOrder!=-1){
 	        		break;
 	        	}
-	        }
-	        if(tempEndingOrder==-1){
-	        	String [] quesSplit=ques_in_current_quesnir.get(ques_in_current_quesnir.size()-1).get(1).split("-");
-	        	tempEndingOrder=Integer.parseInt(quesSplit[0]);
-	        	tempEndingOrder++;
 	        }
 	        //showWarning("ques",tempStartingOrder.toString());
 	        for(ques:ques_in_current_quesnir){
 	        	String [] quesSplit=ques.get(1).split("-");
-	        	int currentQuesOrder=Integer.parseInt(quesSplit[0]);
-	        	if((currentQuesOrder>tempStartingOrder) && (currentQuesOrder<tempEndingOrder)){
+	        	if(Integer.parseInt(quesSplit[0])>tempStartingOrder){
 	        		loopQuesOrder.add(ques);
 	        	}
 	        }
@@ -4530,11 +4361,9 @@ startChoiceAnswer(String current_start_time, String typeflag){
 		}
 	});
 }
-
 startNewAnswerLangEnd(){
-	showWarning("Answer not needed","Answer for this question is not needed");
-}
 
+}
 
 startNewAnswerChooseOne(){
 	//showWarning("newAnswerChooseOne","newAnswerChooseOne");
@@ -4611,234 +4440,62 @@ saveNewChooseOneAnswer(int loopCount){
 		return;
 	}
 
-	if(!langIntro){
-		if(current_answer_id==null){
-			attributes = createAttributeList();
-		
-			attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, hiddenAnsInfo.get("quesnir_id"), null));
-			attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
-			attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
-			attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
-			attributes.add(createEntityAttribute("AnswerText", null, null,tempChooseOneAnswer, null));
-
-			saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
-			onSave(uuid, newRecord){
-				answer_id = uuid;
-				current_answer_id=answer_id;
-				if (newRecord) {
-					opAfterNewAns(answer_id,hiddenAnsInfo.get("label"),hiddenAnsInfo.get("ques_id"));
-					cancelTabGroup("choiceAns",true);
-				}
-			}
-			onError(message) {
-				if(loopCount<3){
-					loopCount++;
-					saveNewChooseOneAnswer(loopCount);
-				}
-				else{
-					showWarning("Error happened, saving failed on Answer",message+"\n"+"please report this to the admin\n"+"click ok to continue");
-				}
-			}  
-			});
-		}
-		else{//update answer info
-			if(!tempChooseOneAnswer.equals(choiceDateOriginInfo.get(0))){
-
-				attributes = createAttributeList();
-				attributes.add(createEntityAttribute("AnswerText", null, null,tempChooseOneAnswer, null));
-
-				saveArchEnt(current_answer_id, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
-					onSave(uuid, newRecord){
-						choiceDateOriginInfo.set(0,tempChooseOneAnswer);
-						showToast("answer updated");
-					}
-					onError(message) {
-						if(loopCount<3){
-							loopCount++;
-							saveNewChooseOneAnswer(loopCount);
-						}
-						else{
-							showWarning("Error happened, updating failed on Answer",message+"\n"+"please report this to the admin\n"+"click ok to continue");
-						}
-					}  
-				});
-			}
-		}
-	}
-
-	else if(langIntro){
-		saveLangIntroChoiceDateAns("ch",hiddenAnsInfo.get("quesnir_id"),hiddenAnsInfo.get("ques_id"));
-	}
 	
-}
 
-saveLangIntroChoiceDateAns(String typeflag, String tempQuesnirId, String tempQuesId){
-	if(finLangAndQues.size()<1){
-		saveNewLangIntroAns(typeflag,tempQuesnirId,tempQuesId,crntLangIntroId,null);
-	}
-	else{
-		saveFurtherChoiceDateAns(typeflag);
-	}
-}
-
-saveFurtherChoiceDateAns(String typeflag){
-	switch(typeflag){
-		case "ch":
-			saveNewChooseOneAnswerLangIntro(0);
-		break;
-		case "se":
-			saveNewSelMulAnswerLangIntro(0);
-		break;
-		case "da":
-			saveNewDateAnswerLangIntro(0);
-		break;
-	}
-}
-
-choiceDateAnsLangIntroCallBack(String tempUuid){
-	newAnswer=new ArrayList();
-	newAnswer.add(tempUuid);
-	newAnswer.add(hiddenAnsInfo.get("label"));
-	sss_answer_list.add(newAnswer);
+	if(current_answer_id==null){
+		attributes = createAttributeList();
 	
-	populateList("sessionForAnswer/sssAnsList/sssAnswerList",sss_answer_list);
-	saveDupAns();
-	showToast("new answer created");
-	tempLangAndQues=new ArrayList();
-	tempLangAndQues.add(crntLangIntroId);
-	tempLangAndQues.add(hiddenAnsInfo.get("ques_id"));
-	finLangAndQues.add(tempLangAndQues);
-	if(finLangAndQues.size()>1){
-		saveLangIntroQuesAnswer("ans",hiddenAnsInfo.get("quesnir_id"),hiddenAnsInfo.get("ques_id"),crntLangIntroId);
-	}
-	cancelTabGroup("choiceAns",true);
-	checkAllLangIntroQues(crntLangIntroId);
-}
+		attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, hiddenAnsInfo.get("quesnir_id"), null));
+		attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
+		attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
+		attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
+		attributes.add(createEntityAttribute("AnswerText", null, null,tempChooseOneAnswer, null));
 
-saveNewChooseOneAnswerLangIntro(int loopCount){
-	String tempChooseOneAnswer=getFieldValue("choiceAns/choiceAnsInfo/selRadio");
-	if(tempChooseOneAnswer==null|| tempChooseOneAnswer.equals("")){
-		showWarning("No answer collected","This question is not answered, please select one option that applies");
-		return;
-	}
-	attributes = createAttributeList();
-		
-	attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, hiddenAnsInfo.get("quesnir_id"), null));
-	attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
-	attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
-	attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
-	attributes.add(createEntityAttribute("AnswerText", null, null,tempChooseOneAnswer, null));
-
-	saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
+		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
 		onSave(uuid, newRecord){
+			answer_id = uuid;
+			current_answer_id=answer_id;
 			if (newRecord) {
-				choiceDateAnsLangIntroCallBack(uuid);
+				opAfterNewAns(answer_id,hiddenAnsInfo.get("label"),hiddenAnsInfo.get("ques_id"));
+				cancelTabGroup("choiceAns",true);
 			}
 		}
 		onError(message) {
 			if(loopCount<3){
 				loopCount++;
-				saveNewChooseOneAnswerLangIntro(loopCount);
+				saveNewChooseOneAnswer(loopCount);
 			}
 			else{
 				showWarning("Error happened, saving failed on Answer",message+"\n"+"please report this to the admin\n"+"click ok to continue");
 			}
 		}  
-	});
-}
-
-saveNewSelMulAnswerLangIntro(int loopCount){
-	
-	selectedOpts=getFieldValue("choiceAns/choiceAnsInfo/selCheckBox");
-	if(selectedOpts==null ||selectedOpts.isEmpty()){
-		showWarning("No option selected","Please select at least one option that applies");
-		return;
-	}
-	String tempAnsText=makeSelMulAnsText(selectedOpts);
-	if(tempAnsText==null|| tempAnsText.equals("")){
-		showWarning("No answer collected","This question is not answered, please select at least one option that applies");
-		return;
-	}
-	if(!langIntro){
-		attributes = createAttributeList();
-		
-		attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, hiddenAnsInfo.get("quesnir_id"), null));
-		attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
-		attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
-		attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
-		attributes.add(createEntityAttribute("AnswerText", null, null,tempAnsText, null));
-
-		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
-			onSave(uuid, newRecord){
-				if (newRecord) {
-					choiceDateAnsLangIntroCallBack(uuid);
-				}
-			}
-			onError(message) {
-				if(loopCount<3){
-					loopCount++;
-					saveNewSelMulAnswerLangIntro(loopCount);
-				}
-				else{
-					showWarning("Error happened, saving failed on Answer",message+"\n"+"please report this to the admin\n"+"click ok to continue");
-				}
-			}  
 		});
 	}
-	else{
-		saveLangIntroChoiceDateAns("se",hiddenAnsInfo.get("quesnir_id"),hiddenAnsInfo.get("ques_id"));
-	}
-}
+	else{//update answer info
+		if(!tempChooseOneAnswer.equals(choiceDateOriginInfo.get(0))){
 
-saveNewDateAnswerLangIntro(int loopCount){
-	
-	String tempAnsText=null;
-	if(!isNull(getFieldValue("choiceAns/choiceAnsInfo/ansEn"))){
-		tempAnsText=getFieldValue("choiceAns/choiceAnsInfo/ansEn");
-		if(!dateValidation(tempAnsText)){
-			showWarning("Invalid data","the entered date is not valid:\n"+"1.The format should be YYYY or YYYY/MM\n"+"2.MM should greater than 01 and less than 12");
-			return;
+			attributes = createAttributeList();
+			attributes.add(createEntityAttribute("AnswerText", null, null,tempChooseOneAnswer, null));
+
+			saveArchEnt(current_answer_id, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
+				onSave(uuid, newRecord){
+					choiceDateOriginInfo.set(0,tempChooseOneAnswer);
+					showToast("answer updated");
+				}
+				onError(message) {
+					if(loopCount<3){
+						loopCount++;
+						saveNewChooseOneAnswer(loopCount);
+					}
+					else{
+						showWarning("Error happened, updating failed on Answer",message+"\n"+"please report this to the admin\n"+"click ok to continue");
+					}
+				}  
+			});
 		}
 	}
-	else{
-		tempAnsText=getFieldValue("choiceAns/choiceAnsInfo/dateSel");
-	}
-	if(tempAnsText==null || tempAnsText.equals("")){
-		showWarning("Incomplete data","the answer data is not collected");
-		return;
-	}
-	if(!langIntro){
-		attributes = createAttributeList();
-		
-		attributes.add(createEntityAttribute("AnswerQuestionnaireID", null, null, hiddenAnsInfo.get("quesnir_id"), null));
-		attributes.add(createEntityAttribute("AnswerQuestionID", null, null, hiddenAnsInfo.get("ques_id"), null));
-		attributes.add(createEntityAttribute("AnswerLabel", null, null, hiddenAnsInfo.get("label"), null));
-		attributes.add(createEntityAttribute("AnswerStartTime", null, null, hiddenAnsInfo.get("start_time"), null));
-		attributes.add(createEntityAttribute("AnswerText", null, null,tempAnsText, null));
-
-
-		saveArchEnt(null, "AnswerToQuestionnaire", null, attributes, new SaveCallback(){
-			onSave(uuid, newRecord){
-				if (newRecord) {
-					choiceDateAnsLangIntroCallBack(uuid);
-				}
-			}
-			onError(message) {
-				if(loopCount<3){
-					loopCount++;
-					saveNewDateAnswerLangIntro(loopCount);
-				}
-				else{
-					showWarning("Error happened, saving failed on Answer",message+"\n"+"please report this to the admin\n"+"click ok to continue");
-				}
-			}  
-		});
-	}
-	else{
-		saveLangIntroChoiceDateAns("da",hiddenAnsInfo.get("quesnir_id"),hiddenAnsInfo.get("ques_id"));
-	}
+	
 }
-
 
 opAfterNewAns(String tempAnswerId, String tempAnswerLbl, String tempQuesId){
 	newAnswer=new ArrayList();
@@ -7989,6 +7646,13 @@ nextQuestion(String curntQuesId, ArrayList questionList, Boolean chkQues){
 	if(chkQues){
 		cancelTabGroup("survey",true);
 	}
+	/*
+	else{
+		if(hasView("survey/answerBasic/radioGrp")){
+			cancelTabGroup("survey",true);
+		}
+	}
+	*/
 }
 
 /*
