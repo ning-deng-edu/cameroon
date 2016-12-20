@@ -3844,23 +3844,93 @@ loadPersonInfo(){
 }
 
 /*** Search page ***/
+
+type=null;// entity type recording
+
+searchQuery_firstHalf="select uuid, measure from latestNonDeletedAentValue where " +
+"latestNonDeletedAentValue.Measure like '%"; 
+searchQuery_lastHalf="%' and latestNonDeletedAentValue.AttributeID in "+
+"(select AttributeID from IdealAent where IdealAent.AentTypeID in "+
+"(select AEntTypeID from AEntType where  AEntType.AEntTypeName= '";
+
 showEntity(){
-    
+    entity_id=getListItemValue();
+    switch (type){
+        case "Questionnaire":
+            loadQuestionnaireInfo();
+            break;
+        case "Person":
+            loadPersonInfo();
+            break;
+        case "Language":
+            loadLanguageInfo();
+            break;
+        case "QuestionBank":
+            loadQuestionInfo();
+            break;
+        case "PersonRole":
+            loadRoleInfo();
+            break;
+            
+    }
 }
 
 initializeSearch(){
-    entityTypes = new ArrayList();
-    entityTypes.add(new NameValuePair("{Questionnaire}", "Questionnaire"));
-    entityTypes.add(new NameValuePair("{Question}", "QuestionBank"));
-    entityTypes.add(new NameValuePair("{Person}", "Person"));
-    entityTypes.add(new NameValuePair("{Language}", "Language"));
-    entityTypes.add(new NameValuePair("{Role}", "PersonRole"));
+    if(isNull(getFieldValue("control/search/entityTypes"))){
+        entityTypes = new ArrayList();
+        entityTypes.add(new NameValuePair("{Questionnaire}", "Questionnaire"));
+        entityTypes.add(new NameValuePair("{Question}", "QuestionBank"));
+        entityTypes.add(new NameValuePair("{Person}", "Person"));
+        entityTypes.add(new NameValuePair("{Language}", "Language"));
+        entityTypes.add(new NameValuePair("{Role}", "PersonRole"));
 
-    populateDropDown("control/search/entityTypes",entityTypes);
+        populateDropDown("control/search/entityTypes",entityTypes);
+    }
 }
 
 recordSearch(){
+    searchResult=new ArrayList();
+    searchResult.clear();
+    type = getFieldValue("control/search/entityTypes");
+    String keyword=getFieldValue("control/search/keyword").trim();
+    if((isNull(keyword)) || keyword.equals("*")){
+        search_query="select uuid, measure from latestNonDeletedAentValue where "+
+        "latestNonDeletedAentValue.AttributeID in "+
+        "(select AttributeID from IdealAent where IdealAent.AentTypeID in "+
+        "(select AEntTypeID from AEntType where  AEntType.AEntTypeName= '"+type+"'));";// without group by uuid, user can view every related details
+        fetchAll(search_query, new FetchCallback() {
+        onFetch(result) {
+            if(!isNull(result)){
+            searchResult.addAll(result);
+            populateList("control/search/entityList", result);}
+            else{
+                showWarning("No result","Sorry, no result is found");
+            }
+        }
 
+        onError(message) {
+            showToast(message);
+        }
+    });
+         //populateCursorList("control/search/entityList", "select uuid, response from latestNonDeletedArchEntFormattedIdentifiers where aenttypename = '" + type + "' limit ? offset ?;", 25);
+    }
+    else{   
+        search_query=searchQuery_firstHalf+keyword+searchQuery_lastHalf+type+"'));";//without group by uuid, user can view every related details
+        fetchAll(search_query, new FetchCallback() {
+        onFetch(result) {
+            if(!isNull(result)){
+            searchResult.addAll(result);
+            populateList("control/search/entityList", result);}
+            else{
+                showWarning("No result","Sorry, no result is found");
+            }
+        }
+
+        onError(message) {
+            showToast(message);
+        }
+    });
+    }
 }
 
 /*** Common methods ***/
