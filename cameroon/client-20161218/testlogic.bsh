@@ -158,7 +158,7 @@ createControlGroupView(){
 	createPersonControlPage();
 	createLanguageControlPage();
 	createFileControlPage();
-	//createQueryControlPage();
+	createQueryControlPage();
 }
 
 createSurveyControlPage(){
@@ -353,7 +353,7 @@ createFileControlPage(){
 }
 
 /**********Temp function, to be remove for official version************/
-/*
+
 createQueryControlPage(){
 	if(!hasView("control/querytest/Submit")){
 			executeViewTask(new ViewTask() {
@@ -398,7 +398,7 @@ testQuery(){
     });
 	
 }
-*/
+
 /**********Temp function end, to be remove for official version************/
 
 /*** Session questionnaire list***/
@@ -1454,27 +1454,27 @@ loadPersonForSss(String sessionId){
 	//select t5.relnId, t5.personUuid, t5.persName, t6.personRoleUuid, t6.personRoleName from (select t1.personId as personUuid, t1.personName as persName, t2.psssId as relnId from (select pId.uuid as personId, pId.measure as personName from latestNonDeletedAentValue as pId where pId.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='PersonName') and pId.uuid in (select psName.measure from latestNonDeletedAentValue as psName, latestNonDeletedAentValue as psReln where psName.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='1000011478038316786' and psName.uuid=psReln.uuid)) t1 inner join (select psName.uuid as psssId, psName.measure as psId from latestNonDeletedAentValue as psName, latestNonDeletedAentValue as psReln where psName.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='1000011478038316786' and psName.uuid=psReln.uuid) t2 on t1.personId=t2.psId) t5 inner join (select t3.roleId as personRoleUuid, t3.roleName as personRoleName, t4.rsssId as relnId from (select rId.uuid as roleId, rId.measure as roleName from latestNonDeletedAentValue as rId where rId.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') and rId.uuid in (select psRole.measure from latestNonDeletedAentValue as psRole, latestNonDeletedAentValue as psReln where psRole.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='1000011478038316786' and psRole.uuid=psReln.uuid))t3 inner join (select psRole.uuid as rsssId, psRole.measure as tempPsRoleID from latestNonDeletedAentValue as psRole, latestNonDeletedAentValue as psReln where psRole.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='1000011478038316786' and psRole.uuid=psReln.uuid)t4 on t3.roleId=t4.tempPsRoleID) t6 on t5.relnId =t6.relnId
 
 	loadSssPersonRoleQuery="select t5.relnId, t6.personRoleUuid|| '_' || t5.personUuid as personRoleNameId, t6.personRoleName|| '_' || t5.persName as personRoleName "+
-	"from (select t1.personId as personUuid, t1.personName as persName, t2.psssId as relnId from (select pId.uuid as personId, pId.measure as personName "+
-	"from latestNonDeletedAentValue as pId where pId.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='PersonName') "+
-	"and pId.uuid in (select psName.measure from latestNonDeletedAentValue as psName, latestNonDeletedAentValue as psReln "+
-	"where psName.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
-	"and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+sessionId+"' "+
-	"and psName.uuid=psReln.uuid and psName.uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey "+
-	"where AttributeName='SessionIDforPerson')))) t1 inner join "+
-	"(select psName.uuid as psssId, psName.measure as psId from latestNonDeletedAentValue as psName, latestNonDeletedAentValue as psReln "+
-	"where psName.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
-	"and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+sessionId+"' "+
-	"and psName.uuid=psReln.uuid) t2 on t1.personId=t2.psId) t5 "+
-	"inner join "+
-	"(select t3.roleId as personRoleUuid, t3.roleName as personRoleName, t4.rsssId as relnId from (select rId.uuid as roleId, rId.measure as roleName "+
-	"from latestNonDeletedAentValue as rId where rId.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
-	"and rId.uuid in (select psRole.measure from latestNonDeletedAentValue as psRole, latestNonDeletedAentValue as psReln "+
-	"where psRole.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') and psReln.AttributeID=(select AttributeID "+
-	"from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+sessionId+"' and psRole.uuid=psReln.uuid))t3 "+
-	"inner join (select psRole.uuid as rsssId, psRole.measure as tempPsRoleID from latestNonDeletedAentValue as psRole, latestNonDeletedAentValue as psReln "+
-	"where psRole.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') and psReln.AttributeID=(select AttributeID "+
-	"from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+sessionId+"' "+
-	"and psRole.uuid=psReln.uuid)t4 on t3.roleId=t4.tempPsRoleID) t6 on t5.relnId =t6.relnId";	
+		"from (select t1.personId as personUuid, t1.personName as persName, t2.psssId as relnId from (select pId.uuid as personId, pId.measure as personName "+
+		"from latestNonDeletedAentValue as pId where pId.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='PersonName') "+
+		"and pId.uuid in (select psName.measure from latestNonDeletedAentValue as psName, latestNonDeletedAentValue as psReln "+
+		"where psName.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
+		"and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+sessionId+"' "+
+		"and psName.uuid=psReln.uuid and psName.uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey "+
+		"where AttributeName='SessionIDforPerson')))) t1 inner join "+
+		"(select psName.uuid as psssId, psName.measure as psId from latestNonDeletedAentValue as psName, latestNonDeletedAentValue as psReln "+
+		"where psName.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
+		"and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+sessionId+"' "+
+		"and psName.uuid=psReln.uuid) t2 on t1.personId=t2.psId) t5 "+
+		"inner join "+
+		"(select t3.roleId as personRoleUuid, t3.roleName as personRoleName, t4.rsssId as relnId from (select rId.uuid as roleId, rId.measure as roleName "+
+		"from latestNonDeletedAentValue as rId where rId.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
+		"and rId.uuid in (select psRole.measure from latestNonDeletedAentValue as psRole, latestNonDeletedAentValue as psReln "+
+		"where psRole.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') and psReln.AttributeID=(select AttributeID "+
+		"from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+sessionId+"' and psRole.uuid=psReln.uuid))t3 "+
+		"inner join (select psRole.uuid as rsssId, psRole.measure as tempPsRoleID from latestNonDeletedAentValue as psRole, latestNonDeletedAentValue as psReln "+
+		"where psRole.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') and psReln.AttributeID=(select AttributeID "+
+		"from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+sessionId+"' "+
+		"and psRole.uuid=psReln.uuid)t4 on t3.roleId=t4.tempPsRoleID) t6 on t5.relnId =t6.relnId";	
 
 	sssPsInfoRelnOrigin.clear();
 	sssPersonRoleandNameList.clear();
@@ -2309,7 +2309,7 @@ checkDuplicateAns(Boolean dupOrNot, String tempQuesId){
 
 /*** Answer UI***/
 createAnswerPage(){
-	if(!hasView("survey/answerHidden/answerLabel")){
+	if(!hasView("survey/answerFile/Finish_New_Answer")){
 		removeAllViewsAndContainers("survey");
 		executeViewTask(new ViewTask() {
 	    doTask() {
@@ -2328,9 +2328,10 @@ createAnswerPage(){
 	    	
 	    	ansTextViewDef=createViewDef().createTextField().setLabel("Answer text").setAttributeName("AnswerText").setAttributeType("measure").setAnnotationEnabled(true);
 			createView("survey/answerBasic/answerText",ansTextViewDef,"survey/answerBasic");
-	    	
-	        
+	    	//newAnsBtnDef = createViewDef().createButton().setLabel("Save Answer").setStyleCss("faims-blue");
+	        //createView("survey/answerBasic/Finish_New_Answer",newAnsBtnDef,"survey/answerFile");
 	        //answerFile page
+	        
 			newAnsBtnDef = createViewDef().createButton().setLabel("Save Answer").setStyleCss("faims-blue");
 			fileCateDef = createViewDef().createDropDown().setLabel("File Category");
 			newFileBtnDef = createViewDef().createButton().setLabel("New File").setStyleCss("faims-blue");
@@ -2339,6 +2340,7 @@ createAnswerPage(){
 	    	createView("survey/answerFile/file_Category",fileCateDef,"survey/answerFile");
 	        createView("survey/answerFile/Add_New_File",newFileBtnDef,"survey/answerFile");
 	        createView("survey/answerFile/answerFileList",fileListDef,"survey/answerFile");
+	        
 	        refreshTabgroupCSS("survey");
 			/**Events for answer**/
 			onEvent("survey/answerFile/Finish_New_Answer","click","saveNewAnswer(0)");
@@ -2348,7 +2350,36 @@ createAnswerPage(){
 			});
 	}
 }
-
+createFreeTextPage(){
+	if(!hasView("survey/answerBasic/Finish_New_Answer")){
+		removeAllViewsAndContainers("survey");
+		executeViewTask(new ViewTask() {
+	    doTask() {
+	  		//answerHidden page
+	    	hideQuesnirId=createViewDef().createTextField().setLabel("Questionnaire id").setAttributeName("AnswerQuestionnaireID").setAttributeType("measure").setReadOnly(true);
+	    	hideQuesId=createViewDef().createTextField().setLabel("Question id").setAttributeName("AnswerQuestionID").setAttributeType("measure").setReadOnly(true);
+	    	ansLabelViewDef = createViewDef().createTextField().setLabel("Answer label").setAttributeName("AnswerLabel").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+	    	ansStartTimeViewDef=createViewDef().createTextField().setLabel("Start timestamp").setAttributeName("AnswerStartTime").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+	    	ansEndTimeViewDef=createViewDef().createTextField().setLabel("End timestamp").setAttributeName("AnswerEndTime").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);
+	    	createView("survey/answerHidden/answerQuestionnaireID",hideQuesnirId,"survey/answerHidden");
+	    	createView("survey/answerHidden/answerQuestionID",hideQuesId,"survey/answerHidden");
+	    	createView("survey/answerHidden/answerLabel",ansLabelViewDef,"survey/answerHidden");
+	        createView("survey/answerHidden/answerStartTimestamp",ansStartTimeViewDef,"survey/answerHidden");
+	        createView("survey/answerHidden/answerEndTimestamp",ansEndTimeViewDef,"survey/answerHidden");
+	    	//answerBasic page
+	    	
+	    	ansTextViewDef=createViewDef().createTextField().setLabel("Answer text").setAttributeName("AnswerText").setAttributeType("measure").setAnnotationEnabled(true);
+			createView("survey/answerBasic/answerText",ansTextViewDef,"survey/answerBasic");
+	    	newAnsBtnDef = createViewDef().createButton().setLabel("Save Answer").setStyleCss("faims-blue");
+	        createView("survey/answerBasic/Finish_New_Answer",newAnsBtnDef,"survey/answerFile");
+	        
+	        refreshTabgroupCSS("survey");
+			/**Events for answer**/
+			onEvent("survey/answerBasic/Finish_New_Answer","click","saveNewAnswer(0)");
+	   		}
+			});
+	}
+}
 createChkListPage(String tempQuesId){
 	if(!hasView("survey/answerBasic/radioGrp")){
 		removeAllViewsAndContainers("survey");
@@ -2454,7 +2485,6 @@ emrSssPsLabelPrep(){
 	});
 	
     
-	
 	
 	emrSssInfo.put("sssName", emrSssName);
 	emrSssInfo.put("sssSttTime", emrSssStartTime);
@@ -3556,9 +3586,8 @@ ansUnfinQues(String tempLangId, String toAnsQuesId){
 }
 
 askExitLangList(String toAnsQuesId){
-	//showWarning("askExitLangList",toAnsQuesId);
 	if(langIntroEndQuesUuid!=null){
-		//showWarning("langIntroEndQuesUuid","langIntroEndQuesUuid");
+		cancelTabGroup("langIntroAns",true);
 		nextQuestion(langIntroEndQuesUuid,ques_in_current_quesnir,false);
 	}
 	else{
@@ -4405,7 +4434,8 @@ startNewAnswer(String typeflag){
 }
 
 startNewAnswerBasic(String current_start_time){
-	createAnswerPage();
+	createFreeTextPage();
+	//createAnswerPage();
 	newTabGroup("survey");
 	setFieldValue("survey/answerHidden/answerQuestionnaireID", current_quesnir_id);
 	setFieldValue("survey/answerHidden/answerQuestionID", current_question_id);
@@ -4413,8 +4443,8 @@ startNewAnswerBasic(String current_start_time){
 	
 	labelDeduplicate(tempAnsLabel,"AnswerLabel","survey/answerHidden/answerLabel","answer", dupAnsLblChange, dupAnsLblInfo);
 
-	populateList("survey/answerFile/answerFileList",files_in_current_ques);
-	populateDropDown("survey/answerFile/file_Category",categoryTypes);
+	//populateList("survey/answerFile/answerFileList",files_in_current_ques);
+	//populateDropDown("survey/answerFile/file_Category",categoryTypes);
 	ansOrNot=true;
 }
 
