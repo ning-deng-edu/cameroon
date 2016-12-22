@@ -536,7 +536,7 @@ createMainSessionPage(String typeflag){
 			
 			//sssAnsList page
 			saveSssButtonDef = createViewDef().createButton().setLabel("Save Session").setStyleCss("faims-blue");
-			newAnsButtonDef = createViewDef().createButton().setLabel("New Answer").setStyleCss("faims-blue");
+			newAnsButtonDef = createViewDef().createButton().setLabel("Choose Quesnir").setStyleCss("faims-blue");
 
 			//ansSelListDef=createViewDef().createList().setLabel("Selectable Answers").setAnnotationEnabled(false).setStyleCss("session-file-list");
 			ansListDef=createViewDef().createList().setLabel("Answers").setAnnotationEnabled(false).setStyleCss("session-file-list");
@@ -1088,7 +1088,7 @@ checkPersonIntro(String personID, ArrayList toAddPerson){
 				String toAddPsIdInfo=toAddPerson.get(0);
 				String toAddPsInfo=toAddPerson.get(1);
 
-				showAlert("alert", "This person has not answered introductory questionnaire \n"+"Do you still want to add this person?", 
+				showAlert("alert", "This person has not answered introductory questionnaire(s) \n"+"Please click \"Cancel\" to proceed to the introductory questionnaire(s)\n"+"or \"OK\" to skip the introductory questionnaire(s)", 
 					"addPsToSssConfirm(\""+toAddPsIdInfo+"\", \""+toAddPsInfo+"\")", "addPersonIntro(\""+personID+"\")");
 			}
 			else
@@ -6851,11 +6851,42 @@ createPersonRolePage(){
 
 	        onEvent("personRoleSelect/personRoleSelectInfo","show","loadRoles(\"newPerson\",\"personRoleSelect/personRoleSelectInfo/PersonRoleSelectList\")");
 			onEvent("personRoleSelect/personRoleSelectInfo/CreateNewPerson","click","newPersonByRole()");
+			onEvent("personRoleSelect/personRoleSelectInfo/SearchRole","click","searchPsRole()");
 	        }
 		});
 
 	}
 	showTabGroup("personRoleSelect");
+}
+
+searchPsRole(){
+	String keywordOfEntity= getFieldValue("personRoleSelect/personRoleSelectInfo/keywordOfRole").trim();
+	if((isNull(keywordOfEntity)) || (keywordOfEntity.equals("*"))){
+		if(!isNull(role_list)){
+			populateDropDown("personRoleSelect/personRoleSelectInfo/PersonRoleSelectList",role_list);
+		}
+		else{
+			loadRoles("newPerson","personRoleSelect/personRoleSelectInfo/PersonRoleSelectList");
+		}
+		
+	}
+	else{
+		searchPersonRoleQuery="select uuid, measure from latestNonDeletedAentValue where " +
+					"latestNonDeletedAentValue.Measure like '%"+ keywordOfEntity +
+					"%' and latestNonDeletedAentValue.AttributeID = "+
+					"(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
+					"AND uuid in (SELECT uuid FROM latestNonDeletedAentValue "+
+					"WHERE AttributeID= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='RoleDataOnClient') AND measure ='Yes') "+
+					"ORDER BY measure asc;";
+
+		fetchAll(searchPersonRoleQuery,new FetchCallback() {
+			onFetch(result) {
+				temp_role_list=new ArrayList();
+				temp_role_list.addAll(result);
+				populateDropDown("personRoleSelect/personRoleSelectInfo/PersonRoleSelectList", temp_role_list);
+			}  
+		});
+	}
 }
 
 loadRoles(String typeFlag, String populateRef){
@@ -7085,7 +7116,7 @@ createPersonPage(){
     		personIDViewDef= createViewDef().createTextField().setLabel("Person label").setAttributeName("PersonID").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);  		
     		personNameViewDef=createViewDef().createTextField().setLabel("Person name").setAttributeName("PersonName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");	
     		personOtherNamesViewDef=createViewDef().createTextField().setLabel("Person Other Names").setAttributeName("PersonOtherNames").setAttributeType("measure").setAnnotationEnabled(true);
-    		personDOBViewDef=createViewDef().createTextField().setLabel("Person DOB").setAttributeName("PersonDOB").setAttributeType("measure").setAnnotationEnabled(true);
+    		personDOBViewDef=createViewDef().createTextField().setLabel("Person DOB").setAttributeName("PersonDOB").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
     		personRoleViewDef=createViewDef().createTextField().setLabel("Person general role").setReadOnly(true);
    			personPhotoViewDef=createViewDef().createCameraGallery(true).setAttributeName("PersonPhoto").setAttributeType("measure").setAnnotationEnabled(true);
    			takePhotoViewDef=createViewDef().createButton().setLabel("Take Photo").setStyleCss("faims-blue");
@@ -7097,8 +7128,9 @@ createPersonPage(){
 			createView("person/personInfoHide/personID", personIDViewDef,"person/personInfoHide");
 			createView("person/personInfoHide/personRoleName", personRoleViewDef,"person/personInfoHide");
 			createView("person/personInfo/personName", personNameViewDef,"person/personInfo");
-			createView("person/personInfo/personOtherNames", personOtherNamesViewDef,"person/personInfo");
 			createView("person/personInfo/personDOB", personDOBViewDef,"person/personInfo");
+			createView("person/personInfo/personOtherNames", personOtherNamesViewDef,"person/personInfo");
+			
 			createView("person/personInfo/personPhoto", personPhotoViewDef,"person/personInfo");
 			createView("person/personInfo/Take_Photo", takePhotoViewDef,"person/personInfo");
 			createView("person/personInfo/personPhotoDesc", psPhotoDescViewDef,"person/personInfo");
