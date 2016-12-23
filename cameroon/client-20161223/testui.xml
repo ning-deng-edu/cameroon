@@ -137,8 +137,8 @@
                 </fieldTrip>
 
                 <file_control>
-                  <fileControl>
-                  </fileControl>
+                  <fileControlInfo>
+                  </fileControlInfo>
                 </file_control>
 
                 <file>
@@ -368,7 +368,7 @@
 
      <group ref="file_control">
         <label>File List</label>
-        <group ref="fileControl">
+        <group ref="fileControlInfo">
           <label>File List</label>
       </group>
     </group>

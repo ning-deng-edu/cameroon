@@ -154,10 +154,11 @@ activeFieldTripCheck(){
 
 createControlGroupView(){
 	createSurveyControlPage();
-	createFieldTripControlPage();
+	createOtherControlPage();
+	//createFieldTripControlPage();
 	createPersonControlPage();
 	createLanguageControlPage();
-	createFileControlPage();
+	//createFileControlPage();
 	createQueryControlPage();
 }
 
@@ -206,7 +207,7 @@ createSurveyControlPage(){
 }
 
 createFieldTripControlPage(){
-	if(!hasView("control/other_control/fieldTripList")){
+	if(!hasView("fieldTrip_control/fieldTripControl/fieldTripList")){
 		executeViewTask(new ViewTask() {
     	doTask() { 
     		style1 = "orientation";
@@ -214,28 +215,28 @@ createFieldTripControlPage(){
 
 	        newFTButtonDef = createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
 
-	        createView("control/other_control/fieldTrip_New_bn", newFTButtonDef,"control/other_control");
+	        createView("fieldTrip_control/fieldTripControl/fieldTrip_New_bn", newFTButtonDef,"fieldTrip_control/fieldTripControl");
 
-	        createContainer("control/other_control/fieldTripSearchCtn", "orientation");  	
-			createContainer("control/other_control/fieldTripSearchChild1", "even", "control/other_control/fieldTripSearchCtn");
-	        createContainer("control/other_control/fieldTripSearchChild2", "even", "control/other_control/fieldTripSearchCtn");
+	        createContainer("fieldTrip_control/fieldTripControl/fieldTripSearchCtn", "orientation");  	
+			createContainer("fieldTrip_control/fieldTripControl/fieldTripSearchChild1", "even", "fieldTrip_control/fieldTripControl/fieldTripSearchCtn");
+	        createContainer("fieldTrip_control/fieldTripControl/fieldTripSearchChild2", "even", "fieldTrip_control/fieldTripControl/fieldTripSearchCtn");
 
 	        searchKeywordViewDef=createViewDef().createTextField().setLabel("keyword").setAnnotationEnabled(false);
 	       	searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
 
 	        fTListDef=createViewDef().createList().setLabel("FieldTrip").setAnnotationEnabled(false).setStyleCss("survey-list");
 
-	        createView("control/other_control/fieldTrip_Search_kw", searchKeywordViewDef,"control/other_control/fieldTripSearchChild1");
-	        createView("control/other_control/fieldTrip_Search_bn", searchButtonDef,"control/other_control/fieldTripSearchChild2");
+	        createView("fieldTrip_control/fieldTripControl/fieldTrip_Search_kw", searchKeywordViewDef,"fieldTrip_control/fieldTripControl/fieldTripSearchChild1");
+	        createView("fieldTrip_control/fieldTripControl/fieldTrip_Search_bn", searchButtonDef,"fieldTrip_control/fieldTripControl/fieldTripSearchChild2");
 
-			createView("control/other_control/fieldTripList", fTListDef,"control/other_control");
+			createView("fieldTrip_control/fieldTripControl/fieldTripList", fTListDef,"fieldTrip_control/fieldTripControll");
 
-	        refreshTabgroupCSS("control");
+	        refreshTabgroupCSS("fieldTrip_control");
 
-	        onEvent("control/other_control/fieldTrip_New_bn","click","createFieldTripInfoPage(\"new\")");
-	        onEvent("control/other_control","show","loadFieldTripList()");
-	        onEvent("control/other_control/fieldTripList","click","loadFieldTripInfo()");
-	        onEvent("control/other_control/fieldTrip_Search_bn","click","entitySearch(\"fieldTrip\",\"control/other_control/fieldTrip_Search_kw\",\"control/other_control/fieldTripList\",null.null)");
+	        onEvent("fieldTrip_control/fieldTripControl/fieldTrip_New_bn","click","createFieldTripInfoPage(\"new\")");
+	        onEvent("fieldTrip_control/fieldTripControl","show","loadFieldTripList()");
+	        onEvent("fieldTrip_control/fieldTripControl/fieldTripList","click","loadFieldTripInfo()");
+	        onEvent("fieldTrip_control/fieldTripControl/fieldTrip_Search_bn","click","entitySearch(\"fieldTrip\",\"fieldTrip_control/fieldTripControl/fieldTrip_Search_kw\",\"fieldTrip_control/fieldTripControl/fieldTripList\",null.null)");
 			}
 	    
 		});
@@ -318,16 +319,16 @@ createLanguageControlPage(){
 }
 
 createFileControlPage(){
-	if(!hasView("control/file_control/fileList")){
+	if(!hasView("file_control/fileControlInfo/fileList")){
 		executeViewTask(new ViewTask() {
     	doTask() { 
     		style1 = "orientation";
 	        style2 = "even";
 
-	        createContainer("control/file_control/fileSearchCtn", "orientation");  	
-			createContainer("control/file_control/fileSearchChild1", "even", "control/file_control/fileSearchCtn");
-	        createContainer("control/file_control/fileSearchChild2", "even", "control/file_control/fileSearchCtn");
-	        createContainer("control/file_control/fileSearchChild3", "even", "control/file_control/fileSearchCtn");
+	        createContainer("file_control/fileControlInfo/fileSearchCtn", "orientation");  	
+			createContainer("file_control/fileControlInfo/fileSearchChild1", "even", "file_control/fileControlInfo/fileSearchCtn");
+	        createContainer("file_control/fileControlInfo/fileSearchChild2", "even", "file_control/fileControlInfo/fileSearchCtn");
+	        createContainer("file_control/fileControlInfo/fileSearchChild3", "even", "file_control/fileControlInfo/fileSearchCtn");
 			
 			fileTypeViewDef=createViewDef().createDropDown().setLabel("Type").setAnnotationEnabled(false);
 	        searchKeywordViewDef=createViewDef().createTextField().setLabel("keyword").setAnnotationEnabled(false);
@@ -335,16 +336,16 @@ createFileControlPage(){
 
 	        fileListDef=createViewDef().createList().setLabel("File").setAnnotationEnabled(false).setStyleCss("file-list");
 
-	        createView("control/file_control/fileCategorySelect", fileTypeViewDef,"control/file_control/fileSearchChild1");
-	        createView("control/file_control/file_keyword", searchKeywordViewDef,"control/file_control/fileSearchChild2");
-	        createView("control/file_control/File_Search", searchButtonDef,"control/file_control/fileSearchChild3");
+	        createView("file_control/fileControlInfo/fileCategorySelect", fileTypeViewDef,"file_control/fileControlInfo/fileSearchChild1");
+	        createView("file_control/fileControlInfo/file_keyword", searchKeywordViewDef,"file_control/fileControlInfo/fileSearchChild2");
+	        createView("file_control/fileControlInfo/File_Search", searchButtonDef,"file_control/fileControlInfo/fileSearchChild3");
 
-			createView("control/file_control/fileList", fileListDef,"control/file_control");
+			createView("file_control/fileControlInfo/fileList", fileListDef,"file_control/fileControlInfo");
 
-	        refreshTabgroupCSS("control");
-	        onEvent("control/file_control","show","loadFile()");
-	        onEvent("control/file_control/fileList","click","loadAnswerFileInfo(\"fileView\")");
-	        onEvent("control/file_control/File_Search","click","entitySearch(\"file\",\"control/file_control/file_keyword\",\"control/file_control/fileList\",\"control/file_control/fileCategorySelect\",null)");
+	        refreshTabgroupCSS("file_control");
+	        onEvent("file_control/fileControlInfo","show","loadFile()");
+	        onEvent("file_control/fileControlInfo/fileList","click","loadAnswerFileInfo(\"fileView\")");
+	        onEvent("file_control/fileControlInfo/File_Search","click","entitySearch(\"file\",\"file_control/fileControlInfo/file_keyword\",\"file_control/fileControlInfo/fileList\",\"file_control/fileControlInfo/fileCategorySelect\",null)");
 
 			}
 	    
@@ -352,6 +353,35 @@ createFileControlPage(){
 	}
 }
 
+createOtherControlPage(){
+	if(!hasView("control/other_control/fileControlBtn")){
+		executeViewTask(new ViewTask() {
+    	doTask() { 
+	       	ftButtonDef = createViewDef().createButton().setLabel("FieldTrip").setStyleCss("faims-blue");
+	       	fileButtonDef = createViewDef().createButton().setLabel("File").setStyleCss("faims-blue");
+
+			createView("control/other_control/ftControlBtn", ftButtonDef,"control/other_control");
+			createView("control/other_control/fileControlBtn", fileButtonDef,"control/other_control");
+
+	        refreshTabgroupCSS("control");
+	        onEvent("control/other_control/ftControlBtn","click()","showFiledTripControl()");
+	        onEvent("control/other_control/fileControlBtn","click()","showFileControl()");
+
+			}
+	    
+		});
+	}
+}
+
+showFiledTripControl(){
+	createFieldTripControlPage();
+	showTabGroup("fieldTrip_control");
+}
+
+showFileControl(){
+	createFileControlPage();
+	showTabGroup("file_control");
+}
 /**********Temp function, to be remove for official version************/
 
 createQueryControlPage(){
@@ -5706,11 +5736,11 @@ loadFile(){
 	fileCategory.add(new NameValuePair("{Video}", "Video"));
 	fileCategory.add(new NameValuePair("{Photo}", "Photo"));
 	fileCategory.add(new NameValuePair("{Other}", "Other"));
-	populateDropDown("control/file_control/fileCategorySelect",fileCategory);
-	setFieldValue("control/file_control/file_keyword","*");
+	populateDropDown("file_control/fileControlInfo/fileCategorySelect",fileCategory);
+	setFieldValue("file_control/fileControlInfo/file_keyword","*");
 	fetchAll(loadAllFileIDQuery, new FetchCallback() {
         onFetch(result) {
-            populateList("control/file_control/fileList", result);
+            populateList("file_control/fileControlInfo/fileList", result);
         }
         onError(message) {
             showToast(message);
@@ -6483,7 +6513,7 @@ loadAllFieldTripQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
 loadFieldTripList(){
 	fetchAll(loadAllFieldTripQuery, new FetchCallback() {
         onFetch(result) {
-            populateList("control/other_control/fieldTripList", result);
+            populateList("fieldTrip_control/fieldTripControl/fieldTripList", result);
         }
 
         onError(message) {
