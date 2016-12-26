@@ -65,6 +65,7 @@ login() {
             //showTabGroup("control");
             //activeFieldTripCheck();
             //createControlGroupView();
+            //showTabGroup("control");
         }
     });
 }
@@ -148,7 +149,7 @@ createFieldTripSelPage(){
 	        searchKeywordViewDef=createViewDef().createTextField().setLabel("keyword").setAnnotationEnabled(false);
 	       	searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
 
-	        fTListDef=createViewDef().createList().setLabel("FieldTrip").setAnnotationEnabled(false).setStyleCss("survey-list");
+	        fTListDef=createViewDef().createList().setLabel("Active fieldTrip").setAnnotationEnabled(false).setStyleCss("ftSel-list");
 
 	        createView("fieldTripSel/fieldTripSelInfo/fieldTripSel_Search_kw", searchKeywordViewDef,"fieldTripSel/fieldTripSelInfo/fieldTripSelSearchChild1");
 	        createView("fieldTripSel/fieldTripSelInfo/fieldTripSel_Search_bn", searchButtonDef,"fieldTripSel/fieldTripSelInfo/fieldTripSelSearchChild2");
@@ -158,8 +159,8 @@ createFieldTripSelPage(){
 	        refreshTabgroupCSS("fieldTripSel");
 
 	        onEvent("fieldTripSel/fieldTripSelInfo/fieldTripS_New_bn","click","createFieldTripInfoPage(\"new\")");
-	        onEvent("fieldTripSel/fieldTripSelInfo","show","activeFieldTripCheck()");
-	        onEvent("fieldTripSel/fieldTripSelInfo/fieldTripSelList","click","selectActiveFT()");
+	        onEvent("fieldTripSel/fieldTripSelInfo","show","activeFieldTripCheck(\"n\")");
+	        onEvent("fieldTripSel/fieldTripSelInfo/fieldTripSelList","click","selectActiveFT(null)");
 	        onEvent("fieldTripSel/fieldTripSelInfo/fieldTripSel_Search_bn","click","entitySearch(\"fieldTrip\",\"fieldTripSel/fieldTripSelInfo/fieldTripSel_Search_kw\",\"fieldTripSel/fieldTripSelInfo/fieldTripSelList\",null,null)");
 			}
 	    
@@ -169,10 +170,13 @@ createFieldTripSelPage(){
 
 activeFieldTrip=new ArrayList();
 String activeFieldTripId=null;
-activeFieldTripCheck(){
+activeFieldTripCheck(String typeflag){
+	//FORMAT:YYYY-MM-DD
 	String currentDate=getCurrentDate();
+	//showWarning("currentDate",currentDate);
 	activeFieldTrip.clear();
 	//search for fieldTrip that this date is in
+	/*
 	fieldTripSearchQuery="select uuid from latestNonDeletedAentValue "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripStartTime') "+
 		"and measure <='"+currentDate+"' and uuid in "+
@@ -182,22 +186,74 @@ activeFieldTripCheck(){
 		"(select uuid from latestNonDeletedAentValue where "+
 		"AttributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripID') "+
 		"and measure like '"+username+"%'))";
+	*/
+	fieldTripSearchQuery="select FT.uuid, FT.measure from "+
+	"latestNonDeletedAentValue as FT,latestNonDeletedAentValue as FTS, latestNonDeletedAentValue as FTE "+
+	"where FT.AttributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripName') "+
+	"and FTS.AttributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripStartTime') "+
+	"AND FTE.AttributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripEndTime') "+
+	"and FT.uuid=FTS.uuid AND FT.uuid=FTE.uuid "+
+	"AND FTS.measure <='"+currentDate+"' "+
+	"AND FTE.measure >='"+currentDate+"' "+
+	"and FT.uuid in (select uuid from latestNonDeletedArchEntIdentifiers "+
+		"where attributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripID')) ORDER BY FT.uuid desc";
 
 	fetchAll(fieldTripSearchQuery, new FetchCallback() {
         onFetch(result) {
-           	//if(!isNull(result)){
-           		//activeFieldTrip.addAll(result);
-           	populateList("fieldTripSel/fieldTripSelInfo/fieldTripSelList",result);
-           	//}
-           	
+        	if(typeflag.equals("n")){
+        		populateList("fieldTripSel/fieldTripSelInfo/fieldTripSelList", result);
+        	}
+			
+		}
+        onError(message) {
+        	showWarning("Error","Plese report to the admin by the code'activeFieldTripCheck'");
         }
     });
 }
 
-selectActiveFT(){
-activeFieldTripId=getListItemValue();
-	if(!isNull(activeFieldTripId)){
+checkNewFTActive(String tempfTStartTime, String tempfTEndTime, String tempfTUuid){
+	//showWarning("tempfTStartTime",tempfTStartTime);
+	//showWarning("tempfTEndTime",tempfTEndTime);
+	String currentDate=getCurrentDate();
+	DateFormat df=new SimpleDateFormat("yyyy-MM-dd");
+	try{
+		Date sdt=df.parse(tempfTStartTime);
+		Date edt=df.parse(tempfTEndTime);
+		Date cdt=df.parse(currentDate);
+		if(cdt.compareTo(sdt)>=0 && cdt.compareTo(edt)<=0){
+			//showWarning("ac","ac");
+			selActFtAlert(tempfTUuid);
+			//selectActiveFT(tempfTUuid);
+		}
+		else{
+			//showWarning("af","af");
+			activeFieldTripCheck("n");
+		}
+	}
+	catch(Exception excption){
+		showWarning("Exception","excption happened, please report to the admin by the code 'checkNewFTActive'");
+		return;
+	}
+}
+
+selActFtAlert(String tempNewFtUuid){
+	showAlert("Active FieldTrip","Do you want to use the new created FieldTrip as the active FieldTrip?","selectActiveFT(\""+tempNewFtUuid+"\")","activeFieldTripCheck(\"n\")");
+}
+
+selectActiveFT(String tempFTId){
+	if(tempFTId!=null){
+		activeFieldTripId=tempFTId;
+	}
+	else{
+		activeFieldTripId=getListItemValue();	
+	}
+	//showWarning("tempFTId",activeFieldTripId);
+	if(activeFieldTripId!=null && !activeFieldTripId.equals("")){
+		//showWarning("activeFieldTripId","activeFieldTripId");
+		cancelTabGroup("fieldTripSel",false);
+		activeFieldTrip.clear();
 		activeFieldTrip.add(activeFieldTripId);
+		showToast("active fieldTrip selected");
 		createControlGroupView();
 		showTabGroup("control");
 	}
@@ -241,7 +297,7 @@ createSurveyControlPage(){
 	        searchKeywordViewDef=createViewDef().createTextField().setLabel("keyword").setAnnotationEnabled(false);
 	       	sssTypeViewDef=createViewDef().createDropDown().setLabel("Type").setAnnotationEnabled(false);
 	       	searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
-	        sssListDef=createViewDef().createList().setLabel("Session").setAnnotationEnabled(false).setStyleCss("file-list");
+	        sssListDef=createViewDef().createList().setLabel("Session").setAnnotationEnabled(false).setStyleCss("session-list");
 
 	        createView("control/survey_control/survey_keyword", searchKeywordViewDef,"control/survey_control/surveySearchChild1");
 	        createView("control/survey_control/survey_type", sssTypeViewDef,"control/survey_control/surveySearchChild2");
@@ -279,7 +335,7 @@ createFieldTripControlPage(){
 	        searchKeywordViewDef=createViewDef().createTextField().setLabel("keyword").setAnnotationEnabled(false);
 	       	searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
 
-	        fTListDef=createViewDef().createList().setLabel("FieldTrip").setAnnotationEnabled(false).setStyleCss("survey-list");
+	        fTListDef=createViewDef().createList().setLabel("FieldTrip").setAnnotationEnabled(false).setStyleCss("fieldTrip-list");
 
 	        createView("fieldTrip_control/fieldTripControl/fieldTrip_Search_kw", searchKeywordViewDef,"fieldTrip_control/fieldTripControl/fieldTripSearchChild1");
 	        createView("fieldTrip_control/fieldTripControl/fieldTrip_Search_bn", searchButtonDef,"fieldTrip_control/fieldTripControl/fieldTripSearchChild2");
@@ -316,7 +372,7 @@ createPersonControlPage(){
 	        searchKeywordViewDef=createViewDef().createTextField().setLabel("keyword").setAnnotationEnabled(false);
 	       	searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
 
-	        pSListDef=createViewDef().createList().setLabel("Person").setAnnotationEnabled(false).setStyleCss("file-list");
+	        pSListDef=createViewDef().createList().setLabel("Person").setAnnotationEnabled(false).setStyleCss("person-list");
 
 	        createView("control/user_control/person_keyword", searchKeywordViewDef,"control/user_control/psSearchChild1");
 	        createView("control/user_control/Person_Search", searchButtonDef,"control/user_control/psSearchChild2");
@@ -354,7 +410,7 @@ createLanguageControlPage(){
 	        searchKeywordViewDef=createViewDef().createTextField().setLabel("keyword").setAnnotationEnabled(false);
 	       	searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
 
-	        langListDef=createViewDef().createList().setLabel("Language").setAnnotationEnabled(false).setStyleCss("file-list");
+	        langListDef=createViewDef().createList().setLabel("Language").setAnnotationEnabled(false).setStyleCss("language-list");
 
 	        createView("control/language_control/language_keyword", searchKeywordViewDef,"control/language_control/langSearchChild1");
 	        createView("control/language_control/Language_Search", searchButtonDef,"control/language_control/langSearchChild2");
@@ -419,8 +475,8 @@ createOtherControlPage(){
 			createView("control/other_control/fileControlBtn", fileButtonDef,"control/other_control");
 
 	        refreshTabgroupCSS("control");
-	        onEvent("control/other_control/ftControlBtn","click()","showFiledTripControl()");
-	        onEvent("control/other_control/fileControlBtn","click()","showFileControl()");
+	        onEvent("control/other_control/ftControlBtn","click","showFiledTripControl()");
+	        onEvent("control/other_control/fileControlBtn","click","showFileControl()");
 
 			}
 	    
@@ -501,7 +557,7 @@ createQuesnirList(){
 	        searchTextViewDef = createViewDef().createTextField().setLabel("Keyword").setInfoEnabled(true);
 	        searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
 	        
-	        quesnirListDef=createViewDef().createList().setLabel("Questionnaires").setStyleCss("questionnaire-list");
+	        quesnirListDef=createViewDef().createList().setLabel("Questionnaires").setStyleCss("allQuesnir-list");
 
 	        createView("questionnaireListAll/questionnaireListInfo/quesnir_keyword", searchTextViewDef,"questionnaireListAll/questionnaireListInfo/child1");
 	        createView("questionnaireListAll/questionnaireListInfo/quesnir_Search", searchButtonDef,"questionnaireListAll/questionnaireListInfo/child2");
@@ -535,7 +591,7 @@ createQuesSel(){
 	        createView("questionnaireInfo/surveyQuesnirHidden/surveyQuestionnaireDescription", descTextViewDef,"questionnaireInfo/surveyQuesnirHidden");
 	    		    	
 
-	        quesSelListDef=createViewDef().createList().setLabel("Questions").setStyleCss("survey-list");
+	        quesSelListDef=createViewDef().createList().setLabel("Questions").setStyleCss("quesInQuesnir-list");
 
 	        style1 = "orientation";
 	        style2 = "even";
@@ -609,7 +665,7 @@ createMainSessionPage(String typeflag){
 	        addPsButtonDef = createViewDef().createButton().setLabel("Add").setStyleCss("faims-blue");
 	        newPsButtonDef = createViewDef().createButton().setLabel("New").setStyleCss("faims-blue");
 	        
-	        psListDef=createViewDef().createList().setLabel("Session person list").setAnnotationEnabled(false).setStyleCss("session-list");
+	        psListDef=createViewDef().createList().setLabel("Session person list").setAnnotationEnabled(false).setStyleCss("sssSelPs-list");
 
 	        createView("sessionForAnswer/sssPersonInfo/sssPersonRole", psRoleListDef,"sessionForAnswer/sssPersonInfo/sssPsSelCtchild1");
 	        createView("sessionForAnswer/sssPersonInfo/sssPersonName", psNameListDef,"sessionForAnswer/sssPersonInfo/sssPsSelCtchild2");
@@ -624,7 +680,7 @@ createMainSessionPage(String typeflag){
 			newAnsButtonDef = createViewDef().createButton().setLabel("Choose Quesnir").setStyleCss("faims-blue");
 
 			//ansSelListDef=createViewDef().createList().setLabel("Selectable Answers").setAnnotationEnabled(false).setStyleCss("session-file-list");
-			ansListDef=createViewDef().createList().setLabel("Answers").setAnnotationEnabled(false).setStyleCss("session-file-list");
+			ansListDef=createViewDef().createList().setLabel("Answers").setAnnotationEnabled(false).setStyleCss("sssAns-list");
 
 			createView("sessionForAnswer/sssAnsList/Save_Session", saveSssButtonDef,"sessionForAnswer/sssAnsList");
 	        createView("sessionForAnswer/sssAnsList/New_Answer_In_Session", newAnsButtonDef,"sessionForAnswer/sssAnsList");
@@ -2420,7 +2476,7 @@ createAnswerPage(){
 			newAnsBtnDef = createViewDef().createButton().setLabel("Save Answer").setStyleCss("faims-blue");
 			fileCateDef = createViewDef().createDropDown().setLabel("File Category");
 			newFileBtnDef = createViewDef().createButton().setLabel("New File").setStyleCss("faims-blue");
-			fileListDef=createViewDef().createList().setLabel("Answer files").setStyleCss("answerFile-list");
+			fileListDef=createViewDef().createList().setLabel("Answer files").setStyleCss("ansFile-list");
 			createView("survey/answerFile/Finish_New_Answer",newAnsBtnDef,"survey/answerFile");
 	    	createView("survey/answerFile/file_Category",fileCateDef,"survey/answerFile");
 	        createView("survey/answerFile/Add_New_File",newFileBtnDef,"survey/answerFile");
@@ -2886,7 +2942,7 @@ createLoopQuesList(){
 	removeAllViewsAndContainers("langIntroQues");
 	executeViewTask(new ViewTask() {
     doTask() {
-        quesSelListDef=createViewDef().createList().setLabel("Questions").setStyleCss("questionQuestionnaire-list");
+        quesSelListDef=createViewDef().createList().setLabel("Questions").setStyleCss("loopQues-list");
         createView("langIntroQues/langIntroQuesInfo/loopQues", quesSelListDef,"langIntroQues/langIntroQuesInfo");
         refreshTabgroupCSS("langIntroQues");
         onEvent("langIntroQues/langIntroQuesInfo/loopQues","click","checkAnsweredLangQues()");
@@ -6507,8 +6563,8 @@ createFieldTripInfoPage(String typeflag){
 	    	createContainer("fieldTrip/fieldTripSession/child1", "even", "fieldTrip/fieldTripSession/field_session_ct");
 	        createContainer("fieldTrip/fieldTripSession/child2", "even", "fieldTrip/fieldTripSession/field_session_ct");
 	        
-	        ftFileListDef=createViewDef().createList().setLabel("Session").setStyleCss("session-file-list");
-	        ftSelFileListDef=createViewDef().createList().setLabel("Select session").setStyleCss("session-file-list");
+	        ftFileListDef=createViewDef().createList().setLabel("Session").setStyleCss("ft-sss-list");
+	        ftSelFileListDef=createViewDef().createList().setLabel("Select session").setStyleCss("ft-sss-list");
 	        ftSaveBtnDef=createViewDef().createButton().setLabel("Save").setStyleCss("faims-blue");
 	        createView("fieldTrip/fieldTripSession/fieldTripFileList", ftFileListDef,"fieldTrip/fieldTripSession/child1");
 	        createView("fieldTrip/fieldTripSession/fieldTripFileSelectionList", ftSelFileListDef,"fieldTrip/fieldTripSession/child2");
@@ -6648,9 +6704,13 @@ saveNewFieldTrip(String startDate, String endDate){
 				    		  saveEntitiesToRel("Session and FieldTrip",fieldTrip_id,session.get(0));
 				    	  }
 				        showToast("New fieldtrip record created");
+				        if(activeFieldTrip==null || activeFieldTrip.isEmpty()){
+				        	checkNewFTActive(startDate,endDate,fieldTrip_id);  	
+				        }
 				        cancelTabGroup("fieldTrip",true);
-				        showTab("control/other_control");
-				        activeFieldTripCheck();
+				        
+				        //showTab("control/other_control");
+				        //activeFieldTripCheck("a");
 				      }
 				    }
 				    onError(message) {
@@ -6672,6 +6732,13 @@ saveNewFieldTrip(String startDate, String endDate){
 }
 
 updateFieldTrip(String startDate, String endDate){
+	if(!isNull(activeFieldTrip) && fieldTrip_id.equals(activeFieldTrip.get(0))){
+		String currentDate=getCurrentDate();
+		if(!dateCompare(startDate,currentDate,endDate)){
+			showWarning("Invalid operation","The fieldTrip you are updating is the active fieldTrip:\n"+"the start date must smaller than or equals to "+currentDate+" and\n"+"the end date must be greater than or equals to "+currentDate);
+			return;
+		}
+	}
 	tempFtLabel=username+"_FieldTrip_"+startDate;
 			//showWarning("tempFtLabel",tempFtLabel);
 	ftDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
@@ -6709,7 +6776,7 @@ updateFieldTrip(String startDate, String endDate){
 				updateFieldTripSssList(fieldTripSessionChange);
 				showToast("session in fieldTrip updated");
 				cancelTabGroup("fieldTrip",true);
-	        	showTab("control/other_control");
+	        	//showTab("control/other_control");
 			}
 
 			else if(!fieldTripInfoChange.containsKey("EQUAL") && fieldTripSessionChange.containsKey("EQUAL")){
@@ -6736,9 +6803,12 @@ updateFieldTripBasicInfo(String startDate, String endDate, Boolean sssListChange
 	    		}	
 	    	}
 	        showToast("fieldTrip data changed");
-	        activeFieldTripCheck();
+	        if(activeFieldTrip==null || activeFieldTrip.isEmpty()){
+	        	checkNewFTActive(startDate,endDate,fieldTrip_id);
+	        }
+	        //activeFieldTripCheck("a");
 	        cancelTabGroup("fieldTrip",true);
-	        showTab("control/other_control");
+	        //showTab("control/other_control");
 
 	    }
 	    onError(message) {
@@ -7520,7 +7590,7 @@ createPsInTroSssPage(){
     	doTask() { 	
    			newIntroSssViewDef=createViewDef().createButton().setLabel("New Session").setStyleCss("faims-blue");
     
-    		psIntroSssListDef=createViewDef().createList().setLabel("Session").setStyleCss("survey-list");
+    		psIntroSssListDef=createViewDef().createList().setLabel("Session").setStyleCss("introSss-list");
 
 			createView("introSssList/introSssInfo/new_intro_sss", newIntroSssViewDef,"introSssList/introSssInfo");
 			createView("introSssList/introSssInfo/intrSessionList", psIntroSssListDef,"introSssList/introSssInfo");
@@ -7868,6 +7938,7 @@ systemDateValidation(String dateStr){
 }
 /*
 ** get the current data through the system function of getCurrentTime()
+** currentTime: YYYY-MM-DD HH:MM:SS
 */
 getCurrentDate(){
 	String currentTime=getCurrentTime();
@@ -7928,6 +7999,8 @@ dateCompare(String beginDate, String middleDate, String endDate){
 	}
 	return false;
 }
+
+
 
 /*
 **stay in the current page
