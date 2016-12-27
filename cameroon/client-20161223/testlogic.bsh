@@ -1014,6 +1014,68 @@ takePoint() {
     }
 }
 
+setItvrAuto(){
+	String itvrId=null;
+	for(role: personRoleList){
+		if(role.get(1).equals("interviewer")){
+			itvrId=role.get(0);
+			break;
+		}
+	}
+	if(itvrId==null){
+		showWarning("No enough necessary data","No information of the role 'interviewer', please contact the admin for details");
+		return;
+	}
+
+	checkPsInDbQuery="select uuid from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+			"and measure='"+username+"'";
+
+	fetchOne(checkPsInDbQuery,new FetchCallback() {
+		onFetch(result) {
+			if (isNull(result) || result.isEmpty()) {
+				saveNewItvrAuto(itvrId);
+			}
+			else{
+				autoIntvr=new ArrayList();
+				autoIntvr.add(itvrId+"_"+result.get(0));
+				autoIntvr.add("interviewer"+"_"+username);
+				sssPersonRoleandNameList.add(autoIntvr);
+				populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList); 
+			}
+
+		}
+		onError(message) {
+			showToast(message);
+		}
+	});
+
+}
+
+saveNewItvrAuto(String itvrId){	
+	//save the new interviewer
+	iPsAttributes=createAttributeList(); 
+	iPsAttributes.add(createEntityAttribute("PersonID", null, null, username+"_0000-00-00", null));
+	iPsAttributes.add(createEntityAttribute("PersonName", null, null, username, null));
+	iPsAttributes.add(createEntityAttribute("PersonDOB", null, null, "0000-00-00", null));
+	iPsAttributes.add(createEntityAttribute("PersonRole", null, null, itvrId, null));
+	iPsAttributes.add(createEntityAttribute("PersonPhotoDescription", null, null, "Temporary interviewer", null));
+	iPsAttributes.add(createEntityAttribute("PersonIntroQuenirDesp", null, null, "Temporary interviewer", null));
+
+	saveArchEnt(null, "Person", null, iPsAttributes, new SaveCallback() {
+		onSave(iPsUuid,newRecord) {
+			autoIntvr=new ArrayList();
+			autoIntvr.add(itvrId+"_"+iPsUuid);
+			autoIntvr.add("interviewer"+"_"+username);
+			sssPersonRoleandNameList.add(autoIntvr);
+			populateList("sessionForAnswer/sssPersonInfo/sssPersonList",sssPersonRoleandNameList); 
+		}  
+		onError(message){
+			showToast("Failed setting interviewer");
+		}
+	});
+
+}
+
 newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 	createMainSessionPage("n");
 	initSessionVar();
@@ -1074,6 +1136,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 						}
 						
 					}
+					
 					//showWarning("psRole","psRole");
 				}
 				fetchAll(loadAllPersonQuery,new FetchCallback() {
@@ -1081,7 +1144,7 @@ newSessionForAnswer(String typeflag, ArrayList newAddedPerson){
 						if (!isNull(fetchResult)) {
 							personList.addAll(fetchResult);
 							populateDropDown("sessionForAnswer/sssPersonInfo/sssPersonName", personList);	
-							
+							setItvrAuto();
 						}	
 						else{
 					    	showWarning("No person data","No person data is available, please contact the admin");
@@ -4358,7 +4421,7 @@ answerInfoNew=new ArrayList();
 ansFileOriginReln=new ArrayList();
 
 ansLabelFstPart=null;//QuestionID+"Answer"
-ansLabelMidPart=null;//Interviewee("EtAl")
+ansLabelMidPart=null;//consultant("EtAl")
 ansLabelSndPart=null;//Date of interview
 
 tempAnsLabel=null;//tempAnsLabel, for trigger of changing answer label
