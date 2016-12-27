@@ -8319,10 +8319,14 @@ nextQuestion(String curntQuesId, ArrayList questionList, Boolean chkQues){
 			break;
 		}
 	}
+	
 	if(idxCrntQues!=questionList.size()-1){
 		nextQuesId=questionList.get(idxCrntQues+1).get(0);
 		nextQuesContent=questionList.get(idxCrntQues+1).get(1);
 		showAlert("Next question","Do you want to go to the next question:\n"+nextQuesContent,"checkPersonAns(\""+nextQuesId+"\")","stayInCurrentPage()");
+		if(idxCrntQues==questionList.size()-2){
+			showWarning("Reaching last question","Reminder: you are reaching the last question of this questionnaire");
+		}
 	}
 	if(chkQues){
 		cancelTabGroup("survey",true);
