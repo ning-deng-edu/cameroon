@@ -62,10 +62,6 @@ login() {
             userid=result.get(0);
             createFieldTripSelPage();
             showTabGroup("fieldTripSel");
-            //showTabGroup("control");
-            //activeFieldTripCheck();
-            //createControlGroupView();
-            //showTabGroup("control");
         }
     });
 }
@@ -131,6 +127,8 @@ onSyncFailure() {
     showToast("sync failed");
 }
 /*** Thing to do when login ***/
+placeholderList=new ArrayList();
+placeholderList.add(new NameValuePair("loading data","l"));
 createFieldTripSelPage(){
 	if(!hasView("fieldTripSel/fieldTripSelInfo/fieldTripSelList")){
 		executeViewTask(new ViewTask() {
@@ -149,13 +147,13 @@ createFieldTripSelPage(){
 	        searchKeywordViewDef=createViewDef().createTextField().setLabel("keyword").setAnnotationEnabled(false);
 	       	searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
 
-	        fTListDef=createViewDef().createList().setLabel("Active fieldTrip").setAnnotationEnabled(false).setStyleCss("ftSel-list");
-
-	        createView("fieldTripSel/fieldTripSelInfo/fieldTripSel_Search_kw", searchKeywordViewDef,"fieldTripSel/fieldTripSelInfo/fieldTripSelSearchChild1");
+	       	createView("fieldTripSel/fieldTripSelInfo/fieldTripSel_Search_kw", searchKeywordViewDef,"fieldTripSel/fieldTripSelInfo/fieldTripSelSearchChild1");
 	        createView("fieldTripSel/fieldTripSelInfo/fieldTripSel_Search_bn", searchButtonDef,"fieldTripSel/fieldTripSelInfo/fieldTripSelSearchChild2");
 
+	        fTListDef=createViewDef().createList().setLabel("Active fieldTrip").setAnnotationEnabled(false).setStyleCss("ftSel-list");
 			createView("fieldTripSel/fieldTripSelInfo/fieldTripSelList", fTListDef,"fieldTripSel/fieldTripSelInfo");
-
+			
+			populateList("fieldTripSel/fieldTripSelInfo/fieldTripSelList",placeholderList);
 	        refreshTabgroupCSS("fieldTripSel");
 
 	        onEvent("fieldTripSel/fieldTripSelInfo/fieldTripS_New_bn","click","createFieldTripInfoPage(\"new\")");
@@ -304,7 +302,7 @@ createSurveyControlPage(){
 	        createView("control/survey_control/Survey_Search", searchButtonDef,"control/survey_control/surveySearchChild3");
 
 			createView("control/survey_control/surveyList", sssListDef,"control/survey_control");
-
+			//populateList("fieldTripSel/fieldTripSelInfo/fieldTripSelList",placeholderList);
 	        refreshTabgroupCSS("control");
 	        onEvent("control/survey_control/New_Survey","click","preNewSss()");
 	        onEvent("control/survey_control","show","loadSessionList(\"answer\")");
@@ -341,7 +339,7 @@ createFieldTripControlPage(){
 	        createView("fieldTrip_control/fieldTripControl/fieldTrip_Search_bn", searchButtonDef,"fieldTrip_control/fieldTripControl/fieldTripSearchChild2");
 
 			createView("fieldTrip_control/fieldTripControl/fieldTripList", fTListDef,"fieldTrip_control/fieldTripControl");
-
+			populateList("fieldTrip_control/fieldTripControl/fieldTripList",placeholderList);
 	        refreshTabgroupCSS("fieldTrip_control");
 
 	        onEvent("fieldTrip_control/fieldTripControl/fieldTrip_New_bn","click","createFieldTripInfoPage(\"new\")");
@@ -452,7 +450,7 @@ createFileControlPage(){
 	        createView("file_control/fileControlInfo/File_Search", searchButtonDef,"file_control/fileControlInfo/fileSearchChild3");
 
 			createView("file_control/fileControlInfo/fileList", fileListDef,"file_control/fileControlInfo");
-
+			populateList("file_control/fileControlInfo/fileList",placeholderList);
 	        refreshTabgroupCSS("file_control");
 	        onEvent("file_control/fileControlInfo","show","loadFile()");
 	        onEvent("file_control/fileControlInfo/fileList","click","loadAnswerFileInfo(\"fileView\")");
@@ -557,7 +555,7 @@ createQuesnirList(){
 	        searchTextViewDef = createViewDef().createTextField().setLabel("Keyword").setInfoEnabled(true);
 	        searchButtonDef = createViewDef().createButton().setLabel("Search").setStyleCss("faims-blue");
 	        
-	        quesnirListDef=createViewDef().createList().setLabel("Questionnaires").setStyleCss("allQuesnir-list");
+	        quesnirListDef=createViewDef().createList().setLabel("Questionnaires");
 
 	        createView("questionnaireListAll/questionnaireListInfo/quesnir_keyword", searchTextViewDef,"questionnaireListAll/questionnaireListInfo/child1");
 	        createView("questionnaireListAll/questionnaireListInfo/quesnir_Search", searchButtonDef,"questionnaireListAll/questionnaireListInfo/child2");
@@ -605,7 +603,7 @@ createQuesSel(){
 			createView("questionnaireInfo/surveyQuestionnaire/ques_keyword", searchTextViewDef,"questionnaireInfo/surveyQuestionnaire/child1");
 	        createView("questionnaireInfo/surveyQuestionnaire/ques_Search", searchButtonDef,"questionnaireInfo/surveyQuestionnaire/child2");
 	        createView("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", quesSelListDef,"questionnaireInfo/surveyQuestionnaire");
-	    	 
+	    	populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire",placeholderList);
 	        refreshTabgroupCSS("questionnaireInfo");
 	        //showTabGroup("fieldTrip");
 	        onEvent("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire","click","checkClickValidity(null)");
@@ -674,7 +672,7 @@ createMainSessionPage(String typeflag){
 			createView("sessionForAnswer/sssPersonInfo/Add_Person", addPsButtonDef,"sessionForAnswer/sssPersonInfo/sssPsBtnCtchild2");
 
 			createView("sessionForAnswer/sssPersonInfo/sssPersonList", psListDef,"sessionForAnswer/sssPersonInfo");
-			
+			populateList("sessionForAnswer/sssPersonInfo/sssPersonList",placeholderList);
 			//sssAnsList page
 			saveSssButtonDef = createViewDef().createButton().setLabel("Save Session").setStyleCss("faims-blue");
 			newAnsButtonDef = createViewDef().createButton().setLabel("Choose Quesnir").setStyleCss("faims-blue");
@@ -687,7 +685,7 @@ createMainSessionPage(String typeflag){
 
 	        //createView("sessionForAnswer/sssAnsList/sssAnsSelList", ansSelListDef,"sessionForAnswer/sssAnsList");
 	        createView("sessionForAnswer/sssAnsList/sssAnswerList", ansListDef,"sessionForAnswer/sssAnsList");
-
+			populateList("sessionForAnswer/sssAnsList/sssAnswerList",placeholderList);
 	        refreshTabgroupCSS("sessionForAnswer");
 
 	        onEvent("sessionForAnswer/sssAnsList/New_Answer_In_Session","click","checkNewAnsTime()");
@@ -1027,13 +1025,20 @@ setItvrAuto(){
 		return;
 	}
 
-	checkPsInDbQuery="select uuid from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
-			"and measure='"+username+"' "+
-			"AND uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(Select AttributeID from AttributeKey='PersonID'))";
+	//checkPsInDbQuery="select uuid from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+	//		"and measure='"+username+"' "+
+	//		"AND uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(Select AttributeID from AttributeKey='PersonID'))";
+	//showWarning("username",username);
+	checkPsInDbQuery="select uuid from latestNonDeletedAentValue "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+		"and measure='"+username+"' "+
+		"and uuid in (select uuid from latestNonDeletedArchEntIdentifiers "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonID'))";
 
 	fetchOne(checkPsInDbQuery,new FetchCallback() {
 		onFetch(result) {
 			if (isNull(result) || result.isEmpty()) {
+				//showWarning("no interviewer","no interviewer");
 				saveNewItvrAuto(itvrId);
 			}
 			else{
@@ -1054,6 +1059,7 @@ setItvrAuto(){
 
 saveNewItvrAuto(String itvrId){	
 	//save the new interviewer
+	//showWarning("saveNewItvrAuto","saveNewItvrAuto");
 	iPsAttributes=createAttributeList(); 
 	iPsAttributes.add(createEntityAttribute("PersonID", null, null, username+"_0000-00-00", null));
 	iPsAttributes.add(createEntityAttribute("PersonName", null, null, username, null));
@@ -1064,6 +1070,7 @@ saveNewItvrAuto(String itvrId){
 
 	saveArchEnt(null, "Person", null, iPsAttributes, new SaveCallback() {
 		onSave(iPsUuid,newRecord) {
+			showToast("new interviewer profile created");
 			autoIntvr=new ArrayList();
 			autoIntvr.add(itvrId+"_"+iPsUuid);
 			autoIntvr.add("interviewer"+"_"+username);
@@ -2553,7 +2560,7 @@ createAnswerPage(){
 	    	createView("survey/answerFile/file_Category",fileCateDef,"survey/answerFile");
 	        createView("survey/answerFile/Add_New_File",newFileBtnDef,"survey/answerFile");
 	        createView("survey/answerFile/answerFileList",fileListDef,"survey/answerFile");
-	        
+	        populateList("survey/answerFile/answerFileList",placeholderList);
 	        refreshTabgroupCSS("survey");
 			/**Events for answer**/
 			onEvent("survey/answerFile/Finish_New_Answer","click","saveNewAnswer(0)");
@@ -2664,17 +2671,22 @@ emrSssPsLabelPrep(){
 	emrSssIntvName=username+emrSssStartTime.replaceAll("[^0-9]","");
 	emrSssIntvId=userid;
 	emrSssLabel=null;
-	checkPsInDbQuery="select uuid from latestNonDeletedAentValue where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
-			"and measure='"+username+"'";
+	checkPsInDbQuery="select uuid from latestNonDeletedAentValue "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+		"and measure='"+username+"' "+
+		"and uuid in (select uuid from latestNonDeletedArchEntIdentifiers "+
+		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonID'))";
 
 	fetchOne(checkPsInDbQuery,new FetchCallback() {
 		onFetch(result) {
 			if (isNull(result) || result.isEmpty()) {	
+				//showWarning("checkPsInDbQueryF","checkPsInDbQueryF");
 				emrIveExist=false;
 				emrSssPsInfoPrep(emrSssCnsltntId, emrSssCnsltntName, emrSssIntvId, emrSssIntvName);
 			}
 			else{
 				emrIveExist=true;
+				//showWarning("checkPsInDbQuery","checkPsInDbQuery");
 				emrSssPsInfoPrep(emrSssCnsltntId, emrSssCnsltntName, result.get(0),username);
 			}
 
@@ -2697,8 +2709,6 @@ emrSssPsLabelPrep(){
 		}
 	});
 	
-    
-	
 	emrSssInfo.put("sssName", emrSssName);
 	emrSssInfo.put("sssSttTime", emrSssStartTime);
 
@@ -2709,11 +2719,11 @@ emrSssPsLabelPrep(){
 }
 
 emrSssPsInfoPrep(String tempEmrCnsId, String tempEmrCnsName, String tempEmrItvId, String tempEmrItvName){
-	loadCnsltntRoleIdQuery="select uuid from latestNonDeletedAentValue "+
+	loadCnsltntRoleIdQuery="select uuid from latestNonDeletedArchEntIdentifiers "+
 	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
 	"and measure ='consultant'";
 
-	loadItvwrRoleIdQuery="select uuid from latestNonDeletedAentValue "+
+	loadItvwrRoleIdQuery="select uuid from latestNonDeletedArchEntIdentifiers "+
 	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
 	"and measure ='interviewer'";
 
@@ -2941,6 +2951,7 @@ saveEmrPsInSss(String sessionId){
 			sssPersonRoleNameListOrigin.add(emrPsInfo.get(0).get(0)+"_"+emrPsInfo.get(0).get(1));
 
 			if(!emrIveExist){
+				//showWarning("new interviewer","new interviewer");
 				iPsAttributes=createAttributeList(); 
 				iPsAttributes.add(createEntityAttribute("PersonID", null, null, username+"_0000-00-00", null));
 				iPsAttributes.add(createEntityAttribute("PersonName", null, null, username, null));
@@ -2968,7 +2979,8 @@ saveEmrPsInSss(String sessionId){
 					}  
 				});
 			}
-			else{
+			else if(emrIveExist){
+				//showWarning("interviewer exisits","interviewer exisits");
 				sssPsRoleAttributes= createAttributeList();
 				sssPsRoleAttributes.add(createEntityAttribute("SessionIDforPerson", null, null, sessionId, null));
 				sssPsRoleAttributes.add(createEntityAttribute("SessionPersonName", null, null, emrPsInfo.get(1).get(1), null));
@@ -3016,6 +3028,7 @@ createLoopQuesList(){
     doTask() {
         quesSelListDef=createViewDef().createList().setLabel("Questions").setStyleCss("loopQues-list");
         createView("langIntroQues/langIntroQuesInfo/loopQues", quesSelListDef,"langIntroQues/langIntroQuesInfo");
+        populateList("langIntroQues/langIntroQuesInfo/loopQues",placeholderList);
         refreshTabgroupCSS("langIntroQues");
         onEvent("langIntroQues/langIntroQuesInfo/loopQues","click","checkAnsweredLangQues()");
    		}
@@ -6643,7 +6656,8 @@ createFieldTripInfoPage(String typeflag){
 	        createView("fieldTrip/fieldTripSession/fieldTripFileList", ftFileListDef,"fieldTrip/fieldTripSession/child1");
 	        createView("fieldTrip/fieldTripSession/fieldTripFileSelectionList", ftSelFileListDef,"fieldTrip/fieldTripSession/child2");
 	        createView("fieldTrip/fieldTripSession/Finish_New_FieldTrip", ftSaveBtnDef,"fieldTrip/fieldTripSession");
-	
+			populateList("fieldTrip/fieldTripSession/fieldTripFileList",placeholderList);
+			populateList("fieldTrip/fieldTripSession/fieldTripFileSelectionList",placeholderList);
 	        //fieldTripBasicInfoHidden page
 	        startdateViewDef = createViewDef().createTextField().setLabel("startdate").setAttributeName("FieldTripStartTime").setAttributeType("measure");
 	        enddateViewDef = createViewDef().createTextField().setLabel("enddate").setAttributeName("FieldTripEndTime").setAttributeType("measure");
@@ -7056,11 +7070,12 @@ loadAllRoleQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers "+
 		"AND uuid in (SELECT uuid FROM latestNonDeletedAentValue "+
 			"WHERE AttributeID= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='RoleDataOnClient') AND measure ='Yes') ORDER BY measure asc;";
 /*** usage: list person, create session, session update (3 usages)***/
-loadAllPersonQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
-	"WHERE latestNonDeletedAentValue.AttributeID "+
-	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonName') "+
-	"GROUP BY uuid "+
-	"ORDER BY measure asc;";
+loadAllPersonQuery="select id.uuid, name.measure from latestNonDeletedArchEntIdentifiers as id, latestNonDeletedAentValue as name "+
+	"where id.uuid=name.uuid "+
+	"and id.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonID') "+
+	"and name.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonName') "+
+	"group by id.uuid "+
+	"order by name.measure asc;";
 /*** usage: list person, search person (2 usages)***/
 loadAllPersonIDQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers " +
         "WHERE latestNonDeletedArchEntIdentifiers.AttributeID "+
@@ -7671,7 +7686,7 @@ createPsInTroSssPage(){
 
 			createView("introSssList/introSssInfo/new_intro_sss", newIntroSssViewDef,"introSssList/introSssInfo");
 			createView("introSssList/introSssInfo/intrSessionList", psIntroSssListDef,"introSssList/introSssInfo");
-
+			populateList("introSssList/introSssInfo/intrSessionList",placeholderList);
 	        refreshTabgroupCSS("introSssList");
 	        onEvent("introSssList/introSssInfo/intrSessionList","click","loadSessionInfo(\"answer\")");
 			onEvent("introSssList/introSssInfo/new_intro_sss","click","newSessionForAnswer(\"intro\",currentPersonInfo)");
