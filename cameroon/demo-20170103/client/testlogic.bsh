@@ -7328,7 +7328,7 @@ createPersonPage(){
     		personIDViewDef= createViewDef().createTextField().setLabel("Person label").setAttributeName("PersonID").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);  		
     		personNameViewDef=createViewDef().createTextField().setLabel("Person name").setAttributeName("PersonName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");	
     		personOtherNamesViewDef=createViewDef().createTextField().setLabel("Person Other Names").setAttributeName("PersonOtherNames").setAttributeType("measure").setAnnotationEnabled(true);
-    		personDOBViewDef=createViewDef().createTextField().setLabel("Person DOB").setAttributeName("PersonDOB").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+    		personDOBViewDef=createViewDef().createTextField().setLabel("Person DOB(YYYY-MM-DD)").setAttributeName("PersonDOB").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
     		personRoleViewDef=createViewDef().createTextField().setLabel("Person general role").setReadOnly(true);
    			personPhotoViewDef=createViewDef().createCameraGallery(true).setAttributeName("PersonPhoto").setAttributeType("measure").setAnnotationEnabled(true);
    			takePhotoViewDef=createViewDef().createButton().setLabel("Take Photo").setStyleCss("faims-blue");
