@@ -2362,7 +2362,7 @@ refreshQuesnirInfo(){
 
 regularQuesnirPrep(){
 
-	loadQuesContentandOrderQuery="select t1.quesId, t1.quesOrder || '-' || t2.quesContent as qOrderedContent from "+
+	loadQuesContentandOrderQuery="select t1.quesId, t1.quesOrder || '-' || t2.quesContent as qOrderedContent, t2.quesAnno from "+
         "(select quId.measure as quesId, qOrder.measure as quesOrder "+
         "from latestNonDeletedAentValue as quId, latestNonDeletedAentValue as qOrder "+
         "where qOrder.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesOrderLocal') "+
@@ -2377,7 +2377,7 @@ regularQuesnirPrep(){
             "(select uuid from latestNonDeletedArchEntIdentifiers where AttributeID = (select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
             "and measure='"+current_quesnir_id+"')) t1 "+
     "inner join "+
-        "(select qId.measure as quesId, qContent.measure as quesContent "+
+        "(select qId.measure as quesId, qContent.measure as quesContent, qContent.FreeText as quesAnno "+
         "from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qContent, latestNonDeletedAentValue as qLanguage "+
         "where qContent.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesContent') "+
         "and qId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
@@ -2398,6 +2398,7 @@ regularQuesnirPrep(){
 
 	fetchAll(loadQuesContentandOrderQuery, new FetchCallback() {
 	        onFetch(result) {
+	        	//showWarning("TEST",result.get(0).get(2).toString());
 	            ques_in_current_quesnir.clear();
 	            ques_in_current_quesnir.addAll(result);
 	            populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
@@ -2523,17 +2524,20 @@ checkDuplicateAns(Boolean dupOrNot, String tempQuesId){
 		showAlert("alert", "The consultant(s) already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir(\""+tempQuesId+"\")", "stayInCurrentPage()");
 	}
 	else{
+		//checkQuesAnnotation(tempQuesId);
 		loadAnswerFromQuesInQuesnir(tempQuesId);
 	}
 }
 
 checkQuesAnnotation(String tempQuesId){
+	showWarning("checkQuesAnnotation","checkQuesAnnotation");
 	if(tempQuesId==null){
 		return;
 	}
 	for(ques:ques_in_current_quesnir){
 		if(tempQuesId.equals(ques.get(0)) && (ques.get(2)!=null) ){
-			showWarning("Note",ques.get(2));
+			showWarning("Note:",ques.get(2));
+			break;
 		}
 	}
 }
@@ -3221,7 +3225,7 @@ sclngstPrepQues(){
 
 	fetchAll(loadQuesContentandOrderQuery, new FetchCallback() {
 	    onFetch(result) {
-	    	showWarning("test",result.get(0).get(2).toString());
+	    	//showWarning("test",result.get(0).get(2).toString());
 	        ques_in_current_quesnir.clear();
 	        ques_in_current_quesnir.addAll(result);
 	        populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);   
@@ -4185,6 +4189,7 @@ sclngChangePrep(String crntQuesnirId){
 }
 
 quesPrep(String crntQuesnirId){
+	showWarning("quesPrep","quesPrep");
 	loadQuesContentandOrderQuery="select t1.quesId, t1.quesOrder || '-' || t2.quesContent as qOrderedContent, t2.quesAnno from "+
         "(select quId.measure as quesId, qOrder.measure as quesOrder "+
         "from latestNonDeletedAentValue as quId, latestNonDeletedAentValue as qOrder "+
@@ -4222,7 +4227,8 @@ quesPrep(String crntQuesnirId){
 
 	fetchAll(loadQuesContentandOrderQuery, new FetchCallback() {
 	    onFetch(result) {
-	    	showWarning("test",result.get(0).get(2).toString());
+	    	//howWarning("result","result");
+	    	//showWarning("test",result.get(0).get(2).toString());
 	        ques_in_current_quesnir.clear();
 	        ques_in_current_quesnir.addAll(result);
 	        quesRecordingPrep(crntQuesnirId);
@@ -5563,7 +5569,7 @@ loadAnswerFromQuesInQuesnir(String ques_id){
 		showWarning("No question content available","Can't get the question content, please contact the admin");
 		return;
 	}
-
+	checkQuesAnnotation(current_quesnir_id);
 	for(quesLabel: queslabel_current_quesnir){
 		if(quesLabel.get(0).equals(current_question_id))
 		{
@@ -5575,7 +5581,6 @@ loadAnswerFromQuesInQuesnir(String ques_id){
 	//showWarning("quesLabelRead",quesLabelRead.toString());
 
 	if(quesLabelRead){
-		checkQuesAnnotation(current_quesnir_id);
 		ansTypeChecking(current_question_id);
 	}
 	
