@@ -4220,16 +4220,25 @@ listChange(ArrayList newList, ArrayList oldList, int compareKey, ArrayList compa
     for(elmOld:old_List){
         elmOldKey=elmOld.get(compareKey);
         Boolean equalTo=false;
-        //showWarning("elmOldKey",elmOldKey);
+       // showWarning("elmOldKey",elmOldKey);
         for(elmNew:new_List){
             elmNewKey=elmNew.get(compareKey);
             //showWarning("elmNewKey",elmNewKey);
             if(elmOldKey.equals(elmNewKey)){
                 equalTo=true;
                 Boolean updated=false;
-                //showWarning("equalTo","updated");
+               // showWarning("equalTo","updated");
                 for(int i=0;i<compareValues.size();i++){
-                    if(!elmOld.get(compareValues.get(i)).equals(elmNew.get(compareValues.get(i))))
+                	//showWarning("old",compareValues.get(i).toString()+" "+elmOld.get(compareValues.get(i)));
+                	//showWarning("new",compareValues.get(i).toString()+" "+elmNew.get(compareValues.get(i)));
+                	tempOldComp=elmOld.get(compareValues.get(i));
+                	tempNewComp=elmNew.get(compareValues.get(i));
+                	if((tempOldComp==null && tempNewComp!=null) ||(tempOldComp!=null && tempNewComp==null) ){
+                		updated=true;
+                        update_list.add(elmNew);
+                        break;
+                	}
+                    else if(!elmOld.get(compareValues.get(i)).equals(elmNew.get(compareValues.get(i))))
                     {
                         updated=true;
                         update_list.add(elmNew);
