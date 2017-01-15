@@ -2274,6 +2274,7 @@ loadAllQuesnir(){
 				}	
 				else{
 			    	showWarning("No questionnaire","No questionnaire is available, please contact the admin");
+			    	cancelTabGroup("questionnaireListAll",true);
 					return;
 				}
        	 	}
@@ -2292,6 +2293,7 @@ loadAllQuesnir(){
 				}	
 				else{
 			    	showWarning("No questionnaire","No questionnaire is available, please contact the admin");
+			    	cancelTabGroup("questionnaireListAll",true);
 					return;
 				}
        	 }
@@ -2509,36 +2511,49 @@ checkPersonAns(String tempQuesId){
         		//showWarning("rep",rep.toString());
         		if(!rep){
         			//showWarning("loadAnswerFromQuesInQuesnir","rep.false");
-        			loadAnswerFromQuesInQuesnir(tempQuesId);
+        			//loadAnswerFromQuesInQuesnir(tempQuesId);
+        			checkQuesAnnotation(tempQuesId);
         		}       		
 			}
 			else{
 				//showWarning("loadAnswerFromQuesInQuesnir","nullresult");
-				loadAnswerFromQuesInQuesnir(tempQuesId);
+				//loadAnswerFromQuesInQuesnir(tempQuesId);
+				checkQuesAnnotation(tempQuesId);
 			}
         }
     });
 }
+
 checkDuplicateAns(Boolean dupOrNot, String tempQuesId){
 	if(dupOrNot){
-		showAlert("alert", "The consultant(s) already answered this question \n"+"Do you still want to continue?", "loadAnswerFromQuesInQuesnir(\""+tempQuesId+"\")", "stayInCurrentPage()");
+		showAlert("alert", "The consultant(s) already answered this question \n"+"Do you still want to continue?", "checkQuesAnnotation(\""+tempQuesId+"\")", "stayInCurrentPage()");
+		//checkQuesAnnotation(current_question_id);
 	}
 	else{
-		//checkQuesAnnotation(tempQuesId);
-		loadAnswerFromQuesInQuesnir(tempQuesId);
+
+		checkQuesAnnotation(tempQuesId);
+		//loadAnswerFromQuesInQuesnir(tempQuesId);
 	}
 }
 
 checkQuesAnnotation(String tempQuesId){
-	showWarning("checkQuesAnnotation","checkQuesAnnotation");
 	if(tempQuesId==null){
 		return;
 	}
+	//showWarning("tempQuesId",tempQuesId);
+	String note=null;
 	for(ques:ques_in_current_quesnir){
-		if(tempQuesId.equals(ques.get(0)) && (ques.get(2)!=null) ){
-			showWarning("Note:",ques.get(2));
+		//showWarning(ques.get(0),ques.get(2).toString());
+		if(ques.get(0).equals(tempQuesId) && (ques.get(2)!=null) ){
+			note=ques.get(2);
 			break;
 		}
+	}
+	if(note!=null){
+		showAlert("Note:", ques.get(2), "loadAnswerFromQuesInQuesnir(\""+tempQuesId+"\")", "stayInCurrentPage()");
+	}
+	else{
+		loadAnswerFromQuesInQuesnir(tempQuesId);
 	}
 }
 /*** Answer UI***/
@@ -3393,7 +3408,8 @@ startNewLoopAns(String tempQuesId){
 	else{
 		langIntro=true;
 		//showWarning("langIntro",langIntro.toString());
-		loadAnswerFromQuesInQuesnir(ques_id);
+		//loadAnswerFromQuesInQuesnir(ques_id);
+		checkQuesAnnotation(ques_id);
 	}
 
 }
@@ -4050,14 +4066,15 @@ checkAllLangIntroQues(String tempCurntLangId){
 	else{
 		nextQuesId=loopQuesOrder.get(unfinQuesIdx).get(0);
 		nextQuesContent=loopQuesOrder.get(unfinQuesIdx).get(1);
-		showAlert("Next question","Do you want to go to the next unfinished question:\n"+nextQuesContent,"loadAnswerFromQuesInQuesnir(\""+nextQuesId+"\")","stayInCurrentPage()");
+		showAlert("Next question","Do you want to go to the next unfinished question:\n"+nextQuesContent,"checkQuesAnnotation(\""+nextQuesId+"\")","stayInCurrentPage()");
 	}
 
 }
 
 checkLangIntroAnsInSss(){
 	if(isNull(sss_answer_list)){
-		loadAnswerFromQuesInQuesnir(langIntroQuesUuid);
+		//loadAnswerFromQuesInQuesnir(langIntroQuesUuid);
+		checkQuesAnnotation(langIntroQuesUuid);
 	}
 	else{
 		ArrayList ansIdList=new ArrayList();
@@ -4078,7 +4095,8 @@ checkLangIntroAnsInSss(){
 							break;
 						}
 						else if(i==result.size()-1){
-							loadAnswerFromQuesInQuesnir(langIntroQuesUuid);
+							checkQuesAnnotation(langIntroQuesUuid);
+							//loadAnswerFromQuesInQuesnir(langIntroQuesUuid);
 						}
 					}	
 				}
@@ -4675,6 +4693,7 @@ startNewAnswer(String typeflag){
     		startNewAnswerFile(typeflag, current_start_time);
     	break;
 	}
+	
 }
 
 startNewAnswerBasic(String current_start_time){
@@ -4686,9 +4705,6 @@ startNewAnswerBasic(String current_start_time){
 	setFieldValue("survey/answerHidden/answerStartTimestamp", current_start_time);
 	
 	labelDeduplicate(tempAnsLabel,"AnswerLabel","survey/answerHidden/answerLabel","answer", dupAnsLblChange, dupAnsLblInfo);
-
-	//populateList("survey/answerFile/answerFileList",files_in_current_ques);
-	//populateDropDown("survey/answerFile/file_Category",categoryTypes);
 	ansOrNot=true;
 }
 
@@ -5569,7 +5585,7 @@ loadAnswerFromQuesInQuesnir(String ques_id){
 		showWarning("No question content available","Can't get the question content, please contact the admin");
 		return;
 	}
-	checkQuesAnnotation(current_quesnir_id);
+	//checkQuesAnnotation(current_question_id);
 	for(quesLabel: queslabel_current_quesnir){
 		if(quesLabel.get(0).equals(current_question_id))
 		{
@@ -7389,7 +7405,7 @@ createPersonPage(){
     		personIDViewDef= createViewDef().createTextField().setLabel("Person label").setAttributeName("PersonID").setAttributeType("measure").setAnnotationEnabled(true).setReadOnly(true);  		
     		personNameViewDef=createViewDef().createTextField().setLabel("Person name").setAttributeName("PersonName").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");	
     		personOtherNamesViewDef=createViewDef().createTextField().setLabel("Person Other Names").setAttributeName("PersonOtherNames").setAttributeType("measure").setAnnotationEnabled(true);
-    		personDOBViewDef=createViewDef().createTextField().setLabel("Person DOB").setAttributeName("PersonDOB").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
+    		personDOBViewDef=createViewDef().createTextField().setLabel("Person DOB(YYYY-MM-DD)").setAttributeName("PersonDOB").setAttributeType("measure").setAnnotationEnabled(true).setStyleCss("required");
     		personRoleViewDef=createViewDef().createTextField().setLabel("Person general role").setReadOnly(true);
    			personPhotoViewDef=createViewDef().createCameraGallery(true).setAttributeName("PersonPhoto").setAttributeType("measure").setAnnotationEnabled(true);
    			takePhotoViewDef=createViewDef().createButton().setLabel("Take Photo").setStyleCss("faims-blue");
