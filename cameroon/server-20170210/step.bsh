@@ -1550,7 +1550,7 @@ saveNewQuestion(){
                         removeAllViewsAndContainers("questionBank");
                     }
                     showToast("Record created");
-                    cancelTabGroup("questionBank",true);
+                    cancelTabGroup("questionBank",false);
                     showTab("control/question_control");
                   }
                   else{
@@ -1567,7 +1567,7 @@ saveNewQuestion(){
 					updateChoice=true;
             	}
                 updateNonBasicQuesInfo(recording_req_id, selLangList,updateChoice);
-                cancelTabGroup("questionBank",true);
+                cancelTabGroup("questionBank",false);
                 showTab("control/question_control");
             }
         }
