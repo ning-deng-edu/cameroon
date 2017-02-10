@@ -1562,7 +1562,11 @@ saveNewQuestion(){
                 }  
             });
             if(question_id!=null){
-                updateNonBasicQuesInfo(recording_req_id, selLangList);
+            	Boolean updateChoice=false;
+            	if(recording_req_type.equals("ChooseOne")||recording_req_type.equals("SelectMultiple")){
+					updateChoice=true;
+            	}
+                updateNonBasicQuesInfo(recording_req_id, selLangList,updateChoice);
                 cancelTabGroup("questionBank",true);
                 showTab("control/question_control");
             }
@@ -1603,10 +1607,14 @@ saveQuesChoice(String quesUuid){
     }
 }
 
-updateNonBasicQuesInfo(String recording_req_id,ArrayList selLangList){
+updateNonBasicQuesInfo(String recording_req_id,ArrayList selLangList, Boolean updateChoice){
     updateQuesProp(recording_req_id);
+   // showWarning("checkQuespro","checkQuespro");
     updateQuesLang(selLangList);
-    updateQuesChoice(selLangList);
+     //showWarning("updateQuesLang","updateQuesLang");
+    if(updateChoice){
+    	updateQuesChoice(selLangList);
+    }
 }
 
 saveQuesChoiceByLang(String quesUuid,String quesLangUuid, ArrayList quesOptList){
@@ -1706,63 +1714,81 @@ updateQuesLang(ArrayList selLangList){
     compIndex=new ArrayList();
     compIndex.add(1);
     compIndex.add(2);
-    Hashtable quesLangChange=listChange(selLangList,tempOldLangList,0,compIndex);
-    //showWarning("quesLangChange","quesLangChange");
-    tempNewLang=quesLangChange.get("A");
-    for(lang: tempNewLang){
-        quesLangVer=createAttributeList();
-        quesLangVer.add(createEntityAttribute("QuestionUuid", null, null, question_id, null));
-        quesLangVer.add(createEntityAttribute("QuesLangUuid", null, null, lang.get(0), null));
-        quesLangVer.add(createEntityAttribute("QuesContent", lang.get(2), null, lang.get(1), null));
-        saveArchEnt(null, "QuestionLang", null, quesLangVer);
-        //showWarning("added",lang.get(0)+":"+lang.get(1));
+    Hashtable quesLangChange=listChange(selLangList,tempOldLangList,0,compIndex);// todo problem here
+	//showWarning("quesLangChange","quesLangChange");
+    if(quesLangChange.containsKey("A")){
+		tempNewLang=quesLangChange.get("A");
+		    for(lang: tempNewLang){
+		        quesLangVer=createAttributeList();
+		        quesLangVer.add(createEntityAttribute("QuestionUuid", null, null, question_id, null));
+		        quesLangVer.add(createEntityAttribute("QuesLangUuid", null, null, lang.get(0), null));
+		        quesLangVer.add(createEntityAttribute("QuesContent", lang.get(2), null, lang.get(1), null));
+		        saveArchEnt(null, "QuestionLang", null, quesLangVer);
+		        //showWarning("added",lang.get(0)+":"+lang.get(1));
+		    }
     }
-    tempDelLang=quesLangChange.get("D");
-    for(delLang: tempDelLang){
-        //deleteArchEnt(delLang.get(0));
-        for(oldLang:oldLangList){
-            if(delLang.get(0).equals(oldLang.get(1))){
-                deleteArchEnt(oldLang.get(0));
-                //showWarning("deleted",oldLang.get(0)+":"+delLang.get(0));
-            }
-        }
+    
+    if(quesLangChange.containsKey("D")){
+    	tempDelLang=quesLangChange.get("D");
+	    for(delLang: tempDelLang){
+	        //deleteArchEnt(delLang.get(0));
+	        for(oldLang:oldLangList){
+	            if(delLang.get(0).equals(oldLang.get(1))){
+	                deleteArchEnt(oldLang.get(0));
+	                //showWarning("deleted",oldLang.get(0)+":"+delLang.get(0));
+	            }
+	        }
+	    }
     }
-    tempUpdLang=quesLangChange.get("U");
-    for(uLang: tempUpdLang){
-        for(oldLang:oldLangList){
-            if(uLang.get(0).equals(oldLang.get(1))){
-                quesLangVer=createAttributeList();
-                quesLangVer.add(createEntityAttribute("QuestionUuid", null, null, question_id, null));
-                quesLangVer.add(createEntityAttribute("QuesLangUuid", null, null, uLang.get(0), null));
-                quesLangVer.add(createEntityAttribute("QuesContent", uLang.get(2), null, uLang.get(1), null));
-                saveArchEnt(oldLang.get(0), "QuestionLang", null, quesLangVer);
-            }
-        }
+    
+    if(quesLangChange.containsKey("U")){
+    	tempUpdLang=quesLangChange.get("U");
+	    for(uLang: tempUpdLang){
+	        for(oldLang:oldLangList){
+	            if(uLang.get(0).equals(oldLang.get(1))){
+	                quesLangVer=createAttributeList();
+	                quesLangVer.add(createEntityAttribute("QuestionUuid", null, null, question_id, null));
+	                quesLangVer.add(createEntityAttribute("QuesLangUuid", null, null, uLang.get(0), null));
+	                quesLangVer.add(createEntityAttribute("QuesContent", uLang.get(2), null, uLang.get(1), null));
+	                saveArchEnt(oldLang.get(0), "QuestionLang", null, quesLangVer);
+	            }
+	        }
+	    }
     }
+    
     showToast("Question language updated"); 
 }
 
 updateQuesChoice(ArrayList selLangList){
-    if(question_id==null || oldQuestionOptionList==null || oldQuestionOptionList.isEmpty()){
+    if(question_id==null){
         return;
     }
+    if(isNull(oldQuestionOptionList) && isNull(newQuestionOptionList)){
+    	return;
+    }
+
     checkQuesOptUpdate(selLangList);
 }
 
 checkQuesOptUpdate(ArrayList selLangList){
     //showWarning("checkQuesOptUpdate","checkQuesOptUpdate");
     ArrayList oldKeySet=new ArrayList();
-
-    oldKeySet.addAll(oldQuestionOptionList.keySet());
+    if(!isNull(oldQuestionOptionList)){
+    	 oldKeySet.addAll(oldQuestionOptionList.keySet());
+    }
+   
     //showWarning("oldQuestionOptionList","oldQuestionOptionList");
      
     getNewLangKey(selLangList);
     //showWarning("getNewLangKey",newQuestionOptionList.keySet().size().toString());
     ArrayList newKeySet=new ArrayList();
-    newKeySet.addAll(newQuestionOptionList.keySet());
+    if(!isNull(newQuestionOptionList)){
+    	newKeySet.addAll(newQuestionOptionList.keySet());
+    }
+    Hashtable keyDiff=new Hashtable();
 
-    Hashtable keyDiff=listChange(newKeySet,oldKeySet);
-    
+    keyDiff=listChange(newKeySet,oldKeySet);
+
     HashMap langDiff=addOrDelQuesOptListByLang(keyDiff);
    // showWarning("langDiff","langDiff");
     ArrayList equalKey=getEquKey(oldKeySet,newKeySet);
@@ -4229,24 +4255,30 @@ listChange(ArrayList newList, ArrayList oldList, int compareKey, ArrayList compa
     old_List.addAll(oldList);
     del_list=new ArrayList();   
     del_list.clear();
-
+	//showWarning("old_List",old_List.size().toString());
+	//showWarning("new_List",new_List.size().toString());
 
     for(elmOld:old_List){
         elmOldKey=elmOld.get(compareKey);
         Boolean equalTo=false;
-       // showWarning("elmOldKey",elmOldKey);
+        //showWarning("elmOldKey",elmOldKey);
         for(elmNew:new_List){
             elmNewKey=elmNew.get(compareKey);
             //showWarning("elmNewKey",elmNewKey);
             if(elmOldKey.equals(elmNewKey)){
                 equalTo=true;
                 Boolean updated=false;
-               // showWarning("equalTo","updated");
+                //showWarning("equalTo","updated");
                 for(int i=0;i<compareValues.size();i++){
                 	//showWarning("old",compareValues.get(i).toString()+" "+elmOld.get(compareValues.get(i)));
                 	//showWarning("new",compareValues.get(i).toString()+" "+elmNew.get(compareValues.get(i)));
                 	tempOldComp=elmOld.get(compareValues.get(i));
+                	//showWarning("old",tempOldComp);
                 	tempNewComp=elmNew.get(compareValues.get(i));
+                	//showWarning("new",tempNewComp);
+                	if(tempOldComp==null && tempNewComp==null){
+                		continue;
+                	}
                 	if((tempOldComp==null && tempNewComp!=null) ||(tempOldComp!=null && tempNewComp==null) ){
                 		updated=true;
                         update_list.add(elmNew);
