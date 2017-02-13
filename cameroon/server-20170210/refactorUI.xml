@@ -93,6 +93,12 @@
               </questionnaire_question_info>
           </questionnaire_question>
 
+          <questionListOrder>
+            <questionListOrderInfo>
+            </questionListOrderInfo>
+          </questionListOrder>
+
+
           <questionBank>
               <questionInfo>
                   <questionID/>
@@ -318,9 +324,16 @@
                     <label>placeholder</label>
                     <value>placeholder</value>
                 </item>
-          </select1>      
+          </select1>  
         </group>
     </group>
+
+     <group ref="questionListOrder">
+      <label>Questions</label>      
+      <group ref="questionListOrderInfo">
+        <label>Questions</label>
+      </group>        
+    </group>   
 
     <group ref="quesProperty" faims_archent_type="QuesPropDef">
       <label>Question Property</label>      
