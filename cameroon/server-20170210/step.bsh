@@ -4353,6 +4353,41 @@ nonDupLabelGen(ArrayList dupList, String tempLbl, String tableName, String attri
     return rtnLbl;
 }
 
+listChange(LinkedList targetList, ArrayList sourceList){
+	Hashtable listChanges=new Hashtable();
+    target_list=new ArrayList();
+    source_list=new ArrayList();
+    target_diff_on_source=new ArrayList();
+    source_diff_on_target=new ArrayList();
+    listChanges.clear();
+    target_list.clear();
+    source_list.clear();
+    target_diff_on_source.clear();
+    source_diff_on_target.clear();
+    target_list.addAll(targetList);
+    source_list.addAll(sourceList);
+    target_list.removeAll(source_list);
+    target_diff_on_source.addAll(target_list);//target - source
+    target_list.clear();
+    target_list.addAll(targetList);
+    source_list.removeAll(target_list);
+    source_diff_on_target.addAll(source_list);//source - target
+    if((target_diff_on_source.isEmpty()) && (source_diff_on_target.isEmpty())){
+        listChanges.put("EQUAL",targetList);
+    }
+    else if((!target_diff_on_source.isEmpty()) && (source_diff_on_target.isEmpty())){
+        listChanges.put("PUREADD",target_diff_on_source);
+    }
+    else if((target_diff_on_source.isEmpty()) && (!source_diff_on_target.isEmpty())){
+        listChanges.put("PUREDELETE",source_diff_on_target);
+    }
+    else {
+        listChanges.put("ADD",target_diff_on_source);
+        listChanges.put("DELETE",source_diff_on_target);
+    }
+    return listChanges;
+}
+
 listChange(ArrayList targetList,ArrayList sourceList){
     //showWarning("listChange","listChange");
     Hashtable listChanges=new Hashtable();
