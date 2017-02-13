@@ -2758,18 +2758,19 @@ questionShowRefresh(String selQuesId,String quesContent){
 	getQuesShowList();
 	int quesCount=questionSelected.size()+1;
 	boolean shortHand=questionSelected.size()>5? true:false;
+	boolean rmdBtn=false;
 	style1 = "orientation";
     style2 = "even";
     style3 = "large";
     if(hasView("questionnaire_question/questionnaire_question_info/Change_Questionnaire")){
         rmQuesnirNewChangeBtn("s");
-        //showWarning("rmQuesnirNewChangeBtn","rmQuesnirNewChangeBtn");
     }
     
     executeViewTask(new ViewTask() {
 	    doTask() {  
 		    if(shortHand && !hasView("questionnaire_question/questionnaire_question_info/shortHand")) {
 		    	reConstructQuesShowOrder();
+		    	rmdBtn=true;
 		    	return;
 		    }
 		    else if(!shortHand && hasView("questionnaire_question/questionnaire_question_info/shortHand")){
@@ -2812,7 +2813,9 @@ questionShowRefresh(String selQuesId,String quesContent){
 		    onEvent("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCount,"click","moveDownShowQues(\""+selQuesId+"\")");
 	    }
     });
-    createChangeBtnQuesnir("s");
+	if(!rmdBtn){
+		createChangeBtnQuesnir("s");
+	}
 }
 
 reConstructQuesShowOrder(){
