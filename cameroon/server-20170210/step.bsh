@@ -2434,6 +2434,7 @@ startQuestionSelection(){
             questionnaireInfoNew.add(getFieldValue("questionnaire/questionnaire_info/questionnaireDescription"));
             questionnaireInfoNew.add(getFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid"));
             showTabGroup("questionnaire_question");
+            initializeQuestionSelect();
     }
 
 }
@@ -2450,7 +2451,7 @@ setQuesnirType(){
     }
 }
 
-onEvent("questionnaire_question/questionnaire_question_info","show","initializeQuestionSelect()");
+//onEvent("questionnaire_question/questionnaire_question_info","show","initializeQuestionSelect()");
 onEvent("questionnaire_question/questionnaire_question_info/questionList","click","questionSelection()");
 onEvent("questionnaire_question/questionnaire_question_info/Search_Question","click","searchQuestion()");
 //onEvent("questionnaire_question/questionnaire_question_info/test_Question","click","showTab(\"questionnaire_question/questionnaire_question_list\")");
@@ -2469,8 +2470,8 @@ reConstructQuesOrder(){
                 createContainer("questionListOrder/questionListOrderInfo/Down_quesc_" + quesCountDel, "large", "questionListOrder/questionListOrderInfo/ques_rowc_" + quesCountDel);
                 createView("questionListOrder/questionListOrderInfo/Ques_" + quesCountDel, createViewDef().createTextField("string").setReadOnly(true), "questionListOrder/questionListOrderInfo/quesc_" + quesCountDel);
                 createView("questionListOrder/questionListOrderInfo/Delete_ques_" + quesCountDel, createViewDef().createButton().setLabel("X").setStyleCss("faims-danger"), "questionListOrder/questionListOrderInfo/Delete_quesc_" + quesCountDel);
-                createView("questionListOrder/questionListOrderInfo/Up_ques_" + quesCountDel, createViewDef().createButton().setLabel("↑").setStyleCss("faims-danger"), "questionListOrder/questionListOrderInfo/Up_quesc_" + quesCountDel);
-                createView("questionListOrder/questionListOrderInfo/Down_ques_" + quesCountDel, createViewDef().createButton().setLabel("↓").setStyleCss("faims-danger"), "questionListOrder/questionListOrderInfo/Down_quesc_" + quesCountDel);
+                createView("questionListOrder/questionListOrderInfo/Up_ques_" + quesCountDel, createViewDef().createButton().setLabel("↑").setStyleCss("faims-blue"), "questionListOrder/questionListOrderInfo/Up_quesc_" + quesCountDel);
+                createView("questionListOrder/questionListOrderInfo/Down_ques_" + quesCountDel, createViewDef().createButton().setLabel("↓").setStyleCss("faims-blue"), "questionListOrder/questionListOrderInfo/Down_quesc_" + quesCountDel);
                 setFieldValue("questionListOrder/questionListOrderInfo/Ques_" + quesCountDel, quesContent);
                 onEvent("questionListOrder/questionListOrderInfo/Delete_ques_" + quesCountDel,"click","deleteQuesConfirm(\""+curQuesId+"\")");
                 onEvent("questionListOrder/questionListOrderInfo/Up_ques_" + quesCountDel,"click","moveUpQues(\""+curQuesId+"\")");
@@ -2497,8 +2498,8 @@ reConstructQuesOrder(ArrayList searchResult){
                 createContainer("questionListOrder/questionListOrderInfo/Down_quesc_" + quesCountDel, "large", "questionListOrder/questionListOrderInfo/ques_rowc_" + quesCountDel);
                 createView("questionListOrder/questionListOrderInfo/Ques_" + quesCountDel, createViewDef().createTextField("string").setReadOnly(true), "questionListOrder/questionListOrderInfo/quesc_" + quesCountDel);
                 createView("questionListOrder/questionListOrderInfo/Delete_ques_" + quesCountDel, createViewDef().createButton().setLabel("X").setStyleCss("faims-danger"), "questionListOrder/questionListOrderInfo/Delete_quesc_" + quesCountDel);
-                createView("questionListOrder/questionListOrderInfo/Up_ques_" + quesCountDel, createViewDef().createButton().setLabel("↑").setStyleCss("faims-danger"), "questionListOrder/questionListOrderInfo/Up_quesc_" + quesCountDel);
-                createView("questionListOrder/questionListOrderInfo/Down_ques_" + quesCountDel, createViewDef().createButton().setLabel("↓").setStyleCss("faims-danger"), "questionListOrder/questionListOrderInfo/Down_quesc_" + quesCountDel);
+                createView("questionListOrder/questionListOrderInfo/Up_ques_" + quesCountDel, createViewDef().createButton().setLabel("↑").setStyleCss("faims-blue"), "questionListOrder/questionListOrderInfo/Up_quesc_" + quesCountDel);
+                createView("questionListOrder/questionListOrderInfo/Down_ques_" + quesCountDel, createViewDef().createButton().setLabel("↓").setStyleCss("faims-blue"), "questionListOrder/questionListOrderInfo/Down_quesc_" + quesCountDel);
                 setFieldValue("questionListOrder/questionListOrderInfo/Ques_" + quesCountDel, quesContent);
                 onEvent("questionListOrder/questionListOrderInfo/Delete_ques_" + quesCountDel,"click","deleteQuesConfirm(\""+curQuesId+"\")");
                 onEvent("questionListOrder/questionListOrderInfo/Up_ques_" + quesCountDel,"click","moveUpQues(\""+curQuesId+"\")");
@@ -2802,8 +2803,8 @@ questionShowRefresh(String selQuesId,String quesContent){
 		    //showWarning("createContainer","createContainer");
 		    createView("questionnaire_question/questionnaire_question_info/Ques_" + quesCount, createViewDef().createTextField("string").setReadOnly(true), "questionnaire_question/questionnaire_question_info/quesc_" + quesCount);
 		    createView("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCount, createViewDef().createButton().setLabel("X").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCount);
-		    createView("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCount, createViewDef().createButton().setLabel("↑").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCount);
-		    createView("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCount, createViewDef().createButton().setLabel("↓").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCount);
+		    createView("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCount, createViewDef().createButton().setLabel("↑").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCount);
+		    createView("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCount, createViewDef().createButton().setLabel("↓").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCount);
 		    //showWarning("createView","createView");
 		    setFieldValue("questionnaire_question/questionnaire_question_info/Ques_" + quesCount, quesContent);
 		    onEvent("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCount,"click","deleteShowQuesConfirm(\""+selQuesId+"\",\""+quesContent+"\")");
@@ -2822,8 +2823,7 @@ reConstructQuesShowOrder(){
 		executeViewTask(new ViewTask() {
 		    doTask() {  
 		    	createContainer("questionnaire_question/questionnaire_question_info/shortHandC", "orientation", "questionnaire_question/questionnaire_question_info");
-		    	createView("questionnaire_question/questionnaire_question_info/shortHand", createViewDef().createTextField("string").setReadOnly(true), "questionnaire_question/questionnaire_question_info/shortHandC");
-		    	setFieldValue("questionnaire_question/questionnaire_question_info/shortHand","View all ...");
+		    	createView("questionnaire_question/questionnaire_question_info/shortHand", createViewDef().createButton().setLabel("View all ..."), "questionnaire_question/questionnaire_question_info/shortHandC");
 		    	onEvent("questionnaire_question/questionnaire_question_info/shortHand","click","showAllQuesOrder()");
 		    } 
 	    });
@@ -2842,8 +2842,8 @@ reConstructQuesShowOrder(){
 		        createContainer("questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCountDel, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
 		        createView("questionnaire_question/questionnaire_question_info/Ques_" + quesCountDel, createViewDef().createTextField("string").setReadOnly(true), "questionnaire_question/questionnaire_question_info/quesc_" + quesCountDel);
 		        createView("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCountDel, createViewDef().createButton().setLabel("X").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCountDel);
-		        createView("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCountDel, createViewDef().createButton().setLabel("↑").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCountDel);
-		        createView("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCountDel, createViewDef().createButton().setLabel("↓").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCountDel);
+		        createView("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCountDel, createViewDef().createButton().setLabel("↑").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCountDel);
+		        createView("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCountDel, createViewDef().createButton().setLabel("↓").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCountDel);
 		        setFieldValue("questionnaire_question/questionnaire_question_info/Ques_" + quesCountDel, quesContent);
 		        onEvent("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCountDel,"click","deleteShowQuesConfirm(\""+curQuesId+"\",\""+quesContent+"\")");
 		        onEvent("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCountDel,"click","moveUpShowQues(\""+curQuesId+"\")");
@@ -2964,6 +2964,7 @@ deleteSelectedQuestion(String delQuesId){
                 adjustQuesOrder("deletion",i,null);
                 //showWarning("adjustQuesOrder","adjustQuesOrder");
                 reConstructQuesOrder();
+                reConstructQuesShowOrder();
                 //populateRadioGroup("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
                 break;
             }
@@ -2991,6 +2992,7 @@ moveUpQues(String upQuesId){
                 }
                 adjustQuesOrder("moveUp",i,null);
                 reConstructQuesOrder();
+                reConstructQuesShowOrder();
                 //showWarning("adjustQuesOrder","moveUp");
                 //populateRadioGroup("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
                 break;
@@ -3016,6 +3018,7 @@ moveDownQues(String downQuesId){
             }
             adjustQuesOrder("moveDown",i,null);
             reConstructQuesOrder();
+            reConstructQuesShowOrder();
             //showWarning("adjustQuesOrder","moveUp");
             //populateRadioGroup("questionnaire_question/questionnaire_question_info/questionInQuestionnaire", questionSelected);
             break;
