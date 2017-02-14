@@ -885,7 +885,7 @@ loadRoleInfo(){
 }
 
 checkRole(){
-    String newRoleName=getFieldValue("personRole/personRoleInfo/personRoleName");
+    String newRoleName=getFieldValue("personRole/personRoleInfo/personRoleName").trim();
     if(isNull(newRoleName)){
         showWarning("Incomplete data","You must enter valid person role name");
         return;
@@ -894,23 +894,23 @@ checkRole(){
         showWarning("Incomplete data","You must select answer for each requirement question");
         return;
     }
-    newRoleName=escapeSpecialCharInQuery(newRoleName);
-    if(newRoleName.equals("")){
-    	showWarning("Invalid content","The role name shold not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+    String dupkw=escapeSpecialCharInQuery(newRoleName);
+    if(dupkw.equals("")){
+    	showWarning("Invalid content","The role name should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
     	return;
     }
     //newRoleName=newRoleName.trim().replaceAll("'", "''");
     personRoleCheckQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers " +
         "WHERE latestNonDeletedArchEntIdentifiers.AttributeID "+
         "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonRoleName') "+
-        "AND latestNonDeletedArchEntIdentifiers.measure like '%"+newRoleName+"%'; ";
+        "AND latestNonDeletedArchEntIdentifiers.measure like '%"+dupkw+"%'; ";
 
     if(role_id!=null){
          personRoleCheckQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers " +
         "WHERE latestNonDeletedArchEntIdentifiers.AttributeID "+
         "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonRoleName') "+
         "AND uuid<>'"+role_id+"' "+
-        "AND latestNonDeletedArchEntIdentifiers.measure like '%"+newRoleName+"%'; ";
+        "AND latestNonDeletedArchEntIdentifiers.measure like '%"+dupkw+"%'; ";
     }
 
     fetchAll(personRoleCheckQuery,new FetchCallback() {
@@ -1502,11 +1502,10 @@ saveNewQuestion(){
         showWarning("Incomplete data", "You must:\n"+"indicate at least one language, and\n"+"enter the question content for every language");
         return;
     }
-	tempQuesLabel=getFieldValue("questionBank/questionInfo/questionID");
-    //tempQuesLabel=tempQuesLabel.trim().replaceAll("'", "''");
-    tempQuesLabel=escapeSpecialCharInQuery(tempQuesLabel);
-    if(tempQuesLabel.equals("")){
-    	showWarning("Invalid question label","The question label shold not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+	tempQuesLabel=getFieldValue("questionBank/questionInfo/questionID").trim();
+	String dupkw=escapeSpecialCharInQuery(tempQuesLabel);
+    if(dupkw.equals("")){
+    	showWarning("Invalid question label","The question label should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
 		return;
     }
     recording_req_id=getFieldValue("questionBank/questionInfo/questionProp");
@@ -1532,13 +1531,13 @@ saveNewQuestion(){
         quesDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
                 "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
                 "and uuid<>'"+question_id+"' "+
-                "and measure ='"+tempQuesLabel+"' or measure like '"+tempQuesLabel+"(%)'";
+                "and measure ='"+dupkw+"' or measure like '"+dupkw+"(%)'";
     }
     else{
     	
         quesDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
                 "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionID') "+
-                "and measure ='"+tempQuesLabel+"' or measure like '"+tempQuesLabel+"(%)'";
+                "and measure ='"+dupkw+"' or measure like '"+dupkw+"(%)'";
     }
 
     fetchAll(quesDuplicateQuery,new FetchCallback() {
@@ -3195,7 +3194,7 @@ searchQuestion(){
     	//showWarning("else","else");
         keywordForQuestion=escapeSpecialCharInQuery(keywordForQuestion);
         if(keywordForQuestion.equals("")){
-        	showWarning("Invalid keyword","The keyword shold not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+        	showWarning("Invalid keyword","The keyword should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
 			return;
         }
         searchQuestionQueryFirstHalf="select qId.measure, qContent.measure "+
@@ -3284,15 +3283,15 @@ finishCreateQuestionnaire(String typeflag){
         return;
     }
 
-    String tempQuesnirLabel=getFieldValue("questionnaire/questionnaire_info/questionnaireID");
-    tempQuesnirLabel=escapeSpecialCharInQuery(tempQuesnirLabel);
-    if(tempQuesnirLabel.equals("")){
-    	showWarning("Invalid label","The questionnaire label shold not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+    String tempQuesnirLabel=getFieldValue("questionnaire/questionnaire_info/questionnaireID").trim();
+    String dupkw=escapeSpecialCharInQuery(tempQuesnirLabel);
+    if(dupkw.equals("")){
+    	showWarning("Invalid label","The questionnaire label should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
 		return;
     }
     quesnirDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
         "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireID') "+
-        "and measure ='"+tempQuesnirLabel+"' or measure like '"+tempQuesnirLabel+"(%)'";
+        "and measure ='"+dupkw+"' or measure like '"+dupkw+"(%)'";
 
     fetchAll(quesnirDuplicateQuery,new FetchCallback() {
         onFetch(result) {
@@ -3406,14 +3405,15 @@ updateBasicQuesnirInfo(){
     String quesnirTypeUuid=getFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid");
     //tempQuesnirLabel=tempQuesnirLabel.trim().replaceAll("'", "''");
     tempQuesnirLabel=escapeSpecialCharInQuery(tempQuesnirLabel);
-    if(tempQuesnirLabel.equals("")){
-    	showWarning("Invalid label","The questionnaire label shold not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+    String dupkw=escapeSpecialCharInQuery(tempQuesnirLabel);
+    if(dupkw.equals("")){
+    	showWarning("Invalid label","The questionnaire label should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
 		return;
     }
     quesnirDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
         "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireID') "+
         "and uuid <>'"+finished_questionnaire_id+"' "+
-        "and measure ='"+tempQuesnirLabel+"' or measure like '"+tempQuesnirLabel+"(%)'";
+        "and measure ='"+dupkw+"' or measure like '"+dupkw+"(%)'";
     
     fetchAll(quesnirDuplicateQuery,new FetchCallback() {
         onFetch(result) {
@@ -3641,21 +3641,21 @@ saveNewLanguage(){
         return;
     }
 
-    tempLangLabel=getFieldValue("language/languageInfo/languageID");
-    tempLangLabel=escapeSpecialCharInQuery(tempLangLabel);
-    if(tempLangLabel.equals("")){
-    	showWarning("Invalid label","The language label shold not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+    tempLangLabel=getFieldValue("language/languageInfo/languageID").trim();
+    String dupkw=escapeSpecialCharInQuery(tempLangLabel);
+    if(dupkw.equals("")){
+    	showWarning("Invalid label","The language label should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
 		return;
     }
     //tempLangLabel=tempLangLabel.trim().replaceAll("'", "''");
     langDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
                 "where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID') "+
-                "and measure ='"+tempLangLabel+"' or measure like '"+tempLangLabel+"(%)'";
+                "and measure ='"+dupkw+"' or measure like '"+dupkw+"(%)'";
     if(language_id!=null){
         langDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
                 "where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID') "+
                 "and uuid<>'"+language_id+"' "+
-                "and measure ='"+tempLangLabel+"' or measure like '"+tempLangLabel+"(%)'";
+                "and measure ='"+dupkw+"' or measure like '"+dupkw+"(%)'";
     }
     
     fetchAll(langDuplicateQuery,new FetchCallback() {
@@ -3998,23 +3998,23 @@ savePersonCheck(){
 savePersonData(){
     String personNameOrigin=getFieldValue("person/personInfo/personName");
     String personNameCamCase=nameCamCaseConverter(personNameOrigin);
-    String personLabel=personNameCamCase+"_"+getFieldValue("person/personInfo/personDOB");
+    String personLabel=personNameCamCase+"_"+getFieldValue("person/personInfo/personDOB").trim();
     String personDOB=getFieldValue("person/personInfo/personDOB");
-    personLabel=escapeSpecialCharInQuery(personLabel);
-    if(personLabel.equals("")){
-    	showWarning("Invalid label","The person name label shold not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+    String dupkw=escapeSpecialCharInQuery(personLabel);
+    if(dupkw.equals("")){
+    	showWarning("Invalid label","The person name label should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
 		return;
     }
     //personLabel=personLabel.trim().replaceAll("'", "''");
     psDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
         "where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonID') "+
-        "and measure ='"+personLabel+"' or measure like '"+personLabel+"(%)'";
+        "and measure ='"+dupkw+"' or measure like '"+dupkw+"(%)'";
 
     if(person_id!=null){
         psDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
             "where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonID') "+
             "and uuid<>'"+person_id+"' "+
-            "and measure ='"+personLabel+"' or measure like '"+personLabel+"(%)'";
+            "and measure ='"+dupkw+"' or measure like '"+dupkw+"(%)'";
     }
     
     fetchAll(psDuplicateQuery,new FetchCallback() {
@@ -4258,7 +4258,7 @@ recordSearch(){
     else{   
     	keyword=escapeSpecialCharInQuery(keyword);
 		if(keyword.equals("")){
-			showWarning("Invalid keyword","The keyword shold not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+			showWarning("Invalid keyword","The keyword should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
 			return;
 		}
         search_query=searchQuery_firstHalf+keyword+searchQuery_lastHalf+type+"'));";//without group by uuid, user can view every related details
@@ -4653,19 +4653,13 @@ nameCamCaseConverter(String originName){
 escapeSpecialCharInQuery(String queryKw){
 	String specialPtn="[\\[\\]{}();~>*%\\&\\?,\\!\\$\\|]+";
 	Pattern pattern = Pattern.compile(specialPtn);
-	//showWarning("pattern","pattern");
     if(pattern.matcher(queryKw).find()){
         return "";
     }
-    //showWarning("nonfind","nonfind");
 	queryKw=queryKw.trim().replaceAll("'","''");
-	//showWarning("queryKw",queryKw);
     queryKw=queryKw.replaceAll("\\\\","\\\\\\\\");
-    //showWarning("queryKw2",queryKw);
     queryKw=queryKw.replaceAll("-","\\\\-");
-    //showWarning("queryKw3",queryKw);
     queryKw=queryKw.replaceAll("_","\\\\_");
-    //showWarning("queryKw4",queryKw);
     return queryKw;
 }
 
