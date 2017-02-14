@@ -8717,6 +8717,11 @@ answerSearch(String keyword, String listRef){
 		});
 	}
 	else{
+		keyword=escapeSpecialCharInQuery(keyword);
+		if(keyword.equals("")){
+			showWarning("Invalid keyword","The keyword should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+			return;
+		}
 		searchSureyQuery="select uuid, measure from latestNonDeletedArchEntIdentifiers where " +
 					"latestNonDeletedArchEntIdentifiers.Measure like '%"+ keyword +
 					"%' and latestNonDeletedArchEntIdentifiers.AttributeID = "+
@@ -8749,6 +8754,11 @@ personSearch(String keyword, String listRef){
 		});
 	}
 	else{
+		keyword=escapeSpecialCharInQuery(keyword);
+		if(keyword.equals("")){
+			showWarning("Invalid keyword","The keyword should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+			return;
+		}
 		searchPersonQuery="select uuid, measure from latestNonDeletedAentValue where " +
 					"latestNonDeletedAentValue.Measure like '%"+ keyword +
 					"%' and latestNonDeletedAentValue.AttributeID = "+
@@ -8781,6 +8791,11 @@ languageSearch(String keyword, String listRef){
 		});
 	}
 	else{
+		keyword=escapeSpecialCharInQuery(keyword);
+		if(keyword.equals("")){
+			showWarning("Invalid keyword","The keyword should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+			return;
+		}
 		searchLangQuery="select uuid, measure from latestNonDeletedAentValue where " +
 			"latestNonDeletedAentValue.Measure like '%"+ keyword +
 			"%' and latestNonDeletedAentValue.AttributeID = "+
@@ -8843,6 +8858,11 @@ sessionSearch(String keyword, String listRef, String sessionTypeRef){
 		
 	}
 	else{
+		keyword=escapeSpecialCharInQuery(keyword);
+		if(keyword.equals("")){
+			showWarning("Invalid keyword","The keyword should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+			return;
+		}
 		if(getFieldValue(sessionTypeRef).equals("All")){
 			searchSessionQuery="select uuid, measure from latestNonDeletedAentValue where " +
 				"latestNonDeletedAentValue.Measure like '%"+ keyword +
@@ -8859,6 +8879,7 @@ sessionSearch(String keyword, String listRef, String sessionTypeRef){
 			});
 		}
 		else{
+			
 			String typeId= getFieldValue(sessionTypeRef);
 			loadSessionByTypeKeywordQuery="select uuid,measure from latestNonDeletedAentValue where "+
 				"latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
@@ -8917,6 +8938,11 @@ quesnirSearch(String keyword, String listRef){
 		}
 	}
 	else{
+		keyword=escapeSpecialCharInQuery(keyword);
+		if(keyword.equals("")){
+			showWarning("Invalid keyword","The keyword should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+			return;
+		}
 		if(!introAns){
 			searchQuesnirQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 				"WHERE latestNonDeletedAentValue.AttributeID = "+
@@ -8981,6 +9007,11 @@ fieldTripSearch(String keyword, String listRef){
 		});
 	}
 	else{
+		keyword=escapeSpecialCharInQuery(keyword);
+		if(keyword.equals("")){
+			showWarning("Invalid keyword","The keyword should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+			return;
+		}
 		searchFTQuery="select uuid, measure from latestNonDeletedAentValue where " +
 			"latestNonDeletedAentValue.Measure like '%"+ keyword +
 			"%' and latestNonDeletedAentValue.AttributeID = "+
@@ -9000,11 +9031,16 @@ fieldTripSearch(String keyword, String listRef){
 
 searchQuesInCrtQuesnir(){
 	String quesKeyword=null;
-
 	quesKeyword=getFieldValue("questionnaireInfo/surveyQuestionnaire/ques_keyword");
-	quesKeyword.trim();
-
-	if(!(isNull(quesKeyword) || quesKeyword.equals("*"))){
+	if(isNull(quesKeyword) || quesKeyword.equals("*")){
+		populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
+	}
+	else{
+		quesKeyword=escapeSpecialCharInQuery(quesKeyword);
+		if(quesKeyword.equals("")){
+			showWarning("Invalid keyword","Keyword should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+			return;
+		}
 		Pattern quesSearch = Pattern.compile(quesKeyword);
 		tempMatchQues=new ArrayList();
 		tempMatchQues.clear();
@@ -9017,9 +9053,7 @@ searchQuesInCrtQuesnir(){
 		}
 		populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", tempMatchQues);
 	}
-	else{
-		populateList("questionnaireInfo/surveyQuestionnaire/surveyQuestionInQuestionnaire", ques_in_current_quesnir);
-	}	
+	
 }
 
 typedFileSearch(String searchFileType,String keyword, String listRef){
@@ -9042,6 +9076,11 @@ typedFileSearch(String searchFileType,String keyword, String listRef){
 		});
 	}
 	else{
+		keyword=escapeSpecialCharInQuery(keyword);
+		if(keyword.equals("")){
+			showWarning("Invalid keyword","The keyword should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+			return;
+		}
 		searchTypedFileQuery="SELECT file.uuid, file.measure FROM latestNonDeletedArchEntIdentifiers as file, latestNonDeletedAentValue as fileType "+
 		"where file.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileID') "+
 		"and fileType.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileType') "+
@@ -9075,6 +9114,11 @@ nonTypedFileSearch(String keyword, String listRef){
 		});
 	}
 	else{
+		keyword=escapeSpecialCharInQuery(keyword);
+		if(keyword.equals("")){
+			showWarning("Invalid keyword","The keyword should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+			return;
+		}
 		searchAllFileQuery="select uuid, measure from latestNonDeletedArchEntIdentifiers where " +
 			"latestNonDeletedArchEntIdentifiers.Measure like '%"+ keyword +
 			"%' and latestNonDeletedArchEntIdentifiers.AttributeID = "+
