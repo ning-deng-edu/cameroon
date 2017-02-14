@@ -1,62 +1,68 @@
-.questionnaire-list {
+.user-list{
+    height: 100%;
+}
+
+.ftSel-list{
     height: 100%;
 }
 
 .survey-list {
     height: 100%;
 }
-.answer-list{
-	height: 100%;
-}
 
-.question-list {
-    height: 60%;
-}
 .session-list{
- 	height: 100%;
+    height: 100%;   
 }
-.file-list{
-	height: 65%;
+
+.introSss-list{
+    height: 100%;   
 }
-.session-file-list{
-	height: 100px;
-}
-.answerFile-list{
-	height: 70px;
-}
-.questionQuestionnaire-list {
+
+.sssSelPs-list {
     height: 100%;
 }
-.languageInQuestion-list{
-    height: 50px;
+
+.sssAns-list {
+    height: 100%;
 }
+
+.allQuesnir-list {
+    height: 100%;
+}
+
+.quesInQuesnir-list {
+    height: 100%;
+}
+
+.loopQues-list{
+    height: 100%;
+}
+.sssFile-list {
+    height: 100%;
+}
+
+.ansFile-list{
+    height: 100%;
+}
+
+.person-list {
+    height: 100%;
+}
+
 .language-list {
-    height: 70%;
-}
-.person-list{
-   height: 100%;
-}
-.menu-list {
-    height: 75%;
-}
-
-.user-list{
     height: 100%;
 }
-.user_list-label{
-    }
 
-.button_and_list{
-    height: 70%;
-}
-.button_and_list-label{
-        margin-top:7%;
+.fieldTrip-list {
+    height: 100%;
 }
 
-.list{    
-            
+.file-list {
+    height: 100%;
 }
-
+.ft-sss-list{
+    height: 180px;
+}
 .list-label{
         margin-top:7%;
 }
@@ -66,7 +72,7 @@
 }
 
 .required{
-	color: red;
+    color: red;
         }
 
 .required-picture-gallery-label{

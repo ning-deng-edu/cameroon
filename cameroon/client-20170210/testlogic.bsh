@@ -1385,10 +1385,14 @@ saveSession(String typeflag){
 		interviwerPrefix=psInfo.get("interviewer");
 		
 		String tempSssLabel=interviwerPrefix+sssLabel;
-		tempSssLabel=tempSssLabel.trim().replaceAll("'", "''");
+		String dupkw=escapeSpecialCharInQuery(tempSssLabel);
+	    if(dupkw.equals("")){
+	    	showWarning("Invalid content","Session label should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%\n"+"Please contact the admin for more information");
+	    	return;
+	    }
 		sssDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
-		"and (measure = '"+tempSssLabel+"' or measure like '"+tempSssLabel+"(%)')";
+		"and (measure = '"+dupkw+"' or measure like '"+dupkw+"(%)')";
 
 		fetchAll(sssDuplicateQuery,new FetchCallback() {
 			onFetch(result) {
@@ -1850,14 +1854,17 @@ updateSssPsChange(Hashtable sssInfoChange,Hashtable sssAnsChange,Hashtable sssPs
 		newSssLabel=extractOriginLbl(newSssLabel);
 		sssLabelChange=true;
 	}
-	newSssLabel=newSssLabel.trim().replaceAll("'", "''");
-	//change session label
+	String dupkw=escapeSpecialCharInQuery(newSssLabel);
+    if(dupkw.equals("")){
+    	showWarning("Invalid content","Session label should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%\n"+"Please contact the admin for more information");
+    	return;
+    }
 	if(sssLabelChange){
 		//showWarning("sessLabel","sessionLabelchanging");
 		sssDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
 		"and uuid<>"+sss_id+" "+
-		"and (measure = '"+newSssLabel+"' or measure like '"+newSssLabel+"(%)')";
+		"and (measure = '"+dupkw+"' or measure like '"+dupkw+"(%)')";
 		//showWarning("sssDuplicateQuery","sssDuplicateQuery");
 		fetchAll(sssDuplicateQuery,new FetchCallback() {
 			onFetch(result) {
@@ -2098,12 +2105,15 @@ ansLblMng(ArrayList ans, String ansConsultant){
 		}
 
 		String newAnsLabelSss=sb.toString();
-		newAnsLabelSss=newAnsLabelSss.trim().replaceAll("'", "''");
-		//showWarning("3","3");
+		String dupkw=escapeSpecialCharInQuery(newAnsLabelSss);
+	    if(dupkw.equals("")){
+	    	showWarning("Invalid content","Answer label should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%\n"+"Please contact the admin for more information");
+	    	return;
+	    }
 		ansDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 			"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
 			"and uuid <>"+ans.get(0)+" "+
-			"and (measure ='"+newAnsLabelSss+"' or measure like '"+newAnsLabelSss+"(%)')";
+			"and (measure ='"+dupkw+"' or measure like '"+dupkw+"(%)')";
 
 		fetchAll(ansDuplicateQuery,new FetchCallback() {
 			onFetch(result) {
@@ -2915,9 +2925,14 @@ saveNewEmrAnswer(){
 }
 
 saveEmrSss(){
+	String dupkw=escapeSpecialCharInQuery(emrSssInfo.get("sssId"));
+    if(dupkw.equals("")){
+    	showWarning("Invalid content","Interviewer name should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%\n"+"Please contact the admin for more information");
+    	return;
+    }
 	sssDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionID') "+
-		"and (measure = '"+ emrSssInfo.get("sssId")+"' or measure like '"+ emrSssInfo.get("sssId")+"(%)')";
+		"and (measure = '"+ dupkw+"' or measure like '"+ dupkw+"(%)')";
 
 	fetchAll(sssDuplicateQuery,new FetchCallback() {
 		onFetch(dupResult) {
@@ -4224,7 +4239,7 @@ sclngChangePrep(String crntQuesnirId){
 }
 
 quesPrep(String crntQuesnirId){
-	showWarning("quesPrep","quesPrep");
+	//showWarning("quesPrep","quesPrep");
 	loadQuesContentandOrderQuery="select t1.quesId, t1.quesOrder || '-' || t2.quesContent as qOrderedContent, t2.quesAnno from "+
         "(select quId.measure as quesId, qOrder.measure as quesOrder "+
         "from latestNonDeletedAentValue as quId, latestNonDeletedAentValue as qOrder "+
@@ -4256,14 +4271,21 @@ quesPrep(String crntQuesnirId){
             "and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+crntQuesnirId+"') "+
         "and qId.uuid in "+
             "(select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid'))) t2 "+
-    "on t1.quesId=t2.quesId group by t1.quesId "+
-    "order by qOrderedContent asc";
+    "on t1.quesId=t2.quesId group by t1.quesId";
 
 
 	fetchAll(loadQuesContentandOrderQuery, new FetchCallback() {
 	    onFetch(result) {
-	    	//howWarning("result","result");
-	    	//showWarning("test",result.get(0).get(2).toString());
+	    	Collections.sort(result, new Comparator(){
+	            public int compare(ArrayList o1, ArrayList o2) {
+	                String s1=o1.get(1).toString();
+	                String s2=o2.get(1).toString();
+	                int i=Integer.parseInt(s1.split("-")[0]);
+	                int j=Integer.parseInt(s2.split("-")[0]);
+	                return i-j;
+	            }
+		    });
+
 	        ques_in_current_quesnir.clear();
 	        ques_in_current_quesnir.addAll(result);
 	        quesRecordingPrep(crntQuesnirId);
@@ -4737,11 +4759,14 @@ startNewAnswerChk(){
 
 startNewAnswerLangIntro(){
 	createLangIntroPage(current_quesnir_id,current_question_id, "N",null);
-
-	tempAnsLabel=tempAnsLabel.trim().replaceAll("'", "''");
+	String dupkw=escapeSpecialCharInQuery(tempAnsLabel);
+    if(dupkw.equals("")){
+    	showWarning("Invalid content","Consultant name should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%\n"+"Please contact the admin for more information");
+    	return;
+    }
 	ansLabelDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
-	"and (measure = '"+tempAnsLabel+"' or measure like '"+tempAnsLabel+"(%)')";
+	"and (measure = '"+dupkw+"' or measure like '"+dupkw+"(%)')";
 
 	fetchAll(ansLabelDuplicateQuery,new FetchCallback() {
 		onFetch(result) {
@@ -4771,10 +4796,14 @@ startNewAnswerFile(String typeflag, String current_start_time){
 	hiddenAnsInfo.put("quesnir_id",current_quesnir_id);
 	hiddenAnsInfo.put("ques_id",current_question_id);
 	hiddenAnsInfo.put("start_time",current_start_time);
-	tempAnsLabel=tempAnsLabel.trim().replaceAll("'", "''");
+	String dupkw=escapeSpecialCharInQuery(tempAnsLabel);
+    if(dupkw.equals("")){
+    	showWarning("Invalid content","Consultant name should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%\n"+"Please contact the admin for more information");
+    	return;
+    }
 	ansLabelDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
-	"and (measure = '"+tempAnsLabel+"' or measure like '"+tempAnsLabel+"(%)')";
+	"and (measure = '"+dupkw+"' or measure like '"+dupkw+"(%)')";
 
 	fetchAll(ansLabelDuplicateQuery,new FetchCallback() {
 		onFetch(result) {
@@ -4825,11 +4854,14 @@ startChoiceAnswer(String current_start_time, String typeflag){
 	hiddenAnsInfo.put("quesnir_id",current_quesnir_id);
 	hiddenAnsInfo.put("ques_id",current_question_id);
 	hiddenAnsInfo.put("start_time",current_start_time);
-	//showWarning("hiddenAnsInfo","hiddenAnsInfo");
-	tempAnsLabel=tempAnsLabel.trim().replaceAll("'", "''");
+	String dupkw=escapeSpecialCharInQuery(tempAnsLabel);
+    if(dupkw.equals("")){
+    	showWarning("Invalid content","Consultant name should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%\n"+"Please contact the admin for more information");
+    	return;
+    }
 	ansLabelDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
-		"and (measure = '"+tempAnsLabel+"' or measure like '"+tempAnsLabel+"(%)')";
+		"and (measure = '"+dupkw+"' or measure like '"+dupkw+"(%)')";
 	fetchAll(ansLabelDuplicateQuery,new FetchCallback() {
 		onFetch(result) {
 			if(!isNull(result)){
@@ -6615,20 +6647,24 @@ saveLanguage(){
         return;
 	}
 	tempLangLabel=getFieldValue("language/languageInfo/languageID");
-	tempLangLabel=tempLangLabel.trim().replaceAll("'", "''");
+	String dupkw=escapeSpecialCharInQuery(tempLangLabel);
+    if(dupkw.equals("")){
+    	showWarning("Invalid label","The language label should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+		return;
+    }
 	langDuplicateQuery=null;
 
 	if(language_id==null){
 		langDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID') "+
-				"and measure ='"+tempLangLabel+"' or measure like '"+tempLangLabel+"(%)'";
+				"and measure ='"+dupkw+"' or measure like '"+dupkw+"(%)'";
 	}
 	
 	else{
 		langDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID') "+
 				"and uuid<>'"+language_id+"' "+
-				"and measure ='"+tempLangLabel+"' or measure like '"+tempLangLabel+"(%)'";
+				"and measure ='"+dupkw+"' or measure like '"+dupkw+"(%)'";
 	}
 
     fetchAll(langDuplicateQuery,new FetchCallback() {
@@ -6829,10 +6865,14 @@ saveNewFieldTrip(String startDate, String endDate){
 		return;
 	}
 	tempFtLabel=username+"_FieldTrip_"+startDate;
-	tempFtLabel=tempFtLabel.trim().replaceAll("'", "''");
+	String dupkw=escapeSpecialCharInQuery(tempFtLabel);
+    if(dupkw.equals("")){
+    	showWarning("Invalid content","Username should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%\n"+"Please contact the admin for more information");
+    	return;
+    }
 	ftDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripID') "+
-	"and measure = '"+tempFtLabel+"' or measure like '"+tempFtLabel+"(%)'";
+	"and measure = '"+dupkw+"' or measure like '"+dupkw+"(%)'";
 
 	fetchAll(ftDuplicateQuery,new FetchCallback() {
 		onFetch(result) {
@@ -6887,12 +6927,15 @@ updateFieldTrip(String startDate, String endDate){
 		}
 	}
 	tempFtLabel=username+"_FieldTrip_"+startDate;
-	tempFtLabel=tempFtLabel.trim().replaceAll("'", "''");
-			//showWarning("tempFtLabel",tempFtLabel);
+	String dupkw=escapeSpecialCharInQuery(tempFtLabel);
+    if(dupkw.equals("")){
+    	showWarning("Invalid content","Username should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%\n"+"Please contact the admin for more information");
+    	return;
+    }
 	ftDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 		"where AttributeID=(select AttributeID from AttributeKey where AttributeName='FieldTripID') "+
 		"and uuid<>"+fieldTrip_id+" "+
-		"and measure = '"+tempFtLabel+"' or measure like '"+tempFtLabel+"(%)'";
+		"and measure = '"+dupkw+"' or measure like '"+dupkw+"(%)'";
 
 	fetchAll(ftDuplicateQuery,new FetchCallback() {
 		onFetch(result) {
@@ -7574,7 +7617,11 @@ savePersonData(String typeflag){
 	String personNameOrigin=getFieldValue("person/personInfo/personName");
 	String personNameCamCase=nameCamCaseConverter(personNameOrigin);
 	String personLabel=personNameCamCase+"_"+getFieldValue("person/personInfo/personDOB");
-	personLabel=personLabel.trim().replaceAll("'", "''");
+	String dupkw=escapeSpecialCharInQuery(personLabel);
+    if(dupkw.equals("")){
+    	showWarning("Invalid label","The person name label should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+		return;
+    }
 	if(person_id!=null){
 		changedPersonInfo.clear();
 		changedPersonInfo.add(personLabel);
@@ -7607,13 +7654,13 @@ savePersonData(String typeflag){
 	if(person_id==null){
 		psDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonID') "+
-				"and (measure = '"+personLabel+"' or measure like '"+personLabel+"(%)')";
+				"and (measure = '"+dupkw+"' or measure like '"+dupkw+"(%)')";
 	}
 	else{
 		psDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 				"where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonID') "+
 				"and uuid<>"+person_id+" "+
-				"and (measure = '"+personLabel+"' or measure like '"+personLabel+"(%)')";
+				"and (measure = '"+dupkw+"' or measure like '"+dupkw+"(%)')";
 	}
 
 	fetchAll(psDuplicateQuery,new FetchCallback() {
@@ -7861,10 +7908,14 @@ nonDupLabelGen(ArrayList dupList, String tempLbl, String tableName, String attri
 ** other args: not used 
 */
 labelDeduplicate(String originLabel, String attriName, String fieldRef, String typeflag, Boolean dataUpdate, ArrayList tempUpdateList ){
-	originLabel=originLabel.trim().replaceAll("'", "''");
+	String dupkw=escapeSpecialCharInQuery(originLabel);
+    if(dupkw.equals("")){
+    	showWarning("Invalid content","Username should not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%\n"+"Please contact the admin for more information");
+    	return;
+    }
 	duplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
 	"where AttributeID=(select AttributeID from AttributeKey where AttributeName='"+attriName+"') "+
-	"and (measure = '"+originLabel+"' or measure like '"+originLabel+"(%)')";
+	"and (measure = '"+dupkw+"' or measure like '"+dupkw+"(%)')";
 
 	fetchAll(duplicateQuery,new FetchCallback() {
 		onFetch(result) {			
@@ -8500,6 +8551,24 @@ getQuesLabel(){
 	}
 	return returnQuesLabel;
 }
+
+/*
+** generate sql keyword without special characters
+*/
+
+escapeSpecialCharInQuery(String queryKw){
+	String specialPtn="[\\[\\]{}();~>*%\\&\\?,\\!\\$\\|]+";
+	Pattern pattern = Pattern.compile(specialPtn);
+    if(pattern.matcher(queryKw).find()){
+        return "";
+    }
+	queryKw=queryKw.trim().replaceAll("'","''");
+    queryKw=queryKw.replaceAll("\\\\","\\\\\\\\");
+    queryKw=queryKw.replaceAll("-","\\\\-");
+    queryKw=queryKw.replaceAll("_","\\\\_");
+    return queryKw;
+}
+
 /*
 loadSessionListByQuesnirType(String typeflag, ArrayList typeIdList){
 	String typeIds=buildQuerySetCondition(typeIdList);
