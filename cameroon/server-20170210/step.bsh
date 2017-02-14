@@ -2836,11 +2836,18 @@ reConstructQuesShowOrder(){
 	boolean shortHand=questionSelected.size()>5? true:false;
 	getQuesShowList();
 	removeAllViewsAndContainers("questionnaire_question");
+	style1 = "orientation";
+    style2 = "even";
+    style3 = "large";
 	if(shortHand){
 		executeViewTask(new ViewTask() {
 		    doTask() {  
+		    	style1 = "orientation";
+           		style2 = "even";
 		    	createContainer("questionnaire_question/questionnaire_question_info/shortHandC", "orientation", "questionnaire_question/questionnaire_question_info");
-		    	createView("questionnaire_question/questionnaire_question_info/shortHand", createViewDef().createButton().setLabel("click to view all selected question"), "questionnaire_question/questionnaire_question_info/shortHandC");
+		    	createContainer("questionnaire_question/questionnaire_question_info/shChild1", "even", "questionnaire_question/questionnaire_question_info/shortHandC");
+		    	createContainer("questionnaire_question/questionnaire_question_info/shChild2", "even", "questionnaire_question/questionnaire_question_info/shortHandC");
+		    	createView("questionnaire_question/questionnaire_question_info/shortHand", createViewDef().createButton().setLabel("view all selected question").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info/shChild2");
 		    	onEvent("questionnaire_question/questionnaire_question_info/shortHand","click","showAllQuesOrder()");
 		    } 
 	    });
