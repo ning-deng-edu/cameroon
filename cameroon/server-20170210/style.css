@@ -6,7 +6,7 @@
 }
 
 .questionQuestionnaire-list {
-    height: 70px;
+    height: 75px;
 }
 .languageInQuestion-list{
     height: 50px;
@@ -38,6 +38,9 @@
 }
 .session-file-list{
 	height: 100px;
+}
+.questionSel-list{
+    height: 150px;
 }
 .list-label{
         margin-top:7%;

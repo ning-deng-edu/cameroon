@@ -92,6 +92,7 @@ userSearch(){
             });
     }
     else{
+    	userKeyword=userKeyword.trim().replaceAll();
         searchUserQuery="select userid, fname || ' ' || lname from user where userdeleted is null and fname like '%"
                         +userKeyword+"%'or lname like '%"+userKeyword+"%'";
         fetchAll(searchUserQuery, new FetchCallback() {
@@ -893,7 +894,12 @@ checkRole(){
         showWarning("Incomplete data","You must select answer for each requirement question");
         return;
     }
-    newRoleName=newRoleName.trim().replaceAll("'", "''");
+    newRoleName=escapeSpecialCharInQuery(newRoleName);
+    if(newRoleName.equals("")){
+    	showWarning("Invalid content","The role name shold not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+    	return;
+    }
+    //newRoleName=newRoleName.trim().replaceAll("'", "''");
     personRoleCheckQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers " +
         "WHERE latestNonDeletedArchEntIdentifiers.AttributeID "+
         "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonRoleName') "+
@@ -1496,7 +1502,13 @@ saveNewQuestion(){
         showWarning("Incomplete data", "You must:\n"+"indicate at least one language, and\n"+"enter the question content for every language");
         return;
     }
-
+	tempQuesLabel=getFieldValue("questionBank/questionInfo/questionID");
+    //tempQuesLabel=tempQuesLabel.trim().replaceAll("'", "''");
+    tempQuesLabel=escapeSpecialCharInQuery(tempQuesLabel);
+    if(tempQuesLabel.equals("")){
+    	showWarning("Invalid question label","The question label shold not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+		return;
+    }
     recording_req_id=getFieldValue("questionBank/questionInfo/questionProp");
     recording_req_type=getQuesPropText(recording_req_id);
     Boolean saveChoice=false;
@@ -1513,8 +1525,7 @@ saveNewQuestion(){
         }
     }
 
-    tempQuesLabel=getFieldValue("questionBank/questionInfo/questionID");
-    tempQuesLabel=tempQuesLabel.trim().replaceAll("'", "''");
+    
     quesDuplicateQuery=null;
     if(question_id!=null){
     	updateQues=true;
@@ -2272,10 +2283,12 @@ questionnaireInfoNew=new ArrayList();//Comparing whether or not the questionnair
 quesListRelnOrigin=new ArrayList();//Storing the existing reln between questions and questionnaire, used for deletion
 questionirType = new ArrayList();
 quesnirTypeRelnOrigin=new ArrayList();
-searchQuesType=new ArrayList();
-searchQuesType.add("candidate");
-searchQuesType.add("selected");
+//searchQuesType=new ArrayList();
+//searchQuesType.add("candidate");
+//searchQuesType.add("selected");
 questionShowList=new LinkedList();
+placeholderList=new ArrayList();
+placeholderList.add(new NameValuePair("loading data","l"));
 /*** Questionnaire query***/
 loadAllQuestionnaireQuery="SELECT uuid,measure FROM latestNonDeletedAentValue " +
     "WHERE latestNonDeletedAentValue.AttributeID "+
@@ -2434,6 +2447,7 @@ startQuestionSelection(){
             questionnaireInfoNew.add(getFieldValue("questionnaire/questionnaire_info/questionnaireDescription"));
             questionnaireInfoNew.add(getFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid"));
             showTabGroup("questionnaire_question");
+            populateList("questionnaire_question/questionnaire_question_info/questionList",placeholderList);
             initializeQuestionSelect();
     }
 
@@ -2469,7 +2483,7 @@ reConstructQuesOrder(){
                 createContainer("questionListOrder/questionListOrderInfo/Up_quesc_" + quesCountDel, "large", "questionListOrder/questionListOrderInfo/ques_rowc_" + quesCountDel);
                 createContainer("questionListOrder/questionListOrderInfo/Down_quesc_" + quesCountDel, "large", "questionListOrder/questionListOrderInfo/ques_rowc_" + quesCountDel);
                 createView("questionListOrder/questionListOrderInfo/Ques_" + quesCountDel, createViewDef().createTextField("string").setReadOnly(true), "questionListOrder/questionListOrderInfo/quesc_" + quesCountDel);
-                createView("questionListOrder/questionListOrderInfo/Delete_ques_" + quesCountDel, createViewDef().createButton().setLabel("X").setStyleCss("faims-danger"), "questionListOrder/questionListOrderInfo/Delete_quesc_" + quesCountDel);
+                createView("questionListOrder/questionListOrderInfo/Delete_ques_" + quesCountDel, createViewDef().createButton().setLabel("X").setStyleCss("faims-blue"), "questionListOrder/questionListOrderInfo/Delete_quesc_" + quesCountDel);
                 createView("questionListOrder/questionListOrderInfo/Up_ques_" + quesCountDel, createViewDef().createButton().setLabel("↑").setStyleCss("faims-blue"), "questionListOrder/questionListOrderInfo/Up_quesc_" + quesCountDel);
                 createView("questionListOrder/questionListOrderInfo/Down_ques_" + quesCountDel, createViewDef().createButton().setLabel("↓").setStyleCss("faims-blue"), "questionListOrder/questionListOrderInfo/Down_quesc_" + quesCountDel);
                 setFieldValue("questionListOrder/questionListOrderInfo/Ques_" + quesCountDel, quesContent);
@@ -2497,7 +2511,7 @@ reConstructQuesOrder(ArrayList searchResult){
                 createContainer("questionListOrder/questionListOrderInfo/Up_quesc_" + quesCountDel, "large", "questionListOrder/questionListOrderInfo/ques_rowc_" + quesCountDel);
                 createContainer("questionListOrder/questionListOrderInfo/Down_quesc_" + quesCountDel, "large", "questionListOrder/questionListOrderInfo/ques_rowc_" + quesCountDel);
                 createView("questionListOrder/questionListOrderInfo/Ques_" + quesCountDel, createViewDef().createTextField("string").setReadOnly(true), "questionListOrder/questionListOrderInfo/quesc_" + quesCountDel);
-                createView("questionListOrder/questionListOrderInfo/Delete_ques_" + quesCountDel, createViewDef().createButton().setLabel("X").setStyleCss("faims-danger"), "questionListOrder/questionListOrderInfo/Delete_quesc_" + quesCountDel);
+                createView("questionListOrder/questionListOrderInfo/Delete_ques_" + quesCountDel, createViewDef().createButton().setLabel("X").setStyleCss("faims-blue"), "questionListOrder/questionListOrderInfo/Delete_quesc_" + quesCountDel);
                 createView("questionListOrder/questionListOrderInfo/Up_ques_" + quesCountDel, createViewDef().createButton().setLabel("↑").setStyleCss("faims-blue"), "questionListOrder/questionListOrderInfo/Up_quesc_" + quesCountDel);
                 createView("questionListOrder/questionListOrderInfo/Down_ques_" + quesCountDel, createViewDef().createButton().setLabel("↓").setStyleCss("faims-blue"), "questionListOrder/questionListOrderInfo/Down_quesc_" + quesCountDel);
                 setFieldValue("questionListOrder/questionListOrderInfo/Ques_" + quesCountDel, quesContent);
@@ -2521,7 +2535,7 @@ createChangeBtnQuesnir(String typeflag){
     executeViewTask(new ViewTask() {
         doTask(){
             createContainer(path+"quesnirBtnC", "orientation", path);
-            createContainer(path+"child1", "even", path+"/quesnirBtnC");
+            createContainer(path+"child1", "even", path+"quesnirBtnC");
             createContainer(path+"child2", "even", path+"quesnirBtnC");
             createView(path+"Change_Questionnaire", createViewDef().createButton().setLabel("Update").setStyleCss("faims-blue"),path+"child1");
             createView(path+"Finish_Questionnaire_Creation", createViewDef().createButton().setLabel("Create").setStyleCss("faims-blue"), path+"child2");
@@ -2553,7 +2567,7 @@ initializeQuestionSelect(){
     questionSelected.clear();
     questionOriginal.clear();
     setFieldValue("questionnaire_question/questionnaire_question_info/keywordOfQuestion", "*");
-    populateDropDown("questionnaire_question/questionnaire_question_info/category",searchQuesType);
+    //populateDropDown("questionnaire_question/questionnaire_question_info/category",searchQuesType);
         
     if(isNull(finished_questionnaire_id)){
         loadQuesSelection("new");
@@ -2803,7 +2817,7 @@ questionShowRefresh(String selQuesId,String quesContent){
 		    createContainer("questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCount, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCount);
 		    //showWarning("createContainer","createContainer");
 		    createView("questionnaire_question/questionnaire_question_info/Ques_" + quesCount, createViewDef().createTextField("string").setReadOnly(true), "questionnaire_question/questionnaire_question_info/quesc_" + quesCount);
-		    createView("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCount, createViewDef().createButton().setLabel("X").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCount);
+		    createView("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCount, createViewDef().createButton().setLabel("X").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCount);
 		    createView("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCount, createViewDef().createButton().setLabel("↑").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCount);
 		    createView("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCount, createViewDef().createButton().setLabel("↓").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCount);
 		    //showWarning("createView","createView");
@@ -2826,7 +2840,7 @@ reConstructQuesShowOrder(){
 		executeViewTask(new ViewTask() {
 		    doTask() {  
 		    	createContainer("questionnaire_question/questionnaire_question_info/shortHandC", "orientation", "questionnaire_question/questionnaire_question_info");
-		    	createView("questionnaire_question/questionnaire_question_info/shortHand", createViewDef().createButton().setLabel("View all ..."), "questionnaire_question/questionnaire_question_info/shortHandC");
+		    	createView("questionnaire_question/questionnaire_question_info/shortHand", createViewDef().createButton().setLabel("click to view all selected question"), "questionnaire_question/questionnaire_question_info/shortHandC");
 		    	onEvent("questionnaire_question/questionnaire_question_info/shortHand","click","showAllQuesOrder()");
 		    } 
 	    });
@@ -2844,7 +2858,7 @@ reConstructQuesShowOrder(){
 		        createContainer("questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCountDel, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
 		        createContainer("questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCountDel, "large", "questionnaire_question/questionnaire_question_info/ques_rowc_" + quesCountDel);
 		        createView("questionnaire_question/questionnaire_question_info/Ques_" + quesCountDel, createViewDef().createTextField("string").setReadOnly(true), "questionnaire_question/questionnaire_question_info/quesc_" + quesCountDel);
-		        createView("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCountDel, createViewDef().createButton().setLabel("X").setStyleCss("faims-danger"), "questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCountDel);
+		        createView("questionnaire_question/questionnaire_question_info/Delete_ques_" + quesCountDel, createViewDef().createButton().setLabel("X").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info/Delete_quesc_" + quesCountDel);
 		        createView("questionnaire_question/questionnaire_question_info/Up_ques_" + quesCountDel, createViewDef().createButton().setLabel("↑").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info/Up_quesc_" + quesCountDel);
 		        createView("questionnaire_question/questionnaire_question_info/Down_ques_" + quesCountDel, createViewDef().createButton().setLabel("↓").setStyleCss("faims-blue"), "questionnaire_question/questionnaire_question_info/Down_quesc_" + quesCountDel);
 		        setFieldValue("questionnaire_question/questionnaire_question_info/Ques_" + quesCountDel, quesContent);
@@ -3138,92 +3152,97 @@ adjustQuesOrder(String typeFlag, int strtIndex, ArrayList toAdjustList){
 }
 //todo: search ques by language
 searchQuestion(){
+	//showWarning("searchQuestion","searchQuestion");
     String keywordForQuestion=getFieldValue("questionnaire_question/questionnaire_question_info/keywordOfQuestion").trim();
-    String ctgy=getFieldValue("questionnaire_question/questionnaire_question_info/category");
-    if(ctgy.equals("candidate")){
-        if((isNull(keywordForQuestion))||(keywordForQuestion.equals("*"))){
-            fetchAll(loadAllEngQuesContentQuery, new FetchCallback() {
-                onFetch(result) {
-                    questionCandidatesContent.clear();
-                    questionCandidates.clear();
-                    questionCandidates.addAll(result);
-                    questionCandidatesContent.addAll(result);
-                    tempToDelQues=new ArrayList();
-                    tempToDelQues.clear();
-                    for(quesSel:questionSelected){
+    //showWarning("keywordForQuestion",keywordForQuestion);
+    if((isNull(keywordForQuestion))||(keywordForQuestion.equals("*"))){
+        fetchAll(loadAllEngQuesContentQuery, new FetchCallback() {
+            onFetch(result) {
+                questionCandidatesContent.clear();
+                questionCandidates.clear();
+                questionCandidates.addAll(result);
+                questionCandidatesContent.addAll(result);
+                tempToDelQues=new ArrayList();
+                tempToDelQues.clear();
+                for(quesSel:questionSelected){
+                    String toDelId=quesSel.get(0);
+                    //showWarning("toDelId",toDelId);
+                    for (quesDel:questionCandidatesContent){
+                        String delId=quesDel.get(0);
+                        //showWarning("quesDel",delId);
+                        if(delId.equals(toDelId)){
+                            tempToDelQues.add(quesDel);
+                            //questionCandidatesContent.remove(quesDel);
+                            //showWarning("questionCandidatesContent","questionCandidatesContent");
+                        }
+                    }
+                }
+                questionCandidatesContent.removeAll(tempToDelQues);
+                //questionCandidatesContent.removeAll(questionSelected);
+                populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+            }  
+        });     
+    }
+
+    else {
+    	//showWarning("else","else");
+        keywordForQuestion=escapeSpecialCharInQuery(keywordForQuestion);
+        if(keywordForQuestion.equals("")){
+        	showWarning("Invalid keyword","The keyword shold not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+			return;
+        }
+        searchQuestionQueryFirstHalf="select qId.measure, qContent.measure "+
+            "from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qContent "+
+            "where qContent.measure like '%"; 
+        searchQuestionQueryLastHalf="%' and qContent.AttributeID = "+
+                "(select AttributeID from AttributeKey where AttributeName='QuesContent') "+
+                "and qId.AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionUuid') "+
+                "and qId.uuid=qContent.uuid "+
+                "and qId.uuid in"+
+                "(select uuid from latestNonDeletedArchEntIdentifiers "+
+                "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid'));";
+                
+        fetchAll(searchQuestionQueryFirstHalf+keywordForQuestion+searchQuestionQueryLastHalf, new FetchCallback() {
+            onFetch(result) {
+                questionCandidatesContent.clear();
+                questionCandidates.clear();
+                questionCandidates.addAll(result);
+                questionCandidatesContent.addAll(result);
+                tempToDelQues=new ArrayList();
+                tempToDelQues.clear();
+                for(quesSel:questionSelected){
                         String toDelId=quesSel.get(0);
-                        //showWarning("toDelId",toDelId);
                         for (quesDel:questionCandidatesContent){
-                            String delId=quesDel.get(0);
-                            //showWarning("quesDel",delId);
-                            if(delId.equals(toDelId)){
+                            if(quesDel.get(0).equals(toDelId)){
                                 tempToDelQues.add(quesDel);
-                                //questionCandidatesContent.remove(quesDel);
-                                //showWarning("questionCandidatesContent","questionCandidatesContent");
                             }
                         }
                     }
-                    questionCandidatesContent.removeAll(tempToDelQues);
-                    //questionCandidatesContent.removeAll(questionSelected);
-                    populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
-                }  
-            });     
-        }
-
-        else {
-            
-            searchQuestionQueryFirstHalf="select qId.measure, qContent.measure "+
-                "from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qContent "+
-                "where qContent.measure like '%"; 
-            searchQuestionQueryLastHalf="%' and qContent.AttributeID = "+
-                    "(select AttributeID from AttributeKey where AttributeName='QuesContent') "+
-                    "and qId.AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='QuestionUuid') "+
-                    "and qId.uuid=qContent.uuid "+
-                    "and qId.uuid in"+
-                    "(select uuid from latestNonDeletedArchEntIdentifiers "+
-                    "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid'));";
-                    
-            fetchAll(searchQuestionQueryFirstHalf+keywordForQuestion+searchQuestionQueryLastHalf, new FetchCallback() {
-                onFetch(result) {
-                    questionCandidatesContent.clear();
-                    questionCandidates.clear();
-                    questionCandidates.addAll(result);
-                    questionCandidatesContent.addAll(result);
-                    tempToDelQues=new ArrayList();
-                    tempToDelQues.clear();
-                    for(quesSel:questionSelected){
-                            String toDelId=quesSel.get(0);
-                            for (quesDel:questionCandidatesContent){
-                                if(quesDel.get(0).equals(toDelId)){
-                                    tempToDelQues.add(quesDel);
-                                }
-                            }
-                        }
-                    questionCandidatesContent.removeAll(tempToDelQues);
-                    populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
-            
-                }  
-                });
-            }
-    }
-    else{//searching in the arraylist 
-        if((isNull(keywordForQuestion))||(keywordForQuestion.equals("*"))){
-            reConstructQuesOrder();
-        }
-        else{
-            tempQuesQuery=new ArrayList();
-            tempQuesQuery.clear();
-            Pattern pattern = Pattern.compile(Pattern.quote(keywordForQuestion), Pattern.CASE_INSENSITIVE);
-            for (ques : questionSelected){
-                if(pattern.matcher(ques.get(1)).find()){
-                    tempQuesQuery.add(ques);
-                }
-            }
-            reConstructQuesOrder(tempQuesQuery);
-        }
+                questionCandidatesContent.removeAll(tempToDelQues);
+                populateList("questionnaire_question/questionnaire_question_info/questionList", questionCandidatesContent);
+        
+            }  
+            });
     }
 }
-
+onEvent("questionListOrder/questionListOrderInfo/SearchQuestion","click","searchSeletedQues()");
+searchSeletedQues(){
+	String keywordForQuestion=getFieldValue("questionListOrder/questionListOrderInfo/kwOfQuestion").trim();
+	if((isNull(keywordForQuestion))||(keywordForQuestion.equals("*"))){
+            reConstructQuesOrder();
+    }
+    else{
+        tempQuesQuery=new ArrayList();
+        tempQuesQuery.clear();
+        Pattern pattern = Pattern.compile(Pattern.quote(keywordForQuestion), Pattern.CASE_INSENSITIVE);
+        for (ques : questionSelected){
+            if(pattern.matcher(ques.get(1)).find()){
+                tempQuesQuery.add(ques);
+            }
+        }
+        reConstructQuesOrder(tempQuesQuery);
+    }
+}
 loadQuestionnaire(){
     finished_questionnaire_id=null;
     existing_questionnaires=new ArrayList();
@@ -3259,7 +3278,11 @@ finishCreateQuestionnaire(String typeflag){
     }
 
     String tempQuesnirLabel=getFieldValue("questionnaire/questionnaire_info/questionnaireID");
-    tempQuesnirLabel=tempQuesnirLabel.trim().replaceAll("'", "''");
+    tempQuesnirLabel=escapeSpecialCharInQuery(tempQuesnirLabel);
+    if(tempQuesnirLabel.equals("")){
+    	showWarning("Invalid label","The questionnaire label shold not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+		return;
+    }
     quesnirDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
         "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireID') "+
         "and measure ='"+tempQuesnirLabel+"' or measure like '"+tempQuesnirLabel+"(%)'";
@@ -3374,7 +3397,12 @@ updateBasicQuesnirInfo(){
    // showWarning("updateBasicQuesnirInfo","updateBasicQuesnirInfo");
     String tempQuesnirLabel=getFieldValue("questionnaire/questionnaire_info/questionnaireID");
     String quesnirTypeUuid=getFieldValue("questionnaire/questionnaire_info_hide/questionnaireTypeUuid");
-    tempQuesnirLabel=tempQuesnirLabel.trim().replaceAll("'", "''");
+    //tempQuesnirLabel=tempQuesnirLabel.trim().replaceAll("'", "''");
+    tempQuesnirLabel=escapeSpecialCharInQuery(tempQuesnirLabel);
+    if(tempQuesnirLabel.equals("")){
+    	showWarning("Invalid label","The questionnaire label shold not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+		return;
+    }
     quesnirDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
         "where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionnaireID') "+
         "and uuid <>'"+finished_questionnaire_id+"' "+
@@ -3607,7 +3635,12 @@ saveNewLanguage(){
     }
 
     tempLangLabel=getFieldValue("language/languageInfo/languageID");
-    tempLangLabel=tempLangLabel.trim().replaceAll("'", "''");
+    tempLangLabel=escapeSpecialCharInQuery(tempLangLabel);
+    if(tempLangLabel.equals("")){
+    	showWarning("Invalid label","The language label shold not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+		return;
+    }
+    //tempLangLabel=tempLangLabel.trim().replaceAll("'", "''");
     langDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
                 "where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID') "+
                 "and measure ='"+tempLangLabel+"' or measure like '"+tempLangLabel+"(%)'";
@@ -3960,7 +3993,12 @@ savePersonData(){
     String personNameCamCase=nameCamCaseConverter(personNameOrigin);
     String personLabel=personNameCamCase+"_"+getFieldValue("person/personInfo/personDOB");
     String personDOB=getFieldValue("person/personInfo/personDOB");
-    personLabel=personLabel.trim().replaceAll("'", "''");
+    personLabel=escapeSpecialCharInQuery(personLabel);
+    if(personLabel.equals("")){
+    	showWarning("Invalid label","The person name label shold not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+		return;
+    }
+    //personLabel=personLabel.trim().replaceAll("'", "''");
     psDuplicateQuery="SELECT uuid,measure FROM latestNonDeletedAentValue "+
         "where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonID') "+
         "and measure ='"+personLabel+"' or measure like '"+personLabel+"(%)'";
@@ -4211,6 +4249,11 @@ recordSearch(){
          //populateCursorList("control/search/entityList", "select uuid, response from latestNonDeletedArchEntFormattedIdentifiers where aenttypename = '" + type + "' limit ? offset ?;", 25);
     }
     else{   
+    	keyword=escapeSpecialCharInQuery(keyword);
+		if(keyword.equals("")){
+			showWarning("Invalid keyword","The keyword shold not contain below characters:\n"+",,$,;,&,?,!,{,},[,],|,!,>,*,%");
+			return;
+		}
         search_query=searchQuery_firstHalf+keyword+searchQuery_lastHalf+type+"'));";//without group by uuid, user can view every related details
         fetchAll(search_query, new FetchCallback() {
         onFetch(result) {
@@ -4598,6 +4641,25 @@ nameCamCaseConverter(String originName){
     camCase=sb.toString().trim();
     return camCase;
     //showWarning("camCase",camCase);
+}
+
+escapeSpecialCharInQuery(String queryKw){
+	String specialPtn="[\\[\\]{}();~>*%\\&\\?,\\!\\$\\|]+";
+	Pattern pattern = Pattern.compile(specialPtn);
+	//showWarning("pattern","pattern");
+    if(pattern.matcher(queryKw).find()){
+        return "";
+    }
+    //showWarning("nonfind","nonfind");
+	queryKw=queryKw.trim().replaceAll("'","''");
+	//showWarning("queryKw",queryKw);
+    queryKw=queryKw.replaceAll("\\\\","\\\\\\\\");
+    //showWarning("queryKw2",queryKw);
+    queryKw=queryKw.replaceAll("-","\\\\-");
+    //showWarning("queryKw3",queryKw);
+    queryKw=queryKw.replaceAll("_","\\\\_");
+    //showWarning("queryKw4",queryKw);
+    return queryKw;
 }
 
 onEvent("control/querytest/Submit","click","testQuery()");

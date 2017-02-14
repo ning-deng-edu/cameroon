@@ -82,12 +82,12 @@
                   <child1>
                     <keywordOfQuestion/>
                   </child1>
-                  <child2>
+                  <!--child2>
                     <category/>
-                  </child2>
-                  <child3>
+                  </child2-->
+                  <child2>
                     <Search_Question/>
-                  </child3>
+                  </child2>
                 </container3>
                 <questionList/>
               </questionnaire_question_info>
@@ -95,6 +95,14 @@
 
           <questionListOrder>
             <questionListOrderInfo>
+              <container4>
+                  <child1>
+                    <kwOfQuestion/>
+                  </child1>
+                  <child2>
+                     <SearchQuestion/>
+                  </child2>
+                </container4>
             </questionListOrderInfo>
           </questionListOrder>
 
@@ -299,7 +307,7 @@
                 </input>
               </group>
 
-              <group ref="child2" faims_style="even">
+              <!--group ref="child2" faims_style="even">
                 <label></label>
                    <select1 ref="category">
                     <label>Category</label>
@@ -308,8 +316,8 @@
                         <value>placeholder</value>
                     </item>
                 </select1>
-              </group>            
-           <group ref="child3" faims_style="even">
+              </group-->            
+           <group ref="child2" faims_style="even">
                 <label></label>
                  <trigger ref="Search_Question" faims_style_class="faims-blue-search">
                  <label>Search</label>
@@ -318,7 +326,7 @@
         
         </group>
 
-           <select1 appearance="compact" faims_annotation="false" ref="questionList" faims_style_class="session-file-list">
+           <select1 appearance="compact" faims_annotation="false" ref="questionList" faims_style_class="questionSel-list">
                 <label>Add question</label>
                 <item>
                     <label>placeholder</label>
@@ -332,6 +340,24 @@
       <label>Questions</label>      
       <group ref="questionListOrderInfo">
         <label>Questions</label>
+        <group ref="container4" faims_style="orientation">
+        
+              <label></label>
+              <group ref="child1" faims_style="even">
+                <label></label>
+                   <input ref="kwOfQuestion" faims_attribute_type="measure" faims_certainty="false" faims_annotation="false">
+                    <label>Keyword</label>
+                </input>
+              </group>
+ 
+           <group ref="child2" faims_style="even">
+                <label></label>
+                 <trigger ref="SearchQuestion" faims_style_class="faims-blue-search">
+                 <label>Search</label>
+               </trigger>
+              </group>
+        
+        </group>
       </group>        
     </group>   
 
