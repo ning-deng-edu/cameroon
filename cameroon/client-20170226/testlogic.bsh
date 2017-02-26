@@ -4684,6 +4684,7 @@ loadAnswerInfo(){
 	        	"qId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
 	        	"and qC.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesContent') "+
 	        	"and qId.uuid=qC.uuid and qId.measure='"+tmpQuesId+"'";
+
         	fetchOne(loadQuesCntntByQuesIDQuery, new FetchCallback() {
 				onFetch(result) {
 					setFieldValue("survey/answerBasic/ansPageQuesText",result.get(0));
@@ -6023,7 +6024,7 @@ Boolean emrOrNot=false;
 loadAllFileIDQuery="SELECT uuid,measure FROM latestNonDeletedArchEntIdentifiers " +
 	"WHERE AttributeID "+
 	"= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='FileID') "+
-	"GROUP BY uuid ORDER BY measure asc;";
+	"GROUP BY uuid ORDER BY uuid desc;";
 
 loadFile(){
 	file_id=null;
@@ -6072,10 +6073,37 @@ loadAnswerFileInfo(String typeFlag){
 	fetchAll(checkFileTypeQuery,new FetchCallback() {
         onFetch(result) {
 			if (!isNull(result)) {
-				//showWarning("fetchAll",result.getClass.getName());				
-				String currentType=result.get(0).get(0);
-				//showWarning("currentType",currentType);
-				loadFileInfo(currentType,view_file_id, getFieldValue("survey/answerBasic/ansPageQuesText"));
+				if(typeFlag.equals("answer")){		
+					String currentType=result.get(0).get(0);
+					//showWarning("fileType",currentType);
+					loadFileInfo(currentType,view_file_id, getFieldValue("survey/answerBasic/ansPageQuesText"));
+				}
+				else{
+					String currentType=result.get(0).get(0);
+					//showWarning("fileType",currentType);
+					loadQuesCntntByQuesIDQuery="select qC.measure from latestNonDeletedAentValue as qC, latestNonDeletedAentValue as qId where "+
+			        	"qId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
+			        	"and qC.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesContent') "+
+			        	"and qId.uuid=qC.uuid and qId.measure= "+
+			        	"(select measure from latestNonDeletedAentValue "+ 
+						"where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerQuestionID') "+
+						"and uuid in "+
+			 			"(select uuid from AentReln where RelationshipID in "+
+						"(select RelationshipID from AEntReln where AEntReln.uuid="+view_file_id+" "+
+			 			"AND RelationshipID in "+
+						"(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+			 			"(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
+						"and latestNonDeletedRelationship.Deleted IS NULL))) LIMIT 1)";
+
+					fetchOne(loadQuesCntntByQuesIDQuery, new FetchCallback() {
+						onFetch(result) {
+							loadFileInfo(currentType,view_file_id, result.get(0));
+						}
+						onError(message) {
+						    showToast(message);
+						}
+					});
+				}
 			}
 			else{
 				showWarning("Data reading error","This file may not be used anymore");
@@ -6144,6 +6172,19 @@ loadFileInfo(String currentType, String view_file_id, String tmpQuesContent){
 	        }
 	    });
 		break;
+	case "Recording":
+		createFilePage("sketch","attachFileToField(\"file/fileInfo/sketchFileContent\")",
+			"saveFileFromAnswer(\"file/fileHidden/sketchFileID\",\"file/fileInfo/sketchFileContent\",\"file\",\"Recording\")");
+		showTabGroup("file", view_file_id, new FetchCallback() {
+	        onFetch(result) {						  
+	            showToast("Loaded sketch file"+result.getId());   
+	            setFieldValue("file/fileInfo/sketchQuesContent", tmpQuesContent);           
+	        }
+	        onError(message) {
+	            showToast(message);
+	        }
+	    });
+	break;
 	}
 }
 /*** File dynamic ui ***/
@@ -6169,6 +6210,7 @@ createFilePage(String fileType, String attachFunc, String saveFunc){
 		case "sketch":
 		uiNamePrefix="sketch";
 		uiLabelPrefix="Sketch";
+		//showWarning("sketch","sketch");
 		break;
 	}
 	//Generate ui
@@ -6187,6 +6229,7 @@ createFilePageComponents(String fileType, String attachFunc, String saveFunc, St
 	executeViewTask(new ViewTask() {
 		doTask() { 
 			//file hidden	
+			//showWarning("csketch","csketch");
 			idFileDef = createViewDef().createTextField().setLabel(uiLabelPrefix+" file label").setAttributeName("FileID").setAttributeType("measure").
 			setAnnotationEnabled(true).setReadOnly(true);
 
