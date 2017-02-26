@@ -2637,8 +2637,9 @@ createFreeTextPage(){
 	        createView("survey/answerHidden/answerStartTimestamp",ansStartTimeViewDef,"survey/answerHidden");
 	        createView("survey/answerHidden/answerEndTimestamp",ansEndTimeViewDef,"survey/answerHidden");
 	    	//answerBasic page
-	    	
+	    	quesContentDef = createViewDef().createTextField().setReadOnly(true);
 	    	ansTextViewDef=createViewDef().createTextField().setLabel("Answer text").setAttributeName("AnswerText").setAttributeType("measure").setAnnotationEnabled(true);
+			createView("survey/answerBasic/freetextQuesText",quesContentDef,"survey/answerBasic");
 			createView("survey/answerBasic/answerText",ansTextViewDef,"survey/answerBasic");
 	    	newAnsBtnDef = createViewDef().createButton().setLabel("Save Answer").setStyleCss("faims-blue");
 	        createView("survey/answerBasic/Finish_New_Answer",newAnsBtnDef,"survey/answerFile");
@@ -4678,6 +4679,7 @@ loadAnswerInfo(){
         	answerInfoOriginal.add(getFieldValue("survey/answerBasic/answerText"));
         	answerInfoOriginal.add(getFieldValue("survey/answerHidden/answerStartTimestamp"));
         	String tmpQuesId=getFieldValue("survey/answerHidden/answerQuestionID");
+
         	loadQuesCntntByQuesIDQuery="select qC.measure from latestNonDeletedAentValue as qC, latestNonDeletedAentValue as qId where "+
 	        	"qId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
 	        	"and qC.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesContent') "+
@@ -4756,7 +4758,7 @@ startNewAnswerBasic(String current_start_time){
 	setFieldValue("survey/answerHidden/answerQuestionnaireID", current_quesnir_id);
 	setFieldValue("survey/answerHidden/answerQuestionID", current_question_id);
 	setFieldValue("survey/answerHidden/answerStartTimestamp", current_start_time);
-	
+	setFieldValue("survey/answerBasic/freetextQuesText", getQuesLabel());
 	labelDeduplicate(tempAnsLabel,"AnswerLabel","survey/answerHidden/answerLabel","answer", dupAnsLblChange, dupAnsLblInfo);
 	ansOrNot=true;
 }
@@ -6073,7 +6075,7 @@ loadAnswerFileInfo(String typeFlag){
 				//showWarning("fetchAll",result.getClass.getName());				
 				String currentType=result.get(0).get(0);
 				//showWarning("currentType",currentType);
-				loadFileInfo(currentType,view_file_id);
+				loadFileInfo(currentType,view_file_id, getFieldValue("survey/answerBasic/ansPageQuesText"));
 			}
 			else{
 				showWarning("Data reading error","This file may not be used anymore");
@@ -6086,7 +6088,7 @@ loadAnswerFileInfo(String typeFlag){
     });	
 }
 
-loadFileInfo(String currentType, String view_file_id){
+loadFileInfo(String currentType, String view_file_id, String tmpQuesContent){
 	answerFile=false;
 	switch (currentType){
 	case "Audio":		
@@ -6094,7 +6096,9 @@ loadFileInfo(String currentType, String view_file_id){
 			"saveFileFromAnswer(\"file/fileHidden/audioFileID\",\"file/fileInfo/audioFileContent\",\"file\",\"Audio\")");
 		showTabGroup("file", view_file_id, new FetchCallback() {
 	        onFetch(result) {						  
-	            showToast("Loaded audio file"+result.getId());            
+	            showToast("Loaded audio file"+result.getId()); 
+	            setFieldValue("file/fileInfo/audioQuesContent", tmpQuesContent); 
+
 	        }
 	        onError(message) {
 	            showToast(message);
@@ -6106,7 +6110,8 @@ loadFileInfo(String currentType, String view_file_id){
 			"saveFileFromAnswer(\"file/fileHidden/videoFileID\",\"file/fileInfo/videoFileContent\",\"file\",\"Video\")");
 		showTabGroup("file", view_file_id, new FetchCallback() {
 	        onFetch(result) {						  
-	            showToast("Loaded video file"+result.getId());            
+	            showToast("Loaded video file"+result.getId());
+	            setFieldValue("file/fileInfo/videoQuesContent", tmpQuesContent);             
 	        }
 	        onError(message) {
 	            showToast(message);
@@ -6118,7 +6123,8 @@ loadFileInfo(String currentType, String view_file_id){
 			"saveFileFromAnswer(\"file/fileHidden/photoFileID\",\"file/fileInfo/photoFileContent\",\"file\",\"Photo\")");
 		showTabGroup("file", view_file_id, new FetchCallback() {
 	        onFetch(result) {						  
-	            showToast("Loaded photo file"+result.getId());            
+	            showToast("Loaded photo file"+result.getId());   
+	            setFieldValue("file/fileInfo/photoQuesContent", tmpQuesContent);           
 	        }
 	        onError(message) {
 	            showToast(message);
@@ -6130,7 +6136,8 @@ loadFileInfo(String currentType, String view_file_id){
 			"saveFileFromAnswer(\"file/fileHidden/sketchFileID\",\"file/fileInfo/sketchFileContent\",\"file\",\"Recording\")");
 		showTabGroup("file", view_file_id, new FetchCallback() {
 	        onFetch(result) {						  
-	            showToast("Loaded sketch file"+result.getId());            
+	            showToast("Loaded sketch file"+result.getId());   
+	            setFieldValue("file/fileInfo/sketchQuesContent", tmpQuesContent);           
 	        }
 	        onError(message) {
 	            showToast(message);
@@ -6195,6 +6202,7 @@ createFilePageComponents(String fileType, String attachFunc, String saveFunc, St
 			endTimeViewDef=createViewDef().createTextField().setLabel("End time").setAttributeName("FileEndTime").setAttributeType("measure").
 			setAnnotationEnabled(true).setReadOnly(true);
 
+			quesContentDef = createViewDef().createTextField().setReadOnly(true);
 			if (fileType.equals("audio") || fileType.equals("sketch")){
 				fileContentViewDef=createViewDef().createFileGroup(true).setLabel(uiLabelPrefix).setAttributeName("FileContent").setAttributeType("measure").setAnnotationEnabled(true);
 			}
@@ -6219,6 +6227,7 @@ createFilePageComponents(String fileType, String attachFunc, String saveFunc, St
 				createView("file/fileHidden/"+uiNamePrefix+"FileEmr", emrViewDef,"file/fileHidden");
 			}
 			//non-hidden page
+			
 			newBtnViewDef=createViewDef().createButton().setLabel("New "+ uiLabelPrefix);
 
 			pathTextViewDef=createViewDef().createTextField().setLabel(uiLabelPrefix+" file path").setAttributeName("FilePath").setAttributeType("measure").
@@ -6227,7 +6236,7 @@ createFilePageComponents(String fileType, String attachFunc, String saveFunc, St
 			saveBtnViewDef=createViewDef().createButton().setLabel("Save "+ uiLabelPrefix);
 			//createView("file/fileInfo/"+uiNamePrefix+"FileName", nameViewDef,"file/fileInfo");
 
-			
+			createView("file/fileInfo/"+uiNamePrefix+"QuesContent", quesContentDef,"file/fileInfo");
 			createView("file/fileInfo/"+uiNamePrefix+"FileContent", fileContentViewDef,"file/fileInfo");
 			createView("file/fileInfo/Take_"+uiLabelPrefix+"_File", newBtnViewDef,"file/fileInfo");
 			createView("file/fileInfo/"+uiNamePrefix+"FilePath", pathTextViewDef,"file/fileInfo");
@@ -6275,6 +6284,7 @@ newFile(String typeFlag, String fileType){
 					setFieldValue("file/fileHidden/audioFileCreator",username);
 					setFieldValue("file/fileHidden/audioFileType","Audio");
 					setFieldValue("file/fileHidden/audioFileStartTime", getCurrentTime());
+					setFieldValue("file/fileInfo/audioQuesContent", getQuesLabel());
 					//showWarning("audio","audio");
 				break;
 				case "Video":
@@ -6288,6 +6298,7 @@ newFile(String typeFlag, String fileType){
 					setFieldValue("file/fileHidden/videoFileCreator",username);
 					setFieldValue("file/fileHidden/videoFileType","Video");
 					setFieldValue("file/fileHidden/videoFileStartTime", getCurrentTime());
+					setFieldValue("file/fileInfo/videoQuesContent", getQuesLabel());
 				break;
 
 				case "Photo":
@@ -6301,6 +6312,7 @@ newFile(String typeFlag, String fileType){
 					setFieldValue("file/fileHidden/photoFileCreator",username);
 					setFieldValue("file/fileHidden/photoFileType","Photo");
 					setFieldValue("file/fileHidden/photoFileStartTime", getCurrentTime());
+					setFieldValue("file/fileInfo/photoQuesContent", getQuesLabel());
 				
 				break;
 				case "Sketch":
@@ -6314,6 +6326,7 @@ newFile(String typeFlag, String fileType){
 					setFieldValue("file/fileHidden/sketchFileCreator",username);
 					setFieldValue("file/fileHidden/sketchFileType","Recording");
 					setFieldValue("file/fileHidden/sketchFileStartTime", getCurrentTime());
+					setFieldValue("file/fileInfo/sketchQuesContent", getQuesLabel());
 					
 					break;
 				case "emr":		
@@ -6330,6 +6343,7 @@ newFile(String typeFlag, String fileType){
 					setFieldValue("file/fileHidden/audioFileCreator",username);
 					setFieldValue("file/fileHidden/audioFileType","Audio");
 					setFieldValue("file/fileHidden/audioFileStartTime", getCurrentTime());
+					setFieldValue("file/fileInfo/audioQuesContent", "Emergency question");
 				break;
 				default:
 					showWarning("Invalid category","Please select a valid file category");
