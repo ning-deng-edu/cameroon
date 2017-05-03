@@ -8,13 +8,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class fileManager {
-    public static Logger logFile=null;
-    public void getLogFile(String path, String userName){
-        Log lg=new Log();
-        logFile=lg.createLog(path, userName);
-    }
 
-    public void createFolders(ResultSet resultSet) throws SQLException {// make session folders
+    /**
+     * Create session folders
+     * for avoiding duplicate, the uuid of each session is also used
+     * @param resultSet
+     * @throws SQLException
+     */
+    public void createFolders(ResultSet resultSet, Logger logFile) throws SQLException {// make session folders
         int count=0;
         int failCount=0;
         String mainPath="output/";
@@ -47,7 +48,13 @@ public class fileManager {
         logFile.info("Total "+ count +" folders created\n"+"Failed to create total " +failCount+ " folders");
     }
 
-    public void copyAndRenameFiles(ResultSet resultSet) throws SQLException{
+    /**
+     * Copy and rename files from the module data
+     * can directly rename the files in the files/app folder
+     * @param resultSet
+     * @throws SQLException
+     */
+    public void copyAndRenameFiles(ResultSet resultSet, Logger logFile) throws SQLException{
         String folderMainPath="output/";
         int count=0;
         int copyCount=0;
@@ -58,7 +65,7 @@ public class fileManager {
             if(fileExtension==null) continue;
             String newFileName=resultSet.getString("FName");
             String newFileTmpPath=folderPath+"/"+newFileName;
-            String filePath=checkDupFile(newFileTmpPath, fileExtension);
+            String filePath=checkDupFile(newFileTmpPath, fileExtension, logFile);
             count++;
             try{
                 File fileFolder=new File(folderPath);
@@ -90,6 +97,7 @@ public class fileManager {
         }
         logFile.info("Total "+ count +" file records scanned in the database\n"+"Total " +copyCount+ " files copied and renamed");
     }
+
     private String getFileExtension(String filePath){
         int i=filePath.lastIndexOf(".");
         if (i>0){
@@ -97,7 +105,7 @@ public class fileManager {
         }
         return null;
     }
-    private String checkDupFile(String path, String extension){
+    private String checkDupFile(String path, String extension, Logger logFile){
         int suffix=1;
         boolean dupFile=false;
         if(new File(path+extension).isFile()){

@@ -3,10 +3,10 @@
  */
 import java.sql.*;
 import java.util.*;
+import java.util.logging.Logger;
 
 
 public class DBReader {
-    Connection c=null;
     public Connection DBConnect(String path){
         try{
             Class.forName("org.sqlite.JDBC");// register the driver
@@ -25,12 +25,12 @@ public class DBReader {
     }
 
 
-    public HashMap<String, ResultSet> queryExecution(String query, Connection conn){
+    public HashMap<String, ResultSet> queryExecution(String query, Connection conn, Logger logFile){
         ResultSet rcSession=null;
         ResultSet rcFile=null;
-        rcSession=querySession(conn);
+        rcSession=querySession(conn, logFile);
         if(query==null) {// default query
-            rcFile=fileQuery(conn);
+            rcFile=fileQuery(conn, logFile);
         }
         HashMap<String, ResultSet> res=new HashMap<>();
         res.put("Session", rcSession);
@@ -49,7 +49,7 @@ public class DBReader {
 
     }
 
-    private ResultSet querySession(Connection conn){
+    private ResultSet querySession(Connection conn, Logger logFile){
         ResultSet rcSession=null;
         String query="SELECT uuid AS SessionID, measure AS SessionLabel FROM latestNonDeletedArchEntIdentifiers WHERE AttributeID= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionID')";
         try{
@@ -58,16 +58,16 @@ public class DBReader {
                 rcSession=statement.executeQuery(query);
             }
             catch (Exception e){
-                System.out.println(e);
+                if(logFile!=null) logFile.severe(e+"");
             }
         }
         catch(Exception e){
-            System.out.println(e);
+            if(logFile!=null) logFile.severe(e+"");
         }
         return rcSession;
     }
 
-    private ResultSet fileQuery(Connection conn){
+    private ResultSet fileQuery(Connection conn, Logger logFile){
         ResultSet rcFile=null;
         String query="SELECT Sid, Sname, Alabel, Fid, FName,FPath FROM " +
                 "(SELECT Sid, Sname, Aid, Alabel FROM " +
@@ -129,11 +129,11 @@ public class DBReader {
                 rcFile=statement.executeQuery(query);
             }
             catch (Exception e){
-                System.out.println(e);
+                if(logFile!=null) logFile.severe(e+"");
             }
         }
         catch(Exception e){
-            System.out.println(e);
+            if(logFile!=null) logFile.severe(e+"");
         }
         return rcFile;
     }

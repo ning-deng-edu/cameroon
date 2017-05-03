@@ -3,10 +3,13 @@ import java.nio.file.*;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.HashMap;
+import java.util.logging.Logger;
+
 /**
  * Created by ning on 4/28/17.
  */
 public class folderExtractor {
+    public static Logger logFile=null;
     public static void main(String[] args){
         System.out.println("Please enter your name for logging");
         String username=null;
@@ -29,20 +32,34 @@ public class folderExtractor {
         System.out.println("Connecting Database...");
         DBReader dbr=new DBReader();
         Connection conn=dbr.DBConnect(null);
+        if(conn==null){
+            System.out.println("Unable to connect to the database, please check if you are running this program with the dependent .jar file");
+            System.exit(0);
+        }
+        System.out.println("Creating LogFile...");
+        getLogFile("output", username);
         System.out.println("Executing Query...");
-        HashMap<String, ResultSet> resultSet=dbr.queryExecution(null, conn);
+        long startTime=System.currentTimeMillis();
+        HashMap<String, ResultSet> resultSet=dbr.queryExecution(null, conn, logFile);
+        long endTime= System.currentTimeMillis();
+        System.out.println("Query execution time:"+(endTime-startTime)+" ms");
         fileManager fm=new fileManager();
         try{
-            System.out.println("Creating LogFile...");
-            fm.getLogFile("output", username);
             System.out.println("Creating Folders...");
-            fm.createFolders(resultSet.get("Session"));
+            startTime=System.currentTimeMillis();
+            fm.createFolders(resultSet.get("Session"), logFile);
+            endTime=System.currentTimeMillis();
+            System.out.println("Folder creation time:"+(endTime-startTime)+" ms");
+
             System.out.println("Reorganizing files, please wait...");
-            fm.copyAndRenameFiles(resultSet.get("File"));
+            startTime=System.currentTimeMillis();
+            fm.copyAndRenameFiles(resultSet.get("File"),  logFile);
+            endTime=System.currentTimeMillis();
+            System.out.println("File reorganizing time:"+(endTime-startTime)+" ms");
             System.out.println("Reorganizing files done, the result is in the 'output' folder");
         }
         catch (Exception e){
-            System.out.println(e.getMessage());
+            logFile.severe(e+"");
         }
     }
     private static boolean validDBFile(){
@@ -79,5 +96,9 @@ public class folderExtractor {
             }
         }
         return true;
+    }
+    private static void getLogFile(String path, String userName){
+        Log lg=new Log();
+        logFile=lg.createLog(path, userName);
     }
 }
