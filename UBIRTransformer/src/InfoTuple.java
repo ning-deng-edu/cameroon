@@ -13,6 +13,7 @@ public class InfoTuple {
     public ArrayList<String> filename;
     public String fieldTrip;
     public ArrayList<String> questionnaire;
+    public ArrayList<FileQuesnirPair> fileQuesnir;
     public InfoTuple(String sid, String sname, String loc, String desc, ArrayList<String> interviewer, ArrayList<String> consultant, ArrayList<String> filename, String fieldTrip, ArrayList<String> questionnaire){
         this.sid=sid;
         this.sname=sname;
