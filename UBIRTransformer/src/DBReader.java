@@ -1,12 +1,8 @@
-import javax.sound.midi.MidiDevice;
 import java.io.*;
-import java.lang.reflect.*;
-import java.lang.reflect.Array;
-import java.nio.Buffer;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.logging.Logger;
+
 
 /**
  * Created by ning on 7/13/17.
@@ -193,7 +189,7 @@ public class DBReader {
 
                 for(int i=0; i<t.filename.size();i++){
                     if(i!=t.filename.size()-1){
-                        sb.append(t.filename.get(i)+";");
+                        sb.append(t.filename.get(i)+"|");
                     }
                     else{
                         sb.append(t.filename.get(i)+",");
@@ -283,5 +279,78 @@ public class DBReader {
             return filePath.substring(i);
         }
         return null;
+    }
+    public void generateRefinedMetadata(Connection conn){
+        //generate fieldTrip metadata file for each fieldTrip
+        generateFTmetaFile(conn);
+        //generate session person role, name file for each fieldTrip
+        //generate answer metadata file
+        //generate file metadata: file name, file type, file start timestamp
+        //generate questionnaire: including questions
+    }
+    private void generateFTmetaFile(Connection conn){
+        String loadAllFTQuery="SELECT uuid as ftid, measure as ftlabel from latestAllArchEntIdentifiers where AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='FieldTripID')";
+        String uuid="";
+        try {
+            Statement s1=conn.createStatement();
+            ResultSet rAllFT=s1.executeQuery(loadAllFTQuery);
+            while(rAllFT.next()){
+                uuid=rAllFT.getString("ftid");
+
+                String getEntityValue="SELECT uuid as ftid, attributename as ftattr, measure as ftval, freetext as ftannotation, attributetype, attributeisfile " +
+                        "FROM latestNonDeletedArchent JOIN latestNonDeletedAentvalue AS av using (uuid) JOIN attributekey using (attributeid) " +
+                        "WHERE uuid = '"+uuid+"'";
+                Statement s2=conn.createStatement();
+                ResultSet rFT=s2.executeQuery(getEntityValue);
+                if(!rFT.next()){continue;}
+
+                File ftFile=createMetaDataFile(rAllFT.getString("ftlabel")+".json");
+                if(ftFile==null){
+                    //TODO: write log here
+                    continue;
+                }
+                FileOutputStream fos=new FileOutputStream(ftFile);
+                BufferedWriter bw=new BufferedWriter(new OutputStreamWriter(fos));
+                bw.write("{");
+                bw.newLine();
+                bw.write("\"FieldTripUuid\":\""+uuid+"\"");
+                while(rFT.next()){
+                    bw.write(",");
+                    bw.newLine();
+                    String data="\""+rFT.getString("ftattr")+"\":\""+rFT.getString("ftval")+"\"";
+                    bw.write(data);
+                    if(rFT.getString("ftannotation")!=null){
+                        bw.write(",");
+                        bw.newLine();
+                        bw.write("\"annotation\":\""+rFT.getString("ftannotation")+"\"");
+                    }
+                }
+                bw.newLine();
+                bw.write("}");
+                bw.close();
+                fos.close();
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+
+
+    }
+    private File createMetaDataFile(String filename){
+        String fileFullName="files/"+filename;
+        File metaFile=new File(fileFullName);
+        if(!metaFile.isFile()){
+            try {
+                metaFile.createNewFile();
+                return metaFile;
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                return null;
+            }
+
+        }
+        return metaFile;
     }
 }

@@ -7,6 +7,7 @@ public class DataTransformer {
     public static void main(String[] args){
         DBReader dbr=new DBReader();
         Connection conn= dbr.DBConnect(null);
-        dbr.createCSVFile(conn);
+        //dbr.createCSVFile(conn);
+        dbr.generateRefinedMetadata(conn);
     }
 }
