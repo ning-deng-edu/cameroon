@@ -282,13 +282,15 @@ public class DBReader {
     }
     public void generateRefinedMetadata(Connection conn){
         //generate fieldTrip metadata file for each fieldTrip
-        generateFTmetaFile(conn);
+        //generateFTMetaFile(conn);
+        //generateSessionMetaFile(conn);
+        generatePersonMetaFile(conn);
         //generate session person role, name file for each fieldTrip
         //generate answer metadata file
         //generate file metadata: file name, file type, file start timestamp
         //generate questionnaire: including questions
     }
-    private void generateFTmetaFile(Connection conn){
+    private void generateFTMetaFile(Connection conn){
         String loadAllFTQuery="SELECT uuid as ftid, measure as ftlabel from latestAllArchEntIdentifiers where AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='FieldTripID')";
         String uuid="";
         try {
@@ -334,8 +336,58 @@ public class DBReader {
         catch (Exception e){
             e.printStackTrace();
         }
+    }
+    private void  generateSessionMetaFile(Connection conn){
 
+    }
+    private void generatePersonMetaFile(Connection conn){
+        String allPersonQuery="SELECT uuid as pid,measure as plabel FROM latestNonDeletedArchEntIdentifiers " +
+                "WHERE latestNonDeletedArchEntIdentifiers.AttributeID "+
+                "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='PersonID')";
+        String uuid="";
+        try {
+            Statement s1=conn.createStatement();
+            ResultSet rAllPS=s1.executeQuery(allPersonQuery);
+            while(rAllPS.next()){
+                uuid=rAllPS.getString("pid");
 
+                String getEntityValue="SELECT uuid as pid, attributename as pattr, measure as psval, freetext as annotation, attributetype, attributeisfile " +
+                        "FROM latestNonDeletedArchent JOIN latestNonDeletedAentvalue AS av using (uuid) JOIN attributekey using (attributeid) " +
+                        "WHERE uuid = '"+uuid+"'";
+                Statement s2=conn.createStatement();
+                ResultSet rFT=s2.executeQuery(getEntityValue);
+                if(!rFT.next()){continue;}
+
+                File psFile=createMetaDataFile(rAllPS.getString("plabel")+".json");
+                if(psFile==null){
+                    //TODO: write log here
+                    continue;
+                }
+                FileOutputStream fos=new FileOutputStream(psFile);
+                BufferedWriter bw=new BufferedWriter(new OutputStreamWriter(fos));
+                bw.write("{");
+                bw.newLine();
+                bw.write("\"PersonUuid\":\""+uuid+"\"");
+                while(rFT.next()){
+                    bw.write(",");
+                    bw.newLine();
+                    String data="\""+rFT.getString("pattr")+"\":\""+rFT.getString("psval")+"\"";
+                    bw.write(data);
+                    if(rFT.getString("annotation")!=null){
+                        bw.write(",");
+                        bw.newLine();
+                        bw.write("\"annotation\":\""+rFT.getString("ftannotation")+"\"");
+                    }
+                }
+                bw.newLine();
+                bw.write("}");
+                bw.close();
+                fos.close();
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
     private File createMetaDataFile(String filename){
         String fileFullName="files/"+filename;
