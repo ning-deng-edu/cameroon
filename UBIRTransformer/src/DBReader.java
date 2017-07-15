@@ -284,7 +284,8 @@ public class DBReader {
         //generate fieldTrip metadata file for each fieldTrip
         //generateFTMetaFile(conn);
         //generateSessionMetaFile(conn);
-        generatePersonMetaFile(conn);
+        //generatePersonMetaFile(conn);
+        generateAnswerMetaFile(conn);
         //generate session person role, name file for each fieldTrip
         //generate answer metadata file
         //generate file metadata: file name, file type, file start timestamp
@@ -315,7 +316,7 @@ public class DBReader {
                 BufferedWriter bw=new BufferedWriter(new OutputStreamWriter(fos));
                 bw.write("{");
                 bw.newLine();
-                bw.write("\"FieldTripUuid\":\""+uuid+"\"");
+                bw.write("\"UUID\":\""+uuid+"\"");
                 while(rFT.next()){
                     bw.write(",");
                     bw.newLine();
@@ -367,7 +368,7 @@ public class DBReader {
                 BufferedWriter bw=new BufferedWriter(new OutputStreamWriter(fos));
                 bw.write("{");
                 bw.newLine();
-                bw.write("\"PersonUuid\":\""+uuid+"\"");
+                bw.write("\"UUID\":\""+uuid+"\"");
                 while(rFT.next()){
                     bw.write(",");
                     bw.newLine();
@@ -376,7 +377,56 @@ public class DBReader {
                     if(rFT.getString("annotation")!=null){
                         bw.write(",");
                         bw.newLine();
-                        bw.write("\"annotation\":\""+rFT.getString("ftannotation")+"\"");
+                        bw.write("\"annotation\":\""+rFT.getString("annotation")+"\"");
+                    }
+                }
+                bw.newLine();
+                bw.write("}");
+                bw.close();
+                fos.close();
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+    private void generateAnswerMetaFile(Connection conn){
+        String allPersonQuery="SELECT uuid as id,measure as label FROM latestNonDeletedArchEntIdentifiers " +
+                "WHERE latestNonDeletedArchEntIdentifiers.AttributeID "+
+                "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='AnswerLabel')";
+        String uuid="";
+        try {
+            Statement s1=conn.createStatement();
+            ResultSet rAllPS=s1.executeQuery(allPersonQuery);
+            while(rAllPS.next()){
+                uuid=rAllPS.getString("id");
+
+                String getEntityValue="SELECT uuid as id, attributename as attr, measure as val, freetext as annotation, attributetype, attributeisfile " +
+                        "FROM latestNonDeletedArchent JOIN latestNonDeletedAentvalue AS av using (uuid) JOIN attributekey using (attributeid) " +
+                        "WHERE uuid = '"+uuid+"'";
+                Statement s2=conn.createStatement();
+                ResultSet rFT=s2.executeQuery(getEntityValue);
+                if(!rFT.next()){continue;}
+
+                File psFile=createMetaDataFile(rAllPS.getString("label")+".json");
+                if(psFile==null){
+                    //TODO: write log here
+                    continue;
+                }
+                FileOutputStream fos=new FileOutputStream(psFile);
+                BufferedWriter bw=new BufferedWriter(new OutputStreamWriter(fos));
+                bw.write("{");
+                bw.newLine();
+                bw.write("\"UUID\":\""+uuid+"\"");
+                while(rFT.next()){
+                    bw.write(",");
+                    bw.newLine();
+                    String data="\""+rFT.getString("attr")+"\":\""+rFT.getString("val")+"\"";
+                    bw.write(data);
+                    if(rFT.getString("annotation")!=null){
+                        bw.write(",");
+                        bw.newLine();
+                        bw.write("\"annotation\":\""+rFT.getString("annotation")+"\"");
                     }
                 }
                 bw.newLine();
