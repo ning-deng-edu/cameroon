@@ -6,8 +6,10 @@ import java.sql.Connection;
 public class DataTransformer {
     public static void main(String[] args){
         DBReader dbr=new DBReader();
+        System.out.println("Connecting to the database...");
         Connection conn= dbr.DBConnect(null);
-        //dbr.createCSVFile(conn);
+        System.out.println("Summarizing session information...");
+        dbr.createCSVFile(conn);
         dbr.generateRefinedMetadata(conn);
     }
 }

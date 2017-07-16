@@ -1,4 +1,6 @@
+import javax.swing.plaf.nimbus.State;
 import java.io.*;
+import java.lang.reflect.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,6 +10,7 @@ import java.util.HashMap;
  * Created by ning on 7/13/17.
  */
 public class DBReader {
+    HashMap<String, String> fileUpdate=new HashMap<>();
     public Connection DBConnect(String path){
         try{
             Class.forName("org.sqlite.JDBC");// register the driver
@@ -25,35 +28,19 @@ public class DBReader {
         }
     }
     public void createCSVFile(Connection conn){
-        String filePath="files/";
         File csvFile= new File("files/KPAAMCAM.csv");
         try {
             if(!csvFile.isFile()){
                 csvFile.createNewFile();
-                writeCsvFields(csvFile, conn);
-
+                writeSessionBasicInfo(conn, csvFile);
             }
         }
         catch (IOException e){
-
+            e.printStackTrace();
         }
 
     }
-    private void writeCsvFields(File csvFile, Connection conn){
-        try {
-            FileOutputStream fos=new FileOutputStream(csvFile);
-            BufferedWriter bw=new BufferedWriter(new OutputStreamWriter(fos));
-            String firstRow="sessionuuid, dc.title, dc.coverage.spatial, dc.description, dc.contributor.researcher, dc.contributor.speaker, filename, dc.relation.isPartOf,dc.relation.references";
-            bw.write(firstRow);
-            bw.newLine();
-            bw.close();
-            fos.close();
-            writeSessionBasicInfo(conn, csvFile);
-        }
-        catch (IOException e){
 
-        }
-    }
     private void writeSessionBasicInfo(Connection conn,  File csv){
         String getAllSessionIdQuery="SELECT sidloc.Sid AS Sid, Sname, Loc, sdsc  FROM "+
                 "(((SELECT uuid as id, measure as Loc FROM latestNonDeletedAentValue WHERE AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionLocation')) sloc "+
@@ -63,17 +50,13 @@ public class DBReader {
                 "(SELECT uuid as id, measure as sdsc FROM latestNonDeletedAentValue WHERE AttributeID=(SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionDescription')) sdesc on "+
                 "sidloc.sid=sdesc.id)";
         try{
-            PreparedStatement statement=conn.prepareStatement(getAllSessionIdQuery);
-            statement.setFetchSize(500);
+            Statement statement=conn.createStatement();
             try {
-                ResultSet rcFile = statement.executeQuery();
+                ResultSet rcFile = statement.executeQuery(getAllSessionIdQuery);
                 if(!csv.isFile()){
                     csv.createNewFile();
-                    writeCsvFields(csv, conn);
                 }
-
                 organizeSessionBasicInfo(csv,rcFile, conn);
-
             }
             catch(Exception e){
                 System.out.print(e+"");
@@ -101,7 +84,16 @@ public class DBReader {
     private void getCompleteSessionInfo(File csv, HashMap<String, InfoTuple> sssList, Connection conn){
         try {
             String sid="";
-            HashMap<String, ArrayList<String>> fileInfo=new HashMap<>();
+            HashMap<String, ArrayList<String>> fileInfo=new HashMap<>();// use for check all files
+            if(!csv.isFile()){
+                csv.createNewFile();
+            }
+            FileOutputStream fos=new FileOutputStream(csv);
+            BufferedWriter bw=new BufferedWriter(new OutputStreamWriter(fos));
+            String firstRow="sessionuuid, dc.title, dc.coverage.spatial, dc.description, dc.contributor.researcher, dc.contributor.speaker, filename, dc.relation.isPartOf,dc.relation.references";
+            bw.write(firstRow);
+            bw.newLine();
+
             for(String key: sssList.keySet()){
                 sid=key;
                 String consultantQuery="SELECT measure as psLabel from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonID') and uuid in " +
@@ -155,12 +147,8 @@ public class DBReader {
                 }
                 sssList.put(key, tmp);
             }
-            if(!csv.isFile()){
-                csv.createNewFile();
-                writeCsvFields(csv,conn);
-            }
-            FileOutputStream fos=new FileOutputStream(csv);
-            BufferedWriter bw=new BufferedWriter(new OutputStreamWriter(fos));
+
+
             for(String key: sssList.keySet()){
                 StringBuilder sb=new StringBuilder();
                 InfoTuple t=sssList.get(key);
@@ -180,7 +168,7 @@ public class DBReader {
 
                 for(int i=0;i< t.consultant.size(); i++){
                     if(i!=t.consultant.size()-1) {
-                        sb.append(t.consultant.get(i) + ";");
+                        sb.append(t.consultant.get(i) + "|");
                     }
                     else{
                         sb.append(t.consultant.get(i)+",");
@@ -198,7 +186,7 @@ public class DBReader {
                 sb.append(t.fieldTrip+",");
                 for(int i=0; i<t.questionnaire.size();i++){
                     if(i!=t.questionnaire.size()-1){
-                        sb.append(t.questionnaire.get(i)+";");
+                        sb.append(t.questionnaire.get(i)+"|");
                     }
                     else{
                         sb.append(t.questionnaire.get(i));
@@ -210,7 +198,10 @@ public class DBReader {
             }
             bw.close();
             fos.close();
+            System.out.println("Renaming files...");
             renameFiles(fileInfo);
+            System.out.println("Updating database...");
+            populateUpdateToDB(conn);
         }
         catch (Exception e){
             e.printStackTrace();
@@ -233,46 +224,75 @@ public class DBReader {
     private void checkDupFile(String filename, HashMap<String, ArrayList<String>> filels, String filePath, String fileId, String fileTime, InfoTuple tuple){
         int suffix=1;
         boolean dupFile=false;
-        if(filels.containsKey(filename)){
-            dupFile=true;
-            //rename existing file
-            ArrayList<String> tmp=filels.get(filename);
-            filels.remove(filename);
-            filels.put(filename+"(1)", tmp);
-            for(int i=0;i<tuple.filename.size();i++){
-                if(tuple.filename.get(i).equals(filename)){
-                    tuple.filename.set(i,filename+"(1)");
+        try {
+            if(filels.containsKey(filename)){
+                dupFile=true;
+                //rename existing file
+                ArrayList<String> tmp=filels.get(filename);
+                filels.remove(filename);
+                String udfilename=filename+"(1)";
+                filels.put(udfilename, tmp);
+                for(int i=0;i<tuple.filename.size();i++){
+                    if(tuple.filename.get(i).equals(filename)){
+                        tuple.filename.set(i,filename+"(1)");
+                    }
                 }
+                fileUpdate.put(filels.get(udfilename).get(1), udfilename);
             }
-        }
-        else if(filels.containsKey(filename+"(1)")){
-            dupFile=true;
-        }
+            else if(filels.containsKey(filename+"(1)")){
+                dupFile=true;
+            }
 
-        if(dupFile){
-            while(true){
-                suffix++;
-                String tmpName=filename+"("+suffix+")";
-                if(!filels.containsKey(tmpName)){
-                    break;
+            if(dupFile){
+                while(true){
+                    suffix++;
+                    String tmpName=filename+"("+suffix+")";
+                    if(!filels.containsKey(tmpName)){
+                        break;
+                    }
                 }
+                ArrayList fileInfo=new ArrayList<>();
+                fileInfo.add(filePath);
+                fileInfo.add(fileId);
+                String newFilename=filename+"("+suffix+")";
+                filels.put(newFilename,fileInfo);
+                tuple.filename.add(newFilename);
+                fileUpdate.put(fileId, newFilename);
             }
-            ArrayList fileInfo=new ArrayList<>();
-            fileInfo.add(filePath);
-            fileInfo.add(fileId);
-            String newFilename=filename+"("+suffix+")";
-            filels.put(newFilename,fileInfo);
-            tuple.filename.add(newFilename);
+            else{
+                ArrayList fileInfo=new ArrayList<>();
+                fileInfo.add(filePath);
+                fileInfo.add(fileId);
+                filels.put(filename,fileInfo);
+                tuple.filename.add(filename);
+            }
         }
-        else{
-            ArrayList fileInfo=new ArrayList<>();
-            fileInfo.add(filePath);
-            fileInfo.add(fileId);
-            filels.put(filename,fileInfo);
-            tuple.filename.add(filename);
+        catch (Exception e){
+            e.printStackTrace();
         }
     }
+    private void populateUpdateToDB(Connection conn){
+        String attributeIDQuery="SELECT AttributeID as aid FROM AttributeKey WHERE AttributeName='FileID'";
+        String attributeID="";
+        try{
+            Statement s1=conn.createStatement();
+            ResultSet ra=s1.executeQuery(attributeIDQuery);
+            while(ra.next()){
+                attributeID=ra.getString("aid");
+            }
+            for(String key: fileUpdate.keySet()){
+                String updateQuery="UPDATE AentValue SET Measure='"+ fileUpdate.get(key)+ "' WHERE AttributeID='"
+                        +attributeID+"' AND UUID='"+key+"'";
+                Statement u1=conn.createStatement();
+                u1.executeUpdate(updateQuery);
+                u1.close();
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
 
+    }
     private String getFileExtension(String filePath){
         int i=filePath.lastIndexOf(".");
         if (i>0){
@@ -282,10 +302,25 @@ public class DBReader {
     }
     public void generateRefinedMetadata(Connection conn){
         //generate fieldTrip metadata file for each fieldTrip
-        //generateFTMetaFile(conn);
-        //generateSessionMetaFile(conn);
-        //generatePersonMetaFile(conn);
+        System.out.println("Generating metadata files...");
+        generateFTMetaFile(conn);
+        System.out.println("Done creating metadata file for fieldtrip");
+        System.out.println("Generating metadata files...");
+        generateSessionMetaFile(conn);
+        System.out.println("Done creating metadata file for session");
+        System.out.println("Generating metadata files...");
+        generatePersonMetaFile(conn);
+        System.out.println("Done creating metadata file for person");
+        System.out.println("Generating metadata files...");
         generateAnswerMetaFile(conn);
+        System.out.println("Done creating metadata file for answer");
+        System.out.println("Generating metadata files...");
+        generateFileMetaFile(conn);
+        System.out.println("Done creating metadata file for file");
+        System.out.println("Generating metadata files...");
+        generateQuestionnaire(conn);
+        System.out.println("Done creating metadata file for questionnaire");
+        System.out.println("Done generating metadata files.");
         //generate session person role, name file for each fieldTrip
         //generate answer metadata file
         //generate file metadata: file name, file type, file start timestamp
@@ -339,7 +374,129 @@ public class DBReader {
         }
     }
     private void  generateSessionMetaFile(Connection conn){
+        String allSessionQuery="SELECT uuid as Sid,measure as Sname FROM latestNonDeletedArchEntIdentifiers WHERE AttributeID = (SELECT AttributeID FROM AttributeKey WHERE AttributeName='SessionID')";
+        String uuid="";
+        try {
+            Statement s1=conn.createStatement();
+            ResultSet rAllSSS=s1.executeQuery(allSessionQuery);
+            while(rAllSSS.next()){
+                uuid=rAllSSS.getString("Sid");
 
+                String loadAnswerForSessionQuery="select uuid as aid,measure as alabel from latestNonDeletedAentValue "+
+                        "where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='AnswerLabel') "+
+                        "and uuid in "+
+                        "(select uuid from AentReln where RelationshipID in "+
+                        "(select RelationshipID from AEntReln where AEntReln.uuid='"+uuid+"' "+
+                        "AND RelationshipID in "+
+                        "(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+                        "(select RelnTypeID from RelnType where RelnTypeName='Answer and Session') "+
+                        "and latestNonDeletedRelationship.Deleted IS NULL)))";
+                Statement s2=conn.createStatement();
+                ResultSet rAnsLs=s2.executeQuery(loadAnswerForSessionQuery);
+                if(!rAnsLs.next()){continue;}
+
+                File ftFile=createMetaDataFile(rAllSSS.getString("Sname")+".json");
+                if(ftFile==null){
+                    //TODO: write log here
+                    continue;
+                }
+                FileOutputStream fos=new FileOutputStream(ftFile);
+                BufferedWriter bw=new BufferedWriter(new OutputStreamWriter(fos));
+                bw.write("{");
+                bw.newLine();
+                bw.write("\"UUID\":\""+uuid+"\",");
+                bw.newLine();
+                bw.write("\"answerList\":[");
+                bw.newLine();
+                while(rAnsLs.next()){
+                    bw.write("{");
+                    bw.write("\"answerUuid\":\""+rAnsLs.getString("aid")+"\",");
+                    bw.newLine();
+                    bw.write("\"answerLabel\":\""+rAnsLs.getString("alabel")+"\"");
+                    bw.newLine();
+                    bw.write("}");
+                    break;
+                }
+
+                while(rAnsLs.next()){
+                    bw.write(",");
+                    bw.newLine();
+                    bw.write("{");
+                    bw.newLine();
+                    bw.write("\"answerUuid\":\""+rAnsLs.getString("aid")+"\",");
+                    bw.newLine();
+                    bw.write("\"answerLabel\":\""+rAnsLs.getString("alabel")+"\"");
+                    bw.newLine();
+                    bw.write("}");
+                }
+                bw.newLine();
+                bw.write("],");
+                bw.newLine();
+                String loadSssPersonRoleQuery="select t5.relnId, t6.personRoleUuid as prid, t5.personUuid as psId, t6.personRoleName as prname, t5.persName as psname "+
+                        "from (select t1.personId as personUuid, t1.personName as persName, t2.psssId as relnId from (select pId.uuid as personId, pId.measure as personName "+
+                        "from latestNonDeletedAentValue as pId where pId.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='PersonName') "+
+                        "and pId.uuid in (select psName.measure from latestNonDeletedAentValue as psName, latestNonDeletedAentValue as psReln "+
+                        "where psName.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
+                        "and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+uuid+"' "+
+                        "and psName.uuid=psReln.uuid and psName.uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey "+
+                        "where AttributeName='SessionIDforPerson')))) t1 inner join "+
+                        "(select psName.uuid as psssId, psName.measure as psId from latestNonDeletedAentValue as psName, latestNonDeletedAentValue as psReln "+
+                        "where psName.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonName') "+
+                        "and psReln.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+uuid+"' "+
+                        "and psName.uuid=psReln.uuid) t2 on t1.personId=t2.psId) t5 "+
+                        "inner join "+
+                        "(select t3.roleId as personRoleUuid, t3.roleName as personRoleName, t4.rsssId as relnId from (select rId.uuid as roleId, rId.measure as roleName "+
+                        "from latestNonDeletedAentValue as rId where rId.AttributeID=(select AttributeID from AttributeKey where AttributeName='PersonRoleName') "+
+                        "and rId.uuid in (select psRole.measure from latestNonDeletedAentValue as psRole, latestNonDeletedAentValue as psReln "+
+                        "where psRole.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') and psReln.AttributeID=(select AttributeID "+
+                        "from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+uuid+"' and psRole.uuid=psReln.uuid))t3 "+
+                        "inner join (select psRole.uuid as rsssId, psRole.measure as tempPsRoleID from latestNonDeletedAentValue as psRole, latestNonDeletedAentValue as psReln "+
+                        "where psRole.AttributeID=(select AttributeID from AttributeKey where AttributeName='SessionPersonRole') and psReln.AttributeID=(select AttributeID "+
+                        "from AttributeKey where AttributeName='SessionIDforPerson') and psReln.measure='"+uuid+"' "+
+                        "and psRole.uuid=psReln.uuid)t4 on t3.roleId=t4.tempPsRoleID) t6 on t5.relnId =t6.relnId";
+                Statement s3=conn.createStatement();
+                ResultSet rPsLs=s3.executeQuery(loadSssPersonRoleQuery);
+                bw.write("\"personList\":[");
+                bw.newLine();
+                while(rPsLs.next()){
+                    bw.write("{");
+                    bw.write("\"personUuid\":\""+rPsLs.getString("psId")+"\",");
+                    bw.newLine();
+                    bw.write("\"personRoleUuid\":\""+rPsLs.getString("prid")+"\",");
+                    bw.newLine();
+                    bw.write("\"personName\":\""+rPsLs.getString("psname")+"\",");
+                    bw.newLine();
+                    bw.write("\"personRoleName\":\""+rPsLs.getString("prname")+"\"");
+                    bw.newLine();
+                    bw.write("}");
+                    break;
+                }
+                while(rPsLs.next()){
+                    bw.write(",");
+                    bw.newLine();
+                    bw.write("{");
+                    bw.newLine();
+                    bw.write("\"personUuid\":\""+rPsLs.getString("psId")+"\",");
+                    bw.newLine();
+                    bw.write("\"personRoleUuid\":\""+rPsLs.getString("prid")+"\",");
+                    bw.newLine();
+                    bw.write("\"personName\":\""+rPsLs.getString("psname")+"\",");
+                    bw.newLine();
+                    bw.write("\"personRoleName\":\""+rPsLs.getString("prname")+"\"");
+                    bw.newLine();
+                    bw.write("}");
+                }
+                bw.newLine();
+                bw.write("],");
+                bw.newLine();
+                bw.write("}");
+                bw.close();
+                fos.close();
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
     private void generatePersonMetaFile(Connection conn){
         String allPersonQuery="SELECT uuid as pid,measure as plabel FROM latestNonDeletedArchEntIdentifiers " +
@@ -390,8 +547,8 @@ public class DBReader {
             e.printStackTrace();
         }
     }
-    private void generateAnswerMetaFile(Connection conn){
-        String allPersonQuery="SELECT uuid as id,measure as label FROM latestNonDeletedArchEntIdentifiers " +
+    private void generateAnswerMetaFile(Connection conn){// todo: generate file list
+         String allPersonQuery="SELECT uuid as id,measure as label FROM latestNonDeletedArchEntIdentifiers " +
                 "WHERE latestNonDeletedArchEntIdentifiers.AttributeID "+
                 "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='AnswerLabel')";
         String uuid="";
@@ -429,6 +586,205 @@ public class DBReader {
                         bw.write("\"annotation\":\""+rFT.getString("annotation")+"\"");
                     }
                 }
+                bw.write(",");
+                bw.newLine();
+                String loadFileForAnswerQuery="select uuid as fid ,measure as flabel from latestNonDeletedAentValue "+
+                        "where latestNonDeletedAentValue.AttributeID=(select AttributeID from AttributeKey where AttributeName='FileID') "+
+                        "and uuid in "+
+                        "(select uuid from AentReln where RelationshipID in "+
+                        "(select RelationshipID from AEntReln where AEntReln.uuid="+uuid+" "+
+                        "AND RelationshipID in "+
+                        "(select RelationshipID from latestNonDeletedRelationship where RelnTypeID="+
+                        "(select RelnTypeID from RelnType where RelnTypeName='Answer and File') "+
+                        "and latestNonDeletedRelationship.Deleted IS NULL)))";
+                Statement s3=conn.createStatement();
+                ResultSet rFileLs=s3.executeQuery(loadFileForAnswerQuery);
+                bw.write("\"answerFileList\":[");
+                bw.newLine();
+                while (rFileLs.next()){
+                    bw.write("{");
+                    bw.write("\"fileId\":\""+rFileLs.getString("fid")+"\",");
+                    bw.newLine();
+                    bw.write("\"fileLabel\":\""+rFileLs.getString("flabel")+"\"");
+                    bw.newLine();
+                    bw.write("}");
+                    break;
+                }
+
+                while (rFileLs.next()){
+                    bw.write(",");
+                    bw.newLine();
+                    bw.write("{");
+                    bw.newLine();
+                    bw.write("\"fileId\":\""+rFileLs.getString("fid")+"\",");
+                    bw.newLine();
+                    bw.write("\"fileLabel\":\""+rFileLs.getString("flabel")+"\"");
+                    bw.newLine();
+                    bw.write("}");
+                }
+                bw.newLine();
+                bw.write("],");
+                bw.newLine();
+                bw.write("}");
+                bw.close();
+                fos.close();
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+    private void generateFileMetaFile(Connection conn){
+        String allFileQuery="SELECT uuid as id,measure as label FROM latestNonDeletedArchEntIdentifiers " +
+                "WHERE latestNonDeletedArchEntIdentifiers.AttributeID "+
+                "= (SELECT AttributeID FROM AttributeKey WHERE AttributeName='FileID')";
+        String uuid="";
+        try {
+            Statement s1=conn.createStatement();
+            ResultSet rAllRes=s1.executeQuery(allFileQuery);
+            while(rAllRes.next()){
+                uuid=rAllRes.getString("id");
+
+                String getEntityValue="SELECT uuid as id, attributename as attr, measure as val, freetext as annotation, attributetype, attributeisfile " +
+                        "FROM latestNonDeletedArchent JOIN latestNonDeletedAentvalue AS av using (uuid) JOIN attributekey using (attributeid) " +
+                        "WHERE uuid = '"+uuid+"'";
+                Statement s2=conn.createStatement();
+                ResultSet rRes=s2.executeQuery(getEntityValue);
+                if(!rRes.next()){continue;}
+
+                File fFile=createMetaDataFile(rAllRes.getString("label")+".json");
+                if(fFile==null){
+                    //TODO: write log here
+                    continue;
+                }
+                FileOutputStream fos=new FileOutputStream(fFile);
+                BufferedWriter bw=new BufferedWriter(new OutputStreamWriter(fos));
+                bw.write("{");
+                bw.newLine();
+                bw.write("\"UUID\":\""+uuid+"\"");
+                while(rRes.next()){
+                    bw.write(",");
+                    bw.newLine();
+                    String data="\""+rRes.getString("attr")+"\":\""+rRes.getString("val")+"\"";
+                    bw.write(data);
+                    if(rRes.getString("annotation")!=null){
+                        bw.write(",");
+                        bw.newLine();
+                        bw.write("\"annotation\":\""+rRes.getString("annotation")+"\"");
+                    }
+                }
+                bw.newLine();
+                bw.write("}");
+                bw.close();
+                fos.close();
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+    private void generateQuestionnaire(Connection conn){
+        String allQuesnirQuery="select uuid as qid, measure as qlabel from latestNonDeletedArchEntIdentifiers "+
+                "where AttributeID = (select AttributeID from AttributeKey where AttributeName='QuestionnaireID')";
+        String uuid="";
+        try {
+            Statement s1=conn.createStatement();
+            ResultSet rAllRes=s1.executeQuery(allQuesnirQuery);
+            while(rAllRes.next()){
+                uuid=rAllRes.getString("qid");
+
+                String getEntityValue="SELECT uuid as id, attributename as attr, measure as val, freetext as annotation, attributetype, attributeisfile " +
+                        "FROM latestNonDeletedArchent JOIN latestNonDeletedAentvalue AS av using (uuid) JOIN attributekey using (attributeid) " +
+                        "WHERE uuid = '"+uuid+"'";
+                Statement s2=conn.createStatement();
+                ResultSet rRes=s2.executeQuery(getEntityValue);
+                if(!rRes.next()){continue;}
+
+                File fFile=createMetaDataFile(rAllRes.getString("qlabel")+".json");
+                if(fFile==null){
+                    //TODO: write log here
+                    continue;
+                }
+                FileOutputStream fos=new FileOutputStream(fFile);
+                BufferedWriter bw=new BufferedWriter(new OutputStreamWriter(fos));
+                bw.write("{");
+                bw.newLine();
+                bw.write("\"UUID\":\""+uuid+"\"");
+                while(rRes.next()){
+                    bw.write(",");
+                    bw.newLine();
+                    String data="\""+rRes.getString("attr")+"\":\""+rRes.getString("val")+"\"";
+                    bw.write(data);
+                    if(rRes.getString("annotation")!=null){
+                        bw.write(",");
+                        bw.newLine();
+                        bw.write("\"annotation\":\""+rRes.getString("annotation")+"\"");
+                    }
+                }
+                bw.write(",");
+                bw.newLine();
+                String loadQuesContentandOrderQuery="select t1.quesId as qid, t1.quesOrder as qorder, t2.quesContent as qContent from "+
+                        "(select quId.measure as quesId, qOrder.measure as quesOrder "+
+                        "from latestNonDeletedAentValue as quId, latestNonDeletedAentValue as qOrder "+
+                        "where qOrder.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesOrderLocal') "+
+                        "and quId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+                        "and quId.uuid=qOrder.uuid "+
+                        "and quId.measure in "+
+                        "(select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+                        "where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+                        "and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+                        "and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+uuid+"') "+
+                        "and qOrder.uuid in "+
+                        "(select uuid from latestNonDeletedArchEntIdentifiers where AttributeID = (select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+                        "and measure='"+uuid+"')) t1 "+
+                        "inner join "+
+                        "(select qId.measure as quesId, qContent.measure as quesContent "+
+                        "from latestNonDeletedAentValue as qId, latestNonDeletedAentValue as qContent, latestNonDeletedAentValue as qLanguage "+
+                        "where qContent.AttributeID=(SELECT AttributeID from AttributeKey where AttributeName='QuesContent') "+
+                        "and qId.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid') "+
+                        "and qLanguage.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesLangUuid') "+
+                        "and qId.uuid=qContent.uuid "+
+                        "and qId.uuid=qLanguage.uuid "+
+                        "and qLanguage.measure IN (select eng.uuid from latestNonDeletedAentValue as eng where eng.AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageName') "+
+                        "and eng.measure='English' and eng.uuid in (select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='LanguageID'))) "+
+                        "and qId.measure in "+
+                        "(select quesInQuesnir.measure from latestNonDeletedAentValue as quesInQuesnir, latestNonDeletedAentValue as quesnir "+
+                        "where quesInQuesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesID') "+
+                        "and quesnir.AttributeID=(select AttributeID from AttributeKey where AttributeName='QuesnirID') "+
+                        "and quesInQuesnir.uuid=quesnir.uuid and quesnir.measure='"+uuid+"') "+
+                        "and qId.uuid in "+
+                        "(select uuid from latestNonDeletedArchEntIdentifiers where AttributeID=(select AttributeID from AttributeKey where AttributeName='QuestionUuid'))) t2 "+
+                        "on t1.quesId=t2.quesId group by t1.quesId";
+                Statement s3=conn.createStatement();
+                ResultSet rQuesLs=s3.executeQuery(loadQuesContentandOrderQuery);
+                bw.write("\"QuestionList\":[");
+                bw.newLine();
+                while(rQuesLs.next()){
+                    bw.write("{");
+                    bw.newLine();
+                    bw.write("\"questionUuid\":\""+rQuesLs.getString("qid")+"\",");
+                    bw.newLine();
+                    bw.write("\"questionOrder\":\""+rQuesLs.getString("qorder")+"\",");
+                    bw.newLine();
+                    bw.write("\"question\":\""+rQuesLs.getString("qContent")+"\"");
+                    bw.newLine();
+                    bw.write("}");
+                    break;
+                }
+                while (rQuesLs.next()){
+                    bw.write(",");
+                    bw.newLine();
+                    bw.write("{");
+                    bw.newLine();
+                    bw.write("\"questionUuid\":\""+rQuesLs.getString("qid")+"\",");
+                    bw.newLine();
+                    bw.write("\"questionOrder\":\""+rQuesLs.getString("qorder")+"\",");
+                    bw.newLine();
+                    bw.write("\"question\":\""+rQuesLs.getString("qContent")+"\"");
+                    bw.newLine();
+                    bw.write("}");
+                }
+                bw.write("],");
                 bw.newLine();
                 bw.write("}");
                 bw.close();
